@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ACADEMY_OWNER
+  TEACHER
+  STUDENT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  authId    String   @unique
+  email     String   @unique
+  name      String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  academyId String?
+  academy   Academy? @relation(fields: [academyId], references: [id])
+
+  taughtClasses  Class[]         @relation("TeacherClasses")
+  enrollments    Enrollment[]
+  levelTestTakes LevelTestTake[]
+
+  @@map("users")
+}
+
+model Academy {
+  id        String   @id @default(uuid())
+  name      String
+  code      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users   User[]
+  classes Class[]
+
+  @@map("academies")
+}
+
+model Class {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  academyId   String
+  teacherId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  academy     Academy      @relation(fields: [academyId], references: [id])
+  teacher     User         @relation("TeacherClasses", fields: [teacherId], references: [id])
+  enrollments Enrollment[]
+
+  @@map("classes")
+}
+
+model Enrollment {
+  id        String   @id @default(uuid())
+  studentId String
+  classId   String
+  createdAt DateTime @default(now())
+
+  student User  @relation(fields: [studentId], references: [id])
+  class   Class @relation(fields: [classId], references: [id])
+
+  @@unique([studentId, classId])
+  @@map("enrollments")
+}
+
+model LevelTest {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  level       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions LevelTestQuestion[]
+  takes     LevelTestTake[]
+
+  @@map("level_tests")
+}
+
+model LevelTestQuestion {
+  id           String   @id @default(uuid())
+  testId       String
+  order        Int
+  questionText String
+  type         String
+  options      Json?
+  answer       String?
+  points       Int      @default(1)
+  createdAt    DateTime @default(now())
+
+  test    LevelTest         @relation(fields: [testId], references: [id])
+  answers LevelTestAnswer[]
+
+  @@map("level_test_questions")
+}
+
+model LevelTestTake {
+  id          String    @id @default(uuid())
+  testId      String
+  studentId   String
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  score       Float?
+  level       String?
+
+  test    LevelTest         @relation(fields: [testId], references: [id])
+  student User              @relation(fields: [studentId], references: [id])
+  answers LevelTestAnswer[]
+
+  @@map("level_test_takes")
+}
+
+model LevelTestAnswer {
+  id         String   @id @default(uuid())
+  takeId     String
+  questionId String
+  answer     String
+  isCorrect  Boolean?
+  points     Float?
+
+  take     LevelTestTake     @relation(fields: [takeId], references: [id])
+  question LevelTestQuestion @relation(fields: [questionId], references: [id])
+
+  @@map("level_test_answers")
+}
