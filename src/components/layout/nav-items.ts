@@ -1,0 +1,56 @@
+import type { LucideIcon } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Users,
+  UserCheck,
+  BookOpen,
+  FileText,
+  BarChart2,
+  Settings,
+  FilePen,
+  MessageSquare,
+  Calendar,
+  Home,
+  Award,
+  GraduationCap,
+} from 'lucide-react'
+import type { Role } from '@/types'
+
+export type NavItem = {
+  label: string
+  href: string
+  icon: LucideIcon
+}
+
+export const ROLE_LABEL: Record<Role, string> = {
+  SUPER_ADMIN: '관리자',
+  ACADEMY_OWNER: '학원장',
+  TEACHER: '교사',
+  STUDENT: '학생',
+}
+
+export const NAV_ITEMS: Record<Exclude<Role, 'SUPER_ADMIN'>, NavItem[]> = {
+  ACADEMY_OWNER: [
+    { label: '대시보드', href: '/owner', icon: LayoutDashboard },
+    { label: '학생관리', href: '/owner/students', icon: Users },
+    { label: '교사관리', href: '/owner/teachers', icon: UserCheck },
+    { label: '반관리', href: '/owner/classes', icon: GraduationCap },
+    { label: '테스트관리', href: '/owner/tests', icon: FileText },
+    { label: '분석통계', href: '/owner/analytics', icon: BarChart2 },
+    { label: '설정', href: '/owner/settings', icon: Settings },
+  ],
+  TEACHER: [
+    { label: '대시보드', href: '/teacher', icon: LayoutDashboard },
+    { label: '테스트 출제/채점', href: '/teacher/tests', icon: FilePen },
+    { label: '학생학습관리', href: '/teacher/students', icon: Users },
+    { label: '커뮤니케이션', href: '/teacher/communication', icon: MessageSquare },
+    { label: '일정', href: '/teacher/schedule', icon: Calendar },
+  ],
+  STUDENT: [
+    { label: '홈', href: '/student', icon: Home },
+    { label: '테스트', href: '/student/tests', icon: FileText },
+    { label: '학습공간', href: '/student/learning', icon: BookOpen },
+    { label: '내 성적', href: '/student/grades', icon: BarChart2 },
+    { label: '배지', href: '/student/badges', icon: Award },
+  ],
+}

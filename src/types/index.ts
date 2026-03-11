@@ -1,18 +1,20 @@
 export type Role = 'SUPER_ADMIN' | 'ACADEMY_OWNER' | 'TEACHER' | 'STUDENT'
 
+// User.id = Supabase Auth UUID (schema.prisma 참고)
 export type UserProfile = {
   id: string
-  authId: string
   email: string
   name: string
   role: Role
-  academyId?: string | null
+  academyId: string | null
+  academy: { id: string; name: string } | null
 }
 
 export type Academy = {
   id: string
   name: string
-  code: string
+  address?: string | null
+  phone?: string | null
   createdAt: Date
   updatedAt: Date
 }

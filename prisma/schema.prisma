@@ -9,6 +9,15 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum PlanType {
+  BASIC
+  STANDARD
+  PREMIUM
+  ENTERPRISE
+}
+
 enum Role {
   SUPER_ADMIN
   ACADEMY_OWNER
@@ -16,124 +25,368 @@ enum Role {
   STUDENT
 }
 
-model User {
-  id        String   @id @default(uuid())
-  authId    String   @unique
-  email     String   @unique
-  name      String
-  role      Role
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  academyId String?
-  academy   Academy? @relation(fields: [academyId], references: [id])
-
-  taughtClasses  Class[]         @relation("TeacherClasses")
-  enrollments    Enrollment[]
-  levelTestTakes LevelTestTake[]
-
-  @@map("users")
+enum StudentStatus {
+  ACTIVE
+  ON_LEAVE
+  WITHDRAWN
 }
 
-model Academy {
-  id        String   @id @default(uuid())
-  name      String
-  code      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum TestType {
+  LEVEL_TEST
+  UNIT_TEST
+  PRACTICE
+}
 
-  users   User[]
-  classes Class[]
+enum SessionStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  GRADED
+}
+
+enum QuestionDomain {
+  GRAMMAR
+  VOCABULARY
+  READING
+  WRITING
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  SUCCESS
+  ERROR
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+/// 1. 학원
+model Academy {
+  id           String    @id @default(uuid())
+  name         String
+  address      String?
+  phone        String?
+  logoUrl      String?   @map("logo_url")
+  planType     PlanType  @default(BASIC) @map("plan_type")
+  settingsJson Json?     @map("settings_json")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  users         User[]
+  classes       Class[]
+  tests         Test[]
+  questions     Question[]
+  notifications Notification[]
+  badges        Badge[]
+  enrollments   Enrollment[]
 
   @@map("academies")
 }
 
-model Class {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  academyId   String
-  teacherId   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+/// 2. 사용자 (Supabase Auth 연동 - id = auth.users.id)
+model User {
+  id        String   @id // Supabase Auth UUID
+  academyId String?  @map("academy_id")
+  role      Role
+  name      String
+  email     String   @unique
+  phone     String?
+  avatarUrl String?  @map("avatar_url")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  academy     Academy      @relation(fields: [academyId], references: [id])
-  teacher     User         @relation("TeacherClasses", fields: [teacherId], references: [id])
+  academy Academy? @relation(fields: [academyId], references: [id])
+
+  student          Student?
+  taughtClasses    Class[]          @relation("TeacherClasses")
+  createdTests     Test[]           @relation("TestCreator")
+  createdQuestions Question[]
+  writtenComments  TeacherComment[] @relation("CommentAuthor")
+  generatedReports Report[]         @relation("ReportGenerator")
+  notifications    Notification[]
+
+  @@map("users")
+}
+
+/// 3. 학생 상세
+model Student {
+  id           String        @id @default(uuid())
+  userId       String        @unique @map("user_id")
+  grade        Int?
+  currentLevel Int           @default(1) @map("current_level")
+  classId      String?       @map("class_id")
+  status       StudentStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  user  User   @relation(fields: [userId], references: [id])
+  class Class? @relation(fields: [classId], references: [id])
+
+  testSessions     TestSession[]
+  skillAssessments SkillAssessment[]
+  learningPaths    LearningPath[]
+  teacherComments  TeacherComment[]
+  reports          Report[]
+  attendance       Attendance[]
+  badgeEarnings    BadgeEarning[]
+  enrollments      Enrollment[]
+
+  @@map("students")
+}
+
+/// 4. 반
+model Class {
+  id           String   @id @default(uuid())
+  academyId    String   @map("academy_id")
+  name         String
+  levelRange   String?  @map("level_range")
+  teacherId    String?  @map("teacher_id")
+  scheduleJson Json?    @map("schedule_json")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  academy  Academy @relation(fields: [academyId], references: [id])
+  teacher  User?   @relation("TeacherClasses", fields: [teacherId], references: [id])
+
+  students    Student[]
+  attendance  Attendance[]
   enrollments Enrollment[]
 
   @@map("classes")
 }
 
-model Enrollment {
-  id        String   @id @default(uuid())
-  studentId String
-  classId   String
-  createdAt DateTime @default(now())
+/// 5. 테스트 정의
+model Test {
+  id            String   @id @default(uuid())
+  academyId     String   @map("academy_id")
+  title         String
+  type          TestType
+  levelRange    String?  @map("level_range")
+  totalScore    Int      @default(100) @map("total_score")
+  timeLimitMin  Int?     @map("time_limit_min")
+  instructions  String?
+  questionOrder Json?    @map("question_order")
+  createdBy     String   @map("created_by")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
 
-  student User  @relation(fields: [studentId], references: [id])
-  class   Class @relation(fields: [classId], references: [id])
+  academy      Academy       @relation(fields: [academyId], references: [id])
+  creator      User          @relation("TestCreator", fields: [createdBy], references: [id])
+  testSessions TestSession[]
+
+  @@map("tests")
+}
+
+/// 6. 테스트 응시 세션
+model TestSession {
+  id                 String        @id @default(uuid())
+  testId             String        @map("test_id")
+  studentId          String        @map("student_id")
+  score              Int?
+  grammarScore       Int?          @map("grammar_score")
+  vocabularyScore    Int?          @map("vocabulary_score")
+  readingScore       Int?          @map("reading_score")
+  writingScore       Int?          @map("writing_score")
+  startedAt          DateTime      @default(now()) @map("started_at")
+  completedAt        DateTime?     @map("completed_at")
+  timeLimitMin       Int?          @map("time_limit_min")
+  currentQuestionIdx Int           @default(0) @map("current_question_idx")
+  lastSavedAt        DateTime?     @map("last_saved_at")
+  status             SessionStatus @default(NOT_STARTED)
+
+  test              Test               @relation(fields: [testId], references: [id])
+  student           Student            @relation(fields: [studentId], references: [id])
+  questionResponses QuestionResponse[]
+
+  @@map("test_sessions")
+}
+
+/// 7. 문제 뱅크
+model Question {
+  id          String         @id @default(uuid())
+  academyId   String?        @map("academy_id")
+  domain      QuestionDomain
+  subCategory String?        @map("sub_category")
+  difficulty  Int            @default(1)
+  cefrLevel   String?        @map("cefr_level")
+  contentJson Json           @map("content_json")
+  statsJson   Json?          @map("stats_json")
+  createdBy   String?        @map("created_by")
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  academy   Academy?           @relation(fields: [academyId], references: [id])
+  creator   User?              @relation(fields: [createdBy], references: [id])
+  responses QuestionResponse[]
+
+  @@map("questions")
+}
+
+/// 8. 문제 응답
+model QuestionResponse {
+  id           String   @id @default(uuid())
+  sessionId    String   @map("session_id")
+  questionId   String   @map("question_id")
+  answer       String?
+  answerJson   Json?    @map("answer_json")
+  isCorrect    Boolean? @map("is_correct")
+  timeSpentSec Int?     @map("time_spent_sec")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  session  TestSession @relation(fields: [sessionId], references: [id])
+  question Question    @relation(fields: [questionId], references: [id])
+
+  @@map("question_responses")
+}
+
+/// 9. 영역별 스킬 평가
+model SkillAssessment {
+  id         String         @id @default(uuid())
+  studentId  String         @map("student_id")
+  domain     QuestionDomain
+  level      Int
+  score      Int?
+  notes      String?
+  assessedAt DateTime       @default(now()) @map("assessed_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("skill_assessments")
+}
+
+/// 10. 학습 경로
+model LearningPath {
+  id           String   @id @default(uuid())
+  studentId    String   @map("student_id")
+  title        String
+  description  String?
+  goalsJson    Json?    @map("goals_json")
+  progressJson Json?    @map("progress_json")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("learning_paths")
+}
+
+/// 11. 교사 코멘트
+model TeacherComment {
+  id        String   @id @default(uuid())
+  teacherId String   @map("teacher_id")
+  studentId String   @map("student_id")
+  content   String
+  type      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  teacher User    @relation("CommentAuthor", fields: [teacherId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("teacher_comments")
+}
+
+/// 12. 리포트
+model Report {
+  id          String    @id @default(uuid())
+  studentId   String    @map("student_id")
+  generatedBy String?   @map("generated_by")
+  type        String
+  periodStart DateTime? @map("period_start")
+  periodEnd   DateTime? @map("period_end")
+  dataJson    Json      @map("data_json")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  student   Student @relation(fields: [studentId], references: [id])
+  generator User?   @relation("ReportGenerator", fields: [generatedBy], references: [id])
+
+  @@map("reports")
+}
+
+/// 13. 알림
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  academyId String?          @map("academy_id")
+  type      NotificationType @default(INFO)
+  title     String
+  message   String
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id])
+  academy Academy? @relation(fields: [academyId], references: [id])
+
+  @@map("notifications")
+}
+
+/// 14. 출석
+model Attendance {
+  id        String           @id @default(uuid())
+  studentId String           @map("student_id")
+  classId   String           @map("class_id")
+  date      DateTime
+  status    AttendanceStatus @default(PRESENT)
+  note      String?
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+
+  @@unique([studentId, classId, date])
+  @@map("attendance")
+}
+
+/// 15. 배지
+model Badge {
+  id          String   @id @default(uuid())
+  academyId   String?  @map("academy_id")
+  name        String
+  description String?
+  iconUrl     String?  @map("icon_url")
+  criteria    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  academy  Academy?      @relation(fields: [academyId], references: [id])
+  earnings BadgeEarning[]
+
+  @@map("badges")
+}
+
+model BadgeEarning {
+  id        String   @id @default(uuid())
+  studentId String   @map("student_id")
+  badgeId   String   @map("badge_id")
+  earnedAt  DateTime @default(now()) @map("earned_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+  badge   Badge   @relation(fields: [badgeId], references: [id])
+
+  @@unique([studentId, badgeId])
+  @@map("badge_earnings")
+}
+
+/// 16. 수강 등록
+model Enrollment {
+  id         String   @id @default(uuid())
+  studentId  String   @map("student_id")
+  classId    String   @map("class_id")
+  academyId  String   @map("academy_id")
+  enrolledAt DateTime @default(now()) @map("enrolled_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+  academy Academy @relation(fields: [academyId], references: [id])
 
   @@unique([studentId, classId])
   @@map("enrollments")
-}
-
-model LevelTest {
-  id          String   @id @default(uuid())
-  title       String
-  description String?
-  level       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  questions LevelTestQuestion[]
-  takes     LevelTestTake[]
-
-  @@map("level_tests")
-}
-
-model LevelTestQuestion {
-  id           String   @id @default(uuid())
-  testId       String
-  order        Int
-  questionText String
-  type         String
-  options      Json?
-  answer       String?
-  points       Int      @default(1)
-  createdAt    DateTime @default(now())
-
-  test    LevelTest         @relation(fields: [testId], references: [id])
-  answers LevelTestAnswer[]
-
-  @@map("level_test_questions")
-}
-
-model LevelTestTake {
-  id          String    @id @default(uuid())
-  testId      String
-  studentId   String
-  startedAt   DateTime  @default(now())
-  completedAt DateTime?
-  score       Float?
-  level       String?
-
-  test    LevelTest         @relation(fields: [testId], references: [id])
-  student User              @relation(fields: [studentId], references: [id])
-  answers LevelTestAnswer[]
-
-  @@map("level_test_takes")
-}
-
-model LevelTestAnswer {
-  id         String   @id @default(uuid())
-  takeId     String
-  questionId String
-  answer     String
-  isCorrect  Boolean?
-  points     Float?
-
-  take     LevelTestTake     @relation(fields: [takeId], references: [id])
-  question LevelTestQuestion @relation(fields: [questionId], references: [id])
-
-  @@map("level_test_answers")
 }
