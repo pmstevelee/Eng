@@ -64,13 +64,13 @@ async function getOrCreateAuthUser(email: string, password: string) {
   if (!error && created.user) return created.user.id
 
   // 이미 존재하면 목록에서 조회
-  if (error.message.includes('already') || error.code === 'email_exists') {
+  if (error?.message.includes('already') || error?.code === 'email_exists') {
     const { data: list } = await supabaseAdmin.auth.admin.listUsers({ perPage: 100 })
     const existing = list?.users.find((u) => u.email === email)
     if (existing) return existing.id
   }
 
-  throw new Error(`Auth 생성 실패 (${email}): ${error.message}`)
+  throw new Error(`Auth 생성 실패 (${email}): ${error?.message ?? '알 수 없는 오류'}`)
 }
 
 async function main() {
