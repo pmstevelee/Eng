@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react'
 import { Sidebar } from './sidebar'
 import { Header } from './header'
-import type { NavItem } from './nav-items'
+import { NAV_ITEMS } from './nav-items'
+import type { Role } from '@/types'
+
+type DashboardRole = Exclude<Role, 'SUPER_ADMIN'>
 
 interface DashboardLayoutProps {
   children: React.ReactNode
-  navItems: NavItem[]
+  role: DashboardRole
   userName: string
   userEmail: string
   userRole: string
@@ -16,12 +19,14 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({
   children,
-  navItems,
+  role,
   userName,
   userEmail,
   userRole,
   academyName,
 }: DashboardLayoutProps) {
+  const navItems = NAV_ITEMS[role]
+
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 

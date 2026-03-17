@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { NAV_ITEMS, ROLE_LABEL } from '@/components/layout/nav-items'
+import { ROLE_LABEL } from '@/components/layout/nav-items'
 
 export default async function OwnerLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -26,7 +26,7 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
 
   return (
     <DashboardLayout
-      navItems={NAV_ITEMS.ACADEMY_OWNER}
+      role="ACADEMY_OWNER"
       userName={user.name}
       userEmail={user.email}
       userRole={ROLE_LABEL.ACADEMY_OWNER}
