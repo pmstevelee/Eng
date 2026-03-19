@@ -85,6 +85,12 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+enum TestStatus {
+  DRAFT
+  PUBLISHED
+  GRADED
+}
+
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 /// 1. 학원
@@ -205,27 +211,31 @@ model Class {
   students    Student[]
   attendance  Attendance[]
   enrollments Enrollment[]
+  tests       Test[]
 
   @@map("classes")
 }
 
 /// 5. 테스트 정의
 model Test {
-  id            String   @id @default(uuid())
-  academyId     String   @map("academy_id")
+  id            String     @id @default(uuid())
+  academyId     String     @map("academy_id")
   title         String
   type          TestType
-  levelRange    String?  @map("level_range")
-  totalScore    Int      @default(100) @map("total_score")
-  timeLimitMin  Int?     @map("time_limit_min")
+  status        TestStatus @default(DRAFT)
+  levelRange    String?    @map("level_range")
+  classId       String?    @map("class_id")
+  totalScore    Int        @default(100) @map("total_score")
+  timeLimitMin  Int?       @map("time_limit_min")
   instructions  String?
-  questionOrder Json?    @map("question_order")
-  createdBy     String   @map("created_by")
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at")
+  questionOrder Json?      @map("question_order")
+  createdBy     String     @map("created_by")
+  isActive      Boolean    @default(true) @map("is_active")
+  createdAt     DateTime   @default(now()) @map("created_at")
 
   academy      Academy       @relation(fields: [academyId], references: [id])
   creator      User          @relation("TestCreator", fields: [createdBy], references: [id])
+  class        Class?        @relation(fields: [classId], references: [id])
   testSessions TestSession[]
 
   @@map("tests")
