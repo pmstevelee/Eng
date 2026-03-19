@@ -3,7 +3,8 @@
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { QuestionDomain } from '@/generated/prisma'
+
+type QuestionDomain = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
 
 export type QuestionContentJson = {
   type: 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay'
