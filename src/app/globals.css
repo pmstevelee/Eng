@@ -1,33 +1,56 @@
+/* Pretendard 폰트 로드 (가변 폰트, 다이나믹 서브셋) */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* ── 배경/텍스트 ─────────────────────────────────────── */
+    --background: 210 14% 97%;        /* #F7F8F9 */
+    --foreground: 228 14% 15%;        /* #21242C */
+
+    /* ── 카드 ────────────────────────────────────────────── */
+    --card: 0 0% 100%;                /* #FFFFFF */
+    --card-foreground: 228 14% 15%;   /* #21242C */
+
+    /* ── 팝오버 ──────────────────────────────────────────── */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --popover-foreground: 228 14% 15%;
+
+    /* ── 주요 색상 (네이비 블루 #1865F2) ─────────────────── */
+    --primary: 219 89% 52%;           /* #1865F2 */
+    --primary-foreground: 0 0% 100%;  /* white */
+
+    /* ── 보조 색상 ───────────────────────────────────────── */
+    --secondary: 220 7% 95%;          /* #F0F1F3 */
+    --secondary-foreground: 228 14% 15%;
+
+    /* ── 음소거(muted) ───────────────────────────────────── */
+    --muted: 220 7% 95%;              /* #F0F1F3 */
+    --muted-foreground: 229 7% 45%;   /* #6B6F7A */
+
+    /* ── 강조(accent) - 연한 블루 배경 ──────────────────── */
+    --accent: 221 100% 97%;           /* #EEF4FF */
+    --accent-foreground: 219 89% 52%; /* #1865F2 */
+
+    /* ── 위험/삭제 ───────────────────────────────────────── */
+    --destructive: 6 75% 46%;         /* #D92916 */
+    --destructive-foreground: 0 0% 100%;
+
+    /* ── 테두리/인풋/포커스 링 ───────────────────────────── */
+    --border: 220 11% 90%;            /* #E3E5EA */
+    --input: 225 9% 75%;              /* #BABEC7 - 인풋 테두리 */
+    --ring: 219 89% 52%;              /* #1865F2 - 포커스 링 */
+
+    /* ── 차트 색상 ───────────────────────────────────────── */
+    --chart-1: 219 89% 52%;   /* Grammar - Blue */
+    --chart-2: 262 90% 65%;   /* Vocabulary - Purple */
+    --chart-3: 175 82% 40%;   /* Reading - Teal */
+    --chart-4: 21 79% 50%;    /* Writing - Orange */
+    --chart-5: 43 100% 50%;   /* Gold */
+
     --radius: 0.5rem;
   }
 
@@ -38,19 +61,19 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 219 89% 52%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 6 75% 46%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 219 89% 52%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -64,6 +87,10 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.625;
   }
 }
 

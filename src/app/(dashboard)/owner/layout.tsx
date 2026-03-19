@@ -18,7 +18,7 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
       name: true,
       email: true,
       role: true,
-      academy: { select: { name: true } },
+      academy: { select: { name: true, businessName: true } },
     },
   })
 
@@ -31,6 +31,7 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
       userEmail={user.email}
       userRole={ROLE_LABEL.ACADEMY_OWNER}
       academyName={user.academy?.name}
+      businessName={user.academy?.businessName}
     >
       {children}
     </DashboardLayout>

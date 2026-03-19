@@ -18,7 +18,7 @@ export default async function TeacherLayout({ children }: { children: React.Reac
       name: true,
       email: true,
       role: true,
-      academy: { select: { name: true } },
+      academy: { select: { name: true, businessName: true } },
     },
   })
 
@@ -31,6 +31,7 @@ export default async function TeacherLayout({ children }: { children: React.Reac
       userEmail={user.email}
       userRole={ROLE_LABEL.TEACHER}
       academyName={user.academy?.name}
+      businessName={user.academy?.businessName}
     >
       {children}
     </DashboardLayout>

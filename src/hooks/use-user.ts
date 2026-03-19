@@ -49,5 +49,7 @@ export function useUser() {
     return () => subscription.unsubscribe()
   }, [])
 
-  return { user, loading }
+  const businessName = user?.academy?.businessName ?? null
+
+  return { user, loading, businessName }
 }

@@ -7,7 +7,7 @@ export type UserProfile = {
   name: string
   role: Role
   academyId: string | null
-  academy: { id: string; name: string } | null
+  academy: { id: string; name: string; businessName?: string | null } | null
 }
 
 export type Academy = {

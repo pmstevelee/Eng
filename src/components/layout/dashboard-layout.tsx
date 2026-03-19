@@ -6,15 +6,14 @@ import { Header } from './header'
 import { NAV_ITEMS } from './nav-items'
 import type { Role } from '@/types'
 
-type DashboardRole = Exclude<Role, 'SUPER_ADMIN'>
-
 interface DashboardLayoutProps {
   children: React.ReactNode
-  role: DashboardRole
+  role: Role
   userName: string
   userEmail: string
   userRole: string
   academyName?: string | null
+  businessName?: string | null
 }
 
 export function DashboardLayout({
@@ -24,6 +23,7 @@ export function DashboardLayout({
   userEmail,
   userRole,
   academyName,
+  businessName,
 }: DashboardLayoutProps) {
   const navItems = NAV_ITEMS[role]
 
@@ -43,7 +43,7 @@ export function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar
         navItems={navItems}
         isCollapsed={isCollapsed}
@@ -51,6 +51,7 @@ export function DashboardLayout({
         userName={userName}
         userRole={userRole}
         academyName={academyName}
+        businessName={businessName}
         onToggleCollapse={handleToggleCollapse}
         onCloseMobile={() => setIsMobileOpen(false)}
       />
@@ -63,7 +64,7 @@ export function DashboardLayout({
           userRole={userRole}
           onOpenMobileSidebar={() => setIsMobileOpen(true)}
         />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">{children}</main>
       </div>
     </div>
   )

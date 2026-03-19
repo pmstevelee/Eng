@@ -13,6 +13,8 @@ import {
   Home,
   Award,
   GraduationCap,
+  Building2,
+  CreditCard,
 } from 'lucide-react'
 import type { Role } from '@/types'
 
@@ -29,7 +31,12 @@ export const ROLE_LABEL: Record<Role, string> = {
   STUDENT: '학생',
 }
 
-export const NAV_ITEMS: Record<Exclude<Role, 'SUPER_ADMIN'>, NavItem[]> = {
+export const NAV_ITEMS: Record<Role, NavItem[]> = {
+  SUPER_ADMIN: [
+    { label: '대시보드', href: '/admin', icon: LayoutDashboard },
+    { label: '학원 관리', href: '/admin/academies', icon: Building2 },
+    { label: '구독 관리', href: '/admin/subscriptions', icon: CreditCard },
+  ],
   ACADEMY_OWNER: [
     { label: '대시보드', href: '/owner', icon: LayoutDashboard },
     { label: '학생관리', href: '/owner/students', icon: Users },
@@ -45,6 +52,7 @@ export const NAV_ITEMS: Record<Exclude<Role, 'SUPER_ADMIN'>, NavItem[]> = {
     { label: '학생학습관리', href: '/teacher/students', icon: Users },
     { label: '커뮤니케이션', href: '/teacher/communication', icon: MessageSquare },
     { label: '일정', href: '/teacher/schedule', icon: Calendar },
+    { label: '설정', href: '/teacher/settings', icon: Settings },
   ],
   STUDENT: [
     { label: '홈', href: '/student', icon: Home },
@@ -52,5 +60,6 @@ export const NAV_ITEMS: Record<Exclude<Role, 'SUPER_ADMIN'>, NavItem[]> = {
     { label: '학습공간', href: '/student/learning', icon: BookOpen },
     { label: '내 성적', href: '/student/grades', icon: BarChart2 },
     { label: '배지', href: '/student/badges', icon: Award },
+    { label: '설정', href: '/student/settings', icon: Settings },
   ],
 }

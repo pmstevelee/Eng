@@ -21,7 +21,7 @@ export async function GET() {
       role: true,
       academyId: true,
       academy: {
-        select: { id: true, name: true },
+        select: { id: true, name: true, businessName: true },
       },
     },
   })
