@@ -15,6 +15,7 @@ import {
   GraduationCap,
   Building2,
   CreditCard,
+  Library,
 } from 'lucide-react'
 import type { Role } from '@/types'
 
@@ -43,12 +44,14 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '교사관리', href: '/owner/teachers', icon: UserCheck },
     { label: '반관리', href: '/owner/classes', icon: GraduationCap },
     { label: '테스트관리', href: '/owner/tests', icon: FileText },
+    { label: '문제 뱅크', href: '/owner/tests/questions', icon: Library },
     { label: '분석통계', href: '/owner/analytics', icon: BarChart2 },
     { label: '설정', href: '/owner/settings', icon: Settings },
   ],
   TEACHER: [
     { label: '대시보드', href: '/teacher', icon: LayoutDashboard },
     { label: '테스트 출제/채점', href: '/teacher/tests', icon: FilePen },
+    { label: '문제 뱅크', href: '/teacher/tests/questions', icon: Library },
     { label: '학생학습관리', href: '/teacher/students', icon: Users },
     { label: '커뮤니케이션', href: '/teacher/communication', icon: MessageSquare },
     { label: '일정', href: '/teacher/schedule', icon: Calendar },
