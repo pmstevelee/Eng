@@ -114,12 +114,6 @@ export default async function SubscriptionPage() {
 
   return (
     <div className="space-y-8 max-w-5xl">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">구독 관리</h1>
-        <p className="text-sm text-gray-500 mt-1">요금제 및 구독 내역을 확인하고 관리합니다</p>
-      </div>
-
       {/* 만료 배너 */}
       {isExpired && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-5 py-4 flex items-start gap-3">

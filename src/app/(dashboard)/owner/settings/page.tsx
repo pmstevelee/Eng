@@ -25,11 +25,6 @@ export default async function OwnerSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">설정</h1>
-        <p className="text-sm text-gray-500 mt-1">학원 및 계정 설정을 관리합니다</p>
-      </div>
-
       {/* 학원 정보 */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-base font-semibold text-gray-900 mb-4">학원 정보</h2>
