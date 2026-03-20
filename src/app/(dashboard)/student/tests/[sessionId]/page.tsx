@@ -73,29 +73,9 @@ export default async function TestSessionPage({
 
   if (!session) notFound()
 
-  // 이미 완료된 테스트 - 결과 페이지로 이동 (추후 구현)
+  // 이미 완료된 테스트 - 결과 페이지로 리다이렉트
   if (session.status === 'COMPLETED' || session.status === 'GRADED') {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-            <svg className="h-8 w-8 text-[#1FAF54]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-xl font-bold text-gray-900">테스트 제출 완료</h2>
-          <p className="mt-2 text-gray-500">
-            {session.status === 'GRADED' ? '채점이 완료되었습니다.' : '채점 결과를 기다리고 있습니다.'}
-          </p>
-          <a
-            href="/student"
-            className="mt-6 inline-flex items-center rounded-xl bg-[#1865F2] px-6 py-3 text-sm font-medium text-white hover:bg-[#1558d6]"
-          >
-            대시보드로 돌아가기
-          </a>
-        </div>
-      </div>
-    )
+    redirect(`/student/tests/${sessionId}/result`)
   }
 
   // 문제 ID 목록

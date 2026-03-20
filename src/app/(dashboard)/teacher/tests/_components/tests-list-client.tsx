@@ -207,6 +207,14 @@ export default function TestsListClient({ tests }: { tests: TestItem[] }) {
                           배포하기
                         </button>
                       )}
+                      {test.status === 'PUBLISHED' && completed > 0 && (
+                        <a
+                          href={`/teacher/tests/${test.id}/grade`}
+                          className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                          채점하기
+                        </a>
+                      )}
                       {test.sessions.length > 0 && (
                         <button
                           onClick={() => setExpandedId(isExpanded ? null : test.id)}

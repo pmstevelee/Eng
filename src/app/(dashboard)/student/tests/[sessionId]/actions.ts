@@ -105,7 +105,15 @@ export async function submitTest(
     select: {
       id: true,
       status: true,
-      test: { select: { questionOrder: true } },
+      studentId: true,
+      test: {
+        select: {
+          questionOrder: true,
+          title: true,
+          createdBy: true,
+          academyId: true,
+        },
+      },
     },
   })
   if (!session || session.status !== 'IN_PROGRESS') return { error: '유효하지 않은 세션입니다.' }
@@ -118,7 +126,16 @@ export async function submitTest(
 
   const answerMap = new Map(allAnswers.map((r) => [r.questionId, r.answer]))
 
-  let totalCorrect = 0
+  // 도메인별 채점 통계
+  type DomainKey = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
+  const domainStats: Record<DomainKey, { correct: number; total: number }> = {
+    GRAMMAR: { correct: 0, total: 0 },
+    VOCABULARY: { correct: 0, total: 0 },
+    READING: { correct: 0, total: 0 },
+    WRITING: { correct: 0, total: 0 },
+  }
+
+  let hasEssay = false
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -126,18 +143,26 @@ export async function submitTest(
       for (const q of questions) {
         const content = q.contentJson as QuestionContentJson
         const studentAnswer = answerMap.get(q.id) ?? ''
+        const domain = q.domain as DomainKey
 
         let isCorrect: boolean | null = null
-        if (
+
+        if (content.type === 'essay') {
+          // 에세이: 교사 채점 대기
+          hasEssay = true
+          isCorrect = null
+        } else if (
           (content.type === 'multiple_choice' ||
             content.type === 'fill_blank' ||
             content.type === 'short_answer') &&
-          studentAnswer &&
           content.correct_answer
         ) {
-          isCorrect =
-            studentAnswer.toLowerCase().trim() === content.correct_answer.toLowerCase().trim()
-          if (isCorrect) totalCorrect++
+          domainStats[domain].total++
+          if (studentAnswer) {
+            isCorrect =
+              studentAnswer.toLowerCase().trim() === content.correct_answer.toLowerCase().trim()
+            if (isCorrect) domainStats[domain].correct++
+          }
         }
 
         const existing = await tx.questionResponse.findFirst({
@@ -156,13 +181,26 @@ export async function submitTest(
         }
       }
 
-      const gradableCount = questions.filter((q) => {
-        const c = q.contentJson as QuestionContentJson
-        return c.type !== 'essay'
-      }).length
+      // 도메인별 점수 계산 (0-100, 문제 없으면 null)
+      const calcDomainScore = (key: DomainKey): number | null => {
+        const { correct, total } = domainStats[key]
+        if (total === 0) return null
+        return Math.round((correct / total) * 100)
+      }
 
-      const score =
-        gradableCount > 0 ? Math.round((totalCorrect / gradableCount) * 100) : null
+      const grammarScore = calcDomainScore('GRAMMAR')
+      const vocabularyScore = calcDomainScore('VOCABULARY')
+      const readingScore = calcDomainScore('READING')
+
+      // 객관식 전체 점수
+      const totalObjective = Object.values(domainStats)
+        .filter((_, i) => ['GRAMMAR', 'VOCABULARY', 'READING'].includes(Object.keys(domainStats)[i]))
+        .reduce((sum, d) => sum + d.total, 0)
+      const totalCorrect = Object.values(domainStats)
+        .filter((_, i) => ['GRAMMAR', 'VOCABULARY', 'READING'].includes(Object.keys(domainStats)[i]))
+        .reduce((sum, d) => sum + d.correct, 0)
+
+      const score = totalObjective > 0 ? Math.round((totalCorrect / totalObjective) * 100) : null
 
       await tx.testSession.update({
         where: { id: sessionId },
@@ -171,8 +209,41 @@ export async function submitTest(
           completedAt: new Date(),
           lastSavedAt: new Date(),
           score,
+          grammarScore,
+          vocabularyScore,
+          readingScore,
+          // writingScore는 교사 채점 후 업데이트
         },
       })
+
+      // 영역별 SkillAssessment 기록
+      for (const [domain, stats] of Object.entries(domainStats)) {
+        if (stats.total > 0) {
+          const domScore = Math.round((stats.correct / stats.total) * 100)
+          await tx.skillAssessment.create({
+            data: {
+              studentId: auth.studentId,
+              domain: domain as DomainKey,
+              level: 1,
+              score: domScore,
+              notes: `자동 채점 - ${session.test.title}`,
+            },
+          })
+        }
+      }
+
+      // 교사에게 채점 대기 알림 (쓰기 문제가 있는 경우)
+      if (hasEssay) {
+        await tx.notification.create({
+          data: {
+            userId: session.test.createdBy,
+            academyId: session.test.academyId,
+            type: 'WARNING',
+            title: '쓰기 채점 대기 중',
+            message: `"${session.test.title}" 테스트에서 학생의 쓰기 답안이 채점을 기다리고 있습니다.`,
+          },
+        })
+      }
     })
 
     revalidatePath(`/student/tests/${sessionId}`)
