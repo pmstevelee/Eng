@@ -34,6 +34,8 @@ type Props = {
   getAutoQuestionsAction: (
     configs: AutoConfig[],
   ) => Promise<{ questions: QuestionRowMin[]; error?: string }>
+  /** 저장/배포 성공 후 이동할 경로 (기본값: '/teacher/tests') */
+  successHref?: string
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -90,6 +92,7 @@ export default function TestFormClient({
   createAndDeployTestAction,
   getStudentsForDeployAction,
   getAutoQuestionsAction,
+  successHref = '/teacher/tests',
 }: Props) {
   const router = useRouter()
 
@@ -274,7 +277,7 @@ export default function TestFormClient({
     const result = await saveTestDraftAction(buildFormInput())
     setSaving(false)
     if (result.error) { setFormError(result.error); return }
-    router.push('/teacher/tests')
+    router.push(successHref)
   }
 
   // ── Open deploy modal ────────────────────────────────────────────────────────
@@ -320,7 +323,7 @@ export default function TestFormClient({
     if (result.error) {
       setDeployError(result.error)
     } else {
-      router.push('/teacher/tests')
+      router.push(successHref)
     }
   }
 
