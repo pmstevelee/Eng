@@ -101,6 +101,11 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+enum AnnouncementTarget {
+  ALL_STUDENTS
+  CLASS
+}
+
 enum TestStatus {
   DRAFT
   PUBLISHED
@@ -144,6 +149,7 @@ model Academy {
   badges        Badge[]
   enrollments   Enrollment[]
   subscriptions Subscription[]
+  announcements Announcement[]
 
   @@map("academies")
 }
@@ -179,6 +185,7 @@ model User {
   writtenComments  TeacherComment[] @relation("CommentAuthor")
   generatedReports Report[]         @relation("ReportGenerator")
   notifications    Notification[]
+  announcements    Announcement[]   @relation("AnnouncementAuthor")
 
   @@map("users")
 }
@@ -226,10 +233,11 @@ model Class {
   academy  Academy @relation(fields: [academyId], references: [id])
   teacher  User?   @relation("TeacherClasses", fields: [teacherId], references: [id])
 
-  students    Student[]
-  attendance  Attendance[]
-  enrollments Enrollment[]
-  tests       Test[]
+  students      Student[]
+  attendance    Attendance[]
+  enrollments   Enrollment[]
+  tests         Test[]
+  announcements Announcement[]
 
   @@map("classes")
 }
@@ -387,19 +395,41 @@ model Report {
 
 /// 13. 알림
 model Notification {
-  id        String           @id @default(uuid())
-  userId    String           @map("user_id")
-  academyId String?          @map("academy_id")
-  type      NotificationType @default(INFO)
-  title     String
-  message   String
-  isRead    Boolean          @default(false) @map("is_read")
-  createdAt DateTime         @default(now()) @map("created_at")
+  id             String           @id @default(uuid())
+  userId         String           @map("user_id")
+  academyId      String?          @map("academy_id")
+  type           NotificationType @default(INFO)
+  title          String
+  message        String
+  link           String?
+  relatedId      String?          @map("related_id")
+  isRead         Boolean          @default(false) @map("is_read")
+  createdAt      DateTime         @default(now()) @map("created_at")
 
   user    User     @relation(fields: [userId], references: [id])
   academy Academy? @relation(fields: [academyId], references: [id])
 
   @@map("notifications")
+}
+
+/// 19. 공지사항
+model Announcement {
+  id          String             @id @default(uuid())
+  academyId   String             @map("academy_id")
+  authorId    String             @map("author_id")
+  classId     String?            @map("class_id")
+  title       String
+  content     String
+  target      AnnouncementTarget @default(ALL_STUDENTS)
+  isPublished Boolean            @default(true) @map("is_published")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  academy Academy @relation(fields: [academyId], references: [id])
+  author  User    @relation("AnnouncementAuthor", fields: [authorId], references: [id])
+  class   Class?  @relation(fields: [classId], references: [id])
+
+  @@map("announcements")
 }
 
 /// 14. 출석

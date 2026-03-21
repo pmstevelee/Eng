@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma/client'
 import { Search, Building2 } from 'lucide-react'
-import type { SubscriptionStatus, PlanType } from '@prisma/client'
+import type { SubscriptionStatus, PlanType } from '@/generated/prisma'
 
 const STATUS_LABEL: Record<SubscriptionStatus, string> = {
   TRIAL: '체험',

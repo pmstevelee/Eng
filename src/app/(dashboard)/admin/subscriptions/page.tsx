@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma/client'
 import { AlertCircle, Receipt } from 'lucide-react'
-import type { PaymentStatus, PlanType, SubscriptionPeriod } from '@prisma/client'
+import type { PaymentStatus, PlanType, SubscriptionPeriod } from '@/generated/prisma'
 import { confirmPayment } from './actions'
 
 const PAYMENT_LABEL: Record<PaymentStatus, string> = {

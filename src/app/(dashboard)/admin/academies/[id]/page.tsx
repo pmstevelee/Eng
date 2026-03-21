@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma/client'
 import { ChevronRight } from 'lucide-react'
-import type { SubscriptionStatus, PlanType, PaymentStatus, SubscriptionPeriod } from '@prisma/client'
+import type { SubscriptionStatus, PlanType, PaymentStatus, SubscriptionPeriod } from '@/generated/prisma'
 import { extendSubscription, changePlan, suspendAcademy } from './actions'
 import { DeleteAcademyModal } from './_components/delete-academy-modal'
 
