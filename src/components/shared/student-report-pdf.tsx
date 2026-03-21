@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { Printer, Download, Sparkles, Loader2, RefreshCw } from 'lucide-react'
-import type { ReportResult } from '@/app/api/ai/generate-report/route'
+import type { ReportResult } from '@/types'
 
 type DomainScore = {
   subject: string

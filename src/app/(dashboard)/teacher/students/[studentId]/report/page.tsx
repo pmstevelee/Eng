@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma/client'
 import { StudentReportPdf } from '@/components/shared/student-report-pdf'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import type { ReportResult } from '@/app/api/ai/generate-report/route'
+import type { ReportResult } from '@/types'
 
 const DOMAIN_COLORS: Record<string, string> = {
   GRAMMAR: '#1865F2',

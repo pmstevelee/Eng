@@ -18,3 +18,15 @@ export type Academy = {
   createdAt: Date
   updatedAt: Date
 }
+
+export type ReportResult = {
+  overallEvaluation: string
+  domainAnalysis: {
+    grammar: string
+    vocabulary: string
+    reading: string
+    writing: string
+  }
+  growthPoints: string[]
+  studySuggestions: string[]
+}
