@@ -4,9 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import type { ReportResult } from '@/types'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
 export async function POST(req: NextRequest) {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   try {
     const supabase = await createClient()
     const {
