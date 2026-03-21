@@ -9,6 +9,7 @@ import type { Role } from '@/types'
 interface DashboardLayoutProps {
   children: React.ReactNode
   role: Role
+  userId: string
   userName: string
   userEmail: string
   userRole: string
@@ -19,6 +20,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({
   children,
   role,
+  userId,
   userName,
   userEmail,
   userRole,
@@ -30,7 +32,6 @@ export function DashboardLayout({
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
-  // 사이드바 접기 상태를 localStorage에 저장
   useEffect(() => {
     const stored = localStorage.getItem('sidebar-collapsed')
     if (stored !== null) setIsCollapsed(stored === 'true')
@@ -62,6 +63,7 @@ export function DashboardLayout({
           userName={userName}
           userEmail={userEmail}
           userRole={userRole}
+          userId={userId}
           onOpenMobileSidebar={() => setIsMobileOpen(true)}
         />
         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">{children}</main>

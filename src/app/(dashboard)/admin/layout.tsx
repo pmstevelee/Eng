@@ -22,6 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <DashboardLayout
       role="SUPER_ADMIN"
+      userId={authUser.id}
       userName={user.name}
       userEmail={user.email}
       userRole={ROLE_LABEL.SUPER_ADMIN}

@@ -17,6 +17,7 @@ import {
   CreditCard,
   Library,
   Target,
+  Bell,
 } from 'lucide-react'
 import type { Role } from '@/types'
 
@@ -65,6 +66,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '학습공간', href: '/student/learning', icon: BookOpen },
     { label: '내 성적', href: '/student/grades', icon: BarChart2 },
     { label: '배지', href: '/student/badges', icon: Award },
+    { label: '알림', href: '/student/notifications', icon: Bell },
     { label: '설정', href: '/student/settings', icon: Settings },
   ],
 }

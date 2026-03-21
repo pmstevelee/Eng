@@ -27,6 +27,7 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
   return (
     <DashboardLayout
       role="ACADEMY_OWNER"
+      userId={authUser.id}
       userName={user.name}
       userEmail={user.email}
       userRole={ROLE_LABEL.ACADEMY_OWNER}

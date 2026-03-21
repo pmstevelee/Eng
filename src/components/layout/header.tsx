@@ -1,14 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Menu, Bell, ChevronDown, LogOut } from 'lucide-react'
+import { Menu, ChevronDown, LogOut } from 'lucide-react'
 import { signOut } from '@/app/(auth)/login/actions'
+import { NotificationBell } from './notification-bell'
 
 interface HeaderProps {
   academyName?: string | null
   userName: string
   userEmail: string
   userRole: string
+  userId: string
   onOpenMobileSidebar: () => void
 }
 
@@ -17,6 +19,7 @@ export function Header({
   userName,
   userEmail,
   userRole,
+  userId,
   onOpenMobileSidebar,
 }: HeaderProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
@@ -41,13 +44,8 @@ export function Header({
 
       {/* 오른쪽: 알림 + 사용자 */}
       <div className="flex items-center gap-1 shrink-0">
-        {/* 알림 버튼 */}
-        <button
-          className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 relative transition-colors"
-          title="알림"
-        >
-          <Bell size={19} />
-        </button>
+        {/* 알림 벨 */}
+        <NotificationBell userId={userId} />
 
         {/* 사용자 드롭다운 */}
         <div className="relative">
@@ -67,12 +65,10 @@ export function Header({
 
           {isUserMenuOpen && (
             <>
-              {/* 백드롭 */}
               <div
                 className="fixed inset-0 z-10"
                 onClick={() => setIsUserMenuOpen(false)}
               />
-              {/* 드롭다운 메뉴 */}
               <div className="absolute right-0 top-full mt-1 w-52 rounded-xl border border-gray-200 bg-white shadow-lg z-20 overflow-hidden">
                 <div className="px-4 py-3 border-b border-gray-100">
                   <p className="text-sm font-semibold text-gray-900 truncate">{userName}</p>
