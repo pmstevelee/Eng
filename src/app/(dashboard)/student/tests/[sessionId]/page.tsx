@@ -47,12 +47,22 @@ export default async function TestSessionPage({
 
   const user = await prisma.user.findUnique({
     where: { id: authUser.id, isDeleted: false },
-    select: { role: true, student: { select: { id: true } } },
+    select: { id: true, role: true, student: { select: { id: true } } },
   })
-  if (!user || user.role !== 'STUDENT' || !user.student) redirect('/login')
+  if (!user || user.role !== 'STUDENT') redirect('/login')
+
+  // Student 레코드가 없으면 자동 생성
+  let studentId = user.student?.id
+  if (!studentId) {
+    const newStudent = await prisma.student.create({
+      data: { userId: user.id },
+      select: { id: true },
+    })
+    studentId = newStudent.id
+  }
 
   const session = await prisma.testSession.findUnique({
-    where: { id: sessionId, studentId: user.student.id },
+    where: { id: sessionId, studentId },
     include: {
       test: {
         select: {

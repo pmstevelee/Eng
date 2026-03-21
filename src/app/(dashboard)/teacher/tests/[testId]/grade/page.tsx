@@ -136,7 +136,7 @@ export default async function TestGradePage({
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-700">채점 진행률</span>
           <span className="text-sm font-bold text-[#1865F2]">
-            {gradedCount} / {totalCount}
+            {gradedCount} / {totalCount} 완료
           </span>
         </div>
         <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">

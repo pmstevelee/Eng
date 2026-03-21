@@ -146,11 +146,11 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
               </div>
               <div className="flex items-center gap-3">
                 {isSubmitted ? (
-                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                  <span className="rounded-full bg-[#1FAF54]/10 px-3 py-1 text-xs font-medium text-[#1FAF54]">
                     채점 완료
                   </span>
                 ) : (
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                  <span className="rounded-full bg-[#FFB100]/10 px-3 py-1 text-xs font-medium text-[#FFB100]">
                     채점 대기
                   </span>
                 )}
@@ -232,7 +232,7 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                   updateGrade(q.responseId, item.field, Math.min(25, Math.max(0, Number(e.target.value))))
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-center text-sm font-medium focus:border-[#7854F7] focus:outline-none focus:ring-1 focus:ring-[#7854F7]"
+                                className="min-h-[44px] w-full rounded-lg border border-gray-300 px-3 py-2 text-center text-sm font-medium focus:border-[#7854F7] focus:outline-none focus:ring-1 focus:ring-[#7854F7]"
                               />
                             </div>
                           ))}
@@ -257,7 +257,7 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
                           }
                           placeholder="학생에게 전달할 피드백을 입력해 주세요."
                           rows={3}
-                          className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#1865F2] focus:outline-none focus:ring-1 focus:ring-[#1865F2]"
+                          className="min-h-[44px] w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#1865F2] focus:outline-none focus:ring-1 focus:ring-[#1865F2]"
                         />
                       </div>
 

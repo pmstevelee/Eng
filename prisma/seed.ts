@@ -206,6 +206,16 @@ async function main() {
       })
 
       if (u.role === 'ACADEMY_OWNER') ownerAuthId = authId
+
+      // STUDENT 역할인 경우 Student 레코드도 생성
+      if (u.role === 'STUDENT') {
+        await prisma.student.upsert({
+          where: { userId: authId },
+          update: {},
+          create: { userId: authId },
+        })
+      }
+
       console.log(`✅ ${u.role.padEnd(14)} | ${u.name} (${u.email})`)
     } catch (err) {
       console.error(`❌ 생성 실패 (${u.email}):`, err)

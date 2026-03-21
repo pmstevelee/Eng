@@ -5,38 +5,34 @@ import {
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
+  PolarRadiusAxis,
   ResponsiveContainer,
   Tooltip,
 } from 'recharts'
 
-type DomainScore = {
+type RadarDataPoint = {
   subject: string
   score: number
   fullMark: number
 }
 
 type Props = {
-  grammarScore: number | null
-  vocabularyScore: number | null
-  readingScore: number | null
-  writingScore: number | null
+  data: RadarDataPoint[]
 }
 
-export function ResultRadarChart({ grammarScore, vocabularyScore, readingScore, writingScore }: Props) {
-  const data: DomainScore[] = [
-    { subject: '문법', score: grammarScore ?? 0, fullMark: 100 },
-    { subject: '어휘', score: vocabularyScore ?? 0, fullMark: 100 },
-    { subject: '독해', score: readingScore ?? 0, fullMark: 100 },
-    { subject: '쓰기', score: writingScore ?? 0, fullMark: 100 },
-  ]
-
+export function ResultRadarChart({ data }: Props) {
   return (
-    <ResponsiveContainer width="100%" height={280}>
-      <RadarChart data={data}>
+    <ResponsiveContainer width="100%" height={260}>
+      <RadarChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
         <PolarGrid stroke="#e5e7eb" />
         <PolarAngleAxis
           dataKey="subject"
-          tick={{ fill: '#6b7280', fontSize: 13, fontWeight: 500 }}
+          tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 500 }}
+        />
+        <PolarRadiusAxis
+          domain={[0, 100]}
+          tick={false}
+          axisLine={false}
         />
         <Radar
           name="점수"
@@ -48,7 +44,11 @@ export function ResultRadarChart({ grammarScore, vocabularyScore, readingScore, 
         />
         <Tooltip
           formatter={(value) => [`${value}점`, '점수']}
-          contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
+          contentStyle={{
+            borderRadius: '8px',
+            border: '1px solid #e5e7eb',
+            fontSize: '13px',
+          }}
         />
       </RadarChart>
     </ResponsiveContainer>
