@@ -3,6 +3,8 @@
 import { prisma } from '@/lib/prisma/client'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
+import { randomBytes } from 'crypto'
 
 export async function withdrawAcademy(
   formData: FormData,
@@ -108,4 +110,29 @@ export async function withdrawAcademy(
   }
 
   redirect('/login')
+}
+
+export async function regenerateInviteCode(): Promise<{ error?: string; code?: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser()
+  if (!authUser) return { error: '인증이 필요합니다.' }
+
+  const user = await prisma.user.findUnique({
+    where: { id: authUser.id, isDeleted: false },
+    select: { id: true, role: true, academyId: true },
+  })
+  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return { error: '권한이 없습니다.' }
+
+  const newCode = randomBytes(4).toString('hex').toUpperCase()
+
+  const academy = await prisma.academy.update({
+    where: { id: user.academyId },
+    data: { inviteCode: newCode },
+    select: { inviteCode: true },
+  })
+
+  revalidatePath('/owner/settings')
+  return { code: academy.inviteCode }
 }

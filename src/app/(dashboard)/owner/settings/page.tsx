@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import { WithdrawModal } from './_components/withdraw-modal'
+import { InviteCodeSection } from './_components/invite-code-section'
 
 export default async function OwnerSettingsPage() {
   const supabase = await createClient()
@@ -41,16 +42,13 @@ export default async function OwnerSettingsPage() {
             <dt className="text-xs text-gray-500">이메일</dt>
             <dd className="text-sm text-gray-700 mt-0.5">{user.email}</dd>
           </div>
-          {user.academy?.inviteCode && (
-            <div>
-              <dt className="text-xs text-gray-500">초대코드</dt>
-              <dd className="text-sm font-mono text-gray-700 mt-0.5 inline-block bg-gray-50 px-2 py-1 rounded-lg">
-                {user.academy.inviteCode}
-              </dd>
-            </div>
-          )}
         </dl>
       </div>
+
+      {/* 초대 코드 관리 */}
+      {user.academy?.inviteCode && (
+        <InviteCodeSection inviteCode={user.academy.inviteCode} />
+      )}
 
       {/* 위험 구역 */}
       <div className="bg-accent-red-light border border-accent-red rounded-xl p-6">
