@@ -14,7 +14,8 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
-import { getGamificationData, generateOrGetDailyMission, levelLabel } from './_actions/gamification'
+import { getGamificationData, generateOrGetDailyMission } from './_actions/gamification'
+import { levelLabel } from './_utils/level'
 
 // ─── Level XP thresholds ──────────────────────────────────────────────────────
 const LEVEL_COLORS = [
