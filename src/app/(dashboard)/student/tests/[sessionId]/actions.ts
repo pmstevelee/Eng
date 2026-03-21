@@ -105,7 +105,7 @@ export async function saveResponses(
 export async function submitTest(
   sessionId: string,
   allAnswers: { questionId: string; answer: string }[],
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; newBadges?: string[] }> {
   const auth = await getAuthedStudent()
   if (!auth) return { error: '권한이 없습니다.' }
 
@@ -253,9 +253,15 @@ export async function submitTest(
       })
     }
 
+    // 6단계: 게이미피케이션 (스트릭, 배지, 레벨업)
+    const { recordActivityAndCheckBadges } = await import(
+      '@/app/(dashboard)/student/_actions/gamification'
+    )
+    const gamification = await recordActivityAndCheckBadges(auth.studentId, sessionId)
+
     revalidatePath(`/student/tests/${sessionId}`)
     revalidatePath('/student')
-    return {}
+    return { newBadges: gamification.newBadges }
   } catch (err) {
     console.error('submitTest error:', err)
     return { error: '제출에 실패했습니다.' }

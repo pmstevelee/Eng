@@ -1,5 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
@@ -76,6 +77,21 @@ enum NotificationType {
   WARNING
   SUCCESS
   ERROR
+}
+
+enum BadgeType {
+  STREAK_3
+  STREAK_7
+  STREAK_14
+  STREAK_30
+  STREAK_100
+  FIRST_TEST
+  PERFECT_SCORE
+  SPEED_DEMON
+  LEVEL_UP
+  MASTER
+  WEEKLY_GOAL
+  MISSION_COMPLETE
 }
 
 enum AttendanceStatus {
@@ -189,6 +205,8 @@ model Student {
   attendance       Attendance[]
   badgeEarnings    BadgeEarning[]
   enrollments      Enrollment[]
+  streak           StudentStreak?
+  dailyMissions    DailyMission[]
 
   @@map("students")
 }
@@ -403,18 +421,51 @@ model Attendance {
 
 /// 15. 배지
 model Badge {
-  id          String   @id @default(uuid())
-  academyId   String?  @map("academy_id")
+  id          String     @id @default(uuid())
+  academyId   String?    @map("academy_id")
+  code        BadgeType? @unique
   name        String
   description String?
-  iconUrl     String?  @map("icon_url")
+  iconUrl     String?    @map("icon_url")
   criteria    Json?
-  createdAt   DateTime @default(now()) @map("created_at")
+  createdAt   DateTime   @default(now()) @map("created_at")
 
   academy  Academy?      @relation(fields: [academyId], references: [id])
   earnings BadgeEarning[]
 
   @@map("badges")
+}
+
+/// 16-a. 학습 스트릭
+model StudentStreak {
+  id               String    @id @default(uuid())
+  studentId        String    @unique @map("student_id")
+  currentStreak    Int       @default(0) @map("current_streak")
+  longestStreak    Int       @default(0) @map("longest_streak")
+  lastActivityDate DateTime? @map("last_activity_date")
+  totalDays        Int       @default(0) @map("total_days")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("student_streaks")
+}
+
+/// 16-b. 오늘의 미션
+model DailyMission {
+  id          String    @id @default(uuid())
+  studentId   String    @map("student_id")
+  missionDate DateTime  @map("mission_date")
+  questionIds Json      @map("question_ids")
+  domainFocus String?   @map("domain_focus")
+  isCompleted Boolean   @default(false) @map("is_completed")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, missionDate])
+  @@map("daily_missions")
 }
 
 model BadgeEarning {
@@ -430,7 +481,7 @@ model BadgeEarning {
   @@map("badge_earnings")
 }
 
-/// 16. 수강 등록
+/// 17. 수강 등록
 model Enrollment {
   id         String   @id @default(uuid())
   studentId  String   @map("student_id")
