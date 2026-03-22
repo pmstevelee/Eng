@@ -15,32 +15,27 @@ async function getOwnerDashboardData(academyId: string) {
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
+  // ── 그룹1: 핵심 지표 (5개) ──────────────────────────────────────────────────
   const [
     studentCount,
     attendanceThisMonth,
     testSessionsThisMonth,
     avgScoreThisMonth,
     avgScoreLastMonth,
-    allActiveStudents,
-    classesWithStudents,
-    recentSessions,
-    levelDistribution,
-    allStudents,
-    domainAvgRaw,
   ] = await Promise.all([
-    // 1. Active student count
+    // 1. 활성 학생 수
     prisma.student.count({
       where: { user: { academyId, isActive: true, isDeleted: false }, status: 'ACTIVE' },
     }),
 
-    // 2. Attendance this month
+    // 2. 이번 달 출석 현황
     prisma.attendance.groupBy({
       by: ['status'],
       where: { student: { user: { academyId } }, date: { gte: startOfThisMonth } },
       _count: { id: true },
     }),
 
-    // 3. Test sessions completed this month
+    // 3. 이번 달 완료 테스트 수
     prisma.testSession.count({
       where: {
         student: { user: { academyId } },
@@ -49,7 +44,7 @@ async function getOwnerDashboardData(academyId: string) {
       },
     }),
 
-    // 4. Average score this month
+    // 4. 이번 달 평균 점수
     prisma.testSession.aggregate({
       where: {
         student: { user: { academyId } },
@@ -60,7 +55,7 @@ async function getOwnerDashboardData(academyId: string) {
       _avg: { score: true },
     }),
 
-    // 5. Average score last month
+    // 5. 지난 달 평균 점수
     prisma.testSession.aggregate({
       where: {
         student: { user: { academyId } },
@@ -70,14 +65,17 @@ async function getOwnerDashboardData(academyId: string) {
       },
       _avg: { score: true },
     }),
+  ])
 
-    // 6. All active students (for level distribution)
-    prisma.student.findMany({
-      where: { user: { academyId, isActive: true }, status: 'ACTIVE' },
-      select: { currentLevel: true },
-    }),
-
-    // 7. Classes with latest avg score
+  // ── 그룹2: 차트 데이터 (5개) ──────────────────────────────────────────────
+  const [
+    classesWithStudents,
+    recentSessions,
+    levelDistribution,
+    allStudents,
+    domainAvgRaw,
+  ] = await Promise.all([
+    // 6. 반별 평균 점수
     prisma.class.findMany({
       where: { academyId, isActive: true },
       select: {
@@ -96,7 +94,7 @@ async function getOwnerDashboardData(academyId: string) {
       },
     }),
 
-    // 8. Recent test sessions (last 10)
+    // 8. 최근 테스트 세션 10개
     prisma.testSession.findMany({
       where: {
         student: { user: { academyId } },
@@ -114,7 +112,7 @@ async function getOwnerDashboardData(academyId: string) {
       take: 10,
     }),
 
-    // 9. Level distribution
+    // 9. 레벨 분포
     prisma.student.groupBy({
       by: ['currentLevel'],
       where: { user: { academyId, isActive: true }, status: 'ACTIVE' },
@@ -122,7 +120,7 @@ async function getOwnerDashboardData(academyId: string) {
       orderBy: { currentLevel: 'asc' },
     }),
 
-    // 10. All students with createdAt (for monthly chart)
+    // 10. 월별 신규 학생 (최근 6개월)
     prisma.user.findMany({
       where: {
         academyId,
@@ -134,7 +132,7 @@ async function getOwnerDashboardData(academyId: string) {
       select: { createdAt: true },
     }),
 
-    // 11. Domain averages (last 30 days)
+    // 11. 영역별 평균 (최근 30일)
     prisma.testSession.aggregate({
       where: {
         student: { user: { academyId } },
