@@ -1,22 +1,9 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { prisma } from '@/lib/prisma/client'
+import { getCurrentUser } from '@/lib/auth'
 import { WithdrawModal } from '../_components/withdraw-modal'
 
 export default async function WithdrawPage() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: {
-      role: true,
-      academy: { select: { name: true, businessName: true } },
-    },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER') redirect('/login')
 
   const displayName = user.academy?.businessName ?? user.academy?.name ?? '학원'

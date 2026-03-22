@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { AnalyticsClient } from './_components/analytics-client'
 import type { AnalyticsData } from './_components/analytics-client'
@@ -555,19 +555,8 @@ interface PageProps {
 }
 
 export default async function AnalyticsPage({ searchParams }: PageProps) {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-
-  if (!authUser) redirect('/login')
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id },
-    select: { academyId: true },
-  })
-
-  if (!user?.academyId) redirect('/login')
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
   const period = searchParams.period ?? '3-months'
   const activeTab = searchParams.tab ?? 'scores'

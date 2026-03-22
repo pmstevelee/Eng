@@ -1,24 +1,21 @@
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { Award } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { BadgesClient } from './_components/badges-client'
 
 async function getStudentBadgesData() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return null
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'STUDENT') return null
 
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { role: true, student: { select: { id: true } } },
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { student: { select: { id: true } } },
   })
-  if (!user || user.role !== 'STUDENT' || !user.student) return null
+  if (!dbUser?.student) return null
 
-  const { id: studentId } = user.student
+  const { id: studentId } = dbUser.student
 
   const [allBadges, badgeEarnings] = await Promise.all([
     prisma.badge.findMany({

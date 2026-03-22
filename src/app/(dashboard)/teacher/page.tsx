@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { Users, FileText, ClipboardCheck, Bell, AlertTriangle, CheckCircle2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TeacherTodo } from '@/components/dashboard/teacher-todo'
@@ -141,22 +141,12 @@ const NOTIFICATION_ICON: Record<string, React.ReactNode> = {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function TeacherDashboard() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-
-  if (!authUser) redirect('/login')
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id },
-    select: { academyId: true, name: true },
-  })
-
-  if (!user?.academyId) redirect('/login')
+  // layout에서 이미 호출됨 → cache()로 즉시 반환 (네트워크 없음)
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
 
   const { stats, myClasses, recentSessions, urgentNotifications, lowScoreStudentCount } =
-    await getTeacherDashboardData(authUser.id, user.academyId)
+    await getTeacherDashboardData(user.id, user.academyId)
 
   const now = new Date()
   const dateLabel = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`

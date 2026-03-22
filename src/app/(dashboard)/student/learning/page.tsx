@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import {
   BookOpen,
@@ -61,19 +61,16 @@ function scoreToLevel(score: number | null): string {
 }
 
 export default async function LearningPage() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'STUDENT') redirect('/login')
 
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, name: true, student: { select: { id: true } } },
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { student: { select: { id: true } } },
   })
-  if (!user || !user.student) redirect('/login')
+  if (!dbUser?.student) redirect('/login')
 
-  const studentId = user.student.id
+  const studentId = dbUser.student.id
 
   // 1. 영역별 최신 실력 점수 (SkillAssessment)
   const skillAssessments = await prisma.skillAssessment.findMany({

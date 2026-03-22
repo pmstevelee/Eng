@@ -1,22 +1,13 @@
 import { redirect } from 'next/navigation'
 import { Library } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import QuestionBankClient from '@/components/shared/question-bank-client'
 import type { QuestionRow } from '@/components/shared/question-bank-client'
 import { createQuestion, updateQuestion, deleteQuestion } from './actions'
 
 export default async function TeacherQuestionsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
 
   // 교사는 학원 전체 문제 열람, 수정/삭제는 본인 것만 (actions에서 처리)

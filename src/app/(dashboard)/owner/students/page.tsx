@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Users } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import StudentsListClient from './_components/students-list-client'
 
@@ -19,16 +19,8 @@ export default async function OwnerStudentsPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
+  // getCurrentUser()는 layout에서 이미 호출됨 → cache()로 즉시 반환
+  const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
   const params = await searchParams
@@ -37,14 +29,6 @@ export default async function OwnerStudentsPage({
   const statusFilter = params.status ?? ''
   const page = Math.max(1, parseInt(params.page ?? '1', 10))
 
-  // 반 목록
-  const classes = await prisma.class.findMany({
-    where: { academyId: user.academyId, isActive: true },
-    select: { id: true, name: true },
-    orderBy: { name: 'asc' },
-  })
-
-  // 학생 목록 필터 조건
   type StudentWhere = {
     user: {
       academyId: string
@@ -79,34 +63,39 @@ export default async function OwnerStudentsPage({
     where.status = statusFilter
   }
 
-  const [totalCount, students] = await Promise.all([
-    prisma.student.count({ where }),
-    prisma.student.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-      select: {
-        id: true,
-        currentLevel: true,
-        status: true,
-        createdAt: true,
-        classId: true,
-        class: { select: { id: true, name: true } },
-        user: { select: { name: true, email: true } },
-      },
+  // 모든 쿼리를 한 번에 병렬 실행
+  const [classes, [totalCount, students], academy, totalStudents] = await Promise.all([
+    prisma.class.findMany({
+      where: { academyId: user.academyId, isActive: true },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    }),
+    Promise.all([
+      prisma.student.count({ where }),
+      prisma.student.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+        select: {
+          id: true,
+          currentLevel: true,
+          status: true,
+          createdAt: true,
+          classId: true,
+          class: { select: { id: true, name: true } },
+          user: { select: { name: true, email: true } },
+        },
+      }),
+    ]),
+    prisma.academy.findUnique({
+      where: { id: user.academyId },
+      select: { maxStudents: true, subscriptionStatus: true },
+    }),
+    prisma.student.count({
+      where: { user: { academyId: user.academyId, isDeleted: false } },
     }),
   ])
-
-  // 학원 구독 정보 (학생 수 제한)
-  const academy = await prisma.academy.findUnique({
-    where: { id: user.academyId },
-    select: { maxStudents: true, subscriptionStatus: true },
-  })
-
-  const totalStudents = await prisma.student.count({
-    where: { user: { academyId: user.academyId, isDeleted: false } },
-  })
 
   const studentData = students.map((s) => ({
     id: s.id,

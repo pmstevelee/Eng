@@ -1,5 +1,5 @@
 import { redirect, notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { StudentReportPdf } from '@/components/shared/student-report-pdf'
 import { ArrowLeft } from 'lucide-react'
@@ -25,11 +25,8 @@ export default async function StudentReportPage({
 }: {
   params: { studentId: string }
 }) {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
+  const currentUser = await getCurrentUser()
+  if (!currentUser || (currentUser.role !== 'TEACHER' && currentUser.role !== 'ACADEMY_OWNER')) redirect('/login')
 
   const student = await prisma.student.findUnique({
     where: { id: params.studentId },

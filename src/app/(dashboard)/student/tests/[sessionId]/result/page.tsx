@@ -1,5 +1,5 @@
 import { redirect, notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 import { ResultRadarChart } from './_components/result-radar-chart'
@@ -73,20 +73,17 @@ export default async function TestResultPage({
 }) {
   const { sessionId } = params
 
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'STUDENT') redirect('/login')
 
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { role: true, student: { select: { id: true } } },
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { student: { select: { id: true } } },
   })
-  if (!user || user.role !== 'STUDENT' || !user.student) redirect('/login')
+  if (!dbUser?.student) redirect('/login')
 
   const session = await prisma.testSession.findUnique({
-    where: { id: sessionId, studentId: user.student.id },
+    where: { id: sessionId, studentId: dbUser.student.id },
     include: {
       test: {
         select: {
@@ -131,7 +128,7 @@ export default async function TestResultPage({
   // 이전 세션 비교 (동일 테스트 타입 기준)
   const prevSession = await prisma.testSession.findFirst({
     where: {
-      studentId: user.student.id,
+      studentId: dbUser.student.id,
       id: { not: sessionId },
       status: { in: ['COMPLETED', 'GRADED'] },
       test: { type: session.test.type },

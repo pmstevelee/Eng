@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { Users, TrendingUp, FileCheck, BarChart2, ArrowUpRight, ArrowDownRight, Minus, AlertCircle } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { OwnerCharts } from '@/components/dashboard/owner-charts'
@@ -266,19 +266,9 @@ function TrendIcon({ delta }: { delta: number | null }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function OwnerDashboard() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-
-  if (!authUser) redirect('/login')
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id },
-    select: { academyId: true, name: true },
-  })
-
-  if (!user?.academyId) redirect('/login')
+  // layout에서 이미 호출됨 → cache()로 즉시 반환 (네트워크 없음)
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
   const {
     stats,

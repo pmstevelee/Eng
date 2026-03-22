@@ -1,27 +1,23 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { WithdrawModal } from './_components/withdraw-modal'
 
 export default async function StudentSettingsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.role !== 'STUDENT') redirect('/login')
 
   const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
+    where: { id: currentUser.id },
     select: {
       name: true,
       email: true,
-      role: true,
       phone: true,
       academy: { select: { name: true, businessName: true } },
       student: { select: { grade: true, currentLevel: true } },
     },
   })
-  if (!user || user.role !== 'STUDENT') redirect('/login')
+  if (!user) redirect('/login')
 
   const academyName = user.academy?.businessName ?? user.academy?.name ?? '-'
 

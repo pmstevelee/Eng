@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { UserCheck } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import TeachersListClient from './_components/teachers-list-client'
 
@@ -17,16 +17,8 @@ export default async function OwnerTeachersPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
+  // getCurrentUser()는 layout에서 이미 호출됨 → cache()로 즉시 반환
+  const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
   const params = await searchParams
@@ -56,34 +48,35 @@ export default async function OwnerTeachersPage({
     ]
   }
 
-  const [totalCount, teachers] = await Promise.all([
-    prisma.user.count({ where }),
-    prisma.user.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        createdAt: true,
-        taughtClasses: {
-          where: { isActive: true },
-          select: { id: true, name: true },
+  // 모든 쿼리를 한 번에 병렬 실행
+  const [[totalCount, teachers], academy, totalTeachers] = await Promise.all([
+    Promise.all([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          createdAt: true,
+          taughtClasses: {
+            where: { isActive: true },
+            select: { id: true, name: true },
+          },
         },
-      },
+      }),
+    ]),
+    prisma.academy.findUnique({
+      where: { id: user.academyId },
+      select: { maxTeachers: true, subscriptionStatus: true },
+    }),
+    prisma.user.count({
+      where: { academyId: user.academyId, role: 'TEACHER', isDeleted: false },
     }),
   ])
-
-  const academy = await prisma.academy.findUnique({
-    where: { id: user.academyId },
-    select: { maxTeachers: true, subscriptionStatus: true },
-  })
-
-  const totalTeachers = await prisma.user.count({
-    where: { academyId: user.academyId, role: 'TEACHER', isDeleted: false },
-  })
 
   const teacherData = teachers.map((t) => ({
     id: t.id,

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { NotificationsClient } from './_components/notifications-client'
 
@@ -11,26 +11,19 @@ const DEFAULT_SETTINGS = {
 }
 
 export default async function NotificationsSettingsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: {
-      role: true,
-      academy: { select: { settingsJson: true } },
-    },
+  const academy = await prisma.academy.findUnique({
+    where: { id: user.academyId },
+    select: { settingsJson: true },
   })
-  if (!user || user.role !== 'ACADEMY_OWNER') redirect('/login')
 
   const json =
-    user.academy?.settingsJson &&
-    typeof user.academy.settingsJson === 'object' &&
-    !Array.isArray(user.academy.settingsJson)
-      ? (user.academy.settingsJson as Record<string, unknown>)
+    academy?.settingsJson &&
+    typeof academy.settingsJson === 'object' &&
+    !Array.isArray(academy.settingsJson)
+      ? (academy.settingsJson as Record<string, unknown>)
       : {}
 
   const saved =

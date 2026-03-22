@@ -12,8 +12,7 @@ import {
   CheckCircle2,
   Lock,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
-import { prisma } from '@/lib/prisma/client'
+import { getCurrentUser } from '@/lib/auth'
 import { getGamificationData, generateOrGetDailyMission } from './_actions/gamification'
 import { levelLabel } from './_utils/level'
 
@@ -40,18 +39,9 @@ const LEVEL_BG = [
 ]
 
 export default async function StudentDashboardPage() {
-  // Auth check
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { name: true, student: { select: { id: true } } },
-  })
-  if (!user?.student) redirect('/login')
+  // layout에서 이미 호출됨 → cache()로 즉시 반환 (네트워크 없음)
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'STUDENT') redirect('/login')
 
   // Fetch gamification data
   const [gData, mission] = await Promise.all([

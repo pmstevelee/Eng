@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import Link from 'next/link'
 import { FileText, Clock, CheckCircle, BarChart2, ChevronRight, PlayCircle } from 'lucide-react'
@@ -30,27 +30,21 @@ const TYPE_LABEL: Record<string, string> = {
 }
 
 export default async function StudentTestsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, student: { select: { id: true } } },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'STUDENT') redirect('/login')
 
-  // Student 레코드가 없으면 자동 생성 (시드/초대 누락 대응)
-  let studentId = user.student?.id
-  if (!studentId) {
-    const newStudent = await prisma.student.create({
+  // Student 레코드 조회 (없으면 자동 생성)
+  let student = await prisma.student.findUnique({
+    where: { userId: user.id },
+    select: { id: true },
+  })
+  if (!student) {
+    student = await prisma.student.create({
       data: { userId: user.id },
       select: { id: true },
     })
-    studentId = newStudent.id
   }
+  const studentId = student.id
 
   const sessions = await prisma.testSession.findMany({
     where: { studentId },

@@ -1,5 +1,5 @@
 import { Bell, CheckCheck, Info, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { redirect } from 'next/navigation'
 import { markAllNotificationsRead } from '@/lib/actions/notification-actions'
@@ -46,14 +46,11 @@ function formatDate(date: Date) {
 }
 
 export default async function StudentNotificationsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
+  const user = await getCurrentUser()
+  if (!user) redirect('/login')
 
   const notifications = await prisma.notification.findMany({
-    where: { userId: authUser.id },
+    where: { userId: user.id },
     orderBy: { createdAt: 'desc' },
     take: 50,
   })

@@ -24,19 +24,26 @@ async function getDashboardData() {
     }),
   ])
 
-  // Monthly signup trend (last 6 months)
-  const monthlyData: MonthlyData[] = []
-  for (let i = 5; i >= 0; i--) {
+  // Monthly signup trend (last 6 months) — 6개 쿼리를 병렬 실행
+  const monthRanges = Array.from({ length: 6 }, (_, idx) => {
+    const i = 5 - idx
     const start = new Date(now.getFullYear(), now.getMonth() - i, 1)
     const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 1)
-    const count = await prisma.academy.count({
-      where: { isDeleted: false, createdAt: { gte: start, lt: end } },
-    })
-    monthlyData.push({
-      month: start.toLocaleDateString('ko-KR', { month: 'short' }),
-      count,
-    })
-  }
+    return { start, end }
+  })
+
+  const monthlyCounts = await Promise.all(
+    monthRanges.map(({ start, end }) =>
+      prisma.academy.count({
+        where: { isDeleted: false, createdAt: { gte: start, lt: end } },
+      })
+    )
+  )
+
+  const monthlyData: MonthlyData[] = monthRanges.map(({ start }, idx) => ({
+    month: start.toLocaleDateString('ko-KR', { month: 'short' }),
+    count: monthlyCounts[idx],
+  }))
 
   // Plan distribution
   const planGroups = await prisma.academy.groupBy({

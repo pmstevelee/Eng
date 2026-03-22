@@ -1,26 +1,16 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { InviteCodeClient } from './_components/invite-code-client'
 
 export default async function InviteSettingsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: {
-      role: true,
-      academyId: true,
-      academy: {
-        select: { inviteCode: true },
-      },
-    },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
+
+  const academy = await prisma.academy.findUnique({
+    where: { id: user.academyId },
+    select: { inviteCode: true },
+  })
 
   const [teacherCount, studentCount] = await Promise.all([
     prisma.user.count({
@@ -39,7 +29,7 @@ export default async function InviteSettingsPage() {
       </div>
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <InviteCodeClient
-          inviteCode={user.academy?.inviteCode ?? ''}
+          inviteCode={academy?.inviteCode ?? ''}
           teacherCount={teacherCount}
           studentCount={studentCount}
         />

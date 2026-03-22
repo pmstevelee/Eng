@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { SubscriptionClient } from './_components/subscription-client'
 
@@ -46,35 +46,25 @@ const PERIOD_LABEL: Record<string, string> = {
 }
 
 export default async function SubscriptionPage() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: {
-      role: true,
-      academyId: true,
-      academy: {
-        select: {
-          name: true,
-          businessName: true,
-          subscriptionStatus: true,
-          subscriptionPlan: true,
-          subscriptionExpiresAt: true,
-          trialEndsAt: true,
-          maxStudents: true,
-          maxTeachers: true,
-        },
-      },
-    },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
-  const academy = user.academy!
   const academyId = user.academyId
+
+  const academy = await prisma.academy.findUnique({
+    where: { id: academyId },
+    select: {
+      name: true,
+      businessName: true,
+      subscriptionStatus: true,
+      subscriptionPlan: true,
+      subscriptionExpiresAt: true,
+      trialEndsAt: true,
+      maxStudents: true,
+      maxTeachers: true,
+    },
+  })
+  if (!academy) redirect('/login')
 
   const [teacherCount, studentCount, subscriptions, pendingSubscription] = await Promise.all([
     prisma.user.count({ where: { academyId, role: 'TEACHER', isDeleted: false } }),

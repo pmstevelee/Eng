@@ -23,10 +23,11 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: getUser()를 호출해야 세션 토큰이 갱신됩니다
+  // getSession()은 쿠키에서 읽어 JWT를 로컬 검증 (네트워크 왕복 없음, 빠름)
+  // 실제 보안 검증(getUser)은 각 레이아웃에서 수행
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
 
-  return { supabaseResponse, user }
+  return { supabaseResponse, user: session?.user ?? null }
 }

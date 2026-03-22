@@ -1,26 +1,17 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Users, FileText, BarChart2, Search } from 'lucide-react'
 
 export default async function TeacherStudentsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: authUser.id },
-    select: { academyId: true },
-  })
-  if (!dbUser?.academyId) redirect('/login')
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
 
   // 내 반 학생 + 학원 전체 학생
   const students = await prisma.student.findMany({
     where: {
-      user: { academyId: dbUser.academyId, isActive: true },
+      user: { academyId: user.academyId, isActive: true },
       status: 'ACTIVE',
     },
     include: {

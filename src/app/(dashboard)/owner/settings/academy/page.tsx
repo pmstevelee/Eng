@@ -1,30 +1,21 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { AcademyInfoForm } from './_components/academy-info-form'
 
 export default async function AcademySettingsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
+  const academy = await prisma.academy.findUnique({
+    where: { id: user.academyId },
     select: {
-      role: true,
-      academy: {
-        select: {
-          name: true,
-          businessName: true,
-          address: true,
-          phone: true,
-        },
-      },
+      name: true,
+      businessName: true,
+      address: true,
+      phone: true,
     },
   })
-  if (!user || user.role !== 'ACADEMY_OWNER') redirect('/login')
 
   return (
     <div className="space-y-5">
@@ -33,9 +24,9 @@ export default async function AcademySettingsPage() {
         <p className="text-sm text-gray-500 mt-1">학원의 기본 정보를 수정합니다.</p>
       </div>
       <AcademyInfoForm
-        businessName={user.academy?.businessName ?? user.academy?.name ?? ''}
-        address={user.academy?.address ?? ''}
-        phone={user.academy?.phone ?? ''}
+        businessName={academy?.businessName ?? academy?.name ?? ''}
+        address={academy?.address ?? ''}
+        phone={academy?.phone ?? ''}
       />
     </div>
   )
