@@ -18,41 +18,75 @@ export default async function OwnerTestsPage() {
   })
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
-  // 학원장은 학원 내 모든 테스트 조회 (교사 포함)
-  const tests = await prisma.test.findMany({
-    where: { academyId: user.academyId },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      title: true,
-      type: true,
-      status: true,
-      timeLimitMin: true,
-      questionOrder: true,
-      createdAt: true,
-      class: { select: { name: true } },
-      creator: { select: { name: true } },
-      testSessions: {
-        select: { status: true, student: { select: { user: { select: { name: true } } } } },
+  const [tests, classes, teachers] = await Promise.all([
+    prisma.test.findMany({
+      where: { academyId: user.academyId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        status: true,
+        timeLimitMin: true,
+        totalScore: true,
+        questionOrder: true,
+        classId: true,
+        createdBy: true,
+        createdAt: true,
+        class: { select: { name: true } },
+        creator: { select: { name: true } },
+        testSessions: {
+          select: { status: true, score: true },
+        },
       },
-    },
-  })
+    }),
+    prisma.class.findMany({
+      where: { academyId: user.academyId, isActive: true },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.user.findMany({
+      where: { academyId: user.academyId, role: 'TEACHER', isDeleted: false },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    }),
+  ])
 
-  const testData = tests.map((t) => ({
-    id: t.id,
-    title: t.title,
-    type: t.type,
-    status: t.status,
-    timeLimitMin: t.timeLimitMin,
-    questionCount: Array.isArray(t.questionOrder) ? (t.questionOrder as string[]).length : 0,
-    createdAt: t.createdAt.toISOString(),
-    className: t.class?.name ?? null,
-    creatorName: t.creator?.name ?? null,
-    sessions: t.testSessions.map((s) => ({
-      status: s.status,
-      studentName: s.student.user.name,
-    })),
-  }))
+  const testData = tests.map((t) => {
+    const completedSessions = t.testSessions.filter((s) =>
+      ['COMPLETED', 'GRADED'].includes(s.status),
+    )
+    const scoredSessions = t.testSessions.filter((s) => s.score !== null)
+    const avgScore =
+      scoredSessions.length > 0
+        ? Math.round(
+            scoredSessions.reduce((sum, s) => sum + (s.score ?? 0), 0) / scoredSessions.length,
+          )
+        : null
+    const responseRate =
+      t.testSessions.length > 0
+        ? Math.round((completedSessions.length / t.testSessions.length) * 100)
+        : null
+
+    return {
+      id: t.id,
+      title: t.title,
+      type: t.type,
+      status: t.status,
+      timeLimitMin: t.timeLimitMin,
+      questionCount: Array.isArray(t.questionOrder) ? (t.questionOrder as string[]).length : 0,
+      totalScore: t.totalScore,
+      createdAt: t.createdAt.toISOString(),
+      className: t.class?.name ?? null,
+      classId: t.classId,
+      creatorName: t.creator?.name ?? null,
+      creatorId: t.createdBy,
+      sessionCount: t.testSessions.length,
+      completedCount: completedSessions.length,
+      avgScore,
+      responseRate,
+    }
+  })
 
   return (
     <div className="space-y-6">
@@ -64,19 +98,31 @@ export default async function OwnerTestsPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">테스트 관리</h1>
-            <p className="text-sm text-gray-500 mt-0.5">학원 내 모든 테스트를 관리하고 배포하세요.</p>
+            <p className="text-sm text-gray-500 mt-0.5">학원 내 모든 테스트를 관리하고 분석하세요.</p>
           </div>
         </div>
-        <Link
-          href="/owner/tests/new"
-          className="flex items-center gap-2 bg-primary-700 hover:bg-primary-800 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
-        >
-          <Plus size={16} />
-          새 테스트 만들기
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/owner/tests/schedule"
+            className="flex items-center gap-2 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
+          >
+            일정
+          </Link>
+          <Link
+            href="/owner/tests/new"
+            className="flex items-center gap-2 bg-primary-700 hover:bg-primary-800 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
+          >
+            <Plus size={16} />
+            새 테스트
+          </Link>
+        </div>
       </div>
 
-      <TestsListClient tests={testData} />
+      <TestsListClient
+        tests={testData}
+        classes={classes}
+        teachers={teachers}
+      />
     </div>
   )
 }
