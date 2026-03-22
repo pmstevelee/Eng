@@ -3,9 +3,12 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-const tabs = [
-  { label: '일반', href: '/owner/settings' },
+const navItems = [
+  { label: '학원 정보', href: '/owner/settings/academy' },
+  { label: '초대 코드', href: '/owner/settings/invite' },
+  { label: '알림 설정', href: '/owner/settings/notifications' },
   { label: '구독 관리', href: '/owner/settings/subscription' },
+  { label: '계정 탈퇴', href: '/owner/settings/withdraw' },
 ]
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
@@ -19,36 +22,45 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
         <p className="text-sm text-gray-500 mt-1">학원 및 계정 설정을 관리합니다</p>
       </div>
 
-      {/* 탭 네비게이션 */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex gap-6">
-          {tabs.map((tab) => {
-            const isActive =
-              tab.href === '/owner/settings'
-                ? pathname === '/owner/settings'
-                : pathname.startsWith(tab.href)
-            return (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                className={`
-                  py-3 text-sm font-medium border-b-2 transition-colors
-                  ${
-                    isActive
-                      ? 'border-primary-700 text-primary-700'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+      <div className="flex gap-8 items-start">
+        {/* 사이드 네비게이션 */}
+        <aside className="w-44 flex-shrink-0">
+          <nav className="space-y-0.5">
+            {navItems.map((item) => {
+              const isActive = pathname.startsWith(item.href)
+              const isWithdraw = item.href === '/owner/settings/withdraw'
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`
+                    block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                    ${
+                      isActive
+                        ? isWithdraw
+                          ? 'bg-red-50 text-red-600'
+                          : 'text-primary-700'
+                        : isWithdraw
+                          ? 'text-gray-500 hover:bg-red-50 hover:text-red-600'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }
+                  `}
+                  style={
+                    isActive && !isWithdraw
+                      ? { color: '#1865F2', backgroundColor: '#EFF4FF' }
+                      : {}
                   }
-                `}
-                style={isActive ? { borderColor: '#1865F2', color: '#1865F2' } : {}}
-              >
-                {tab.label}
-              </Link>
-            )
-          })}
-        </nav>
-      </div>
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
+          </nav>
+        </aside>
 
-      {children}
+        {/* 콘텐츠 영역 */}
+        <div className="flex-1 min-w-0">{children}</div>
+      </div>
     </div>
   )
 }

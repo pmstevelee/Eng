@@ -112,6 +112,88 @@ export async function withdrawAcademy(
   redirect('/login')
 }
 
+export async function updateAcademyInfo(
+  formData: FormData,
+): Promise<{ error?: string; success?: boolean }> {
+  const businessName = (formData.get('businessName') as string)?.trim()
+  const address = (formData.get('address') as string)?.trim()
+  const phone = (formData.get('phone') as string)?.trim()
+
+  if (!businessName) return { error: '상호명을 입력해주세요.' }
+
+  const supabase = await createClient()
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser()
+  if (!authUser) return { error: '인증이 필요합니다.' }
+
+  const user = await prisma.user.findUnique({
+    where: { id: authUser.id, isDeleted: false },
+    select: { id: true, role: true, academyId: true },
+  })
+  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return { error: '권한이 없습니다.' }
+
+  await prisma.academy.update({
+    where: { id: user.academyId },
+    data: {
+      businessName: businessName || null,
+      address: address || null,
+      phone: phone || null,
+    },
+  })
+
+  revalidatePath('/owner/settings/academy')
+  revalidatePath('/owner')
+  return { success: true }
+}
+
+export async function updateNotificationSettings(settings: {
+  newTeacherJoin: boolean
+  newStudentJoin: boolean
+  testCompleted: boolean
+  subscriptionExpiring: boolean
+}): Promise<{ error?: string; success?: boolean }> {
+  const supabase = await createClient()
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser()
+  if (!authUser) return { error: '인증이 필요합니다.' }
+
+  const user = await prisma.user.findUnique({
+    where: { id: authUser.id, isDeleted: false },
+    select: { id: true, role: true, academyId: true },
+  })
+  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return { error: '권한이 없습니다.' }
+
+  const academy = await prisma.academy.findUnique({
+    where: { id: user.academyId },
+    select: { settingsJson: true },
+  })
+
+  const currentSettings =
+    academy?.settingsJson && typeof academy.settingsJson === 'object'
+      ? (academy.settingsJson as Record<string, unknown>)
+      : {}
+
+  await prisma.academy.update({
+    where: { id: user.academyId },
+    data: {
+      settingsJson: {
+        ...currentSettings,
+        notifications: {
+          newTeacherJoin: settings.newTeacherJoin,
+          newStudentJoin: settings.newStudentJoin,
+          testCompleted: settings.testCompleted,
+          subscriptionExpiring: true, // 항상 ON
+        },
+      },
+    },
+  })
+
+  revalidatePath('/owner/settings/notifications')
+  return { success: true }
+}
+
 export async function regenerateInviteCode(): Promise<{ error?: string; code?: string }> {
   const supabase = await createClient()
   const {
