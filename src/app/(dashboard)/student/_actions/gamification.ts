@@ -477,6 +477,176 @@ export async function submitMissionAnswers(
   return { newBadges: toAward as string[], score }
 }
 
+// ─── Extended dashboard data ──────────────────────────────────────────────────
+
+export async function getExtendedDashboardData() {
+  const auth = await getAuthedStudent()
+  if (!auth) return null
+  const { studentId } = auth
+
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+
+  const [
+    assessments,
+    upcomingSessions,
+    completedSessions,
+    recentBadges,
+    completedMissions,
+    todayMission,
+  ] = await Promise.all([
+    prisma.skillAssessment.findMany({
+      where: { studentId },
+      orderBy: { assessedAt: 'desc' },
+      take: 50,
+      select: { domain: true, score: true },
+    }),
+    prisma.testSession.findMany({
+      where: { studentId, status: 'NOT_STARTED' },
+      select: {
+        id: true,
+        timeLimitMin: true,
+        test: {
+          select: {
+            title: true,
+            isActive: true,
+            questionOrder: true,
+          },
+        },
+      },
+      orderBy: { startedAt: 'asc' },
+      take: 3,
+    }),
+    prisma.testSession.findMany({
+      where: {
+        studentId,
+        status: { in: ['COMPLETED', 'GRADED'] },
+        completedAt: { not: null },
+      },
+      select: {
+        id: true,
+        score: true,
+        completedAt: true,
+        test: { select: { title: true } },
+      },
+      orderBy: { completedAt: 'desc' },
+      take: 5,
+    }),
+    prisma.badgeEarning.findMany({
+      where: { studentId },
+      select: {
+        id: true,
+        earnedAt: true,
+        badge: { select: { name: true, iconUrl: true } },
+      },
+      orderBy: { earnedAt: 'desc' },
+      take: 5,
+    }),
+    prisma.dailyMission.findMany({
+      where: { studentId, isCompleted: true },
+      select: {
+        id: true,
+        domainFocus: true,
+        questionIds: true,
+        completedAt: true,
+      },
+      orderBy: { completedAt: 'desc' },
+      take: 5,
+    }),
+    prisma.dailyMission.findFirst({
+      where: { studentId, missionDate: { gte: todayStart } },
+      select: { questionIds: true, isCompleted: true },
+    }),
+  ])
+
+  // Compute domain average scores from recent skill assessments
+  const domainList: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+  const domainScores: Record<string, number> = {}
+  for (const domain of domainList) {
+    const relevant = assessments.filter((a) => a.domain === domain)
+    domainScores[domain] =
+      relevant.length > 0
+        ? Math.round(relevant.reduce((s, a) => s + (a.score ?? 0), 0) / relevant.length)
+        : 0
+  }
+
+  // Fetch today's mission question previews (only if not completed)
+  type MissionQuestion = { id: string; domain: QuestionDomain; difficulty: number }
+  let missionQuestions: MissionQuestion[] = []
+  if (todayMission && !todayMission.isCompleted) {
+    const ids = todayMission.questionIds as string[]
+    if (ids.length > 0) {
+      const qs = await prisma.question.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, domain: true, difficulty: true },
+      })
+      missionQuestions = ids
+        .map((id) => qs.find((q) => q.id === id))
+        .filter((q): q is MissionQuestion => Boolean(q))
+    }
+  }
+
+  // Build chronological recent activity list
+  type ActivityItem = {
+    id: string
+    type: 'test' | 'badge' | 'mission'
+    label: string
+    detail?: string
+    time: Date
+    emoji: string
+  }
+  const activities: ActivityItem[] = []
+
+  for (const s of completedSessions) {
+    if (s.completedAt) {
+      activities.push({
+        id: s.id,
+        type: 'test',
+        label: s.test.title + ' 완료',
+        detail: s.score !== null ? `${s.score}점` : undefined,
+        time: s.completedAt,
+        emoji: '📝',
+      })
+    }
+  }
+  for (const b of recentBadges) {
+    activities.push({
+      id: b.id,
+      type: 'badge',
+      label: `${b.badge.name} 배지 획득!`,
+      time: b.earnedAt,
+      emoji: b.badge.iconUrl ?? '🏅',
+    })
+  }
+  for (const m of completedMissions) {
+    if (m.completedAt) {
+      activities.push({
+        id: m.id,
+        type: 'mission',
+        label: `${EXT_DOMAIN_LABEL[m.domainFocus ?? ''] ?? '영어'} 오늘의 미션 완료`,
+        detail: `${(m.questionIds as string[]).length}문제`,
+        time: m.completedAt,
+        emoji: '✅',
+      })
+    }
+  }
+  activities.sort((a, b) => b.time.getTime() - a.time.getTime())
+
+  return {
+    domainScores,
+    upcomingSessions: upcomingSessions.filter((s) => s.test.isActive),
+    recentActivities: activities.slice(0, 3),
+    missionQuestions,
+  }
+}
+
+const EXT_DOMAIN_LABEL: Record<string, string> = {
+  GRAMMAR: 'Grammar',
+  VOCABULARY: 'Vocabulary',
+  READING: 'Reading',
+  WRITING: 'Writing',
+}
+
 // ─── Seed system badges ───────────────────────────────────────────────────────
 
 export async function seedSystemBadges() {
