@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { Clock, FileText, BookOpen, AlertCircle } from 'lucide-react'
 import type { SessionForTest, TestForTest } from '../page'
 
@@ -19,7 +18,6 @@ type Props = {
 }
 
 export function TestStartScreen({ session, test, questionCount, onStart }: Props) {
-  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -31,7 +29,6 @@ export function TestStartScreen({ session, test, questionCount, onStart }: Props
         setError(result.error)
         return
       }
-      router.refresh()
     })
   }
 

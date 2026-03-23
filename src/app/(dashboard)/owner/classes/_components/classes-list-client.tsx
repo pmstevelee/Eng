@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useRef, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   Plus,
   MoreVertical,
@@ -189,14 +189,13 @@ function ClassCard({
   onToggleActive: () => void
   onDelete: () => void
 }) {
-  const router = useRouter()
-
   return (
-    <div
-      className={`relative bg-white rounded-xl border p-5 hover:border-primary-700 transition-colors cursor-pointer group ${
+    <Link
+      href={`/owner/classes/${cls.id}`}
+      prefetch={false}
+      className={`relative block bg-white rounded-xl border p-5 hover:border-primary-700 transition-colors cursor-pointer group ${
         cls.isActive ? 'border-gray-200' : 'border-gray-200 opacity-60'
       }`}
-      onClick={() => router.push(`/owner/classes/${cls.id}`)}
     >
       {/* 상단: 이름 + 메뉴 */}
       <div className="flex items-start justify-between mb-3">
@@ -253,7 +252,7 @@ function ClassCard({
           <span className="text-gray-500">{formatSchedule(cls.schedule)}</span>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -544,7 +543,6 @@ function DeleteConfirm({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ClassesListClient({ initialClasses, teachers }: Props) {
-  const router = useRouter()
   const [classes, setClasses] = useState(initialClasses)
   const [showInactive, setShowInactive] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -569,7 +567,7 @@ export default function ClassesListClient({ initialClasses, teachers }: Props) {
   }
 
   const handleSaved = () => {
-    router.refresh()
+    // revalidatePath is called in the server action
   }
 
   const handleDeleted = () => {

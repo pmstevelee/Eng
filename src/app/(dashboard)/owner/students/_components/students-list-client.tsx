@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+
 import { Search, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
@@ -207,11 +208,16 @@ export default function StudentsListClient({
               {students.map((student) => (
                 <tr
                   key={student.id}
-                  className="hover:bg-gray-50 transition-colors cursor-pointer"
-                  onClick={() => router.push(`/owner/students/${student.id}`)}
+                  className="relative hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
+                    <Link
+                      href={`/owner/students/${student.id}`}
+                      prefetch={false}
+                      className="absolute inset-0 z-[1]"
+                      aria-label={`${student.name} 상세 보기`}
+                    />
+                    <div className="relative z-[2] flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
                         <span className="text-xs font-semibold text-primary-700">
                           {student.name.charAt(0)}

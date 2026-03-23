@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GradesDomainLineChart } from './grades-domain-line-chart'
 
@@ -110,7 +110,6 @@ export function GradesTabs({
   currentLevel,
   domainSessionPoints,
 }: Props) {
-  const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabKey>('history')
   const [page, setPage] = useState(1)
   const [selectedDomain, setSelectedDomain] = useState<DomainKey>('GRAMMAR')
@@ -181,10 +180,15 @@ export function GradesTabs({
                     {pagedHistory.map((item) => (
                       <tr
                         key={item.id}
-                        className="cursor-pointer transition-colors hover:bg-gray-50"
-                        onClick={() => router.push(`/student/tests/${item.id}/result`)}
+                        className="relative cursor-pointer transition-colors hover:bg-gray-50"
                       >
                         <td className="whitespace-nowrap py-3.5 pl-5 pr-4 text-sm text-gray-500">
+                          <Link
+                            href={`/student/tests/${item.id}/result`}
+                            prefetch={false}
+                            className="absolute inset-0 z-[1]"
+                            aria-label={`${item.title} 결과 보기`}
+                          />
                           {item.date}
                         </td>
                         <td className="max-w-[180px] px-4 py-3.5 text-sm font-medium text-gray-900">

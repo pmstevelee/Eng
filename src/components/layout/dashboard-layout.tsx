@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { Sidebar } from './sidebar'
 import { Header } from './header'
 import { NAV_ITEMS } from './nav-items'
@@ -28,6 +29,7 @@ export function DashboardLayout({
   businessName,
 }: DashboardLayoutProps) {
   const navItems = NAV_ITEMS[role]
+  const pathname = usePathname()
 
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
@@ -66,7 +68,7 @@ export function DashboardLayout({
           userId={userId}
           onOpenMobileSidebar={() => setIsMobileOpen(true)}
         />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">{children}</main>
+        <main key={pathname} className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 page-enter">{children}</main>
       </div>
     </div>
   )

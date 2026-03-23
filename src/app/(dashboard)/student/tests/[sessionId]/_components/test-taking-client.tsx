@@ -8,7 +8,6 @@ import {
   useTransition,
   TouchEvent,
 } from 'react'
-import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Clock, Save, AlertTriangle } from 'lucide-react'
 import type { QuestionForTest, SessionForTest, TestForTest, InitialAnswers } from '../page'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
@@ -62,7 +61,6 @@ export function TestTakingClient({
   onSaveResponses,
   onSubmit,
 }: Props) {
-  const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
   // 현재 문제 인덱스
@@ -104,9 +102,8 @@ export function TestTakingClient({
     }))
     startTransition(async () => {
       await onSubmit(session.id, allAnswers)
-      router.refresh()
     })
-  }, [onSubmit, router, session.id])
+  }, [onSubmit, session.id])
 
   // ── 타이머 ──────────────────────────────────────────────────────────────────
 
@@ -249,7 +246,6 @@ export function TestTakingClient({
     }))
     startTransition(async () => {
       await onSubmit(session.id, allAnswers)
-      router.refresh()
     })
   }
 

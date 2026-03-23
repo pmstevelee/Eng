@@ -4,7 +4,6 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Search, Send, BookOpen, ChevronRight, X } from 'lucide-react'
 import { deployExistingTest, getStudentsForDeploy } from '../actions'
-import { useRouter } from 'next/navigation'
 
 type TestItem = {
   id: string
@@ -59,8 +58,6 @@ export default function TestsListClient({
   classes: FilterClass[]
   teachers: FilterTeacher[]
 }) {
-  const router = useRouter()
-
   // Filters
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('ALL')
@@ -148,7 +145,6 @@ export default function TestsListClient({
       setDeployError(result.error)
     } else {
       setDeployTestId(null)
-      router.refresh()
     }
   }
 

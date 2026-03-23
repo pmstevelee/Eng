@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Clock, BookOpen, ChevronDown, ChevronUp, Send } from 'lucide-react'
 import { deployExistingTest, getStudentsForDeploy } from '../actions'
-import { useRouter } from 'next/navigation'
 
 type SessionInfo = { status: string; studentName: string }
 
@@ -60,7 +59,6 @@ const SESSION_DOT: Record<string, string> = {
 type DeployClassInfo = { id: string; name: string; students: Array<{ id: string; name: string }> }
 
 export default function TestsListClient({ tests }: { tests: TestItem[] }) {
-  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'ALL' | 'DRAFT' | 'PUBLISHED' | 'GRADED'>('ALL')
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -121,7 +119,6 @@ export default function TestsListClient({ tests }: { tests: TestItem[] }) {
       setDeployError(result.error)
     } else {
       setDeployTestId(null)
-      router.refresh()
     }
   }
 
