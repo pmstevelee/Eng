@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { Users, TrendingUp, FileCheck, BarChart2, ArrowUpRight, ArrowDownRight, Minus, AlertCircle } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -262,6 +263,14 @@ function TrendIcon({ delta }: { delta: number | null }) {
   return <Minus size={14} className="text-gray-400" />
 }
 
+// ─── Cached Data Fetcher (60초 TTL, academyId별 독립 캐시) ───────────────────
+
+const getCachedOwnerDashboardData = unstable_cache(
+  getOwnerDashboardData,
+  ['owner-dashboard'],
+  { revalidate: 60 }
+)
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function OwnerDashboard() {
@@ -277,7 +286,7 @@ export default async function OwnerDashboard() {
     domainData,
     recentSessions,
     atRiskStudents,
-  } = await getOwnerDashboardData(user.academyId)
+  } = await getCachedOwnerDashboardData(user.academyId)
 
   const now = new Date()
   const dateLabel = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`
