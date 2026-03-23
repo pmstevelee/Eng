@@ -52,18 +52,9 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
 
-  // ── Parallel fetch ──────────────────────────────────────────────────────────
-  const [
-    gradedSessions,
-    levelDistRaw,
-    levelUpBadges,
-    monthlySessionsRaw,
-    classesWithData,
-    teachersRaw,
-    attendanceRaw,
-    newStudentsRaw,
-    withdrawnRaw,
-  ] = await Promise.all([
+  // ── Parallel fetch (3개 배치로 분리 — connection_limit=3 대응) ──────────────
+  // Batch 1: 핵심 성적/레벨 데이터
+  const [gradedSessions, levelDistRaw, levelUpBadges] = await Promise.all([
     // 1. All graded sessions in period (for score analysis)
     prisma.testSession.findMany({
       where: {
@@ -114,7 +105,10 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
       },
       take: 20,
     }),
+  ])
 
+  // Batch 2: 트렌드/반/교사 데이터
+  const [monthlySessionsRaw, classesWithData, teachersRaw] = await Promise.all([
     // 4. Monthly sessions (last 6 months, for trend charts)
     prisma.testSession.findMany({
       where: {
@@ -199,7 +193,10 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
         },
       },
     }),
+  ])
 
+  // Batch 3: 출석/학생 현황 데이터 + 카운트
+  const [attendanceRaw, newStudentsRaw, withdrawnRaw, totalActiveStudents] = await Promise.all([
     // 7. Attendance raw (for heatmap + weekday)
     prisma.attendance.findMany({
       where: {
@@ -239,12 +236,12 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
       },
       select: { updatedAt: true },
     }),
-  ])
 
-  // ── Active student count ──
-  const totalActiveStudents = await prisma.student.count({
-    where: { user: { academyId, isActive: true }, status: 'ACTIVE' },
-  })
+    // 10. Active student count
+    prisma.student.count({
+      where: { user: { academyId, isActive: true }, status: 'ACTIVE' },
+    }),
+  ])
 
   // ── TAB 1: Score Analysis ──────────────────────────────────────────────────
 
