@@ -63,7 +63,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '홈', href: '/student', icon: Home },
     { label: '오늘의 미션', href: '/student/daily-mission', icon: Target },
     { label: '테스트', href: '/student/tests', icon: FileText },
-    { label: '학습공간', href: '/student/learning', icon: BookOpen },
+    { label: '학습공간', href: '/student/learn', icon: BookOpen },
     { label: '내 성적', href: '/student/grades', icon: BarChart2 },
     { label: '배지', href: '/student/badges', icon: Award },
     { label: '알림', href: '/student/notifications', icon: Bell },
