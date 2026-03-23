@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { unstable_cache } from 'next/cache'
 import { BookOpen, Sparkles } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -17,36 +18,44 @@ function parseSchedule(json: unknown): ScheduleData | null {
   }
 }
 
+const getClassesPageData = unstable_cache(
+  async (academyId: string) => {
+    return Promise.all([
+      prisma.class.findMany({
+        where: { academyId },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          teacher: { select: { id: true, name: true } },
+          students: {
+            where: { status: 'ACTIVE' },
+            select: {
+              id: true,
+              testSessions: {
+                where: { score: { not: null } },
+                select: { score: true },
+                orderBy: { completedAt: 'desc' },
+                take: 5,
+              },
+            },
+          },
+        },
+      }),
+      prisma.user.findMany({
+        where: { academyId, role: 'TEACHER', isDeleted: false },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
+      }),
+    ])
+  },
+  ['owner-classes'],
+  { revalidate: 60 },
+)
+
 export default async function OwnerClassesPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
-  const [classes, teachers] = await Promise.all([
-    prisma.class.findMany({
-      where: { academyId: user.academyId },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        teacher: { select: { id: true, name: true } },
-        students: {
-          where: { status: 'ACTIVE' },
-          select: {
-            id: true,
-            testSessions: {
-              where: { score: { not: null } },
-              select: { score: true },
-              orderBy: { completedAt: 'desc' },
-              take: 5,
-            },
-          },
-        },
-      },
-    }),
-    prisma.user.findMany({
-      where: { academyId: user.academyId, role: 'TEACHER', isDeleted: false },
-      select: { id: true, name: true },
-      orderBy: { name: 'asc' },
-    }),
-  ])
+  const [classes, teachers] = await getClassesPageData(user.academyId)
 
   const classData = classes.map((c) => {
     const allScores = c.students.flatMap((s) => s.testSessions.map((ts) => ts.score!))

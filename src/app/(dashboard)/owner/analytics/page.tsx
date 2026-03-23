@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { AnalyticsClient } from './_components/analytics-client'
@@ -542,6 +543,17 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
   }
 }
 
+// ─── Cached Wrapper (period별 독립 캐시, 60초 TTL) ────────────────────────────
+
+function getCachedAnalyticsData(academyId: string, period: string) {
+  const { from, to } = getPeriodDates(period)
+  return unstable_cache(
+    () => getAnalyticsData(academyId, from, to),
+    ['owner-analytics', academyId, period],
+    { revalidate: 60 },
+  )()
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 interface PageProps {
@@ -557,9 +569,8 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
 
   const period = searchParams.period ?? '3-months'
   const activeTab = searchParams.tab ?? 'scores'
-  const { from, to } = getPeriodDates(period)
 
-  const data = await getAnalyticsData(user.academyId, from, to)
+  const data = await getCachedAnalyticsData(user.academyId, period)
 
   return (
     <AnalyticsClient

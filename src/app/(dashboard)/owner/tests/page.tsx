@@ -5,13 +5,11 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import TestsListClient from './_components/tests-list-client'
 
-export default async function OwnerTestsPage() {
-  const user = await getCurrentUser()
-  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
-
+async function getTestsPageData(academyId: string) {
+  // 1단계: 테스트 목록 + 반/교사 목록 병렬 조회
   const [tests, classes, teachers] = await Promise.all([
     prisma.test.findMany({
-      where: { academyId: user.academyId },
+      where: { academyId },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
@@ -26,38 +24,59 @@ export default async function OwnerTestsPage() {
         createdAt: true,
         class: { select: { name: true } },
         creator: { select: { name: true } },
-        testSessions: {
-          select: { status: true, score: true },
-        },
       },
     }),
     prisma.class.findMany({
-      where: { academyId: user.academyId, isActive: true },
+      where: { academyId, isActive: true },
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     }),
     prisma.user.findMany({
-      where: { academyId: user.academyId, role: 'TEACHER', isDeleted: false },
+      where: { academyId, role: 'TEACHER', isDeleted: false },
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     }),
   ])
 
+  const testIds = tests.map((t) => t.id)
+
+  // 2단계: 세션 집계 — 전체 row 로딩 없이 DB 레벨에서 count/avg 계산
+  const [totalCounts, completedStats] = await Promise.all([
+    prisma.testSession.groupBy({
+      by: ['testId'],
+      where: { testId: { in: testIds } },
+      _count: { id: true },
+    }),
+    prisma.testSession.groupBy({
+      by: ['testId'],
+      where: { testId: { in: testIds }, status: { in: ['COMPLETED', 'GRADED'] } },
+      _count: { id: true },
+      _avg: { score: true },
+    }),
+  ])
+
+  const totalMap = new Map(totalCounts.map((r) => [r.testId, r._count.id]))
+  const completedMap = new Map(
+    completedStats.map((r) => [r.testId, { count: r._count.id, avg: r._avg.score }]),
+  )
+
+  return { tests, classes, teachers, totalMap, completedMap }
+}
+
+export default async function OwnerTestsPage() {
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
+
+  const { tests, classes, teachers, totalMap, completedMap } = await getTestsPageData(
+    user.academyId,
+  )
+
   const testData = tests.map((t) => {
-    const completedSessions = t.testSessions.filter((s) =>
-      ['COMPLETED', 'GRADED'].includes(s.status),
-    )
-    const scoredSessions = t.testSessions.filter((s) => s.score !== null)
-    const avgScore =
-      scoredSessions.length > 0
-        ? Math.round(
-            scoredSessions.reduce((sum, s) => sum + (s.score ?? 0), 0) / scoredSessions.length,
-          )
-        : null
-    const responseRate =
-      t.testSessions.length > 0
-        ? Math.round((completedSessions.length / t.testSessions.length) * 100)
-        : null
+    const total = totalMap.get(t.id) ?? 0
+    const completed = completedMap.get(t.id)
+    const completedCount = completed?.count ?? 0
+    const avgScore = completed?.avg != null ? Math.round(completed.avg) : null
+    const responseRate = total > 0 ? Math.round((completedCount / total) * 100) : null
 
     return {
       id: t.id,
@@ -72,8 +91,8 @@ export default async function OwnerTestsPage() {
       classId: t.classId,
       creatorName: t.creator?.name ?? null,
       creatorId: t.createdBy,
-      sessionCount: t.testSessions.length,
-      completedCount: completedSessions.length,
+      sessionCount: total,
+      completedCount,
       avgScore,
       responseRate,
     }

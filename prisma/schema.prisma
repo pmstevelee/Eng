@@ -187,6 +187,7 @@ model User {
   notifications    Notification[]
   announcements    Announcement[]   @relation("AnnouncementAuthor")
 
+  @@index([academyId])
   @@map("users")
 }
 
@@ -215,6 +216,8 @@ model Student {
   streak           StudentStreak?
   dailyMissions    DailyMission[]
 
+  @@index([classId])
+  @@index([status])
   @@map("students")
 }
 
@@ -239,6 +242,8 @@ model Class {
   tests         Test[]
   announcements Announcement[]
 
+  @@index([academyId])
+  @@index([teacherId])
   @@map("classes")
 }
 
@@ -264,6 +269,9 @@ model Test {
   class        Class?        @relation(fields: [classId], references: [id])
   testSessions TestSession[]
 
+  @@index([academyId])
+  @@index([classId])
+  @@index([status])
   @@map("tests")
 }
 
@@ -288,6 +296,10 @@ model TestSession {
   student           Student            @relation(fields: [studentId], references: [id])
   questionResponses QuestionResponse[]
 
+  @@index([testId])
+  @@index([studentId])
+  @@index([status])
+  @@index([completedAt])
   @@map("test_sessions")
 }
 
@@ -308,6 +320,7 @@ model Question {
   creator   User?              @relation(fields: [createdBy], references: [id])
   responses QuestionResponse[]
 
+  @@index([academyId])
   @@map("questions")
 }
 
@@ -325,6 +338,8 @@ model QuestionResponse {
   session  TestSession @relation(fields: [sessionId], references: [id])
   question Question    @relation(fields: [questionId], references: [id])
 
+  @@index([sessionId])
+  @@index([questionId])
   @@map("question_responses")
 }
 
@@ -340,6 +355,7 @@ model SkillAssessment {
 
   student Student @relation(fields: [studentId], references: [id])
 
+  @@index([studentId])
   @@map("skill_assessments")
 }
 
@@ -357,6 +373,7 @@ model LearningPath {
 
   student Student @relation(fields: [studentId], references: [id])
 
+  @@index([studentId])
   @@map("learning_paths")
 }
 
@@ -373,6 +390,8 @@ model TeacherComment {
   teacher User    @relation("CommentAuthor", fields: [teacherId], references: [id])
   student Student @relation(fields: [studentId], references: [id])
 
+  @@index([studentId])
+  @@index([teacherId])
   @@map("teacher_comments")
 }
 
@@ -390,6 +409,7 @@ model Report {
   student   Student @relation(fields: [studentId], references: [id])
   generator User?   @relation("ReportGenerator", fields: [generatedBy], references: [id])
 
+  @@index([studentId])
   @@map("reports")
 }
 
@@ -409,6 +429,9 @@ model Notification {
   user    User     @relation(fields: [userId], references: [id])
   academy Academy? @relation(fields: [academyId], references: [id])
 
+  @@index([userId])
+  @@index([academyId])
+  @@index([createdAt])
   @@map("notifications")
 }
 
@@ -429,6 +452,7 @@ model Announcement {
   author  User    @relation("AnnouncementAuthor", fields: [authorId], references: [id])
   class   Class?  @relation(fields: [classId], references: [id])
 
+  @@index([academyId])
   @@map("announcements")
 }
 
@@ -446,6 +470,8 @@ model Attendance {
   class   Class   @relation(fields: [classId], references: [id])
 
   @@unique([studentId, classId, date])
+  @@index([studentId])
+  @@index([classId])
   @@map("attendance")
 }
 
@@ -524,6 +550,7 @@ model Enrollment {
   academy Academy @relation(fields: [academyId], references: [id])
 
   @@unique([studentId, classId])
+  @@index([academyId])
   @@map("enrollments")
 }
 
