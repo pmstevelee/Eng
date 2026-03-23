@@ -11,26 +11,29 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
-import {
-  getGamificationData,
-  generateOrGetDailyMission,
-  getExtendedDashboardData,
-} from './_actions/gamification'
+import { getStudentDashboardData } from './_actions/gamification'
 import { levelLabel } from './_utils/level'
 
 export default async function StudentDashboardPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'STUDENT') redirect('/login')
 
-  // Ensure today's mission exists before parallel fetches
-  const mission = await generateOrGetDailyMission()
+  const data = await getStudentDashboardData()
+  if (!data) redirect('/login')
 
-  const [gData, extData] = await Promise.all([getGamificationData(), getExtendedDashboardData()])
-
-  if (!gData) redirect('/login')
-
-  const { streak, isActiveToday, weeklyQuestionCount, weeklyGoal, currentLevel, recentAvgScore } =
-    gData
+  const {
+    mission,
+    streak,
+    isActiveToday,
+    weeklyQuestionCount,
+    weeklyGoal,
+    currentLevel,
+    recentAvgScore,
+    domainScores,
+    upcomingSessions,
+    recentActivities,
+    missionQuestions,
+  } = data
 
   const firstName = user.name.split(' ')[0]
 
@@ -61,12 +64,6 @@ export default async function StudentDashboardPage() {
   const SVG_R = 52
   const SVG_C = 2 * Math.PI * SVG_R
   const svgOffset = SVG_C * (1 - levelRingProgress / 100)
-
-  // Extended data with fallbacks
-  const domainScores = extData?.domainScores ?? {}
-  const upcomingSessions = extData?.upcomingSessions ?? []
-  const recentActivities = extData?.recentActivities ?? []
-  const missionQuestions = extData?.missionQuestions ?? []
 
   return (
     <div className="space-y-6">
@@ -120,9 +117,7 @@ export default async function StudentDashboardPage() {
                 className="-rotate-90"
                 aria-hidden="true"
               >
-                {/* Track */}
                 <circle cx="72" cy="72" r={SVG_R} fill="none" stroke="#E5E7EB" strokeWidth="10" />
-                {/* Progress */}
                 <circle
                   cx="72"
                   cy="72"
@@ -190,7 +185,6 @@ export default async function StudentDashboardPage() {
               : 'border-[#7854F7] bg-purple-50/40'
           }`}
         >
-          {/* Header */}
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div
@@ -222,7 +216,6 @@ export default async function StudentDashboardPage() {
             )}
           </div>
 
-          {/* Body */}
           {mission.isCompleted ? (
             <div className="flex items-center gap-3 rounded-xl bg-white/70 p-4">
               <span className="text-2xl">🎉</span>
@@ -357,7 +350,7 @@ export default async function StudentDashboardPage() {
 
         {/* Recent activities */}
         <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-3">
             <span className="text-sm font-medium text-gray-700">최근 활동</span>
           </div>
           {recentActivities.length > 0 ? (
@@ -413,13 +406,13 @@ const LEVEL_THRESHOLDS = [0, 0, 40, 55, 65, 75, 85, 95, 100]
 
 const LEVEL_COLORS = [
   '',
-  'text-gray-500',    // 1 A1
-  'text-green-600',   // 2 A2
-  'text-teal-600',    // 3 B1-
-  'text-[#1865F2]',   // 4 B1
-  'text-[#7854F7]',   // 5 B2
-  'text-orange-500',  // 6 C1
-  'text-[#FFB100]',   // 7 C2
+  'text-gray-500',
+  'text-green-600',
+  'text-teal-600',
+  'text-[#1865F2]',
+  'text-[#7854F7]',
+  'text-orange-500',
+  'text-[#FFB100]',
 ]
 
 const DOMAIN_KEYS = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING'] as const

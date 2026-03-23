@@ -477,46 +477,82 @@ export async function submitMissionAnswers(
   return { newBadges: toAward as string[], score }
 }
 
-// ─── Extended dashboard data ──────────────────────────────────────────────────
+// ─── Unified student dashboard data (connection-pool-safe) ───────────────────
+//
+// Runs queries in sequential batches (max 3 per batch) to stay within
+// Supabase's transaction-pooler connection_limit: 1 / timeout: 10s.
 
-export async function getExtendedDashboardData() {
+export async function getStudentDashboardData() {
   const auth = await getAuthedStudent()
   if (!auth) return null
   const { studentId } = auth
 
   const todayStart = new Date()
   todayStart.setHours(0, 0, 0, 0)
+  const weekStart = new Date()
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+  weekStart.setHours(0, 0, 0, 0)
 
-  const [
-    assessments,
-    upcomingSessions,
-    completedSessions,
-    recentBadges,
-    completedMissions,
-    todayMission,
-  ] = await Promise.all([
-    prisma.skillAssessment.findMany({
+  // ── Step 1: Check for today's mission ─────────────────────────────────────
+  let mission = await prisma.dailyMission.findFirst({
+    where: { studentId, missionDate: { gte: todayStart } },
+  })
+
+  // ── Step 2: Create mission if it doesn't exist yet ────────────────────────
+  if (!mission) {
+    const recentAssessments = await prisma.skillAssessment.findMany({
       where: { studentId },
       orderBy: { assessedAt: 'desc' },
-      take: 50,
+      take: 20,
       select: { domain: true, score: true },
-    }),
-    prisma.testSession.findMany({
-      where: { studentId, status: 'NOT_STARTED' },
-      select: {
-        id: true,
-        timeLimitMin: true,
-        test: {
-          select: {
-            title: true,
-            isActive: true,
-            questionOrder: true,
+    })
+    const weakestDomain = pickWeakestDomain(recentAssessments)
+    const questionPool = await prisma.question.findMany({
+      where: { domain: weakestDomain },
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      select: { id: true },
+    })
+    if (questionPool.length > 0) {
+      try {
+        mission = await prisma.dailyMission.create({
+          data: {
+            studentId,
+            missionDate: new Date(),
+            questionIds: questionPool.map((q) => q.id),
+            domainFocus: weakestDomain,
+            isCompleted: false,
           },
+        })
+      } catch {
+        // Race condition: another request already created it
+        mission = await prisma.dailyMission.findFirst({
+          where: { studentId, missionDate: { gte: todayStart } },
+        })
+      }
+    }
+  }
+
+  // ── Step 3: Core metrics (streak, level, weekly count) ────────────────────
+  const [streak, student, weeklyCount] = await Promise.all([
+    prisma.studentStreak.findUnique({ where: { studentId } }),
+    prisma.student.findUnique({
+      where: { id: studentId },
+      select: { currentLevel: true },
+    }),
+    prisma.questionResponse.count({
+      where: {
+        session: {
+          studentId,
+          status: { in: ['COMPLETED', 'GRADED'] },
+          completedAt: { gte: weekStart },
         },
       },
-      orderBy: { startedAt: 'asc' },
-      take: 3,
     }),
+  ])
+
+  // ── Step 4: Sessions, badges, and skill assessments ───────────────────────
+  const [completedSessions, badgeEarnings, assessments] = await Promise.all([
     prisma.testSession.findMany({
       where: {
         studentId,
@@ -542,39 +578,39 @@ export async function getExtendedDashboardData() {
       orderBy: { earnedAt: 'desc' },
       take: 5,
     }),
-    prisma.dailyMission.findMany({
-      where: { studentId, isCompleted: true },
-      select: {
-        id: true,
-        domainFocus: true,
-        questionIds: true,
-        completedAt: true,
-      },
-      orderBy: { completedAt: 'desc' },
-      take: 5,
-    }),
-    prisma.dailyMission.findFirst({
-      where: { studentId, missionDate: { gte: todayStart } },
-      select: { questionIds: true, isCompleted: true },
+    prisma.skillAssessment.findMany({
+      where: { studentId },
+      orderBy: { assessedAt: 'desc' },
+      take: 50,
+      select: { domain: true, score: true },
     }),
   ])
 
-  // Compute domain average scores from recent skill assessments
-  const domainList: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
-  const domainScores: Record<string, number> = {}
-  for (const domain of domainList) {
-    const relevant = assessments.filter((a) => a.domain === domain)
-    domainScores[domain] =
-      relevant.length > 0
-        ? Math.round(relevant.reduce((s, a) => s + (a.score ?? 0), 0) / relevant.length)
-        : 0
-  }
+  // ── Step 5: Upcoming tests and completed missions ─────────────────────────
+  const [upcomingSessions, completedMissions] = await Promise.all([
+    prisma.testSession.findMany({
+      where: { studentId, status: 'NOT_STARTED' },
+      select: {
+        id: true,
+        timeLimitMin: true,
+        test: { select: { title: true, isActive: true, questionOrder: true } },
+      },
+      orderBy: { startedAt: 'asc' },
+      take: 3,
+    }),
+    prisma.dailyMission.findMany({
+      where: { studentId, isCompleted: true },
+      select: { id: true, domainFocus: true, questionIds: true, completedAt: true },
+      orderBy: { completedAt: 'desc' },
+      take: 5,
+    }),
+  ])
 
-  // Fetch today's mission question previews (only if not completed)
+  // ── Step 6: Mission question preview ──────────────────────────────────────
   type MissionQuestion = { id: string; domain: QuestionDomain; difficulty: number }
   let missionQuestions: MissionQuestion[] = []
-  if (todayMission && !todayMission.isCompleted) {
-    const ids = todayMission.questionIds as string[]
+  if (mission && !mission.isCompleted) {
+    const ids = mission.questionIds as string[]
     if (ids.length > 0) {
       const qs = await prisma.question.findMany({
         where: { id: { in: ids } },
@@ -586,7 +622,29 @@ export async function getExtendedDashboardData() {
     }
   }
 
-  // Build chronological recent activity list
+  // ── Derived values ────────────────────────────────────────────────────────
+  const isActiveToday = streak?.lastActivityDate
+    ? new Date(streak.lastActivityDate) >= todayStart
+    : false
+
+  const scoredSessions = completedSessions.filter((s) => s.score !== null)
+  const recentAvgScore =
+    scoredSessions.length >= 3
+      ? Math.round(
+          scoredSessions.slice(0, 3).reduce((s, r) => s + (r.score ?? 0), 0) / 3,
+        )
+      : null
+
+  const domainList: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+  const domainScores: Record<string, number> = {}
+  for (const domain of domainList) {
+    const relevant = assessments.filter((a) => a.domain === domain)
+    domainScores[domain] =
+      relevant.length > 0
+        ? Math.round(relevant.reduce((s, a) => s + (a.score ?? 0), 0) / relevant.length)
+        : 0
+  }
+
   type ActivityItem = {
     id: string
     type: 'test' | 'badge' | 'mission'
@@ -596,7 +654,6 @@ export async function getExtendedDashboardData() {
     emoji: string
   }
   const activities: ActivityItem[] = []
-
   for (const s of completedSessions) {
     if (s.completedAt) {
       activities.push({
@@ -609,7 +666,7 @@ export async function getExtendedDashboardData() {
       })
     }
   }
-  for (const b of recentBadges) {
+  for (const b of badgeEarnings) {
     activities.push({
       id: b.id,
       type: 'badge',
@@ -623,7 +680,7 @@ export async function getExtendedDashboardData() {
       activities.push({
         id: m.id,
         type: 'mission',
-        label: `${EXT_DOMAIN_LABEL[m.domainFocus ?? ''] ?? '영어'} 오늘의 미션 완료`,
+        label: `${DASH_DOMAIN_LABEL[m.domainFocus ?? ''] ?? '영어'} 오늘의 미션 완료`,
         detail: `${(m.questionIds as string[]).length}문제`,
         time: m.completedAt,
         emoji: '✅',
@@ -633,6 +690,13 @@ export async function getExtendedDashboardData() {
   activities.sort((a, b) => b.time.getTime() - a.time.getTime())
 
   return {
+    mission,
+    streak: streak ?? { currentStreak: 0, longestStreak: 0, lastActivityDate: null, totalDays: 0 },
+    isActiveToday,
+    weeklyQuestionCount: weeklyCount,
+    weeklyGoal: 20,
+    currentLevel: student?.currentLevel ?? 1,
+    recentAvgScore,
     domainScores,
     upcomingSessions: upcomingSessions.filter((s) => s.test.isActive),
     recentActivities: activities.slice(0, 3),
@@ -640,7 +704,26 @@ export async function getExtendedDashboardData() {
   }
 }
 
-const EXT_DOMAIN_LABEL: Record<string, string> = {
+function pickWeakestDomain(
+  assessments: Array<{ domain: QuestionDomain; score: number | null }>,
+): QuestionDomain {
+  const domains: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+  let weakest: QuestionDomain = 'GRAMMAR'
+  let lowestAvg = Infinity
+  for (const domain of domains) {
+    const relevant = assessments.filter((a) => a.domain === domain)
+    if (relevant.length > 0) {
+      const avg = relevant.reduce((s, a) => s + (a.score ?? 0), 0) / relevant.length
+      if (avg < lowestAvg) {
+        lowestAvg = avg
+        weakest = domain
+      }
+    }
+  }
+  return weakest
+}
+
+const DASH_DOMAIN_LABEL: Record<string, string> = {
   GRAMMAR: 'Grammar',
   VOCABULARY: 'Vocabulary',
   READING: 'Reading',
