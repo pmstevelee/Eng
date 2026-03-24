@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 export type TeacherPermissions = {
   canCreateQuestions: boolean
@@ -46,6 +46,7 @@ export async function assignClassToTeacher(
     data: { teacherId },
   })
 
+  revalidateTag(`academy-${owner.academyId}-teachers`)
   revalidatePath('/owner/teachers')
   revalidatePath(`/owner/teachers/${teacherId}`)
   return {}
@@ -63,6 +64,7 @@ export async function unassignClassFromTeacher(
     data: { teacherId: null },
   })
 
+  revalidateTag(`academy-${owner.academyId}-teachers`)
   revalidatePath('/owner/teachers')
   revalidatePath(`/owner/teachers/${teacherId}`)
   return {}
@@ -122,6 +124,7 @@ export async function removeTeacherFromAcademy(
     data: { academyId: null },
   })
 
+  revalidateTag(`academy-${owner.academyId}-teachers`)
   revalidatePath('/owner/teachers')
   return {}
 }

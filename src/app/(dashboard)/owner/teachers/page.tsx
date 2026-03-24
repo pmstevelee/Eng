@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { unstable_cache } from 'next/cache'
 import { UserCheck } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -11,6 +12,25 @@ type SearchParams = {
   q?: string
   page?: string
 }
+
+// 자주 바뀌지 않는 정적 데이터: 학원 정보 + 전체 교사 수 (60초 캐싱)
+const getStaticTeachersPageData = (academyId: string) =>
+  unstable_cache(
+    async () => {
+      const [academy, totalTeachers] = await Promise.all([
+        prisma.academy.findUnique({
+          where: { id: academyId },
+          select: { maxTeachers: true, subscriptionStatus: true },
+        }),
+        prisma.user.count({
+          where: { academyId, role: 'TEACHER', isDeleted: false },
+        }),
+      ])
+      return { academy, totalTeachers }
+    },
+    ['owner-teachers-static', academyId],
+    { revalidate: 60, tags: [`academy-${academyId}-teachers`] },
+  )()
 
 export default async function OwnerTeachersPage({
   searchParams,
@@ -48,8 +68,9 @@ export default async function OwnerTeachersPage({
     ]
   }
 
-  // 모든 쿼리를 한 번에 병렬 실행
-  const [[totalCount, teachers], academy, totalTeachers] = await Promise.all([
+  // 정적 데이터(캐싱)와 동적 쿼리를 병렬 실행
+  const [{ academy, totalTeachers }, [totalCount, teachers]] = await Promise.all([
+    getStaticTeachersPageData(user.academyId),
     Promise.all([
       prisma.user.count({ where }),
       prisma.user.findMany({
@@ -69,13 +90,6 @@ export default async function OwnerTeachersPage({
         },
       }),
     ]),
-    prisma.academy.findUnique({
-      where: { id: user.academyId },
-      select: { maxTeachers: true, subscriptionStatus: true },
-    }),
-    prisma.user.count({
-      where: { academyId: user.academyId, role: 'TEACHER', isDeleted: false },
-    }),
   ])
 
   const teacherData = teachers.map((t) => ({

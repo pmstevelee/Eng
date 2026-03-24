@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 type QuestionDomain = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
 
@@ -60,6 +60,7 @@ export async function createQuestion(
         createdBy: user.id,
       },
     })
+    revalidateTag(`academy-${user.academyId}-questions`)
     revalidatePath('/owner/tests/questions')
     return { id: question.id }
   } catch {
@@ -92,6 +93,7 @@ export async function updateQuestion(
         contentJson: input.contentJson as object,
       },
     })
+    revalidateTag(`academy-${user.academyId}-questions`)
     revalidatePath('/owner/tests/questions')
     return {}
   } catch {
@@ -114,6 +116,7 @@ export async function deleteQuestion(id: string): Promise<{ error?: string }> {
 
     await prisma.questionResponse.deleteMany({ where: { questionId: id } })
     await prisma.question.delete({ where: { id } })
+    revalidateTag(`academy-${user.academyId}-questions`)
     revalidatePath('/owner/tests/questions')
     return {}
   } catch {

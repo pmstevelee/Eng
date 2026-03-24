@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { Library } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -6,25 +7,34 @@ import QuestionBankClient from '@/components/shared/question-bank-client'
 import type { QuestionRow } from '@/components/shared/question-bank-client'
 import { createQuestion, updateQuestion, deleteQuestion } from './actions'
 
+// 전체 문제 목록을 60초 캐싱 (문제 CRUD 시 tag로 즉시 무효화)
+const getCachedQuestions = (academyId: string) =>
+  unstable_cache(
+    () =>
+      prisma.question.findMany({
+        where: { academyId },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          domain: true,
+          subCategory: true,
+          difficulty: true,
+          cefrLevel: true,
+          contentJson: true,
+          statsJson: true,
+          createdAt: true,
+          creator: { select: { name: true } },
+        },
+      }),
+    ['owner-questions', academyId],
+    { revalidate: 60, tags: [`academy-${academyId}-questions`] },
+  )()
+
 export default async function OwnerQuestionsPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
-  const rawQuestions = await prisma.question.findMany({
-    where: { academyId: user.academyId },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      domain: true,
-      subCategory: true,
-      difficulty: true,
-      cefrLevel: true,
-      contentJson: true,
-      statsJson: true,
-      createdAt: true,
-      creator: { select: { name: true } },
-    },
-  })
+  const rawQuestions = await getCachedQuestions(user.academyId)
 
   const questions: QuestionRow[] = rawQuestions.map((q) => ({
     id: q.id,

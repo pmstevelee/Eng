@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 
 async function getAuthedOwner() {
@@ -67,6 +67,7 @@ export async function saveTestDraft(
         isActive: true,
       },
     })
+    revalidateTag(`academy-${user.academyId}-tests`)
     revalidatePath('/owner/tests')
     return { id: test.id }
   } catch (e) {
@@ -133,6 +134,7 @@ export async function createAndDeployTest(
       return created
     })
 
+    revalidateTag(`academy-${user.academyId}-tests`)
     revalidatePath('/owner/tests')
     return { id: test.id }
   } catch (e) {
@@ -194,6 +196,7 @@ export async function deployExistingTest(
       }
     })
 
+    revalidateTag(`academy-${user.academyId}-tests`)
     revalidatePath('/owner/tests')
     return {}
   } catch (e) {

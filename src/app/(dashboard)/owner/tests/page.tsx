@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { unstable_cache } from 'next/cache'
 import { FilePen, Plus } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -63,11 +64,19 @@ async function getTestsPageData(academyId: string) {
   return { tests, classes, teachers, totalMap, completedMap }
 }
 
+// 테스트 목록 + 세션 통계를 30초 캐싱 (데이터 변경 시 tag로 즉시 무효화)
+const getCachedTestsPageData = (academyId: string) =>
+  unstable_cache(
+    () => getTestsPageData(academyId),
+    ['owner-tests', academyId],
+    { revalidate: 30, tags: [`academy-${academyId}-tests`] },
+  )()
+
 export default async function OwnerTestsPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
-  const { tests, classes, teachers, totalMap, completedMap } = await getTestsPageData(
+  const { tests, classes, teachers, totalMap, completedMap } = await getCachedTestsPageData(
     user.academyId,
   )
 
