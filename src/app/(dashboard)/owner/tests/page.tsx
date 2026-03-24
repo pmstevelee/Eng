@@ -56,14 +56,16 @@ async function getTestsPageData(academyId: string) {
     }),
   ])
 
-  // unstable_cache는 JSON 직렬화를 거치므로 Map 대신 Record 사용
+  // unstable_cache는 JSON 직렬화를 거치므로 Map 대신 Record, Date는 string으로 변환
   const totalMap: Record<string, number> = {}
   for (const r of totalCounts) totalMap[r.testId] = r._count.id
 
   const completedMap: Record<string, { count: number; avg: number | null }> = {}
   for (const r of completedStats) completedMap[r.testId] = { count: r._count.id, avg: r._avg.score }
 
-  return { tests, classes, teachers, totalMap, completedMap }
+  const serializedTests = tests.map((t) => ({ ...t, createdAt: t.createdAt.toISOString() }))
+
+  return { tests: serializedTests, classes, teachers, totalMap, completedMap }
 }
 
 // 테스트 목록 + 세션 통계를 30초 캐싱 (데이터 변경 시 tag로 즉시 무효화)
@@ -97,7 +99,7 @@ export default async function OwnerTestsPage() {
       timeLimitMin: t.timeLimitMin,
       questionCount: Array.isArray(t.questionOrder) ? (t.questionOrder as string[]).length : 0,
       totalScore: t.totalScore,
-      createdAt: t.createdAt.toISOString(),
+      createdAt: t.createdAt,
       className: t.class?.name ?? null,
       classId: t.classId,
       creatorName: t.creator?.name ?? null,

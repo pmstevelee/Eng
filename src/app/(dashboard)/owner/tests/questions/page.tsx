@@ -8,10 +8,11 @@ import type { QuestionRow } from '@/components/shared/question-bank-client'
 import { createQuestion, updateQuestion, deleteQuestion } from './actions'
 
 // 전체 문제 목록을 60초 캐싱 (문제 CRUD 시 tag로 즉시 무효화)
+// Date → string 변환을 캐시 함수 내부에서 처리 (JSON 직렬화 호환)
 const getCachedQuestions = (academyId: string) =>
   unstable_cache(
-    () =>
-      prisma.question.findMany({
+    async () => {
+      const rows = await prisma.question.findMany({
         where: { academyId },
         orderBy: { createdAt: 'desc' },
         select: {
@@ -25,7 +26,9 @@ const getCachedQuestions = (academyId: string) =>
           createdAt: true,
           creator: { select: { name: true } },
         },
-      }),
+      })
+      return rows.map((q) => ({ ...q, createdAt: q.createdAt.toISOString() }))
+    },
     ['owner-questions', academyId],
     { revalidate: 60, tags: [`academy-${academyId}-questions`] },
   )()
@@ -44,7 +47,7 @@ export default async function OwnerQuestionsPage() {
     cefrLevel: q.cefrLevel,
     contentJson: q.contentJson as QuestionRow['contentJson'],
     statsJson: q.statsJson as QuestionRow['statsJson'],
-    createdAt: q.createdAt.toISOString(),
+    createdAt: q.createdAt,
     creator: q.creator,
   }))
 
