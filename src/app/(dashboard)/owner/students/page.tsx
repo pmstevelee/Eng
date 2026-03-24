@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { unstable_cache } from 'next/cache'
 import { Users } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -13,6 +14,30 @@ type SearchParams = {
   status?: string
   page?: string
 }
+
+// 자주 바뀌지 않는 정적 데이터: 반 목록 + 학원 정보 + 전체 학생 수 (60초 캐싱)
+const getStaticStudentsPageData = (academyId: string) =>
+  unstable_cache(
+    async () => {
+      const [classes, academy, totalStudents] = await Promise.all([
+        prisma.class.findMany({
+          where: { academyId, isActive: true },
+          select: { id: true, name: true },
+          orderBy: { name: 'asc' },
+        }),
+        prisma.academy.findUnique({
+          where: { id: academyId },
+          select: { maxStudents: true, subscriptionStatus: true },
+        }),
+        prisma.student.count({
+          where: { user: { academyId, isDeleted: false } },
+        }),
+      ])
+      return { classes, academy, totalStudents }
+    },
+    ['owner-students-static', academyId],
+    { revalidate: 60, tags: [`academy-${academyId}-students`] },
+  )()
 
 export default async function OwnerStudentsPage({
   searchParams,
@@ -63,13 +88,9 @@ export default async function OwnerStudentsPage({
     where.status = statusFilter
   }
 
-  // 모든 쿼리를 한 번에 병렬 실행
-  const [classes, [totalCount, students], academy, totalStudents] = await Promise.all([
-    prisma.class.findMany({
-      where: { academyId: user.academyId, isActive: true },
-      select: { id: true, name: true },
-      orderBy: { name: 'asc' },
-    }),
+  // 정적 데이터(캐싱)와 동적 쿼리를 병렬 실행
+  const [{ classes, academy, totalStudents }, [totalCount, students]] = await Promise.all([
+    getStaticStudentsPageData(user.academyId),
     Promise.all([
       prisma.student.count({ where }),
       prisma.student.findMany({
@@ -88,13 +109,6 @@ export default async function OwnerStudentsPage({
         },
       }),
     ]),
-    prisma.academy.findUnique({
-      where: { id: user.academyId },
-      select: { maxStudents: true, subscriptionStatus: true },
-    }),
-    prisma.student.count({
-      where: { user: { academyId: user.academyId, isDeleted: false } },
-    }),
   ])
 
   const studentData = students.map((s) => ({

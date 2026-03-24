@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 async function getOwner() {
   const supabase = await createClient()
@@ -36,6 +36,7 @@ export async function updateStudentClass(
     data: { classId },
   })
 
+  revalidateTag(`academy-${owner.academyId}-students`)
   revalidatePath('/owner/students')
   revalidatePath(`/owner/students/${studentId}`)
   return {}
@@ -58,6 +59,7 @@ export async function updateStudentStatus(
     data: { status },
   })
 
+  revalidateTag(`academy-${owner.academyId}-students`)
   revalidatePath('/owner/students')
   revalidatePath(`/owner/students/${studentId}`)
   return {}
@@ -80,6 +82,7 @@ export async function updateStudentLevel(
     data: { currentLevel: level },
   })
 
+  revalidateTag(`academy-${owner.academyId}-students`)
   revalidatePath('/owner/students')
   revalidatePath(`/owner/students/${studentId}`)
   return {}
@@ -103,6 +106,7 @@ export async function removeStudentFromAcademy(
     data: { academyId: null },
   })
 
+  revalidateTag(`academy-${owner.academyId}-students`)
   revalidatePath('/owner/students')
   return {}
 }
