@@ -123,3 +123,8 @@
 .page-enter {
   animation: page-fade-in 200ms ease-out;
 }
+
+/* iOS Safari: flex 컨테이너 내 스크롤 컨테이너 터치 처리 */
+main {
+  -webkit-overflow-scrolling: touch;
+}

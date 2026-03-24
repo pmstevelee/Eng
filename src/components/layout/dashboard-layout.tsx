@@ -46,7 +46,7 @@ export function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-[100dvh] overflow-hidden bg-gray-50">
       <Sidebar
         navItems={navItems}
         isCollapsed={isCollapsed}
@@ -68,7 +68,7 @@ export function DashboardLayout({
           userId={userId}
           onOpenMobileSidebar={() => setIsMobileOpen(true)}
         />
-        <main key={pathname} className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 page-enter">{children}</main>
+        <main key={pathname} className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 bg-gray-50 page-enter">{children}</main>
       </div>
     </div>
   )
