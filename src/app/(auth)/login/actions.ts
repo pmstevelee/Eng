@@ -57,8 +57,12 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
 }
 
 export async function signOut(): Promise<void> {
-  const supabase = await createClient()
-  await supabase.auth.signOut()
+  try {
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+  } catch {
+    // 네트워크 오류 등으로 signOut API 호출이 실패해도 계속 진행
+  }
 
   const cookieStore = await cookies()
   cookieStore.delete('user-role')
