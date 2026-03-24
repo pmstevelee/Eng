@@ -56,10 +56,12 @@ async function getTestsPageData(academyId: string) {
     }),
   ])
 
-  const totalMap = new Map(totalCounts.map((r) => [r.testId, r._count.id]))
-  const completedMap = new Map(
-    completedStats.map((r) => [r.testId, { count: r._count.id, avg: r._avg.score }]),
-  )
+  // unstable_cache는 JSON 직렬화를 거치므로 Map 대신 Record 사용
+  const totalMap: Record<string, number> = {}
+  for (const r of totalCounts) totalMap[r.testId] = r._count.id
+
+  const completedMap: Record<string, { count: number; avg: number | null }> = {}
+  for (const r of completedStats) completedMap[r.testId] = { count: r._count.id, avg: r._avg.score }
 
   return { tests, classes, teachers, totalMap, completedMap }
 }
@@ -81,8 +83,8 @@ export default async function OwnerTestsPage() {
   )
 
   const testData = tests.map((t) => {
-    const total = totalMap.get(t.id) ?? 0
-    const completed = completedMap.get(t.id)
+    const total = totalMap[t.id] ?? 0
+    const completed = completedMap[t.id]
     const completedCount = completed?.count ?? 0
     const avgScore = completed?.avg != null ? Math.round(completed.avg) : null
     const responseRate = total > 0 ? Math.round((completedCount / total) * 100) : null
