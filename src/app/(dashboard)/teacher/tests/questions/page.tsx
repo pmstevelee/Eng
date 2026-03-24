@@ -1,43 +1,58 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { Library } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import QuestionBankClient from '@/components/shared/question-bank-client'
 import type { QuestionRow } from '@/components/shared/question-bank-client'
-import { createQuestion, updateQuestion, deleteQuestion } from './actions'
+import { createQuestion, updateQuestion, deleteQuestion, getQuestionDetail } from './actions'
+
+const getCachedQuestions = (academyId: string) =>
+  unstable_cache(
+    async () => {
+      const rows = await prisma.question.findMany({
+        where: { academyId },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          domain: true,
+          subCategory: true,
+          difficulty: true,
+          cefrLevel: true,
+          contentJson: true,
+          statsJson: true,
+          createdAt: true,
+          creator: { select: { name: true } },
+        },
+      })
+      return rows.map((q) => ({ ...q, createdAt: q.createdAt.toISOString() }))
+    },
+    ['teacher-questions', academyId],
+    { revalidate: 60, tags: [`academy-${academyId}-questions`] },
+  )()
 
 export default async function TeacherQuestionsPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
 
   // 교사는 학원 전체 문제 열람, 수정/삭제는 본인 것만 (actions에서 처리)
-  const rawQuestions = await prisma.question.findMany({
-    where: { academyId: user.academyId },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      domain: true,
-      subCategory: true,
-      difficulty: true,
-      cefrLevel: true,
-      contentJson: true,
-      statsJson: true,
-      createdAt: true,
-      creator: { select: { name: true } },
-    },
-  })
+  const rawQuestions = await getCachedQuestions(user.academyId)
 
-  const questions: QuestionRow[] = rawQuestions.map((q) => ({
-    id: q.id,
-    domain: q.domain,
-    subCategory: q.subCategory,
-    difficulty: q.difficulty,
-    cefrLevel: q.cefrLevel,
-    contentJson: q.contentJson as QuestionRow['contentJson'],
-    statsJson: q.statsJson as QuestionRow['statsJson'],
-    createdAt: q.createdAt.toISOString(),
-    creator: q.creator,
-  }))
+  const questions: QuestionRow[] = rawQuestions.map((q) => {
+    const content = q.contentJson as { type: string; question_text?: string }
+    return {
+      id: q.id,
+      domain: q.domain,
+      subCategory: q.subCategory,
+      difficulty: q.difficulty,
+      cefrLevel: q.cefrLevel,
+      questionType: (content.type ?? 'multiple_choice') as QuestionRow['questionType'],
+      questionText: content.question_text ?? '',
+      statsJson: q.statsJson as QuestionRow['statsJson'],
+      createdAt: q.createdAt,
+      creator: q.creator,
+    }
+  })
 
   const domainCounts = {
     GRAMMAR: questions.filter((q) => q.domain === 'GRAMMAR').length,
@@ -89,6 +104,7 @@ export default async function TeacherQuestionsPage() {
         actCreate={createQuestion}
         actUpdate={updateQuestion}
         actDelete={deleteQuestion}
+        actGetDetail={getQuestionDetail}
       />
     </div>
   )

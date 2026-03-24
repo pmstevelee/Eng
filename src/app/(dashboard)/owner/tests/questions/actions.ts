@@ -101,6 +101,17 @@ export async function updateQuestion(
   }
 }
 
+export async function getQuestionDetail(id: string): Promise<QuestionContentJson | null> {
+  const user = await getAuthedOwner()
+  if (!user) return null
+
+  const q = await prisma.question.findUnique({
+    where: { id, academyId: user.academyId! },
+    select: { contentJson: true },
+  })
+  return (q?.contentJson as QuestionContentJson) ?? null
+}
+
 export async function deleteQuestion(id: string): Promise<{ error?: string }> {
   const user = await getAuthedOwner()
   if (!user) return { error: '권한이 없습니다.' }

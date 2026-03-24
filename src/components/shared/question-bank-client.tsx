@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useTransition, useCallback } from 'react'
+import { useState, useMemo, useTransition, useCallback, useRef } from 'react'
 import { Plus, Search, Eye, Pencil, Trash2, X, BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,11 +27,15 @@ export type QuestionRow = {
   subCategory: string | null
   difficulty: number
   cefrLevel: string | null
-  contentJson: QuestionContentJson
+  questionType: QuestionType
+  questionText: string
   statsJson: { attempt_count: number; correct_count: number; correct_rate: number } | null
   createdAt: string
   creator: { name: string } | null
 }
+
+// For modals that need the full question content
+type QuestionDetailRow = QuestionRow & { contentJson: QuestionContentJson }
 
 type CreateInput = {
   domain: QuestionDomainType
@@ -97,8 +101,8 @@ function DifficultyStars({ value }: { value: number }) {
   )
 }
 
-function CorrectRateBadge({ rate }: { rate: number | null }) {
-  if (rate === null) return <span className="text-gray-300 text-sm">–</span>
+function CorrectRateBadge({ rate }: { rate: number | null | undefined }) {
+  if (rate == null) return <span className="text-gray-300 text-sm">–</span>
   const color = rate >= 70 ? '#1FAF54' : rate >= 40 ? '#FFB100' : '#D92916'
   return (
     <span className="text-sm font-medium" style={{ color }}>
@@ -155,7 +159,7 @@ function StyledTextarea({
 
 // ── 미리보기 모달 ─────────────────────────────────────────────────────────────
 
-function PreviewModal({ question, onClose }: { question: QuestionRow; onClose: () => void }) {
+function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onClose: () => void }) {
   const [selected, setSelected] = useState<string | null>(null)
   const content = question.contentJson
   const domainColor = DOMAIN_COLOR[question.domain]
@@ -290,7 +294,7 @@ function QuestionFormModal({
   actCreate,
   actUpdate,
 }: {
-  initial: QuestionRow | null
+  initial: QuestionDetailRow | null
   onClose: () => void
   onSaved: () => void
   actCreate: (input: CreateInput) => Promise<{ error?: string; id?: string }>
@@ -637,11 +641,13 @@ export default function QuestionBankClient({
   actCreate,
   actUpdate,
   actDelete,
+  actGetDetail,
 }: {
   questions: QuestionRow[]
   actCreate: (input: CreateInput) => Promise<{ error?: string; id?: string }>
   actUpdate: (input: UpdateInput) => Promise<{ error?: string }>
   actDelete: (id: string) => Promise<{ error?: string }>
+  actGetDetail: (id: string) => Promise<QuestionContentJson | null>
 }) {
   const [search, setSearch] = useState('')
   const [filterDomain, setFilterDomain] = useState<QuestionDomainType | 'ALL'>('ALL')
@@ -649,23 +655,23 @@ export default function QuestionBankClient({
   const [filterCefr, setFilterCefr] = useState<string>('ALL')
   const [filterDifficulty, setFilterDifficulty] = useState<number>(0)
 
-  const [formModal, setFormModal] = useState<{ open: boolean; question: QuestionRow | null }>({
+  const [formModal, setFormModal] = useState<{ open: boolean; question: QuestionDetailRow | null }>({
     open: false,
     question: null,
   })
-  const [previewQuestion, setPreviewQuestion] = useState<QuestionRow | null>(null)
+  const [previewQuestion, setPreviewQuestion] = useState<QuestionDetailRow | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<QuestionRow | null>(null)
 
   const filtered = useMemo(() => {
     return initialQuestions.filter((q) => {
       if (filterDomain !== 'ALL' && q.domain !== filterDomain) return false
-      if (filterType !== 'ALL' && q.contentJson.type !== filterType) return false
+      if (filterType !== 'ALL' && q.questionType !== filterType) return false
       if (filterCefr !== 'ALL' && q.cefrLevel !== filterCefr) return false
       if (filterDifficulty > 0 && q.difficulty !== filterDifficulty) return false
       if (search) {
         const s = search.toLowerCase()
         return (
-          q.contentJson.question_text.toLowerCase().includes(s) ||
+          q.questionText.toLowerCase().includes(s) ||
           (q.subCategory ?? '').toLowerCase().includes(s)
         )
       }
@@ -673,8 +679,31 @@ export default function QuestionBankClient({
     })
   }, [initialQuestions, filterDomain, filterType, filterCefr, filterDifficulty, search])
 
+  const detailCacheRef = useRef<Record<string, QuestionContentJson>>({})
+  const [loadingDetailId, setLoadingDetailId] = useState<string | null>(null)
+
+  const loadDetail = useCallback(async (id: string): Promise<QuestionContentJson | null> => {
+    if (detailCacheRef.current[id]) return detailCacheRef.current[id]
+    const data = await actGetDetail(id)
+    if (data) detailCacheRef.current[id] = data
+    return data
+  }, [actGetDetail])
+
   const openAdd = useCallback(() => setFormModal({ open: true, question: null }), [])
-  const openEdit = useCallback((q: QuestionRow) => setFormModal({ open: true, question: q }), [])
+
+  const openPreview = useCallback(async (q: QuestionRow) => {
+    setLoadingDetailId(q.id)
+    const contentJson = await loadDetail(q.id)
+    setLoadingDetailId(null)
+    if (contentJson) setPreviewQuestion({ ...q, contentJson })
+  }, [loadDetail])
+
+  const openEdit = useCallback(async (q: QuestionRow) => {
+    setLoadingDetailId(q.id)
+    const contentJson = await loadDetail(q.id)
+    setLoadingDetailId(null)
+    if (contentJson) setFormModal({ open: true, question: { ...q, contentJson } })
+  }, [loadDetail])
 
   const handleSaved = useCallback(() => {
     setFormModal({ open: false, question: null })
@@ -772,8 +801,8 @@ export default function QuestionBankClient({
           {/* 바디 */}
           <div className="divide-y divide-gray-200">
             {filtered.map((q) => {
-              const content = q.contentJson
               const domainColor = DOMAIN_COLOR[q.domain]
+              const isLoadingThis = loadingDetailId === q.id
               return (
                 <div key={q.id} className="flex items-center hover:bg-gray-50/50 transition-colors">
                   {/* 도메인 바 */}
@@ -787,7 +816,7 @@ export default function QuestionBankClient({
                     {/* 문제 본문 */}
                     <div className="min-w-0">
                       <p className="text-sm text-gray-900 font-medium truncate leading-snug">
-                        {content.question_text || '(본문 없음)'}
+                        {q.questionText || '(본문 없음)'}
                       </p>
                       {q.subCategory && (
                         <p className="text-xs text-gray-400 mt-0.5 truncate">{q.subCategory}</p>
@@ -796,7 +825,7 @@ export default function QuestionBankClient({
 
                     <DomainBadge domain={q.domain} />
 
-                    <span className="text-xs text-gray-500">{TYPE_LABEL[content.type]}</span>
+                    <span className="text-xs text-gray-500">{TYPE_LABEL[q.questionType]}</span>
 
                     <DifficultyStars value={q.difficulty} />
 
@@ -815,22 +844,25 @@ export default function QuestionBankClient({
                     {/* 액션 버튼 */}
                     <div className="flex items-center justify-end gap-1">
                       <button
-                        onClick={() => setPreviewQuestion(q)}
-                        className="p-2 rounded-lg text-gray-400 hover:text-primary-700 hover:bg-primary-100 transition-colors"
+                        onClick={() => openPreview(q)}
+                        disabled={isLoadingThis}
+                        className="p-2 rounded-lg text-gray-400 hover:text-primary-700 hover:bg-primary-100 transition-colors disabled:opacity-40"
                         title="미리보기"
                       >
-                        <Eye size={15} />
+                        {isLoadingThis ? <span className="block w-[15px] h-[15px] border-2 border-gray-300 border-t-primary-700 rounded-full animate-spin" /> : <Eye size={15} />}
                       </button>
                       <button
                         onClick={() => openEdit(q)}
-                        className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                        disabled={isLoadingThis}
+                        className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-40"
                         title="수정"
                       >
                         <Pencil size={15} />
                       </button>
                       <button
                         onClick={() => setDeleteTarget(q)}
-                        className="p-2 rounded-lg text-gray-400 hover:text-[#D92916] hover:bg-[#FFF0EE] transition-colors"
+                        disabled={isLoadingThis}
+                        className="p-2 rounded-lg text-gray-400 hover:text-[#D92916] hover:bg-[#FFF0EE] transition-colors disabled:opacity-40"
                         title="삭제"
                       >
                         <Trash2 size={15} />

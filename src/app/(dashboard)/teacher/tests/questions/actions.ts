@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 type QuestionDomain = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
 
@@ -60,6 +60,7 @@ export async function createQuestion(
         createdBy: user.id,
       },
     })
+    revalidateTag(`academy-${user.academyId}-questions`)
     revalidatePath('/teacher/tests/questions')
     return { id: question.id }
   } catch {
@@ -93,11 +94,23 @@ export async function updateQuestion(
         contentJson: input.contentJson as object,
       },
     })
+    revalidateTag(`academy-${user.academyId}-questions`)
     revalidatePath('/teacher/tests/questions')
     return {}
   } catch {
     return { error: '문제 수정에 실패했습니다.' }
   }
+}
+
+export async function getQuestionDetail(id: string): Promise<QuestionContentJson | null> {
+  const user = await getAuthedTeacher()
+  if (!user) return null
+
+  const q = await prisma.question.findUnique({
+    where: { id, academyId: user.academyId! },
+    select: { contentJson: true },
+  })
+  return (q?.contentJson as QuestionContentJson) ?? null
 }
 
 export async function deleteQuestion(id: string): Promise<{ error?: string }> {
@@ -115,6 +128,7 @@ export async function deleteQuestion(id: string): Promise<{ error?: string }> {
 
     await prisma.questionResponse.deleteMany({ where: { questionId: id } })
     await prisma.question.delete({ where: { id } })
+    revalidateTag(`academy-${user.academyId}-questions`)
     revalidatePath('/teacher/tests/questions')
     return {}
   } catch {

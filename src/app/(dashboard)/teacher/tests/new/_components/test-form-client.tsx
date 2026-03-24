@@ -138,7 +138,7 @@ export default function TestFormClient({
       if (filterDomain && q.domain !== filterDomain) return false
       if (filterCefr && q.cefrLevel !== filterCefr) return false
       if (searchText) {
-        const text = q.contentJson.question_text?.toLowerCase() ?? ''
+        const text = q.questionText?.toLowerCase() ?? ''
         if (!text.includes(searchText.toLowerCase())) return false
       }
       return true
@@ -214,7 +214,8 @@ export default function TestFormClient({
         domain: q.domain,
         cefrLevel: q.cefrLevel,
         difficulty: q.difficulty,
-        contentJson: q.contentJson,
+        questionType: q.contentJson.type,
+        questionText: q.contentJson.question_text ?? '',
         subCategory: q.subCategory,
         statsJson: null,
         createdAt: new Date().toISOString(),
@@ -241,7 +242,8 @@ export default function TestFormClient({
       domain: replacement.domain,
       cefrLevel: replacement.cefrLevel,
       difficulty: replacement.difficulty,
-      contentJson: replacement.contentJson,
+      questionType: replacement.contentJson.type,
+      questionText: replacement.contentJson.question_text ?? '',
       subCategory: replacement.subCategory,
       statsJson: null,
       createdAt: new Date().toISOString(),
@@ -601,12 +603,12 @@ export default function TestFormClient({
                             </td>
                             <td className="p-3 max-w-xs">
                               <span className="line-clamp-1 text-gray-800">
-                                {q.contentJson.question_text}
+                                {q.questionText}
                               </span>
                             </td>
                             <td className="p-3 hidden sm:table-cell">
                               <span className="text-xs text-gray-500">
-                                {QUESTION_TYPE_LABEL[q.contentJson.type] ?? q.contentJson.type}
+                                {QUESTION_TYPE_LABEL[q.questionType] ?? q.questionType}
                               </span>
                             </td>
                             <td className="p-3 hidden sm:table-cell">
@@ -735,7 +737,7 @@ export default function TestFormClient({
                     {q.cefrLevel ?? '–'}
                   </span>
                   <span className="flex-1 text-sm text-gray-800 truncate">
-                    {q.contentJson.question_text}
+                    {q.questionText}
                   </span>
                   <div className="flex items-center gap-1 shrink-0">
                     {selectionMode === 'auto' && (

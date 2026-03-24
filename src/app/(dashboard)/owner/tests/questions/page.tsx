@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import QuestionBankClient from '@/components/shared/question-bank-client'
 import type { QuestionRow } from '@/components/shared/question-bank-client'
-import { createQuestion, updateQuestion, deleteQuestion } from './actions'
+import { createQuestion, updateQuestion, deleteQuestion, getQuestionDetail } from './actions'
 
 // 전체 문제 목록을 60초 캐싱 (문제 CRUD 시 tag로 즉시 무효화)
 // Date → string 변환을 캐시 함수 내부에서 처리 (JSON 직렬화 호환)
@@ -39,17 +39,21 @@ export default async function OwnerQuestionsPage() {
 
   const rawQuestions = await getCachedQuestions(user.academyId)
 
-  const questions: QuestionRow[] = rawQuestions.map((q) => ({
-    id: q.id,
-    domain: q.domain,
-    subCategory: q.subCategory,
-    difficulty: q.difficulty,
-    cefrLevel: q.cefrLevel,
-    contentJson: q.contentJson as QuestionRow['contentJson'],
-    statsJson: q.statsJson as QuestionRow['statsJson'],
-    createdAt: q.createdAt,
-    creator: q.creator,
-  }))
+  const questions: QuestionRow[] = rawQuestions.map((q) => {
+    const content = q.contentJson as { type: string; question_text?: string }
+    return {
+      id: q.id,
+      domain: q.domain,
+      subCategory: q.subCategory,
+      difficulty: q.difficulty,
+      cefrLevel: q.cefrLevel,
+      questionType: (content.type ?? 'multiple_choice') as QuestionRow['questionType'],
+      questionText: content.question_text ?? '',
+      statsJson: q.statsJson as QuestionRow['statsJson'],
+      createdAt: q.createdAt,
+      creator: q.creator,
+    }
+  })
 
   const domainCounts = {
     GRAMMAR: questions.filter((q) => q.domain === 'GRAMMAR').length,
@@ -98,6 +102,7 @@ export default async function OwnerQuestionsPage() {
         actCreate={createQuestion}
         actUpdate={updateQuestion}
         actDelete={deleteQuestion}
+        actGetDetail={getQuestionDetail}
       />
     </div>
   )

@@ -38,17 +38,21 @@ export default async function OwnerNewTestPage() {
     },
   })
 
-  const questions: QuestionRow[] = rawQuestions.map((q) => ({
-    id: q.id,
-    domain: q.domain,
-    subCategory: q.subCategory,
-    difficulty: q.difficulty,
-    cefrLevel: q.cefrLevel,
-    contentJson: q.contentJson as QuestionRow['contentJson'],
-    statsJson: q.statsJson as QuestionRow['statsJson'],
-    createdAt: q.createdAt.toISOString(),
-    creator: q.creator,
-  }))
+  const questions: QuestionRow[] = rawQuestions.map((q) => {
+    const content = q.contentJson as { type: string; question_text?: string }
+    return {
+      id: q.id,
+      domain: q.domain,
+      subCategory: q.subCategory,
+      difficulty: q.difficulty,
+      cefrLevel: q.cefrLevel,
+      questionType: (content.type ?? 'multiple_choice') as QuestionRow['questionType'],
+      questionText: content.question_text ?? '',
+      statsJson: q.statsJson as QuestionRow['statsJson'],
+      createdAt: q.createdAt.toISOString(),
+      creator: q.creator,
+    }
+  })
 
   return (
     <TestFormClient
