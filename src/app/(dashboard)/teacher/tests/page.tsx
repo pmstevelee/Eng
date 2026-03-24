@@ -1,46 +1,56 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { unstable_cache } from 'next/cache'
 import { FilePen, Plus } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import TestsListClient from './_components/tests-list-client'
 
+const getCachedTeacherTests = (userId: string, academyId: string) =>
+  unstable_cache(
+    async () => {
+      const tests = await prisma.test.findMany({
+        where: { createdBy: userId, academyId },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          type: true,
+          status: true,
+          timeLimitMin: true,
+          questionOrder: true,
+          createdAt: true,
+          class: { select: { name: true } },
+          testSessions: {
+            select: { status: true, student: { select: { user: { select: { name: true } } } } },
+          },
+        },
+      })
+
+      return tests.map((t) => ({
+        id: t.id,
+        title: t.title,
+        type: t.type,
+        status: t.status,
+        timeLimitMin: t.timeLimitMin,
+        questionCount: Array.isArray(t.questionOrder) ? (t.questionOrder as string[]).length : 0,
+        createdAt: t.createdAt.toISOString(),
+        className: t.class?.name ?? null,
+        sessions: t.testSessions.map((s) => ({
+          status: s.status,
+          studentName: s.student.user.name,
+        })),
+      }))
+    },
+    ['teacher-tests', userId],
+    { revalidate: 30, tags: [`teacher-${userId}-tests`] },
+  )()
+
 export default async function TeacherTestsPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
 
-  const tests = await prisma.test.findMany({
-    where: { createdBy: user.id, academyId: user.academyId },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      title: true,
-      type: true,
-      status: true,
-      timeLimitMin: true,
-      questionOrder: true,
-      createdAt: true,
-      class: { select: { name: true } },
-      testSessions: {
-        select: { status: true, student: { select: { user: { select: { name: true } } } } },
-      },
-    },
-  })
-
-  const testData = tests.map((t) => ({
-    id: t.id,
-    title: t.title,
-    type: t.type,
-    status: t.status,
-    timeLimitMin: t.timeLimitMin,
-    questionCount: Array.isArray(t.questionOrder) ? (t.questionOrder as string[]).length : 0,
-    createdAt: t.createdAt.toISOString(),
-    className: t.class?.name ?? null,
-    sessions: t.testSessions.map((s) => ({
-      status: s.status,
-      studentName: s.student.user.name,
-    })),
-  }))
+  const testData = await getCachedTeacherTests(user.id, user.academyId)
 
   return (
     <div className="space-y-6">

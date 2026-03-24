@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { Users, FileText, ClipboardCheck, Bell, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -7,7 +8,7 @@ import { TeacherTodo } from '@/components/dashboard/teacher-todo'
 
 // ─── Data Fetching ────────────────────────────────────────────────────────────
 
-async function getTeacherDashboardData(userId: string, academyId: string) {
+async function fetchTeacherDashboardData(userId: string, academyId: string) {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
   const [
@@ -102,23 +103,31 @@ async function getTeacherDashboardData(userId: string, academyId: string) {
   ])
 
   const studentCount = myClasses.reduce((sum, cls) => sum + cls._count.students, 0)
-
-  // Also count students in teacher's classes (alternative approach)
   const classIds = myClasses.map((c) => c.id)
 
   return {
     myClasses,
-    stats: {
-      studentCount,
-      pendingGradingCount,
-      publishedTestCount,
-    },
-    recentSessions,
-    urgentNotifications,
+    stats: { studentCount, pendingGradingCount, publishedTestCount },
+    // Date → string 변환 (unstable_cache JSON 직렬화 대응)
+    recentSessions: recentSessions.map((s) => ({
+      ...s,
+      completedAt: s.completedAt?.toISOString() ?? null,
+    })),
+    urgentNotifications: urgentNotifications.map((n) => ({
+      ...n,
+      createdAt: n.createdAt.toISOString(),
+    })),
     lowScoreStudentCount,
     classIds,
   }
 }
+
+const getCachedTeacherDashboard = (userId: string, academyId: string) =>
+  unstable_cache(
+    () => fetchTeacherDashboardData(userId, academyId),
+    ['teacher-dashboard', userId],
+    { revalidate: 60, tags: [`teacher-${userId}-dashboard`] },
+  )()
 
 // ─── Helper Components ────────────────────────────────────────────────────────
 
@@ -146,7 +155,7 @@ export default async function TeacherDashboard() {
   if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
 
   const { stats, myClasses, recentSessions, urgentNotifications, lowScoreStudentCount } =
-    await getTeacherDashboardData(user.id, user.academyId)
+    await getCachedTeacherDashboard(user.id, user.academyId)
 
   const now = new Date()
   const dateLabel = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`
