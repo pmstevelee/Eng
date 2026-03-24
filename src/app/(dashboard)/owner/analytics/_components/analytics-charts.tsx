@@ -66,7 +66,7 @@ export function ScoreHistogramChart({ data }: { data: ScoreHistogramItem[] }) {
 
   return (
     <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+      <BarChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }} style={{ outline: 'none' }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="range" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} allowDecimals={false} />
@@ -133,7 +133,7 @@ export function LevelAvgBarChart({ data }: { data: LevelAvgItem[] }) {
   if (data.length === 0) return <EmptyChart message="데이터가 없습니다" />
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <BarChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+      <BarChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }} style={{ outline: 'none' }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="level" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
@@ -211,7 +211,7 @@ export function MonthlyTrendLineChart({ data }: { data: MonthlyTrendItem[] }) {
 
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <LineChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+      <LineChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }} style={{ outline: 'none' }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
@@ -248,7 +248,7 @@ export function ClassMultiLineChart({
 
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <LineChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+      <LineChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }} style={{ outline: 'none' }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
@@ -285,7 +285,7 @@ export function ClassDomainGroupedBarChart({ data }: { data: ClassDomainItem[] }
 
   return (
     <ResponsiveContainer width="100%" height={280}>
-      <BarChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+      <BarChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }} style={{ outline: 'none' }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
@@ -309,7 +309,7 @@ export function WeekdayAttendanceBarChart({ data }: { data: WeekdayAvgItem[] }) 
 
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <BarChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+      <BarChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }} style={{ outline: 'none' }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
@@ -329,7 +329,7 @@ export function MonthlyEnrollmentChart({ data }: { data: MonthlyEnrollmentItem[]
 
   return (
     <ResponsiveContainer width="100%" height={240}>
-      <ComposedChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+      <ComposedChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }} style={{ outline: 'none' }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} allowDecimals={false} />
@@ -351,7 +351,7 @@ export function TeacherActivityBarChart({ data }: { data: TeacherActivityItem[] 
 
   return (
     <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+      <BarChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }} style={{ outline: 'none' }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} allowDecimals={false} />

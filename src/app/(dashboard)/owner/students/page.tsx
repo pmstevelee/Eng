@@ -39,6 +39,71 @@ const getStaticStudentsPageData = (academyId: string) =>
     { revalidate: 60, tags: [`academy-${academyId}-students`] },
   )()
 
+// 동적 필터 쿼리 (15초 캐싱 — 탭/검색 반복 클릭 시 즉시 반환)
+const getDynamicStudentsData = (
+  academyId: string,
+  query: string,
+  classIdFilter: string,
+  statusFilter: string,
+  page: number,
+) =>
+  unstable_cache(
+    async () => {
+      type StudentWhere = {
+        user: {
+          academyId: string
+          isDeleted: boolean
+          OR?: Array<{ name: { contains: string; mode: 'insensitive' } } | { email: { contains: string; mode: 'insensitive' } }>
+        }
+        classId?: string | null
+        status?: 'ACTIVE' | 'ON_LEAVE' | 'WITHDRAWN'
+      }
+
+      const where: StudentWhere = {
+        user: { academyId, isDeleted: false },
+      }
+
+      if (query) {
+        where.user.OR = [
+          { name: { contains: query, mode: 'insensitive' } },
+          { email: { contains: query, mode: 'insensitive' } },
+        ]
+      }
+
+      if (classIdFilter === 'unassigned') {
+        where.classId = null
+      } else if (classIdFilter) {
+        where.classId = classIdFilter
+      }
+
+      if (statusFilter === 'ACTIVE' || statusFilter === 'ON_LEAVE' || statusFilter === 'WITHDRAWN') {
+        where.status = statusFilter
+      }
+
+      const [count, rows] = await Promise.all([
+        prisma.student.count({ where }),
+        prisma.student.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * PAGE_SIZE,
+          take: PAGE_SIZE,
+          select: {
+            id: true,
+            currentLevel: true,
+            status: true,
+            createdAt: true,
+            classId: true,
+            class: { select: { id: true, name: true } },
+            user: { select: { name: true, email: true } },
+          },
+        }),
+      ])
+      return [count, rows.map((s) => ({ ...s, createdAt: s.createdAt.toISOString() }))] as const
+    },
+    ['owner-students-list', academyId, query, classIdFilter, statusFilter, String(page)],
+    { revalidate: 15, tags: [`academy-${academyId}-students`] },
+  )()
+
 export default async function OwnerStudentsPage({
   searchParams,
 }: {
@@ -54,61 +119,10 @@ export default async function OwnerStudentsPage({
   const statusFilter = params.status ?? ''
   const page = Math.max(1, parseInt(params.page ?? '1', 10))
 
-  type StudentWhere = {
-    user: {
-      academyId: string
-      isDeleted: boolean
-      OR?: Array<{ name: { contains: string; mode: 'insensitive' } } | { email: { contains: string; mode: 'insensitive' } }>
-    }
-    classId?: string | null
-    status?: 'ACTIVE' | 'ON_LEAVE' | 'WITHDRAWN'
-  }
-
-  const where: StudentWhere = {
-    user: {
-      academyId: user.academyId,
-      isDeleted: false,
-    },
-  }
-
-  if (query) {
-    where.user.OR = [
-      { name: { contains: query, mode: 'insensitive' } },
-      { email: { contains: query, mode: 'insensitive' } },
-    ]
-  }
-
-  if (classIdFilter === 'unassigned') {
-    where.classId = null
-  } else if (classIdFilter) {
-    where.classId = classIdFilter
-  }
-
-  if (statusFilter === 'ACTIVE' || statusFilter === 'ON_LEAVE' || statusFilter === 'WITHDRAWN') {
-    where.status = statusFilter
-  }
-
-  // 정적 데이터(캐싱)와 동적 쿼리를 병렬 실행
+  // 정적 데이터(캐싱)와 동적 쿼리(캐싱)를 병렬 실행
   const [{ classes, academy, totalStudents }, [totalCount, students]] = await Promise.all([
     getStaticStudentsPageData(user.academyId),
-    Promise.all([
-      prisma.student.count({ where }),
-      prisma.student.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * PAGE_SIZE,
-        take: PAGE_SIZE,
-        select: {
-          id: true,
-          currentLevel: true,
-          status: true,
-          createdAt: true,
-          classId: true,
-          class: { select: { id: true, name: true } },
-          user: { select: { name: true, email: true } },
-        },
-      }),
-    ]),
+    getDynamicStudentsData(user.academyId, query, classIdFilter, statusFilter, page),
   ])
 
   const studentData = students.map((s) => ({
@@ -119,7 +133,7 @@ export default async function OwnerStudentsPage({
     classId: s.classId,
     currentLevel: s.currentLevel,
     status: s.status,
-    createdAt: s.createdAt.toISOString(),
+    createdAt: s.createdAt,
   }))
 
   const classData = classes.map((c) => ({ id: c.id, name: c.name }))

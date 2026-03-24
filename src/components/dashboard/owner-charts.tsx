@@ -74,7 +74,7 @@ export function OwnerCharts({
             <EmptyChart message="반 데이터가 없습니다" />
           ) : (
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={classChartData} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+              <BarChart data={classChartData} margin={{ top: 4, right: 8, left: -24, bottom: 0 }} style={{ outline: 'none' }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
@@ -99,7 +99,7 @@ export function OwnerCharts({
             <EmptyChart message="학생 등록 데이터가 없습니다" />
           ) : (
             <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={monthlyChartData} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+              <AreaChart data={monthlyChartData} margin={{ top: 4, right: 8, left: -24, bottom: 0 }} style={{ outline: 'none' }}>
                 <defs>
                   <linearGradient id="greenGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#1FAF54" stopOpacity={0.15} />
@@ -131,7 +131,7 @@ export function OwnerCharts({
           ) : (
             <div className="flex items-center gap-4">
               <ResponsiveContainer width="55%" height={220}>
-                <PieChart>
+                <PieChart style={{ outline: 'none' }}>
                   <Pie
                     data={levelChartData}
                     cx="50%"
@@ -184,7 +184,7 @@ export function OwnerCharts({
             <EmptyChart message="채점된 테스트 결과가 없습니다" />
           ) : (
             <ResponsiveContainer width="100%" height={220}>
-              <RadarChart data={domainData} margin={{ top: 8, right: 24, left: 24, bottom: 8 }}>
+              <RadarChart data={domainData} margin={{ top: 8, right: 24, left: 24, bottom: 8 }} style={{ outline: 'none' }}>
                 <PolarGrid stroke="#E3E5EA" />
                 <PolarAngleAxis
                   dataKey="domain"
