@@ -1,10 +1,97 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import { unstable_cache } from 'next/cache'
 import { ChevronLeft } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import TestDetailClient from './_components/test-detail-client'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
+
+const getTestDetail = (academyId: string, testId: string) =>
+  unstable_cache(
+    async () => {
+      // test + questions + responses + class comparison을 모두 병렬로 조회
+      const test = await prisma.test.findFirst({
+        where: { id: testId, academyId },
+        select: {
+          id: true,
+          title: true,
+          type: true,
+          status: true,
+          totalScore: true,
+          timeLimitMin: true,
+          questionOrder: true,
+          classId: true,
+          createdAt: true,
+          creator: { select: { name: true } },
+          class: { select: { id: true, name: true } },
+          testSessions: {
+            select: {
+              id: true,
+              status: true,
+              score: true,
+              grammarScore: true,
+              vocabularyScore: true,
+              readingScore: true,
+              writingScore: true,
+              startedAt: true,
+              completedAt: true,
+              student: {
+                select: { user: { select: { name: true } } },
+              },
+            },
+            orderBy: { startedAt: 'desc' },
+          },
+        },
+      })
+
+      if (!test) return null
+
+      const questionIds = Array.isArray(test.questionOrder) ? (test.questionOrder as string[]) : []
+
+      // questions + responses + class comparison 모두 병렬 실행
+      const [questions, allResponses, sessionStudentIds] = await Promise.all([
+        questionIds.length > 0
+          ? prisma.question.findMany({
+              where: { id: { in: questionIds } },
+              select: { id: true, domain: true, contentJson: true },
+            })
+          : Promise.resolve([]),
+        prisma.questionResponse.findMany({
+          where: { session: { testId } },
+          select: { questionId: true, isCorrect: true, timeSpentSec: true },
+        }),
+        test.testSessions.length > 0
+          ? prisma.testSession.findMany({
+              where: { testId },
+              select: {
+                studentId: true,
+                score: true,
+                student: { select: { classId: true, class: { select: { name: true } } } },
+              },
+            })
+          : Promise.resolve([]),
+      ])
+
+      return {
+        test: {
+          ...test,
+          createdAt: test.createdAt.toISOString(),
+          testSessions: test.testSessions.map((s) => ({
+            ...s,
+            startedAt: s.startedAt.toISOString(),
+            completedAt: s.completedAt?.toISOString() ?? null,
+          })),
+        },
+        questionIds,
+        questions,
+        allResponses,
+        sessionStudentIds,
+      }
+    },
+    ['owner-test-detail', academyId, testId],
+    { revalidate: 30, tags: [`academy-${academyId}-tests`, `test-${testId}`] },
+  )()
 
 export default async function OwnerTestDetailPage({
   params,
@@ -16,56 +103,10 @@ export default async function OwnerTestDetailPage({
 
   const { id: testId } = await params
 
-  const test = await prisma.test.findFirst({
-    where: { id: testId, academyId: owner.academyId },
-    select: {
-      id: true,
-      title: true,
-      type: true,
-      status: true,
-      totalScore: true,
-      timeLimitMin: true,
-      questionOrder: true,
-      classId: true,
-      createdAt: true,
-      creator: { select: { name: true } },
-      class: { select: { id: true, name: true } },
-      testSessions: {
-        select: {
-          id: true,
-          status: true,
-          score: true,
-          grammarScore: true,
-          vocabularyScore: true,
-          readingScore: true,
-          writingScore: true,
-          startedAt: true,
-          completedAt: true,
-          student: {
-            select: { user: { select: { name: true } } },
-          },
-        },
-        orderBy: { startedAt: 'desc' },
-      },
-    },
-  })
+  const data = await getTestDetail(owner.academyId, testId)
+  if (!data) notFound()
 
-  if (!test) notFound()
-
-  const questionIds = Array.isArray(test.questionOrder) ? (test.questionOrder as string[]) : []
-
-  const [questions, allResponses] = await Promise.all([
-    questionIds.length > 0
-      ? prisma.question.findMany({
-          where: { id: { in: questionIds } },
-          select: { id: true, domain: true, contentJson: true },
-        })
-      : Promise.resolve([]),
-    prisma.questionResponse.findMany({
-      where: { session: { testId } },
-      select: { questionId: true, isCorrect: true, timeSpentSec: true },
-    }),
-  ])
+  const { test, questionIds, questions, allResponses, sessionStudentIds } = data
 
   // Per-question correct rate
   const responsesByQuestion = new Map<string, { total: number; correct: number }>()
@@ -97,7 +138,7 @@ export default async function OwnerTestDetailPage({
   const sessions = test.testSessions.map((s) => {
     const durationMin =
       s.completedAt
-        ? Math.round((s.completedAt.getTime() - s.startedAt.getTime()) / 60000)
+        ? Math.round((new Date(s.completedAt).getTime() - new Date(s.startedAt).getTime()) / 60000)
         : null
     return {
       id: s.id,
@@ -112,15 +153,9 @@ export default async function OwnerTestDetailPage({
     }
   })
 
-  // Class comparison: fetch other classes that took this same test
-  // (tests deployed to multiple classes - find sessions from students in different classes)
+  // Class comparison
   const classComparison: Array<{ className: string; avgScore: number; count: number }> = []
-  if (test.testSessions.length > 0) {
-    const sessionStudentIds = await prisma.testSession.findMany({
-      where: { testId },
-      select: { studentId: true, score: true, student: { select: { classId: true, class: { select: { name: true } } } } },
-    })
-
+  if (sessionStudentIds.length > 0) {
     const classSessions = new Map<string, { name: string; scores: number[] }>()
     for (const s of sessionStudentIds) {
       if (!s.student.classId || !s.student.class) continue
@@ -150,7 +185,7 @@ export default async function OwnerTestDetailPage({
     timeLimitMin: test.timeLimitMin,
     creatorName: test.creator.name,
     className: test.class?.name ?? null,
-    createdAt: test.createdAt.toISOString(),
+    createdAt: test.createdAt,
     sessions,
     questionStats,
     classComparison,

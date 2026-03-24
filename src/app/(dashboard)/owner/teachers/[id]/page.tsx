@@ -1,10 +1,89 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import { unstable_cache } from 'next/cache'
 import { ChevronLeft } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import TeacherDetailClient from './_components/teacher-detail-client'
 import type { TeacherPermissions } from '../actions'
+
+const getTeacherDetail = (academyId: string, teacherId: string) =>
+  unstable_cache(
+    async () => {
+      // teacher, allClasses, academy를 병렬로 조회
+      const [teacher, allClasses, academy] = await Promise.all([
+        prisma.user.findFirst({
+          where: { id: teacherId, academyId, role: 'TEACHER', isDeleted: false },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            createdAt: true,
+            taughtClasses: {
+              where: { isActive: true },
+              select: {
+                id: true,
+                name: true,
+                _count: { select: { students: true } },
+              },
+            },
+            _count: {
+              select: { createdTests: true },
+            },
+          },
+        }),
+        prisma.class.findMany({
+          where: { academyId, isActive: true },
+          select: { id: true, name: true, teacherId: true },
+          orderBy: { name: 'asc' },
+        }),
+        prisma.academy.findUnique({
+          where: { id: academyId },
+          select: { settingsJson: true },
+        }),
+      ])
+
+      if (!teacher) return null
+
+      // 중간 studentIds 쿼리 제거 — 중첩 where로 직접 집계
+      const classIds = teacher.taughtClasses.map((c) => c.id)
+      const avgScoreResult =
+        classIds.length > 0
+          ? await prisma.testSession.aggregate({
+              where: {
+                student: { classId: { in: classIds } },
+                status: 'GRADED',
+                score: { not: null },
+              },
+              _avg: { score: true },
+            })
+          : null
+
+      return {
+        teacher: {
+          id: teacher.id,
+          name: teacher.name,
+          email: teacher.email,
+          createdAt: teacher.createdAt.toISOString(),
+          taughtClasses: teacher.taughtClasses.map((c) => ({
+            id: c.id,
+            name: c.name,
+            studentCount: c._count.students,
+          })),
+          testCount: teacher._count.createdTests,
+          avgScore: avgScoreResult?._avg.score ?? null,
+        },
+        allClasses: allClasses.map((c) => ({
+          id: c.id,
+          name: c.name,
+          currentTeacherId: c.teacherId,
+        })),
+        settingsJson: (academy?.settingsJson as Record<string, unknown>) ?? {},
+      }
+    },
+    ['owner-teacher-detail', academyId, teacherId],
+    { revalidate: 30, tags: [`academy-${academyId}-teachers`, `teacher-${teacherId}`] },
+  )()
 
 export default async function TeacherDetailPage({
   params,
@@ -16,62 +95,11 @@ export default async function TeacherDetailPage({
 
   const { id: teacherId } = await params
 
-  const teacher = await prisma.user.findFirst({
-    where: { id: teacherId, academyId: owner.academyId, role: 'TEACHER', isDeleted: false },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      createdAt: true,
-      taughtClasses: {
-        where: { isActive: true },
-        select: {
-          id: true,
-          name: true,
-          _count: { select: { students: true } },
-        },
-      },
-      _count: {
-        select: { createdTests: true },
-      },
-    },
-  })
+  const data = await getTeacherDetail(owner.academyId, teacherId)
+  if (!data) notFound()
 
-  if (!teacher) notFound()
+  const { teacher, allClasses, settingsJson } = data
 
-  // 담당 학생들의 최근 테스트 세션 평균 점수
-  const studentIds = await prisma.student
-    .findMany({
-      where: { classId: { in: teacher.taughtClasses.map((c) => c.id) } },
-      select: { id: true },
-    })
-    .then((rows) => rows.map((r) => r.id))
-
-  const avgScoreResult =
-    studentIds.length > 0
-      ? await prisma.testSession.aggregate({
-          where: {
-            studentId: { in: studentIds },
-            status: 'GRADED',
-            score: { not: null },
-          },
-          _avg: { score: true },
-        })
-      : null
-
-  // 학원 전체 반 목록 (배정 가능한 반)
-  const allClasses = await prisma.class.findMany({
-    where: { academyId: owner.academyId, isActive: true },
-    select: { id: true, name: true, teacherId: true },
-    orderBy: { name: 'asc' },
-  })
-
-  // 교사 권한 (academy.settingsJson에서 읽기)
-  const academy = await prisma.academy.findUnique({
-    where: { id: owner.academyId },
-    select: { settingsJson: true },
-  })
-  const settingsJson = (academy?.settingsJson as Record<string, unknown>) ?? {}
   const teacherPermissionsMap =
     (settingsJson.teacherPermissions as Record<string, TeacherPermissions>) ?? {}
   const permissions: TeacherPermissions = teacherPermissionsMap[teacherId] ?? {
@@ -83,22 +111,12 @@ export default async function TeacherDetailPage({
     id: teacher.id,
     name: teacher.name,
     email: teacher.email,
-    createdAt: teacher.createdAt.toISOString(),
-    classes: teacher.taughtClasses.map((c) => ({
-      id: c.id,
-      name: c.name,
-      studentCount: c._count.students,
-    })),
-    totalStudents: teacher.taughtClasses.reduce((sum, c) => sum + c._count.students, 0),
-    testCount: teacher._count.createdTests,
-    avgScore: avgScoreResult?._avg.score ?? null,
+    createdAt: teacher.createdAt,
+    classes: teacher.taughtClasses,
+    totalStudents: teacher.taughtClasses.reduce((sum, c) => sum + c.studentCount, 0),
+    testCount: teacher.testCount,
+    avgScore: teacher.avgScore,
   }
-
-  const allClassData = allClasses.map((c) => ({
-    id: c.id,
-    name: c.name,
-    currentTeacherId: c.teacherId,
-  }))
 
   return (
     <div className="space-y-6">
@@ -113,7 +131,7 @@ export default async function TeacherDetailPage({
 
       <TeacherDetailClient
         teacher={teacherData}
-        allClasses={allClassData}
+        allClasses={allClasses}
         permissions={permissions}
       />
     </div>

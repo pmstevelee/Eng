@@ -1,9 +1,84 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import { unstable_cache } from 'next/cache'
 import { ChevronLeft } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import StudentDetailClient from './_components/student-detail-client'
+
+const getStudentDetail = (academyId: string, studentId: string) =>
+  unstable_cache(
+    async () => {
+      const [student, classes] = await Promise.all([
+        prisma.student.findFirst({
+          where: { id: studentId, user: { academyId, isDeleted: false } },
+          select: {
+            id: true,
+            currentLevel: true,
+            status: true,
+            classId: true,
+            createdAt: true,
+            class: { select: { id: true, name: true } },
+            user: { select: { name: true, email: true, createdAt: true } },
+            testSessions: {
+              orderBy: { startedAt: 'desc' },
+              take: 10,
+              select: {
+                id: true,
+                score: true,
+                grammarScore: true,
+                vocabularyScore: true,
+                readingScore: true,
+                writingScore: true,
+                status: true,
+                startedAt: true,
+                completedAt: true,
+                test: { select: { title: true, type: true } },
+              },
+            },
+            skillAssessments: {
+              orderBy: { assessedAt: 'desc' },
+              take: 4,
+              select: {
+                domain: true,
+                level: true,
+                score: true,
+                assessedAt: true,
+              },
+            },
+          },
+        }),
+        prisma.class.findMany({
+          where: { academyId, isActive: true },
+          select: { id: true, name: true },
+          orderBy: { name: 'asc' },
+        }),
+      ])
+      if (!student) return null
+      return {
+        student: {
+          ...student,
+          createdAt: student.createdAt.toISOString(),
+          user: {
+            ...student.user,
+            createdAt: student.user.createdAt.toISOString(),
+          },
+          testSessions: student.testSessions.map((s) => ({
+            ...s,
+            startedAt: s.startedAt.toISOString(),
+            completedAt: s.completedAt?.toISOString() ?? null,
+          })),
+          skillAssessments: student.skillAssessments.map((a) => ({
+            ...a,
+            assessedAt: a.assessedAt.toISOString(),
+          })),
+        },
+        classes,
+      }
+    },
+    ['owner-student-detail', academyId, studentId],
+    { revalidate: 30, tags: [`academy-${academyId}-students`, `student-${studentId}`] },
+  )()
 
 export default async function StudentDetailPage({
   params,
@@ -15,53 +90,10 @@ export default async function StudentDetailPage({
 
   const { id: studentId } = await params
 
-  const student = await prisma.student.findFirst({
-    where: { id: studentId, user: { academyId: owner.academyId, isDeleted: false } },
-    select: {
-      id: true,
-      currentLevel: true,
-      status: true,
-      classId: true,
-      createdAt: true,
-      class: { select: { id: true, name: true } },
-      user: { select: { name: true, email: true, createdAt: true } },
-      testSessions: {
-        orderBy: { startedAt: 'desc' },
-        take: 10,
-        select: {
-          id: true,
-          score: true,
-          grammarScore: true,
-          vocabularyScore: true,
-          readingScore: true,
-          writingScore: true,
-          status: true,
-          startedAt: true,
-          completedAt: true,
-          test: { select: { title: true, type: true } },
-        },
-      },
-      skillAssessments: {
-        orderBy: { assessedAt: 'desc' },
-        take: 4,
-        select: {
-          domain: true,
-          level: true,
-          score: true,
-          assessedAt: true,
-        },
-      },
-    },
-  })
+  const data = await getStudentDetail(owner.academyId, studentId)
+  if (!data) notFound()
 
-  if (!student) notFound()
-
-  // 반 목록
-  const classes = await prisma.class.findMany({
-    where: { academyId: owner.academyId, isActive: true },
-    select: { id: true, name: true },
-    orderBy: { name: 'asc' },
-  })
+  const { student, classes } = data
 
   // 최신 완료 테스트 세션 점수 (레이더 차트용)
   const latestGradedSession = student.testSessions.find(
@@ -76,7 +108,7 @@ export default async function StudentDetailPage({
     status: student.status,
     classId: student.classId,
     className: student.class?.name ?? null,
-    createdAt: student.user.createdAt.toISOString(),
+    createdAt: student.user.createdAt,
     testSessions: student.testSessions.map((s) => ({
       id: s.id,
       score: s.score,
@@ -85,8 +117,8 @@ export default async function StudentDetailPage({
       readingScore: s.readingScore,
       writingScore: s.writingScore,
       status: s.status,
-      startedAt: s.startedAt.toISOString(),
-      completedAt: s.completedAt?.toISOString() ?? null,
+      startedAt: s.startedAt,
+      completedAt: s.completedAt,
       testTitle: s.test.title,
       testType: s.test.type,
     })),
