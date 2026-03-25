@@ -593,7 +593,7 @@ export async function getStudentDashboardData() {
       select: {
         id: true,
         timeLimitMin: true,
-        test: { select: { title: true, isActive: true, questionOrder: true } },
+        test: { select: { title: true, isActive: true, totalScore: true } },
       },
       orderBy: { startedAt: 'asc' },
       take: 3,

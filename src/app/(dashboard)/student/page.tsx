@@ -277,9 +277,7 @@ export default async function StudentDashboardPage() {
           </div>
           <div className="space-y-2">
             {upcomingSessions.map((s) => {
-              const qCount = Array.isArray(s.test.questionOrder)
-                ? (s.test.questionOrder as unknown[]).length
-                : null
+              const qCount = s.test.totalScore > 0 ? s.test.totalScore : null
               return (
                 <div
                   key={s.id}

@@ -8,7 +8,12 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "seed:grammar": "tsx prisma/seed-grammar.ts",
+    "fix:question-format": "tsx prisma/fix-question-format.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",

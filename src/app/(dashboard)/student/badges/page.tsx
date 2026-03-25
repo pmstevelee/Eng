@@ -1,42 +1,43 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { Suspense } from 'react'
 import { Award } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { BadgesClient } from './_components/badges-client'
 
-async function getStudentBadgesData() {
+const getCachedStudentBadges = (studentId: string) =>
+  unstable_cache(
+    async () => {
+      const [allBadges, badgeEarnings] = await Promise.all([
+        prisma.badge.findMany({
+          where: { code: { not: null } },
+          orderBy: { createdAt: 'asc' },
+        }),
+        prisma.badgeEarning.findMany({
+          where: { studentId },
+          include: { badge: true },
+          orderBy: { earnedAt: 'desc' },
+          take: 50,
+        }),
+      ])
+      return { allBadges, badgeEarnings }
+    },
+    ['student-badges', studentId],
+    { revalidate: 60, tags: [`student-${studentId}-badges`] },
+  )()
+
+export default async function BadgesPage() {
   const user = await getCurrentUser()
-  if (!user || user.role !== 'STUDENT') return null
+  if (!user || user.role !== 'STUDENT') redirect('/login')
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
     select: { student: { select: { id: true } } },
   })
-  if (!dbUser?.student) return null
+  if (!dbUser?.student) redirect('/login')
 
-  const { id: studentId } = dbUser.student
-
-  const [allBadges, badgeEarnings] = await Promise.all([
-    prisma.badge.findMany({
-      where: { code: { not: null } },
-      orderBy: { createdAt: 'asc' },
-    }),
-    prisma.badgeEarning.findMany({
-      where: { studentId },
-      include: { badge: true },
-      orderBy: { earnedAt: 'desc' },
-    }),
-  ])
-
-  return { allBadges, badgeEarnings }
-}
-
-export default async function BadgesPage() {
-  const data = await getStudentBadgesData()
-  if (!data) redirect('/login')
-
-  const { allBadges, badgeEarnings } = data
+  const { allBadges, badgeEarnings } = await getCachedStudentBadges(dbUser.student.id)
 
   return (
     <div className="space-y-6">

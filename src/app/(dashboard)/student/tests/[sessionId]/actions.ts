@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 
 async function getAuthedStudent() {
@@ -54,6 +54,7 @@ export async function startTestSession(
     data: { status: 'IN_PROGRESS', startedAt: now },
   })
 
+  revalidateTag(`student-${auth.studentId}-tests`)
   revalidatePath(`/student/tests/${sessionId}`)
   return { startedAt: now.toISOString() }
 }
@@ -259,6 +260,10 @@ export async function submitTest(
     )
     const gamification = await recordActivityAndCheckBadges(auth.studentId, sessionId)
 
+    revalidateTag(`student-${auth.studentId}-tests`)
+    revalidateTag(`student-${auth.studentId}-grades`)
+    revalidateTag(`student-${auth.studentId}-learning`)
+    revalidateTag(`student-${auth.studentId}-badges`)
     revalidatePath(`/student/tests/${sessionId}`)
     revalidatePath('/student')
     return { newBadges: gamification.newBadges }

@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import Link from 'next/link'
@@ -29,6 +30,55 @@ const TYPE_LABEL: Record<string, string> = {
   PRACTICE: '연습 테스트',
 }
 
+type CachedSession = {
+  id: string
+  status: string
+  startedAt: string
+  completedAt: string | null
+  timeLimitMin: number | null
+  score: number | null
+  test: {
+    title: string
+    type: string
+    timeLimitMin: number | null
+    totalScore: number
+  }
+}
+
+const getCachedStudentSessions = (studentId: string) =>
+  unstable_cache(
+    async () => {
+      const sessions = await prisma.testSession.findMany({
+        where: { studentId },
+        orderBy: { startedAt: 'desc' },
+        take: 50,
+        select: {
+          id: true,
+          status: true,
+          startedAt: true,
+          completedAt: true,
+          timeLimitMin: true,
+          score: true,
+          test: {
+            select: {
+              title: true,
+              type: true,
+              timeLimitMin: true,
+              totalScore: true,
+            },
+          },
+        },
+      })
+      return sessions.map((s): CachedSession => ({
+        ...s,
+        startedAt: s.startedAt.toISOString(),
+        completedAt: s.completedAt?.toISOString() ?? null,
+      }))
+    },
+    ['student-sessions', studentId],
+    { revalidate: 30, tags: [`student-${studentId}-tests`] },
+  )()
+
 export default async function StudentTestsPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'STUDENT') redirect('/login')
@@ -46,27 +96,7 @@ export default async function StudentTestsPage() {
   }
   const studentId = student.id
 
-  const sessions = await prisma.testSession.findMany({
-    where: { studentId },
-    orderBy: { startedAt: 'desc' },
-    select: {
-      id: true,
-      status: true,
-      startedAt: true,
-      completedAt: true,
-      timeLimitMin: true,
-      score: true,
-      test: {
-        select: {
-          id: true,
-          title: true,
-          type: true,
-          timeLimitMin: true,
-          questionOrder: true,
-        },
-      },
-    },
-  })
+  const sessions = await getCachedStudentSessions(studentId)
 
   const notStarted = sessions.filter((s) => s.status === 'NOT_STARTED')
   const inProgress = sessions.filter((s) => s.status === 'IN_PROGRESS')
@@ -135,28 +165,13 @@ export default async function StudentTestsPage() {
 }
 
 type SessionCardProps = {
-  session: {
-    id: string
-    status: string
-    startedAt: Date
-    completedAt: Date | null
-    timeLimitMin: number | null
-    score: number | null
-    test: {
-      title: string
-      type: string
-      timeLimitMin: number | null
-      questionOrder: unknown
-    }
-  }
+  session: CachedSession
 }
 
 function TestSessionCard({ session }: SessionCardProps) {
   const status = session.status as keyof typeof STATUS_CONFIG
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.NOT_STARTED
-  const questionCount = Array.isArray(session.test.questionOrder)
-    ? session.test.questionOrder.length
-    : 0
+  const questionCount = session.test.totalScore
   const isCompleted = status === 'COMPLETED' || status === 'GRADED'
   const isInProgress = status === 'IN_PROGRESS'
 

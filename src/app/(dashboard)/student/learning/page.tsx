@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -60,6 +61,127 @@ function scoreToLevel(score: number | null): string {
   return 'C'
 }
 
+// ── Cached data fetcher ───────────────────────────────────────────────────────
+
+type WrongQuestionRow = {
+  id: string
+  domain: string
+  questionText: string
+  correctAnswer: string | null
+  myAnswer: string | null
+}
+
+type TeacherCommentRow = {
+  id: string
+  content: string
+  type: string
+  createdAt: string
+  teacherName: string
+}
+
+const getCachedStudentLearning = (studentId: string) =>
+  unstable_cache(
+    async () => {
+      // 1. 영역별 최신 실력 점수 (SkillAssessment) - with limit
+      const skillAssessments = await prisma.skillAssessment.findMany({
+        where: { studentId },
+        orderBy: { assessedAt: 'desc' },
+        take: 200,
+        select: { domain: true, score: true, assessedAt: true },
+      })
+
+      // 영역별 최신 점수만 추출
+      const latestSkills: Partial<Record<DomainKey, { score: number | null; assessedAt: string }>> = {}
+      for (const sa of skillAssessments) {
+        const domain = sa.domain as DomainKey
+        if (!latestSkills[domain]) {
+          latestSkills[domain] = {
+            score: sa.score,
+            assessedAt: sa.assessedAt.toISOString(),
+          }
+        }
+      }
+
+      // 2. 최근 완료 테스트의 오답 (최근 1개)
+      const recentSession = await prisma.testSession.findFirst({
+        where: {
+          studentId,
+          status: { in: ['COMPLETED', 'GRADED'] },
+        },
+        orderBy: { completedAt: 'desc' },
+        select: {
+          id: true,
+          test: { select: { title: true } },
+          questionResponses: {
+            where: { isCorrect: false },
+            select: { questionId: true, answer: true },
+            take: 10,
+          },
+        },
+      })
+
+      // 오답 문제 데이터 로드 (contentJson에서 필요한 필드만 추출)
+      let wrongQuestions: WrongQuestionRow[] = []
+      if (recentSession && recentSession.questionResponses.length > 0) {
+        const wrongIds = recentSession.questionResponses.map((r) => r.questionId)
+        const questions = await prisma.question.findMany({
+          where: { id: { in: wrongIds } },
+          select: { id: true, domain: true, contentJson: true },
+        })
+        const answerMap = new Map(recentSession.questionResponses.map((r) => [r.questionId, r.answer]))
+        wrongQuestions = questions.map((q) => {
+          const content = q.contentJson as QuestionContentJson
+          return {
+            id: q.id,
+            domain: q.domain,
+            questionText: content.question_text ?? '',
+            correctAnswer: content.correct_answer ?? null,
+            myAnswer: answerMap.get(q.id) ?? null,
+          }
+        })
+      }
+
+      // 3. 교사 코멘트 (최근 3개)
+      const teacherComments = await prisma.teacherComment.findMany({
+        where: { studentId },
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+        select: {
+          id: true,
+          content: true,
+          type: true,
+          createdAt: true,
+          teacher: { select: { name: true } },
+        },
+      })
+
+      // 취약 영역 계산
+      const measuredDomains = (Object.keys(DOMAIN_CONFIG) as DomainKey[])
+        .filter((d) => latestSkills[d]?.score !== undefined && latestSkills[d]?.score !== null)
+        .sort((a, b) => (latestSkills[a]?.score ?? 100) - (latestSkills[b]?.score ?? 100))
+
+      return {
+        latestSkills,
+        weakDomain: measuredDomains[0] ?? null,
+        hasAnyData: Object.keys(latestSkills).length > 0,
+        wrongQuestions,
+        recentSessionId: recentSession?.id ?? null,
+        recentSessionTitle: recentSession?.test.title ?? null,
+        teacherComments: teacherComments.map((c): TeacherCommentRow => ({
+          id: c.id,
+          content: c.content,
+          type: c.type ?? '',
+          createdAt: c.createdAt.toISOString(),
+          teacherName: c.teacher.name,
+        })),
+      }
+    },
+    ['student-learning', studentId],
+    { revalidate: 60, tags: [`student-${studentId}-learning`] },
+  )()
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default async function LearningPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'STUDENT') redirect('/login')
@@ -70,85 +192,15 @@ export default async function LearningPage() {
   })
   if (!dbUser?.student) redirect('/login')
 
-  const studentId = dbUser.student.id
-
-  // 1. 영역별 최신 실력 점수 (SkillAssessment)
-  const skillAssessments = await prisma.skillAssessment.findMany({
-    where: { studentId },
-    orderBy: { assessedAt: 'desc' },
-  })
-
-  // 영역별 최신 점수만 추출
-  const latestSkills: Partial<Record<DomainKey, { score: number | null; assessedAt: Date }>> = {}
-  for (const sa of skillAssessments) {
-    const domain = sa.domain as DomainKey
-    if (!latestSkills[domain]) {
-      latestSkills[domain] = { score: sa.score, assessedAt: sa.assessedAt }
-    }
-  }
-
-  // 2. 최근 완료 테스트의 오답 (최근 1개)
-  const recentSession = await prisma.testSession.findFirst({
-    where: {
-      studentId,
-      status: { in: ['COMPLETED', 'GRADED'] },
-    },
-    orderBy: { completedAt: 'desc' },
-    select: {
-      id: true,
-      test: { select: { title: true } },
-      questionResponses: {
-        where: { isCorrect: false },
-        select: { questionId: true, answer: true },
-      },
-    },
-  })
-
-  // 오답 문제 데이터 로드
-  type WrongQuestion = {
-    id: string
-    domain: string
-    content: QuestionContentJson
-    myAnswer: string | null
-  }
-  let wrongQuestions: WrongQuestion[] = []
-  if (recentSession && recentSession.questionResponses.length > 0) {
-    const wrongIds = recentSession.questionResponses.map((r) => r.questionId)
-    const questions = await prisma.question.findMany({
-      where: { id: { in: wrongIds } },
-      select: { id: true, domain: true, contentJson: true },
-    })
-    const answerMap = new Map(recentSession.questionResponses.map((r) => [r.questionId, r.answer]))
-    wrongQuestions = questions.map((q) => ({
-      id: q.id,
-      domain: q.domain,
-      content: q.contentJson as QuestionContentJson,
-      myAnswer: answerMap.get(q.id) ?? null,
-    }))
-  }
-
-  // 3. 교사 코멘트 (최근 3개)
-  const teacherComments = await prisma.teacherComment.findMany({
-    where: { studentId },
-    orderBy: { createdAt: 'desc' },
-    take: 3,
-    select: {
-      id: true,
-      content: true,
-      type: true,
-      createdAt: true,
-      teacher: { select: { name: true } },
-    },
-  })
-
-  // 취약 영역 (점수 가장 낮은 영역)
-  const measuredDomains = (Object.keys(DOMAIN_CONFIG) as DomainKey[])
-    .filter((d) => latestSkills[d]?.score !== undefined && latestSkills[d]?.score !== null)
-    .sort((a, b) => (latestSkills[a]?.score ?? 100) - (latestSkills[b]?.score ?? 100))
-
-  const weakDomain = measuredDomains[0] as DomainKey | undefined
-
-  const hasAnyData = Object.keys(latestSkills).length > 0
+  const {
+    latestSkills,
+    weakDomain,
+    hasAnyData,
+    wrongQuestions,
+    recentSessionId,
+    recentSessionTitle,
+    teacherComments,
+  } = await getCachedStudentLearning(dbUser.student.id)
 
   return (
     <div className="space-y-6">
@@ -288,18 +340,18 @@ export default async function LearningPage() {
                 <XCircle className="h-4 w-4 text-[#D92916]" />
                 <h2 className="font-semibold text-gray-900">오답 복습</h2>
               </div>
-              {recentSession && (
+              {recentSessionId && (
                 <Link
-                  href={`/student/tests/${recentSession.id}/result`}
+                  href={`/student/tests/${recentSessionId}/result`}
                   className="flex items-center gap-0.5 text-xs text-[#1865F2] hover:underline"
                 >
                   전체 결과 <ChevronRight className="h-3 w-3" />
                 </Link>
               )}
             </div>
-            {recentSession && (
+            {recentSessionTitle && (
               <p className="mt-0.5 text-xs text-gray-400">
-                최근 테스트: {recentSession.test.title}
+                최근 테스트: {recentSessionTitle}
               </p>
             )}
           </div>
@@ -307,7 +359,7 @@ export default async function LearningPage() {
           <div className="divide-y divide-gray-50">
             {wrongQuestions.length === 0 ? (
               <div className="flex flex-col items-center gap-2 px-5 py-8 text-center">
-                {recentSession ? (
+                {recentSessionId ? (
                   <>
                     <CheckCircle2 className="h-8 w-8 text-[#1FAF54]" />
                     <p className="text-sm font-medium text-gray-600">모두 정답!</p>
@@ -349,16 +401,16 @@ export default async function LearningPage() {
                           </span>
                         </div>
                         <p className="line-clamp-2 text-sm text-gray-700">
-                          {q.content.question_text}
+                          {q.questionText}
                         </p>
                         {q.myAnswer && (
                           <p className="mt-1 text-xs text-[#D92916]">
                             내 답: <span className="line-through">{q.myAnswer}</span>
                           </p>
                         )}
-                        {q.content.correct_answer && (
+                        {q.correctAnswer && (
                           <p className="text-xs text-[#1FAF54]">
-                            정답: {q.content.correct_answer}
+                            정답: {q.correctAnswer}
                           </p>
                         )}
                       </div>
@@ -436,12 +488,12 @@ export default async function LearningPage() {
               <div key={comment.id} className="px-5 py-4">
                 <div className="flex items-start gap-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0FBFAD]/10 text-sm font-bold text-[#0FBFAD]">
-                    {comment.teacher.name.charAt(0)}
+                    {comment.teacherName.charAt(0)}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-gray-800">
-                        {comment.teacher.name} 선생님
+                        {comment.teacherName} 선생님
                       </span>
                       <span className="text-xs text-gray-400">
                         {new Date(comment.createdAt).toLocaleDateString('ko-KR')}
@@ -457,7 +509,7 @@ export default async function LearningPage() {
       )}
 
       {/* 데이터 없을 때 안내 */}
-      {!hasAnyData && teacherComments.length === 0 && !recentSession && (
+      {!hasAnyData && teacherComments.length === 0 && !recentSessionId && (
         <div className="rounded-xl border border-dashed border-gray-200 bg-white px-6 py-12 text-center">
           <AlertCircle className="mx-auto h-10 w-10 text-gray-200" />
           <p className="mt-3 text-sm font-medium text-gray-500">

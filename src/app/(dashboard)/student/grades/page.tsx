@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -52,213 +53,266 @@ function getDomainScore(
   return session.writingScore
 }
 
+// ── Cached data fetcher ───────────────────────────────────────────────────────
+
+const getCachedStudentGrades = (studentId: string) =>
+  unstable_cache(
+    async () => {
+      const now = new Date()
+      const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
+
+      // Fetch student level + sessions + skill assessments in parallel
+      const [student, sessions, skillAssessments] = await Promise.all([
+        prisma.student.findUnique({
+          where: { id: studentId },
+          select: { currentLevel: true },
+        }),
+        prisma.testSession.findMany({
+          where: {
+            studentId,
+            status: { in: ['COMPLETED', 'GRADED'] },
+            completedAt: { not: null },
+          },
+          select: {
+            id: true,
+            score: true,
+            grammarScore: true,
+            vocabularyScore: true,
+            readingScore: true,
+            writingScore: true,
+            startedAt: true,
+            completedAt: true,
+            test: { select: { title: true, type: true } },
+          },
+          orderBy: { completedAt: 'desc' },
+          take: 100,
+        }),
+        prisma.skillAssessment.findMany({
+          where: { studentId },
+          orderBy: { assessedAt: 'asc' },
+          take: 200,
+          select: { level: true, score: true, assessedAt: true },
+        }),
+      ])
+
+      const currentLevel = student?.currentLevel ?? 1
+
+      // ── 날짜 기반 필터링 ──
+      const thisMonthSessions = sessions.filter(
+        (s) => s.completedAt != null && s.completedAt >= thisMonthStart,
+      )
+      const lastMonthSessions = sessions.filter(
+        (s) =>
+          s.completedAt != null &&
+          s.completedAt >= lastMonthStart &&
+          s.completedAt <= lastMonthEnd,
+      )
+
+      // ── 전체 평균 (최근 10회) ──
+      const overallAvg = avg(sessions.slice(0, 10).map((s) => s.score))
+      const thisMonthAvg = avg(thisMonthSessions.map((s) => s.score))
+      const lastMonthAvg = avg(lastMonthSessions.map((s) => s.score))
+      const monthDiff =
+        thisMonthAvg !== null && lastMonthAvg !== null ? thisMonthAvg - lastMonthAvg : null
+
+      // ── 영역별 평균 ──
+      function domainAvgOf(
+        list: typeof sessions,
+        domain: DomainKey,
+      ): number | null {
+        return avg(list.map((s) => getDomainScore(s, domain)))
+      }
+
+      const allDomainAvg: Record<DomainKey, number | null> = {
+        GRAMMAR: domainAvgOf(sessions, 'GRAMMAR'),
+        VOCABULARY: domainAvgOf(sessions, 'VOCABULARY'),
+        READING: domainAvgOf(sessions, 'READING'),
+        WRITING: domainAvgOf(sessions, 'WRITING'),
+      }
+      const thisMonthDomainAvg: Record<DomainKey, number | null> = {
+        GRAMMAR: domainAvgOf(thisMonthSessions, 'GRAMMAR'),
+        VOCABULARY: domainAvgOf(thisMonthSessions, 'VOCABULARY'),
+        READING: domainAvgOf(thisMonthSessions, 'READING'),
+        WRITING: domainAvgOf(thisMonthSessions, 'WRITING'),
+      }
+      const lastMonthDomainAvg: Record<DomainKey, number | null> = {
+        GRAMMAR: domainAvgOf(lastMonthSessions, 'GRAMMAR'),
+        VOCABULARY: domainAvgOf(lastMonthSessions, 'VOCABULARY'),
+        READING: domainAvgOf(lastMonthSessions, 'READING'),
+        WRITING: domainAvgOf(lastMonthSessions, 'WRITING'),
+      }
+
+      // ── 레이더 차트 데이터 ──
+      const radarThisMonth = DOMAINS.map((d) => ({
+        subject: DOMAIN_LABELS[d],
+        score: thisMonthDomainAvg[d] ?? 0,
+      }))
+      const radarLastMonth = DOMAINS.map((d) => ({
+        subject: DOMAIN_LABELS[d],
+        score: lastMonthDomainAvg[d] ?? 0,
+      }))
+
+      // ── 추이 라인 차트 (최근 10회, 오래된 순) ──
+      const sessionPoints = sessions
+        .slice(0, 10)
+        .reverse()
+        .map((s) => ({
+          id: s.id,
+          title: s.test.title,
+          type: s.test.type,
+          date: s.completedAt
+            ? new Date(s.completedAt).toLocaleDateString('ko-KR', {
+                month: 'numeric',
+                day: 'numeric',
+              })
+            : '',
+          score: s.score,
+          grammarScore: s.grammarScore,
+          vocabularyScore: s.vocabularyScore,
+          readingScore: s.readingScore,
+          writingScore: s.writingScore,
+        }))
+
+      // ── 테스트 이력 테이블 ──
+      const historyData = sessions.map((s) => ({
+        id: s.id,
+        date: s.completedAt ? new Date(s.completedAt).toLocaleDateString('ko-KR') : '',
+        title: s.test.title,
+        type: s.test.type,
+        score: s.score,
+        grammarScore: s.grammarScore,
+        vocabularyScore: s.vocabularyScore,
+        readingScore: s.readingScore,
+        writingScore: s.writingScore,
+        durationMin:
+          s.completedAt && s.startedAt
+            ? Math.round((s.completedAt.getTime() - s.startedAt.getTime()) / 60000)
+            : null,
+      }))
+
+      // ── 영역별 하위 카테고리 정답률 (최근 20개 세션만) ──
+      const recentSessionIds = sessions.slice(0, 20).map((s) => s.id)
+      const responses =
+        recentSessionIds.length > 0
+          ? await prisma.questionResponse.findMany({
+              where: { sessionId: { in: recentSessionIds } },
+              select: {
+                isCorrect: true,
+                question: { select: { domain: true, subCategory: true } },
+              },
+            })
+          : []
+
+      type SubCategoryEntry = { correct: number; total: number }
+      const subCategoryByDomain: Record<DomainKey, Map<string, SubCategoryEntry>> = {
+        GRAMMAR: new Map(),
+        VOCABULARY: new Map(),
+        READING: new Map(),
+        WRITING: new Map(),
+      }
+
+      for (const r of responses) {
+        const domain = r.question.domain as DomainKey
+        const sub = r.question.subCategory ?? '기타'
+        const map = subCategoryByDomain[domain]
+        const prev = map.get(sub) ?? { correct: 0, total: 0 }
+        map.set(sub, {
+          correct: prev.correct + (r.isCorrect ? 1 : 0),
+          total: prev.total + 1,
+        })
+      }
+
+      const subCategoryData: Record<
+        DomainKey,
+        { subCategory: string; correct: number; total: number; rate: number }[]
+      > = {
+        GRAMMAR: [],
+        VOCABULARY: [],
+        READING: [],
+        WRITING: [],
+      }
+      for (const domain of DOMAINS) {
+        subCategoryData[domain] = Array.from(subCategoryByDomain[domain].entries())
+          .map(([sub, { correct, total }]) => ({
+            subCategory: sub,
+            correct,
+            total,
+            rate: Math.round((correct / total) * 100),
+          }))
+          .sort((a, b) => a.rate - b.rate)
+      }
+
+      // ── 레벨 히스토리 ──
+      const levelHistory: {
+        date: string
+        fromLevel: number
+        toLevel: number
+        score: number | null
+      }[] = []
+      let prevLevel: number | null = null
+      for (const sa of skillAssessments) {
+        if (prevLevel !== null && sa.level !== prevLevel) {
+          levelHistory.push({
+            date: new Date(sa.assessedAt).toLocaleDateString('ko-KR'),
+            fromLevel: prevLevel,
+            toLevel: sa.level,
+            score: sa.score,
+          })
+        }
+        prevLevel = sa.level
+      }
+
+      return {
+        currentLevel,
+        overallAvg,
+        thisMonthAvg,
+        lastMonthAvg,
+        monthDiff,
+        allDomainAvg,
+        thisMonthDomainAvg,
+        lastMonthDomainAvg,
+        radarThisMonth,
+        radarLastMonth,
+        sessionPoints,
+        historyData,
+        subCategoryData,
+        levelHistory,
+      }
+    },
+    ['student-grades', studentId],
+    { revalidate: 60, tags: [`student-${studentId}-grades`] },
+  )()
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default async function GradesPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'STUDENT') redirect('/login')
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { student: { select: { id: true, currentLevel: true } } },
+    select: { student: { select: { id: true } } },
   })
   if (!dbUser?.student) redirect('/login')
 
-  const studentId = dbUser.student.id
-  const currentLevel = dbUser.student.currentLevel
-
-  // ── 완료된 모든 테스트 세션 ──
-  const sessions = await prisma.testSession.findMany({
-    where: {
-      studentId,
-      status: { in: ['COMPLETED', 'GRADED'] },
-      completedAt: { not: null },
-    },
-    select: {
-      id: true,
-      score: true,
-      grammarScore: true,
-      vocabularyScore: true,
-      readingScore: true,
-      writingScore: true,
-      startedAt: true,
-      completedAt: true,
-      test: { select: { title: true, type: true } },
-    },
-    orderBy: { completedAt: 'desc' },
-    take: 100,
-  })
-
-  // ── 날짜 범위 계산 ──
-  const now = new Date()
-  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
-
-  const thisMonthSessions = sessions.filter(
-    (s) => s.completedAt != null && s.completedAt >= thisMonthStart,
-  )
-  const lastMonthSessions = sessions.filter(
-    (s) =>
-      s.completedAt != null &&
-      s.completedAt >= lastMonthStart &&
-      s.completedAt <= lastMonthEnd,
-  )
-
-  // ── 전체 평균 (최근 10회) ──
-  const overallAvg = avg(sessions.slice(0, 10).map((s) => s.score))
-  const thisMonthAvg = avg(thisMonthSessions.map((s) => s.score))
-  const lastMonthAvg = avg(lastMonthSessions.map((s) => s.score))
-  const monthDiff =
-    thisMonthAvg !== null && lastMonthAvg !== null ? thisMonthAvg - lastMonthAvg : null
-
-  // ── 영역별 평균 ──
-  function domainAvgOf(list: typeof sessions, domain: DomainKey) {
-    return avg(list.map((s) => getDomainScore(s, domain)))
-  }
-
-  const allDomainAvg: Record<DomainKey, number | null> = {
-    GRAMMAR: domainAvgOf(sessions, 'GRAMMAR'),
-    VOCABULARY: domainAvgOf(sessions, 'VOCABULARY'),
-    READING: domainAvgOf(sessions, 'READING'),
-    WRITING: domainAvgOf(sessions, 'WRITING'),
-  }
-  const thisMonthDomainAvg: Record<DomainKey, number | null> = {
-    GRAMMAR: domainAvgOf(thisMonthSessions, 'GRAMMAR'),
-    VOCABULARY: domainAvgOf(thisMonthSessions, 'VOCABULARY'),
-    READING: domainAvgOf(thisMonthSessions, 'READING'),
-    WRITING: domainAvgOf(thisMonthSessions, 'WRITING'),
-  }
-  const lastMonthDomainAvg: Record<DomainKey, number | null> = {
-    GRAMMAR: domainAvgOf(lastMonthSessions, 'GRAMMAR'),
-    VOCABULARY: domainAvgOf(lastMonthSessions, 'VOCABULARY'),
-    READING: domainAvgOf(lastMonthSessions, 'READING'),
-    WRITING: domainAvgOf(lastMonthSessions, 'WRITING'),
-  }
-
-  // ── 레이더 차트 데이터 ──
-  const radarThisMonth = DOMAINS.map((d) => ({
-    subject: DOMAIN_LABELS[d],
-    score: thisMonthDomainAvg[d] ?? 0,
-  }))
-  const radarLastMonth = DOMAINS.map((d) => ({
-    subject: DOMAIN_LABELS[d],
-    score: lastMonthDomainAvg[d] ?? 0,
-  }))
-
-  // ── 추이 라인 차트 (최근 10회, 오래된 순) ──
-  const sessionPoints = sessions
-    .slice(0, 10)
-    .reverse()
-    .map((s) => ({
-      id: s.id,
-      title: s.test.title,
-      type: s.test.type,
-      date: s.completedAt
-        ? new Date(s.completedAt).toLocaleDateString('ko-KR', {
-            month: 'numeric',
-            day: 'numeric',
-          })
-        : '',
-      score: s.score,
-      grammarScore: s.grammarScore,
-      vocabularyScore: s.vocabularyScore,
-      readingScore: s.readingScore,
-      writingScore: s.writingScore,
-    }))
-
-  // ── 테스트 이력 테이블 ──
-  const historyData = sessions.map((s) => ({
-    id: s.id,
-    date: s.completedAt ? new Date(s.completedAt).toLocaleDateString('ko-KR') : '',
-    title: s.test.title,
-    type: s.test.type,
-    score: s.score,
-    grammarScore: s.grammarScore,
-    vocabularyScore: s.vocabularyScore,
-    readingScore: s.readingScore,
-    writingScore: s.writingScore,
-    durationMin:
-      s.completedAt && s.startedAt
-        ? Math.round((s.completedAt.getTime() - s.startedAt.getTime()) / 60000)
-        : null,
-  }))
-
-  // ── 영역별 하위 카테고리 정답률 ──
-  const sessionIds = sessions.map((s) => s.id)
-  const responses =
-    sessionIds.length > 0
-      ? await prisma.questionResponse.findMany({
-          where: { sessionId: { in: sessionIds } },
-          select: {
-            isCorrect: true,
-            question: { select: { domain: true, subCategory: true } },
-          },
-        })
-      : []
-
-  type SubCategoryEntry = { correct: number; total: number }
-  const subCategoryByDomain: Record<DomainKey, Map<string, SubCategoryEntry>> = {
-    GRAMMAR: new Map(),
-    VOCABULARY: new Map(),
-    READING: new Map(),
-    WRITING: new Map(),
-  }
-
-  for (const r of responses) {
-    const domain = r.question.domain as DomainKey
-    const sub = r.question.subCategory ?? '기타'
-    const map = subCategoryByDomain[domain]
-    const prev = map.get(sub) ?? { correct: 0, total: 0 }
-    map.set(sub, {
-      correct: prev.correct + (r.isCorrect ? 1 : 0),
-      total: prev.total + 1,
-    })
-  }
-
-  const subCategoryData: Record<
-    DomainKey,
-    { subCategory: string; correct: number; total: number; rate: number }[]
-  > = {
-    GRAMMAR: [],
-    VOCABULARY: [],
-    READING: [],
-    WRITING: [],
-  }
-  for (const domain of DOMAINS) {
-    subCategoryData[domain] = Array.from(subCategoryByDomain[domain].entries())
-      .map(([sub, { correct, total }]) => ({
-        subCategory: sub,
-        correct,
-        total,
-        rate: Math.round((correct / total) * 100),
-      }))
-      .sort((a, b) => a.rate - b.rate)
-  }
-
-  // ── 레벨 히스토리 (SkillAssessment) ──
-  const skillAssessments = await prisma.skillAssessment.findMany({
-    where: { studentId },
-    orderBy: { assessedAt: 'asc' },
-    select: { level: true, score: true, assessedAt: true },
-  })
-
-  const levelHistory: {
-    date: string
-    fromLevel: number
-    toLevel: number
-    score: number | null
-  }[] = []
-  let prevLevel: number | null = null
-  for (const sa of skillAssessments) {
-    if (prevLevel !== null && sa.level !== prevLevel) {
-      levelHistory.push({
-        date: new Date(sa.assessedAt).toLocaleDateString('ko-KR'),
-        fromLevel: prevLevel,
-        toLevel: sa.level,
-        score: sa.score,
-      })
-    }
-    prevLevel = sa.level
-  }
+  const {
+    currentLevel,
+    overallAvg,
+    thisMonthAvg,
+    lastMonthAvg,
+    monthDiff,
+    allDomainAvg,
+    thisMonthDomainAvg,
+    lastMonthDomainAvg,
+    radarThisMonth,
+    radarLastMonth,
+    sessionPoints,
+    historyData,
+    subCategoryData,
+    levelHistory,
+  } = await getCachedStudentGrades(dbUser.student.id)
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
