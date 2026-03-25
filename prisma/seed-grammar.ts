@@ -5,7 +5,7 @@
  * 실행: npm run seed:grammar
  */
 
-import { PrismaClient, QuestionDomain } from '../src/generated/prisma'
+import { PrismaClient, Prisma, QuestionDomain } from '../src/generated/prisma'
 import * as dotenv from 'dotenv'
 
 dotenv.config()
@@ -899,7 +899,7 @@ async function main() {
         subCategory: q.subCategory,
         difficulty: q.difficulty,
         cefrLevel: q.cefrLevel,
-        contentJson: q.contentJson,
+        contentJson: q.contentJson as unknown as Prisma.InputJsonValue,
         createdBy: teacher?.id ?? null,
         statsJson: { attempt_count: 0, correct_count: 0, correct_rate: 0 },
       },

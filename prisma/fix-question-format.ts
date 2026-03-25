@@ -12,7 +12,7 @@
  * 실행: npm run fix:question-format
  */
 
-import { PrismaClient } from '../src/generated/prisma'
+import { PrismaClient, Prisma } from '../src/generated/prisma'
 import * as dotenv from 'dotenv'
 
 dotenv.config()
@@ -85,8 +85,8 @@ async function main() {
       await prisma.question.update({
         where: { id: q.id },
         data: {
-          ...(newContent ? { contentJson: newContent } : {}),
-          ...(newStats ? { statsJson: newStats } : {}),
+          ...(newContent ? { contentJson: newContent as Prisma.InputJsonValue } : {}),
+          ...(newStats ? { statsJson: newStats as Prisma.InputJsonValue } : {}),
         },
       })
     } else {
