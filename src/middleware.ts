@@ -12,7 +12,22 @@ const ROLE_REDIRECT: Record<Role, string> = {
 const PROTECTED_PREFIXES = ['/admin', '/owner', '/teacher', '/student']
 
 export async function middleware(request: NextRequest) {
+  const startTime = performance.now()
   const { pathname } = request.nextUrl
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function logAndReturn(response: any): any {
+    const elapsed = Math.round(performance.now() - startTime)
+    const label = `[${request.method} ${pathname}]`
+    if (elapsed >= 200) {
+      console.log(`⚠️ SLOW: ${label} ${elapsed}ms`)
+    } else {
+      console.log(`${label} ${elapsed}ms`)
+    }
+    try { response.headers.set('X-Response-Time', `${elapsed}ms`) } catch {}
+    return response
+  }
+
   const { supabaseResponse, user } = await updateSession(request)
 
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
@@ -22,14 +37,14 @@ export async function middleware(request: NextRequest) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(loginUrl)
+    return logAndReturn(NextResponse.redirect(loginUrl))
   }
 
   // 로그인된 사용자가 /login 접근 시 → 역할별 대시보드로
   if (user && pathname === '/login') {
     const role = request.cookies.get('user-role')?.value as Role | undefined
     if (role && ROLE_REDIRECT[role]) {
-      return NextResponse.redirect(new URL(ROLE_REDIRECT[role], request.url))
+      return logAndReturn(NextResponse.redirect(new URL(ROLE_REDIRECT[role], request.url)))
     }
   }
 
@@ -39,12 +54,12 @@ export async function middleware(request: NextRequest) {
     if (role) {
       const allowedPrefix = ROLE_REDIRECT[role]
       if (!pathname.startsWith(allowedPrefix)) {
-        return NextResponse.redirect(new URL(allowedPrefix, request.url))
+        return logAndReturn(NextResponse.redirect(new URL(allowedPrefix, request.url)))
       }
     }
   }
 
-  return supabaseResponse
+  return logAndReturn(supabaseResponse)
 }
 
 export const config = {

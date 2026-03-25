@@ -13,7 +13,15 @@ function formatDate(date: Date) {
 }
 
 export default async function CommunicationPage() {
+  const pageStart = performance.now()
+
+  const dataStart = performance.now()
   const [announcements, classes] = await Promise.all([getAnnouncements(), getMyClasses()])
+  console.log(`  [쿼리1] getAnnouncements + getMyClasses: ${(performance.now() - dataStart).toFixed(0)}ms`)
+
+  const totalTime = performance.now() - pageStart
+  console.log(`📊 [CommunicationPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
+  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

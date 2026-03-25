@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import type {
@@ -44,13 +45,22 @@ export type WrongAnswerItem = {
 
 // ── 내부 헬퍼 ─────────────────────────────────────────────────────────────────
 
+// gamification.ts의 getCachedStudentRecord와 동일한 캐시 키 → 같은 캐시 엔트리 공유
+const getCachedStudentRecord = (userId: string) =>
+  unstable_cache(
+    () =>
+      prisma.user.findUnique({
+        where: { id: userId, isDeleted: false },
+        select: { id: true, role: true, student: { select: { id: true } } },
+      }),
+    ['student-record', userId],
+    { revalidate: 60, tags: [`user-${userId}`] },
+  )()
+
 async function requireStudentId(): Promise<string> {
   const user = await getCurrentUser()
   if (!user || user.role !== 'STUDENT') redirect('/login')
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { student: { select: { id: true } } },
-  })
+  const dbUser = await getCachedStudentRecord(user.id)
   if (!dbUser?.student) redirect('/login')
   return dbUser.student.id
 }
@@ -77,50 +87,59 @@ function sanitizeQuestion(q: {
   }
 }
 
-// ── 허브 페이지 데이터 ────────────────────────────────────────────────────────
+// ── 허브 페이지 데이터 (30초 캐싱) ───────────────────────────────────────────
+
+const getCachedLearnHubData = (studentId: string) =>
+  unstable_cache(
+    async () => {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+      // 3개 쿼리 병렬 실행
+      const [wrongAnswerCount, skillAssessments, todayResponses] = await Promise.all([
+        prisma.questionResponse.count({
+          where: {
+            session: { studentId, status: { in: ['COMPLETED', 'GRADED'] } },
+            isCorrect: false,
+            createdAt: { gte: thirtyDaysAgo },
+          },
+        }),
+        prisma.skillAssessment.findMany({
+          where: { studentId },
+          orderBy: { assessedAt: 'desc' },
+          take: 40,
+          select: { domain: true, score: true },
+        }),
+        prisma.questionResponse.findMany({
+          where: { session: { studentId }, createdAt: { gte: today } },
+          select: { isCorrect: true },
+        }),
+      ])
+
+      const domainScores: Partial<Record<QuestionDomainType, number | null>> = {}
+      for (const sa of skillAssessments) {
+        const domain = sa.domain as QuestionDomainType
+        if (domainScores[domain] === undefined) {
+          domainScores[domain] = sa.score
+        }
+      }
+
+      return {
+        wrongAnswerCount,
+        domainScores,
+        todayQuestions: todayResponses.length,
+        todayCorrect: todayResponses.filter((r) => r.isCorrect === true).length,
+      }
+    },
+    ['student-learn-hub', studentId],
+    { revalidate: 30, tags: [`student-${studentId}-learn`] },
+  )()
 
 export async function getLearnHubData() {
   const studentId = await requireStudentId()
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const thirtyDaysAgo = new Date()
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-  const wrongAnswerCount = await prisma.questionResponse.count({
-    where: {
-      session: { studentId, status: { in: ['COMPLETED', 'GRADED'] } },
-      isCorrect: false,
-      createdAt: { gte: thirtyDaysAgo },
-    },
-  })
-
-  const skillAssessments = await prisma.skillAssessment.findMany({
-    where: { studentId },
-    orderBy: { assessedAt: 'desc' },
-    take: 40,
-  })
-
-  const domainScores: Partial<Record<QuestionDomainType, number | null>> = {}
-  for (const sa of skillAssessments) {
-    const domain = sa.domain as QuestionDomainType
-    if (domainScores[domain] === undefined) {
-      domainScores[domain] = sa.score
-    }
-  }
-
-  const todayResponses = await prisma.questionResponse.findMany({
-    where: { session: { studentId }, createdAt: { gte: today } },
-    select: { isCorrect: true },
-  })
-
-  return {
-    wrongAnswerCount,
-    domainScores,
-    todayQuestions: todayResponses.length,
-    todayCorrect: todayResponses.filter((r) => r.isCorrect === true).length,
-  }
+  return getCachedLearnHubData(studentId)
 }
 
 // ── 맞춤형 학습 문제 ──────────────────────────────────────────────────────────

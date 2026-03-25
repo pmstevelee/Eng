@@ -32,71 +32,85 @@ const getStaticTeachersPageData = (academyId: string) =>
     { revalidate: 60, tags: [`academy-${academyId}-teachers`] },
   )()
 
+// 동적 필터 쿼리 (15초 캐싱 — 탭/검색 반복 클릭 시 즉시 반환)
+const getDynamicTeachersData = (academyId: string, query: string, page: number) =>
+  unstable_cache(
+    async () => {
+      type TeacherWhere = {
+        academyId: string
+        role: 'TEACHER'
+        isDeleted: boolean
+        OR?: Array<
+          | { name: { contains: string; mode: 'insensitive' } }
+          | { email: { contains: string; mode: 'insensitive' } }
+        >
+      }
+      const where: TeacherWhere = { academyId, role: 'TEACHER', isDeleted: false }
+      if (query) {
+        where.OR = [
+          { name: { contains: query, mode: 'insensitive' } },
+          { email: { contains: query, mode: 'insensitive' } },
+        ]
+      }
+      const [count, rows] = await Promise.all([
+        prisma.user.count({ where }),
+        prisma.user.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * PAGE_SIZE,
+          take: PAGE_SIZE,
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            createdAt: true,
+            taughtClasses: {
+              where: { isActive: true },
+              select: { id: true, name: true },
+            },
+          },
+        }),
+      ])
+      return [count, rows.map((t) => ({ ...t, createdAt: t.createdAt.toISOString() }))] as const
+    },
+    ['owner-teachers-list', academyId, query, String(page)],
+    { revalidate: 15, tags: [`academy-${academyId}-teachers`] },
+  )()
+
 export default async function OwnerTeachersPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  const pageStart = performance.now()
+
   // getCurrentUser()는 layout에서 이미 호출됨 → cache()로 즉시 반환
+  const authStart = performance.now()
   const user = await getCurrentUser()
+  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
   const params = await searchParams
   const query = params.q?.trim() ?? ''
   const page = Math.max(1, parseInt(params.page ?? '1', 10))
 
-  type TeacherWhere = {
-    academyId: string
-    role: 'TEACHER'
-    isDeleted: boolean
-    OR?: Array<
-      | { name: { contains: string; mode: 'insensitive' } }
-      | { email: { contains: string; mode: 'insensitive' } }
-    >
-  }
-
-  const where: TeacherWhere = {
-    academyId: user.academyId,
-    role: 'TEACHER',
-    isDeleted: false,
-  }
-
-  if (query) {
-    where.OR = [
-      { name: { contains: query, mode: 'insensitive' } },
-      { email: { contains: query, mode: 'insensitive' } },
-    ]
-  }
-
-  // 정적 데이터(캐싱)와 동적 쿼리를 병렬 실행
+  // 정적 데이터(캐싱)와 동적 쿼리(캐싱)를 병렬 실행
+  const dataStart = performance.now()
   const [{ academy, totalTeachers }, [totalCount, teachers]] = await Promise.all([
     getStaticTeachersPageData(user.academyId),
-    Promise.all([
-      prisma.user.count({ where }),
-      prisma.user.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * PAGE_SIZE,
-        take: PAGE_SIZE,
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          createdAt: true,
-          taughtClasses: {
-            where: { isActive: true },
-            select: { id: true, name: true },
-          },
-        },
-      }),
-    ]),
+    getDynamicTeachersData(user.academyId, query, page),
   ])
+  console.log(`  [쿼리2] getStaticTeachersPageData + getDynamicTeachersData: ${(performance.now() - dataStart).toFixed(0)}ms`)
+
+  const totalTime = performance.now() - pageStart
+  console.log(`📊 [OwnerTeachersPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
+  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   const teacherData = teachers.map((t) => ({
     id: t.id,
     name: t.name,
     email: t.email,
-    createdAt: t.createdAt.toISOString(),
+    createdAt: t.createdAt,
     classes: t.taughtClasses.map((c) => ({ id: c.id, name: c.name })),
   }))
 

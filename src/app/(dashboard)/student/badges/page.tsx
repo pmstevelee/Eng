@@ -28,16 +28,28 @@ const getCachedStudentBadges = (studentId: string) =>
   )()
 
 export default async function BadgesPage() {
+  const pageStart = performance.now()
+
+  const authStart = performance.now()
   const user = await getCurrentUser()
+  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'STUDENT') redirect('/login')
 
+  const userLookupStart = performance.now()
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
     select: { student: { select: { id: true } } },
   })
+  console.log(`  [쿼리2] prisma.user.findUnique: ${(performance.now() - userLookupStart).toFixed(0)}ms`)
   if (!dbUser?.student) redirect('/login')
 
+  const dataStart = performance.now()
   const { allBadges, badgeEarnings } = await getCachedStudentBadges(dbUser.student.id)
+  console.log(`  [쿼리3] getCachedStudentBadges: ${(performance.now() - dataStart).toFixed(0)}ms`)
+
+  const totalTime = performance.now() - pageStart
+  console.log(`📊 [BadgesPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
+  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   return (
     <div className="space-y-6">

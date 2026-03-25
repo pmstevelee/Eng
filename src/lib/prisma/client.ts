@@ -15,7 +15,10 @@ function buildDatasourceUrl(base: string): string {
     .replace(/[?&]{2,}/g, (m) => m[0])  // 중복 구분자 정리
     .replace(/[?&]$/, '')               // 말미 구분자 제거
 
-  url += (url.includes('?') ? '&' : '?') + 'connection_limit=3&pool_timeout=20'
+  // 개발: 단일 프로세스 → 여유롭게 10개 (prefetch + 병렬 쿼리 대응)
+  // 프로덕션: Vercel 서버리스 인스턴스가 많아 DB 전체 연결 수 보존을 위해 3개 유지
+  const limit = process.env.NODE_ENV === 'production' ? 3 : 10
+  url += (url.includes('?') ? '&' : '?') + `connection_limit=${limit}&pool_timeout=20`
   return url
 }
 

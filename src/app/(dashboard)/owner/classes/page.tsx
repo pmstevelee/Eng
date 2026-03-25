@@ -52,10 +52,20 @@ const getClassesPageData = unstable_cache(
 )
 
 export default async function OwnerClassesPage() {
+  const pageStart = performance.now()
+
+  const authStart = performance.now()
   const user = await getCurrentUser()
+  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
+  const dataStart = performance.now()
   const [classes, teachers] = await getClassesPageData(user.academyId)
+  console.log(`  [쿼리2] getClassesPageData: ${(performance.now() - dataStart).toFixed(0)}ms`)
+
+  const totalTime = performance.now() - pageStart
+  console.log(`📊 [OwnerClassesPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
+  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   const classData = classes.map((c) => {
     const allScores = c.students.flatMap((s) => s.testSessions.map((ts) => ts.score!))

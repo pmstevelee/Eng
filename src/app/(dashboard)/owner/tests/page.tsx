@@ -77,12 +77,22 @@ const getCachedTestsPageData = (academyId: string) =>
   )()
 
 export default async function OwnerTestsPage() {
+  const pageStart = performance.now()
+
+  const authStart = performance.now()
   const user = await getCurrentUser()
+  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
+  const dataStart = performance.now()
   const { tests, classes, teachers, totalMap, completedMap } = await getCachedTestsPageData(
     user.academyId,
   )
+  console.log(`  [쿼리2] getCachedTestsPageData: ${(performance.now() - dataStart).toFixed(0)}ms`)
+
+  const totalTime = performance.now() - pageStart
+  console.log(`📊 [OwnerTestsPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
+  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   const testData = tests.map((t) => {
     const total = totalMap[t.id] ?? 0

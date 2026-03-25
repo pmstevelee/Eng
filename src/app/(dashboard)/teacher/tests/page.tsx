@@ -47,10 +47,20 @@ const getCachedTeacherTests = (userId: string, academyId: string) =>
   )()
 
 export default async function TeacherTestsPage() {
+  const pageStart = performance.now()
+
+  const authStart = performance.now()
   const user = await getCurrentUser()
+  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
 
+  const dataStart = performance.now()
   const testData = await getCachedTeacherTests(user.id, user.academyId)
+  console.log(`  [쿼리2] getCachedTeacherTests: ${(performance.now() - dataStart).toFixed(0)}ms`)
+
+  const totalTime = performance.now() - pageStart
+  console.log(`📊 [TeacherTestsPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
+  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   return (
     <div className="space-y-6">

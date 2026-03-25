@@ -288,15 +288,22 @@ const getCachedStudentGrades = (studentId: string) =>
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function GradesPage() {
+  const pageStart = performance.now()
+
+  const authStart = performance.now()
   const user = await getCurrentUser()
+  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'STUDENT') redirect('/login')
 
+  const userLookupStart = performance.now()
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
     select: { student: { select: { id: true } } },
   })
+  console.log(`  [쿼리2] prisma.user.findUnique: ${(performance.now() - userLookupStart).toFixed(0)}ms`)
   if (!dbUser?.student) redirect('/login')
 
+  const dataStart = performance.now()
   const {
     currentLevel,
     overallAvg,
@@ -313,6 +320,11 @@ export default async function GradesPage() {
     subCategoryData,
     levelHistory,
   } = await getCachedStudentGrades(dbUser.student.id)
+  console.log(`  [쿼리3] getCachedStudentGrades: ${(performance.now() - dataStart).toFixed(0)}ms`)
+
+  const totalTime = performance.now() - pageStart
+  console.log(`📊 [GradesPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
+  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">

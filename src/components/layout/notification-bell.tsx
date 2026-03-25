@@ -101,10 +101,15 @@ export function NotificationBell({ userId }: Props) {
 
   async function loadNotifications() {
     setIsLoading(true)
-    const { notifications: items, unreadCount: count } = await getNotifications()
-    setNotifications(items)
-    setUnreadCount(count)
-    setIsLoading(false)
+    try {
+      const { notifications: items, unreadCount: count } = await getNotifications()
+      setNotifications(items)
+      setUnreadCount(count)
+    } catch {
+      // 네트워크 오류 등 — 빈 상태 유지
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   async function handleMarkRead(id: string) {

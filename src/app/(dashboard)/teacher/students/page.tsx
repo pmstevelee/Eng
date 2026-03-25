@@ -78,10 +78,20 @@ const getCachedTeacherStudents = (teacherId: string) =>
   )()
 
 export default async function TeacherStudentsPage() {
+  const pageStart = performance.now()
+
+  const authStart = performance.now()
   const user = await getCurrentUser()
+  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
 
+  const dataStart = performance.now()
   const { classes, students } = await getCachedTeacherStudents(user.id)
+  console.log(`  [쿼리2] getCachedTeacherStudents: ${(performance.now() - dataStart).toFixed(0)}ms`)
+
+  const totalTime = performance.now() - pageStart
+  console.log(`📊 [TeacherStudentsPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
+  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   return (
     <StudentsClient

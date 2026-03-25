@@ -1,25 +1,33 @@
 'use server'
 
+import { unstable_cache, revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
 import { BadgeType, QuestionDomain } from '@/generated/prisma'
 import { calcLevelFromScore } from '@/app/(dashboard)/student/_utils/level'
+import { getCurrentUser } from '@/lib/auth'
 
 // ─── Auth helper ─────────────────────────────────────────────────────────────
 
-async function getAuthedStudent() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return null
+// 학생 record(studentId) 30초 캐싱 — getCurrentUser의 user-${userId} 태그와 동일하게 연동
+const getCachedStudentRecord = (userId: string) =>
+  unstable_cache(
+    () =>
+      prisma.user.findUnique({
+        where: { id: userId, isDeleted: false },
+        select: { id: true, role: true, student: { select: { id: true } } },
+      }),
+    ['student-record', userId],
+    { revalidate: 60, tags: [`user-${userId}`] },
+  )()
 
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, student: { select: { id: true } } },
-  })
-  if (!user || user.role !== 'STUDENT' || !user.student) return null
-  return { userId: user.id, studentId: user.student.id }
+async function getAuthedStudent() {
+  // getCurrentUser: getSession(쿠키 로컬 검증) + unstable_cache(30s) → ~1ms
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'STUDENT') return null
+  // getCachedStudentRecord: studentId를 60초 캐싱 → 두 번째 요청부터 DB 왕복 없음
+  const dbUser = await getCachedStudentRecord(user.id)
+  if (!dbUser?.student) return null
+  return { userId: user.id, studentId: dbUser.student.id }
 }
 
 // ─── Main dashboard data ──────────────────────────────────────────────────────
@@ -474,13 +482,169 @@ export async function submitMissionAnswers(
     }
   }
 
+  // 미션 완료 → 대시보드 캐시 즉시 무효화
+  revalidateTag(`student-${studentId}-dashboard`)
+
   return { newBadges: toAward as string[], score }
 }
 
-// ─── Unified student dashboard data (connection-pool-safe) ───────────────────
-//
-// Runs queries in sequential batches (max 3 per batch) to stay within
-// Supabase's transaction-pooler connection_limit: 1 / timeout: 10s.
+// ─── 대시보드 전체 데이터 캐싱 (30초) ────────────────────────────────────────
+// 미션 확인/생성, 핵심 지표, 최근 활동, 문제 미리보기를 모두 캐시 안에서 처리.
+// 캐시 히트 시 DB 쿼리 0건 → ~5ms 응답.
+// 미션 완료 시 revalidateTag(`student-${studentId}-dashboard`)로 즉시 무효화.
+
+const getCachedDashboardData = (studentId: string) =>
+  unstable_cache(
+    async () => {
+      const todayStart = new Date()
+      todayStart.setHours(0, 0, 0, 0)
+      const weekStart = new Date()
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+      weekStart.setHours(0, 0, 0, 0)
+
+      // ── 미션 확인 (없으면 생성) ───────────────────────────────────────────
+      let mission = await prisma.dailyMission.findFirst({
+        where: { studentId, missionDate: { gte: todayStart } },
+      })
+      if (!mission) {
+        const recentAssessments = await prisma.skillAssessment.findMany({
+          where: { studentId },
+          orderBy: { assessedAt: 'desc' },
+          take: 20,
+          select: { domain: true, score: true },
+        })
+        const weakestDomain = pickWeakestDomain(recentAssessments)
+        const questionPool = await prisma.question.findMany({
+          where: { domain: weakestDomain },
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+          select: { id: true },
+        })
+        if (questionPool.length > 0) {
+          try {
+            mission = await prisma.dailyMission.create({
+              data: {
+                studentId,
+                missionDate: new Date(),
+                questionIds: questionPool.map((q) => q.id),
+                domainFocus: weakestDomain,
+                isCompleted: false,
+              },
+            })
+          } catch {
+            mission = await prisma.dailyMission.findFirst({
+              where: { studentId, missionDate: { gte: todayStart } },
+            })
+          }
+        }
+      }
+
+      // ── 배치 1: 핵심 지표 ─────────────────────────────────────────────────
+      const [streak, student, weeklyCount] = await Promise.all([
+        prisma.studentStreak.findUnique({
+          where: { studentId },
+          select: { currentStreak: true, longestStreak: true, lastActivityDate: true, totalDays: true },
+        }),
+        prisma.student.findUnique({
+          where: { id: studentId },
+          select: { currentLevel: true },
+        }),
+        prisma.questionResponse.count({
+          where: {
+            session: {
+              studentId,
+              status: { in: ['COMPLETED', 'GRADED'] },
+              completedAt: { gte: weekStart },
+            },
+          },
+        }),
+      ])
+
+      // ── 배치 2: 세션·배지·스킬·미션·문제 미리보기 (한 번에 병렬) ─────────
+      const missionIds = !mission?.isCompleted ? (mission?.questionIds as string[] | undefined) ?? [] : []
+      const [completedSessions, badgeEarnings, assessments, upcomingSessions, completedMissions, missionQuestions] =
+        await Promise.all([
+          prisma.testSession.findMany({
+            where: { studentId, status: { in: ['COMPLETED', 'GRADED'] }, completedAt: { not: null } },
+            select: { id: true, score: true, completedAt: true, test: { select: { title: true } } },
+            orderBy: { completedAt: 'desc' },
+            take: 5,
+          }),
+          prisma.badgeEarning.findMany({
+            where: { studentId },
+            select: { id: true, earnedAt: true, badge: { select: { name: true, iconUrl: true } } },
+            orderBy: { earnedAt: 'desc' },
+            take: 5,
+          }),
+          prisma.skillAssessment.findMany({
+            where: { studentId },
+            orderBy: { assessedAt: 'desc' },
+            take: 50,
+            select: { domain: true, score: true },
+          }),
+          prisma.testSession.findMany({
+            where: { studentId, status: 'NOT_STARTED' },
+            select: {
+              id: true,
+              timeLimitMin: true,
+              test: { select: { title: true, isActive: true, totalScore: true } },
+            },
+            orderBy: { startedAt: 'asc' },
+            take: 3,
+          }),
+          prisma.dailyMission.findMany({
+            where: { studentId, isCompleted: true },
+            select: { id: true, domainFocus: true, questionIds: true, completedAt: true },
+            orderBy: { completedAt: 'desc' },
+            take: 5,
+          }),
+          missionIds.length > 0
+            ? prisma.question.findMany({
+                where: { id: { in: missionIds } },
+                select: { id: true, domain: true, difficulty: true },
+              })
+            : Promise.resolve([]),
+        ])
+
+      // Date → ISO 문자열 직렬화
+      return {
+        mission: mission
+          ? {
+              ...mission,
+              missionDate: mission.missionDate.toISOString(),
+              completedAt: mission.completedAt?.toISOString() ?? null,
+              createdAt: mission.createdAt.toISOString(),
+            }
+          : null,
+        streak: streak
+          ? { ...streak, lastActivityDate: streak.lastActivityDate?.toISOString() ?? null }
+          : null,
+        student,
+        weeklyCount,
+        completedSessions: completedSessions.map((s) => ({
+          ...s,
+          completedAt: s.completedAt?.toISOString() ?? null,
+        })),
+        badgeEarnings: badgeEarnings.map((b) => ({
+          ...b,
+          earnedAt: b.earnedAt.toISOString(),
+        })),
+        assessments,
+        upcomingSessions,
+        completedMissions: completedMissions.map((m) => ({
+          ...m,
+          completedAt: m.completedAt?.toISOString() ?? null,
+        })),
+        missionQuestions: missionIds.map((id) => missionQuestions.find((q) => q.id === id)).filter(
+          (q): q is { id: string; domain: QuestionDomain; difficulty: number } => Boolean(q),
+        ),
+      }
+    },
+    ['student-dashboard', studentId],
+    { revalidate: 30, tags: [`student-${studentId}-dashboard`] },
+  )()
+
+// ─── Unified student dashboard data ──────────────────────────────────────────
 
 export async function getStudentDashboardData() {
   const auth = await getAuthedStudent()
@@ -489,150 +653,60 @@ export async function getStudentDashboardData() {
 
   const todayStart = new Date()
   todayStart.setHours(0, 0, 0, 0)
-  const weekStart = new Date()
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay())
-  weekStart.setHours(0, 0, 0, 0)
 
-  // ── Step 1: Check for today's mission ─────────────────────────────────────
-  let mission = await prisma.dailyMission.findFirst({
-    where: { studentId, missionDate: { gte: todayStart } },
-  })
+  // 모든 쿼리가 캐시 안에 있음 → 캐시 히트 시 DB 왕복 0건
+  const {
+    mission: rawMission,
+    streak: cachedStreak,
+    student,
+    weeklyCount,
+    completedSessions: rawSessions,
+    badgeEarnings: rawBadges,
+    assessments,
+    upcomingSessions,
+    completedMissions: rawMissions,
+    missionQuestions,
+  } = await getCachedDashboardData(studentId)
 
-  // ── Step 2: Create mission if it doesn't exist yet ────────────────────────
-  if (!mission) {
-    const recentAssessments = await prisma.skillAssessment.findMany({
-      where: { studentId },
-      orderBy: { assessedAt: 'desc' },
-      take: 20,
-      select: { domain: true, score: true },
-    })
-    const weakestDomain = pickWeakestDomain(recentAssessments)
-    const questionPool = await prisma.question.findMany({
-      where: { domain: weakestDomain },
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      select: { id: true },
-    })
-    if (questionPool.length > 0) {
-      try {
-        mission = await prisma.dailyMission.create({
-          data: {
-            studentId,
-            missionDate: new Date(),
-            questionIds: questionPool.map((q) => q.id),
-            domainFocus: weakestDomain,
-            isCompleted: false,
-          },
-        })
-      } catch {
-        // Race condition: another request already created it
-        mission = await prisma.dailyMission.findFirst({
-          where: { studentId, missionDate: { gte: todayStart } },
-        })
+  // ISO 문자열 → Date 역직렬화
+  const mission = rawMission
+    ? {
+        ...rawMission,
+        missionDate: new Date(rawMission.missionDate),
+        completedAt: rawMission.completedAt ? new Date(rawMission.completedAt) : null,
+        createdAt: new Date(rawMission.createdAt),
       }
-    }
-  }
-
-  // ── Step 3: Core metrics (streak, level, weekly count) ────────────────────
-  const [streak, student, weeklyCount] = await Promise.all([
-    prisma.studentStreak.findUnique({ where: { studentId } }),
-    prisma.student.findUnique({
-      where: { id: studentId },
-      select: { currentLevel: true },
-    }),
-    prisma.questionResponse.count({
-      where: {
-        session: {
-          studentId,
-          status: { in: ['COMPLETED', 'GRADED'] },
-          completedAt: { gte: weekStart },
-        },
-      },
-    }),
-  ])
-
-  // ── Step 4: Sessions, badges, and skill assessments ───────────────────────
-  const [completedSessions, badgeEarnings, assessments] = await Promise.all([
-    prisma.testSession.findMany({
-      where: {
-        studentId,
-        status: { in: ['COMPLETED', 'GRADED'] },
-        completedAt: { not: null },
-      },
-      select: {
-        id: true,
-        score: true,
-        completedAt: true,
-        test: { select: { title: true } },
-      },
-      orderBy: { completedAt: 'desc' },
-      take: 5,
-    }),
-    prisma.badgeEarning.findMany({
-      where: { studentId },
-      select: {
-        id: true,
-        earnedAt: true,
-        badge: { select: { name: true, iconUrl: true } },
-      },
-      orderBy: { earnedAt: 'desc' },
-      take: 5,
-    }),
-    prisma.skillAssessment.findMany({
-      where: { studentId },
-      orderBy: { assessedAt: 'desc' },
-      take: 50,
-      select: { domain: true, score: true },
-    }),
-  ])
-
-  // ── Step 5: Upcoming tests and completed missions ─────────────────────────
-  const [upcomingSessions, completedMissions] = await Promise.all([
-    prisma.testSession.findMany({
-      where: { studentId, status: 'NOT_STARTED' },
-      select: {
-        id: true,
-        timeLimitMin: true,
-        test: { select: { title: true, isActive: true, totalScore: true } },
-      },
-      orderBy: { startedAt: 'asc' },
-      take: 3,
-    }),
-    prisma.dailyMission.findMany({
-      where: { studentId, isCompleted: true },
-      select: { id: true, domainFocus: true, questionIds: true, completedAt: true },
-      orderBy: { completedAt: 'desc' },
-      take: 5,
-    }),
-  ])
-
-  // ── Step 6: Mission question preview ──────────────────────────────────────
-  type MissionQuestion = { id: string; domain: QuestionDomain; difficulty: number }
-  let missionQuestions: MissionQuestion[] = []
-  if (mission && !mission.isCompleted) {
-    const ids = mission.questionIds as string[]
-    if (ids.length > 0) {
-      const qs = await prisma.question.findMany({
-        where: { id: { in: ids } },
-        select: { id: true, domain: true, difficulty: true },
-      })
-      missionQuestions = ids
-        .map((id) => qs.find((q) => q.id === id))
-        .filter((q): q is MissionQuestion => Boolean(q))
-    }
-  }
+    : null
+  const streak = cachedStreak
+    ? {
+        ...cachedStreak,
+        lastActivityDate: cachedStreak.lastActivityDate
+          ? new Date(cachedStreak.lastActivityDate)
+          : null,
+      }
+    : null
+  const completedSessions = rawSessions.map((s) => ({
+    ...s,
+    completedAt: s.completedAt ? new Date(s.completedAt) : null,
+  }))
+  const badgeEarnings = rawBadges.map((b) => ({
+    ...b,
+    earnedAt: new Date(b.earnedAt),
+  }))
+  const completedMissions = rawMissions.map((m) => ({
+    ...m,
+    completedAt: m.completedAt ? new Date(m.completedAt) : null,
+  }))
 
   // ── Derived values ────────────────────────────────────────────────────────
   const isActiveToday = streak?.lastActivityDate
-    ? new Date(streak.lastActivityDate) >= todayStart
+    ? streak.lastActivityDate >= todayStart
     : false
 
   const scoredSessions = completedSessions.filter((s) => s.score !== null)
   const recentAvgScore =
     scoredSessions.length >= 3
-      ? Math.round(
-          scoredSessions.slice(0, 3).reduce((s, r) => s + (r.score ?? 0), 0) / 3,
-        )
+      ? Math.round(scoredSessions.slice(0, 3).reduce((s, r) => s + (r.score ?? 0), 0) / 3)
       : null
 
   const domainList: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']

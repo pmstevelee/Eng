@@ -109,8 +109,12 @@ export default async function OwnerStudentsPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  const pageStart = performance.now()
+
   // getCurrentUser()는 layout에서 이미 호출됨 → cache()로 즉시 반환
+  const authStart = performance.now()
   const user = await getCurrentUser()
+  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
   const params = await searchParams
@@ -120,10 +124,16 @@ export default async function OwnerStudentsPage({
   const page = Math.max(1, parseInt(params.page ?? '1', 10))
 
   // 정적 데이터(캐싱)와 동적 쿼리(캐싱)를 병렬 실행
+  const dataStart = performance.now()
   const [{ classes, academy, totalStudents }, [totalCount, students]] = await Promise.all([
     getStaticStudentsPageData(user.academyId),
     getDynamicStudentsData(user.academyId, query, classIdFilter, statusFilter, page),
   ])
+  console.log(`  [쿼리2] getStaticStudentsPageData + getDynamicStudentsData: ${(performance.now() - dataStart).toFixed(0)}ms`)
+
+  const totalTime = performance.now() - pageStart
+  console.log(`📊 [OwnerStudentsPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
+  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   const studentData = students.map((s) => ({
     id: s.id,

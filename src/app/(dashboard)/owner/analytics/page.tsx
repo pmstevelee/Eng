@@ -564,13 +564,23 @@ interface PageProps {
 }
 
 export default async function AnalyticsPage({ searchParams }: PageProps) {
+  const pageStart = performance.now()
+
+  const authStart = performance.now()
   const user = await getCurrentUser()
+  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
   const period = searchParams.period ?? '3-months'
   const activeTab = searchParams.tab ?? 'scores'
 
+  const dataStart = performance.now()
   const data = await getCachedAnalyticsData(user.academyId, period)
+  console.log(`  [쿼리2] getCachedAnalyticsData (period=${period}): ${(performance.now() - dataStart).toFixed(0)}ms`)
+
+  const totalTime = performance.now() - pageStart
+  console.log(`📊 [AnalyticsPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
+  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   return (
     <AnalyticsClient

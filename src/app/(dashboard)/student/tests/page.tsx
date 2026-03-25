@@ -80,10 +80,15 @@ const getCachedStudentSessions = (studentId: string) =>
   )()
 
 export default async function StudentTestsPage() {
+  const pageStart = performance.now()
+
+  const authStart = performance.now()
   const user = await getCurrentUser()
+  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'STUDENT') redirect('/login')
 
   // Student 레코드 조회 (없으면 자동 생성)
+  const studentLookupStart = performance.now()
   let student = await prisma.student.findUnique({
     where: { userId: user.id },
     select: { id: true },
@@ -94,9 +99,16 @@ export default async function StudentTestsPage() {
       select: { id: true },
     })
   }
+  console.log(`  [쿼리2] prisma.student.findUnique: ${(performance.now() - studentLookupStart).toFixed(0)}ms`)
   const studentId = student.id
 
+  const dataStart = performance.now()
   const sessions = await getCachedStudentSessions(studentId)
+  console.log(`  [쿼리3] getCachedStudentSessions: ${(performance.now() - dataStart).toFixed(0)}ms`)
+
+  const totalTime = performance.now() - pageStart
+  console.log(`📊 [StudentTestsPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
+  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   const notStarted = sessions.filter((s) => s.status === 'NOT_STARTED')
   const inProgress = sessions.filter((s) => s.status === 'IN_PROGRESS')

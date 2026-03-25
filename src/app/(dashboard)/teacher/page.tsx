@@ -150,12 +150,22 @@ const NOTIFICATION_ICON: Record<string, React.ReactNode> = {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function TeacherDashboard() {
+  const pageStart = performance.now()
+
   // layout에서 이미 호출됨 → cache()로 즉시 반환 (네트워크 없음)
+  const authStart = performance.now()
   const user = await getCurrentUser()
+  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
 
+  const dataStart = performance.now()
   const { stats, myClasses, recentSessions, urgentNotifications, lowScoreStudentCount } =
     await getCachedTeacherDashboard(user.id, user.academyId)
+  console.log(`  [쿼리2] getCachedTeacherDashboard: ${(performance.now() - dataStart).toFixed(0)}ms`)
+
+  const totalTime = performance.now() - pageStart
+  console.log(`📊 [TeacherDashboard] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
+  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   const now = new Date()
   const dateLabel = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`
