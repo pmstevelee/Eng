@@ -61,7 +61,7 @@ export function DashboardLayout({
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <Header
-          academyName={academyName}
+          academyName={businessName || academyName}
           userName={userName}
           userEmail={userEmail}
           userRole={userRole}
