@@ -204,13 +204,16 @@ export async function createTeacher(data: {
 
 export async function updateTeacherProfile(
   teacherId: string,
-  data: { name: string; email: string },
+  data: { name: string; email: string; password?: string },
 ): Promise<{ error?: string }> {
   const owner = await getOwner()
   if (!owner) return { error: '권한이 없습니다.' }
 
   if (!data.name.trim()) return { error: '이름을 입력해주세요.' }
   if (!data.email.trim()) return { error: '이메일을 입력해주세요.' }
+  if (data.password !== undefined && data.password.length > 0 && data.password.length < 6) {
+    return { error: '비밀번호는 최소 6자 이상이어야 합니다.' }
+  }
 
   const teacher = await prisma.user.findFirst({
     where: { id: teacherId, academyId: owner.academyId!, role: 'TEACHER', isDeleted: false },
@@ -218,16 +221,23 @@ export async function updateTeacherProfile(
   })
   if (!teacher) return { error: '교사를 찾을 수 없습니다.' }
 
-  // 이메일 변경 시 중복 확인 및 Supabase Auth 업데이트
-  if (data.email.trim() !== teacher.email) {
-    const duplicate = await prisma.user.findUnique({ where: { email: data.email.trim() } })
-    if (duplicate) return { error: '이미 사용 중인 이메일입니다.' }
+  // 이메일·비밀번호 변경이 있으면 Supabase Auth 업데이트
+  const emailChanged = data.email.trim() !== teacher.email
+  const passwordChanged = data.password && data.password.length >= 6
+
+  if (emailChanged || passwordChanged) {
+    if (emailChanged) {
+      const duplicate = await prisma.user.findUnique({ where: { email: data.email.trim() } })
+      if (duplicate) return { error: '이미 사용 중인 이메일입니다.' }
+    }
 
     const adminClient = getAdminClient()
-    const { error: authError } = await adminClient.auth.admin.updateUserById(teacherId, {
-      email: data.email.trim(),
-    })
-    if (authError) return { error: '이메일 변경에 실패했습니다: ' + authError.message }
+    const updatePayload: { email?: string; password?: string } = {}
+    if (emailChanged) updatePayload.email = data.email.trim()
+    if (passwordChanged) updatePayload.password = data.password
+
+    const { error: authError } = await adminClient.auth.admin.updateUserById(teacherId, updatePayload)
+    if (authError) return { error: '계정 정보 변경에 실패했습니다: ' + authError.message }
   }
 
   await prisma.user.update({
