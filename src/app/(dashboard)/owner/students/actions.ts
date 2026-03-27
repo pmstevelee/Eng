@@ -200,13 +200,16 @@ export async function createStudent(data: {
 
 export async function updateStudentProfile(
   studentId: string,
-  data: { name: string; email: string; grade?: number },
+  data: { name: string; email: string; grade?: number; password?: string },
 ): Promise<{ error?: string }> {
   const owner = await getOwner()
   if (!owner) return { error: '권한이 없습니다.' }
 
   if (!data.name.trim()) return { error: '이름을 입력해주세요.' }
   if (!data.email.trim()) return { error: '이메일을 입력해주세요.' }
+  if (data.password !== undefined && data.password.length > 0 && data.password.length < 6) {
+    return { error: '비밀번호는 최소 6자 이상이어야 합니다.' }
+  }
 
   const student = await prisma.student.findFirst({
     where: { id: studentId, user: { academyId: owner.academyId! } },
@@ -214,19 +217,22 @@ export async function updateStudentProfile(
   })
   if (!student) return { error: '학생을 찾을 수 없습니다.' }
 
-  // 이메일 변경 시 중복 확인
-  if (data.email.trim() !== student.user.email) {
-    const duplicate = await prisma.user.findUnique({ where: { email: data.email.trim() } })
-    if (duplicate) return { error: '이미 사용 중인 이메일입니다.' }
-  }
+  const emailChanged = data.email.trim() !== student.user.email
+  const passwordChanged = data.password && data.password.length >= 6
 
-  // Supabase Auth 이메일 업데이트
-  if (data.email.trim() !== student.user.email) {
+  if (emailChanged || passwordChanged) {
+    if (emailChanged) {
+      const duplicate = await prisma.user.findUnique({ where: { email: data.email.trim() } })
+      if (duplicate) return { error: '이미 사용 중인 이메일입니다.' }
+    }
+
     const adminClient = getAdminClient()
-    const { error: authError } = await adminClient.auth.admin.updateUserById(student.userId, {
-      email: data.email.trim(),
-    })
-    if (authError) return { error: '이메일 변경에 실패했습니다: ' + authError.message }
+    const updatePayload: { email?: string; password?: string } = {}
+    if (emailChanged) updatePayload.email = data.email.trim()
+    if (passwordChanged) updatePayload.password = data.password
+
+    const { error: authError } = await adminClient.auth.admin.updateUserById(student.userId, updatePayload)
+    if (authError) return { error: '계정 정보 변경에 실패했습니다: ' + authError.message }
   }
 
   await prisma.$transaction([
