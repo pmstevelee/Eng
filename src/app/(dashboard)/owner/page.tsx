@@ -145,7 +145,7 @@ async function getOwnerDashboardData(academyId: string) {
       },
     }),
 
-    // 11. 주의 학생 (최근 점수 < 60)
+    // 11. 주의 학생 (평균 점수 < 60)
     prisma.student.findMany({
       where: {
         user: { academyId, isActive: true },
@@ -159,9 +159,7 @@ async function getOwnerDashboardData(academyId: string) {
         class: { select: { name: true } },
         testSessions: {
           where: { status: 'GRADED', score: { not: null } },
-          select: { score: true, completedAt: true },
-          orderBy: { completedAt: 'desc' },
-          take: 1,
+          select: { score: true },
         },
       },
     }),
@@ -220,9 +218,14 @@ async function getOwnerDashboardData(academyId: string) {
     { domain: 'Writing', 평균: Math.round(domainAvgRaw._avg.writingScore ?? 0) },
   ]
 
-  // ── At-risk students ──
+  // ── At-risk students (평균 점수 < 60) ──
   const atRiskStudents = studentsWithLatestScore
-    .filter((s) => (s.testSessions[0]?.score ?? 100) < 60)
+    .map((s) => {
+      const scores = s.testSessions.map((ts) => ts.score ?? 0)
+      const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 100
+      return { ...s, avgScore }
+    })
+    .filter((s) => s.avgScore < 60)
     .slice(0, 6)
 
   return {
@@ -546,7 +549,6 @@ export default async function OwnerDashboard() {
             ) : (
               <div className="space-y-3">
                 {atRiskStudents.map((student) => {
-                  const lastScore = student.testSessions[0]?.score ?? 0
                   return (
                     <div
                       key={student.id}
@@ -564,7 +566,7 @@ export default async function OwnerDashboard() {
                         </p>
                       </div>
                       <span className="shrink-0 rounded-full bg-accent-red-light px-2 py-0.5 text-xs font-bold text-accent-red">
-                        {lastScore}점
+                        {student.avgScore}점
                       </span>
                     </div>
                   )
