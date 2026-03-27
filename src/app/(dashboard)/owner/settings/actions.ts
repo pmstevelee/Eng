@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma/client'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { randomBytes } from 'crypto'
 
 export async function withdrawAcademy(
@@ -142,6 +142,7 @@ export async function updateAcademyInfo(
     },
   })
 
+  revalidateTag(`user-${authUser.id}`)
   revalidatePath('/owner/settings/academy')
   revalidatePath('/owner')
   return { success: true }

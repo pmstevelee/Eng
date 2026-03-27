@@ -81,7 +81,6 @@ export function Header({
                   <form action={signOut}>
                     <button
                       type="submit"
-                      onClick={() => setIsUserMenuOpen(false)}
                       className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
                     >
                       <LogOut size={15} />
