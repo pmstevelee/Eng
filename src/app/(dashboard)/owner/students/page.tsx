@@ -93,6 +93,7 @@ const getDynamicStudentsData = (
             status: true,
             createdAt: true,
             classId: true,
+            grade: true,
             class: { select: { id: true, name: true } },
             user: { select: { name: true, email: true } },
           },
@@ -144,6 +145,7 @@ export default async function OwnerStudentsPage({
     currentLevel: s.currentLevel,
     status: s.status,
     createdAt: s.createdAt,
+    grade: s.grade,
   }))
 
   const classData = classes.map((c) => ({ id: c.id, name: c.name }))
