@@ -11,9 +11,12 @@ export type QuestionContentJson = {
   question_text: string
   question_text_ko?: string
   options?: string[]
+  option_images?: (string | null)[]
   correct_answer?: string
   explanation?: string
   passage?: string
+  passage_image_url?: string
+  question_image_url?: string
   word_limit?: number
 }
 

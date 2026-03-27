@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useMemo, useTransition, useCallback, useRef } from 'react'
-import { Plus, Search, Eye, Pencil, Trash2, X, BookOpen } from 'lucide-react'
+import { Plus, Search, Eye, Pencil, Trash2, X, BookOpen, ImagePlus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import Image from 'next/image'
 
 // ── 타입 정의 ─────────────────────────────────────────────────────────────────
 
@@ -15,9 +16,12 @@ export type QuestionContentJson = {
   question_text: string
   question_text_ko?: string
   options?: string[]
+  option_images?: (string | null)[]
   correct_answer?: string
   explanation?: string
   passage?: string
+  passage_image_url?: string
+  question_image_url?: string
   word_limit?: number
 }
 
@@ -157,6 +161,98 @@ function StyledTextarea({
   )
 }
 
+// ── 이미지 업로드 컴포넌트 ──────────────────────────────────────────────────────
+
+function ImageUploadField({
+  imageUrl,
+  onChange,
+  label = '이미지 추가',
+}: {
+  imageUrl: string | null | undefined
+  onChange: (url: string | null) => void
+  label?: string
+}) {
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadError('')
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/upload-image', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (!res.ok) {
+        setUploadError(data.error ?? '업로드 실패')
+      } else {
+        onChange(data.url)
+      }
+    } catch {
+      setUploadError('업로드 중 오류가 발생했습니다.')
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ''
+    }
+  }
+
+  return (
+    <div className="mt-2">
+      {imageUrl ? (
+        <div className="relative inline-block">
+          <Image
+            src={imageUrl}
+            alt="첨부 이미지"
+            width={320}
+            height={200}
+            className="rounded-xl border border-gray-200 object-contain max-h-48 w-auto"
+            unoptimized
+          />
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#D92916] text-white flex items-center justify-center shadow-sm hover:bg-red-700 transition-colors"
+            title="이미지 삭제"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-gray-300 text-xs text-gray-500 hover:border-primary-700 hover:text-primary-700 transition-colors disabled:opacity-50"
+        >
+          {uploading ? (
+            <>
+              <Loader2 size={13} className="animate-spin" />
+              업로드 중...
+            </>
+          ) : (
+            <>
+              <ImagePlus size={13} />
+              {label}
+            </>
+          )}
+        </button>
+      )}
+      {uploadError && <p className="text-xs text-[#D92916] mt-1">{uploadError}</p>}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/gif,image/webp"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+    </div>
+  )
+}
+
 // ── 미리보기 모달 ─────────────────────────────────────────────────────────────
 
 function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onClose: () => void }) {
@@ -191,6 +287,16 @@ function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onCl
               <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200 text-sm text-gray-700 leading-relaxed">
                 <p className="text-xs font-semibold text-gray-500 uppercase mb-2 tracking-wide">지문</p>
                 <p className="whitespace-pre-wrap">{content.passage}</p>
+                {content.passage_image_url && (
+                  <Image
+                    src={content.passage_image_url}
+                    alt="지문 이미지"
+                    width={480}
+                    height={300}
+                    className="mt-3 rounded-xl border border-gray-200 object-contain max-h-64 w-auto"
+                    unoptimized
+                  />
+                )}
               </div>
             )}
 
@@ -198,15 +304,26 @@ function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onCl
               {content.question_text || '문제 본문이 없습니다.'}
             </p>
             {content.question_text_ko && (
-              <p className="text-sm text-gray-500 mb-6">{content.question_text_ko}</p>
+              <p className="text-sm text-gray-500 mb-2">{content.question_text_ko}</p>
+            )}
+            {content.question_image_url && (
+              <Image
+                src={content.question_image_url}
+                alt="문제 이미지"
+                width={480}
+                height={300}
+                className="mt-2 mb-4 rounded-xl border border-gray-200 object-contain max-h-64 w-auto"
+                unoptimized
+              />
             )}
 
             {content.type === 'multiple_choice' && content.options && (
-              <div className="mt-6 space-y-3">
+              <div className="mt-4 space-y-3">
                 {content.options.map((opt, i) => {
                   const label = String.fromCharCode(65 + i)
                   const isSelected = selected === label
                   const isCorrect = content.correct_answer === label
+                  const optImage = content.option_images?.[i]
                   return (
                     <button
                       key={i}
@@ -223,6 +340,18 @@ function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onCl
                       <span className="text-gray-900 text-sm">{opt || `선택지 ${label}`}</span>
                       {selected && isCorrect && (
                         <span className="ml-2 text-xs text-accent-green font-semibold">✓ 정답</span>
+                      )}
+                      {optImage && (
+                        <div className="mt-2">
+                          <Image
+                            src={optImage}
+                            alt={`선택지 ${label} 이미지`}
+                            width={240}
+                            height={150}
+                            className="rounded-lg border border-gray-200 object-contain max-h-36 w-auto"
+                            unoptimized
+                          />
+                        </div>
                       )}
                     </button>
                   )
@@ -312,9 +441,18 @@ function QuestionFormModal({
   const [questionText, setQuestionText] = useState(initial?.contentJson.question_text ?? '')
   const [questionTextKo, setQuestionTextKo] = useState(initial?.contentJson.question_text_ko ?? '')
   const [options, setOptions] = useState<string[]>(initial?.contentJson.options ?? ['', '', '', ''])
+  const [optionImages, setOptionImages] = useState<(string | null)[]>(
+    initial?.contentJson.option_images ?? [null, null, null, null],
+  )
   const [correctAnswer, setCorrectAnswer] = useState(initial?.contentJson.correct_answer ?? '')
   const [explanation, setExplanation] = useState(initial?.contentJson.explanation ?? '')
   const [passage, setPassage] = useState(initial?.contentJson.passage ?? '')
+  const [passageImageUrl, setPassageImageUrl] = useState<string | null>(
+    initial?.contentJson.passage_image_url ?? null,
+  )
+  const [questionImageUrl, setQuestionImageUrl] = useState<string | null>(
+    initial?.contentJson.question_image_url ?? null,
+  )
   const [wordLimit, setWordLimit] = useState<number>(initial?.contentJson.word_limit ?? 200)
 
   const TABS: { key: QuestionType; label: string }[] = [
@@ -330,17 +468,37 @@ function QuestionFormModal({
     setOptions(next)
   }
 
+  const updateOptionImage = (i: number, url: string | null) => {
+    const next = [...optionImages]
+    next[i] = url
+    setOptionImages(next)
+  }
+
   const buildContentJson = (): QuestionContentJson => {
     const base = {
       type: qType,
       question_text: questionText,
       question_text_ko: questionTextKo || undefined,
       explanation: explanation || undefined,
+      question_image_url: questionImageUrl || undefined,
     }
-    if (qType === 'multiple_choice') return { ...base, options, correct_answer: correctAnswer }
+    if (qType === 'multiple_choice') {
+      const hasOptionImages = optionImages.some((img) => img !== null)
+      return {
+        ...base,
+        options,
+        option_images: hasOptionImages ? optionImages : undefined,
+        correct_answer: correctAnswer,
+      }
+    }
     if (qType === 'fill_blank') return { ...base, correct_answer: correctAnswer }
     if (qType === 'short_answer') return { ...base, correct_answer: correctAnswer }
-    return { ...base, passage: passage || undefined, word_limit: wordLimit }
+    return {
+      ...base,
+      passage: passage || undefined,
+      passage_image_url: passageImageUrl || undefined,
+      word_limit: wordLimit,
+    }
   }
 
   const handleSubmit = () => {
@@ -462,6 +620,11 @@ function QuestionFormModal({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">지문 (선택)</label>
               <StyledTextarea value={passage} onChange={setPassage} placeholder="읽기 지문을 입력하세요..." rows={5} />
+              <ImageUploadField
+                imageUrl={passageImageUrl}
+                onChange={setPassageImageUrl}
+                label="지문 이미지 추가"
+              />
             </div>
           )}
 
@@ -474,6 +637,11 @@ function QuestionFormModal({
               <p className="text-xs text-gray-400 mb-1">빈칸은 ____로 표시하세요 (예: I ____ to school.)</p>
             )}
             <StyledTextarea value={questionText} onChange={setQuestionText} placeholder="문제를 입력하세요..." rows={3} />
+            <ImageUploadField
+              imageUrl={questionImageUrl}
+              onChange={setQuestionImageUrl}
+              label="문제 이미지 추가"
+            />
           </div>
 
           {/* 한국어 번역 */}
@@ -490,29 +658,36 @@ function QuestionFormModal({
           {qType === 'multiple_choice' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">선택지 (A~D)</label>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {options.map((opt, i) => {
                   const label = String.fromCharCode(65 + i)
                   const isCorrect = correctAnswer === label
                   return (
-                    <div key={i} className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setCorrectAnswer(isCorrect ? '' : label)}
-                        className={`w-8 h-8 rounded-full text-sm font-bold border-2 shrink-0 transition-all ${
-                          isCorrect
-                            ? 'border-[#1FAF54] bg-[#1FAF54] text-white'
-                            : 'border-gray-200 text-gray-400 hover:border-[#1FAF54] hover:text-[#1FAF54]'
-                        }`}
-                        title="클릭하여 정답 선택"
-                      >
-                        {label}
-                      </button>
-                      <Input
-                        value={opt}
-                        onChange={(e) => updateOption(i, e.target.value)}
-                        placeholder={`선택지 ${label}`}
-                        className="flex-1"
+                    <div key={i} className="rounded-xl border border-gray-200 p-3">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setCorrectAnswer(isCorrect ? '' : label)}
+                          className={`w-8 h-8 rounded-full text-sm font-bold border-2 shrink-0 transition-all ${
+                            isCorrect
+                              ? 'border-[#1FAF54] bg-[#1FAF54] text-white'
+                              : 'border-gray-200 text-gray-400 hover:border-[#1FAF54] hover:text-[#1FAF54]'
+                          }`}
+                          title="클릭하여 정답 선택"
+                        >
+                          {label}
+                        </button>
+                        <Input
+                          value={opt}
+                          onChange={(e) => updateOption(i, e.target.value)}
+                          placeholder={`선택지 ${label}`}
+                          className="flex-1"
+                        />
+                      </div>
+                      <ImageUploadField
+                        imageUrl={optionImages[i]}
+                        onChange={(url) => updateOptionImage(i, url)}
+                        label={`선택지 ${label} 이미지`}
                       />
                     </div>
                   )
