@@ -264,6 +264,7 @@ export async function submitTest(
     revalidateTag(`student-${auth.studentId}-grades`)
     revalidateTag(`student-${auth.studentId}-learning`)
     revalidateTag(`student-${auth.studentId}-badges`)
+    revalidateTag(`owner-${session.test.academyId}-dashboard`)
     revalidatePath(`/student/tests/${sessionId}`)
     revalidatePath('/student')
     return { newBadges: gamification.newBadges }

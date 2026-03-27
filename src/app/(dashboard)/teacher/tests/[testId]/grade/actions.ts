@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 async function getAuthedTeacherOrOwner() {
   const supabase = await createClient()
@@ -217,6 +217,7 @@ export async function gradeSession(
     })
 
     revalidatePath(`/teacher/tests`)
+    revalidateTag(`owner-${auth.academyId}-dashboard`)
     return {}
   } catch {
     return { error: '채점 저장에 실패했습니다.' }

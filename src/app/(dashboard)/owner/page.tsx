@@ -263,13 +263,15 @@ function TrendIcon({ delta }: { delta: number | null }) {
   return <Minus size={14} className="text-gray-400" />
 }
 
-// ─── Cached Data Fetcher (60초 TTL, academyId별 독립 캐시) ───────────────────
+// ─── Cached Data Fetcher (60초 TTL, academyId별 독립 캐시 + 태그 기반 무효화) ──
 
-const getCachedOwnerDashboardData = unstable_cache(
-  getOwnerDashboardData,
-  ['owner-dashboard'],
-  { revalidate: 60 }
-)
+function getCachedOwnerDashboardData(academyId: string) {
+  return unstable_cache(
+    getOwnerDashboardData,
+    [`owner-dashboard-${academyId}`],
+    { revalidate: 60, tags: [`owner-${academyId}-dashboard`] }
+  )(academyId)
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
