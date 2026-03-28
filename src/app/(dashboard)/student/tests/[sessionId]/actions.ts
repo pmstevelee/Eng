@@ -211,11 +211,11 @@ export async function submitTest(
     )
     const score = totalObjective > 0 ? Math.round((totalCorrect / totalObjective) * 100) : null
 
-    // 3단계: 세션 상태 업데이트 (COMPLETED)
+    // 3단계: 세션 상태 업데이트 (에세이 없으면 GRADED, 있으면 COMPLETED)
     await prisma.testSession.update({
       where: { id: sessionId },
       data: {
-        status: 'COMPLETED',
+        status: hasEssay ? 'COMPLETED' : 'GRADED',
         completedAt: new Date(),
         lastSavedAt: new Date(),
         score,

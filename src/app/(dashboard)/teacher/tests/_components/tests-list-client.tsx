@@ -160,6 +160,7 @@ export default function TestsListClient({ tests }: { tests: TestItem[] }) {
             const notStarted = test.sessions.filter((s) => s.status === 'NOT_STARTED').length
             const inProgress = test.sessions.filter((s) => s.status === 'IN_PROGRESS').length
             const completed = test.sessions.filter((s) => ['COMPLETED', 'GRADED'].includes(s.status)).length
+            const needsGrading = test.sessions.filter((s) => s.status === 'COMPLETED').length
 
             return (
               <div key={test.id} className="rounded-xl border border-gray-200 bg-white overflow-hidden">
@@ -204,7 +205,7 @@ export default function TestsListClient({ tests }: { tests: TestItem[] }) {
                           배포하기
                         </button>
                       )}
-                      {test.status === 'PUBLISHED' && completed > 0 && (
+                      {test.status === 'PUBLISHED' && needsGrading > 0 && (
                         <a
                           href={`/teacher/tests/${test.id}/grade`}
                           className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg transition-colors"
