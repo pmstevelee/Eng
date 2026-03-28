@@ -61,7 +61,7 @@ export default async function EditTestPage({
     }
   })
 
-  const testId = params.testId
+  const boundUpdateTest = updateTest.bind(null, params.testId)
 
   return (
     <TestFormClient
@@ -72,7 +72,7 @@ export default async function EditTestPage({
       getStudentsForDeployAction={getStudentsForDeploy}
       getAutoQuestionsAction={getAutoQuestions}
       initialData={test}
-      updateTestAction={(input) => updateTest(testId, input)}
+      updateTestAction={boundUpdateTest}
       successHref="/teacher/tests"
     />
   )
