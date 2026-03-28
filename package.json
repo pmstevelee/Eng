@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "seed:grammar": "tsx prisma/seed-grammar.ts",
-    "fix:question-format": "tsx prisma/fix-question-format.ts"
+    "fix:question-format": "tsx prisma/fix-question-format.ts",
+    "seed:unit-test-u1": "tsx prisma/seed-unit-test-u1.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
