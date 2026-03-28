@@ -238,6 +238,132 @@ export async function getStudentsForDeploy(): Promise<{
   }
 }
 
+// 테스트 수정
+export async function updateTest(
+  testId: string,
+  input: TestFormInput,
+): Promise<{ error?: string }> {
+  const user = await getAuthedTeacher()
+  if (!user) return { error: '권한이 없습니다.' }
+  if (!input.title.trim()) return { error: '제목을 입력해 주세요.' }
+
+  const test = await prisma.test.findUnique({
+    where: { id: testId },
+    select: { createdBy: true, academyId: true },
+  })
+  if (!test || test.createdBy !== user.id || test.academyId !== user.academyId) {
+    return { error: '권한이 없습니다.' }
+  }
+
+  try {
+    await prisma.test.update({
+      where: { id: testId },
+      data: {
+        title: input.title.trim(),
+        type: input.type,
+        classId: input.classId || null,
+        timeLimitMin: input.timeLimitMin || null,
+        instructions: input.instructions || null,
+        questionOrder: input.questionIds,
+        totalScore: input.questionIds.length || 0,
+      },
+    })
+    revalidateTag(`teacher-${user.id}-tests`)
+    revalidateTag(`teacher-${user.id}-dashboard`)
+    revalidatePath('/teacher/tests')
+    return {}
+  } catch (e) {
+    console.error(e)
+    return { error: '수정에 실패했습니다.' }
+  }
+}
+
+// 테스트 삭제
+export async function deleteTest(testId: string): Promise<{ error?: string }> {
+  const user = await getAuthedTeacher()
+  if (!user) return { error: '권한이 없습니다.' }
+
+  const test = await prisma.test.findUnique({
+    where: { id: testId },
+    select: { createdBy: true, academyId: true },
+  })
+  if (!test || test.createdBy !== user.id || test.academyId !== user.academyId) {
+    return { error: '권한이 없습니다.' }
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const sessions = await tx.testSession.findMany({
+        where: { testId },
+        select: { id: true },
+      })
+      const sessionIds = sessions.map((s) => s.id)
+      if (sessionIds.length > 0) {
+        await tx.questionResponse.deleteMany({
+          where: { sessionId: { in: sessionIds } },
+        })
+        await tx.testSession.deleteMany({ where: { testId } })
+      }
+      await tx.test.delete({ where: { id: testId } })
+    })
+    revalidateTag(`teacher-${user.id}-tests`)
+    revalidateTag(`teacher-${user.id}-dashboard`)
+    revalidatePath('/teacher/tests')
+    return {}
+  } catch (e) {
+    console.error(e)
+    return { error: '삭제에 실패했습니다.' }
+  }
+}
+
+// 테스트 편집용 데이터 조회
+export async function getTestForEdit(testId: string): Promise<{
+  test?: {
+    id: string
+    title: string
+    type: 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE'
+    classId: string | null
+    timeLimitMin: number | null
+    instructions: string | null
+    questionOrder: string[]
+  }
+  error?: string
+}> {
+  const user = await getAuthedTeacher()
+  if (!user) return { error: '권한이 없습니다.' }
+
+  const test = await prisma.test.findUnique({
+    where: { id: testId },
+    select: {
+      id: true,
+      title: true,
+      type: true,
+      classId: true,
+      timeLimitMin: true,
+      instructions: true,
+      questionOrder: true,
+      createdBy: true,
+      academyId: true,
+    },
+  })
+
+  if (!test || test.createdBy !== user.id || test.academyId !== user.academyId) {
+    return { error: '테스트를 찾을 수 없습니다.' }
+  }
+
+  return {
+    test: {
+      id: test.id,
+      title: test.title,
+      type: test.type as 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE',
+      classId: test.classId,
+      timeLimitMin: test.timeLimitMin,
+      instructions: test.instructions,
+      questionOrder: test.questionOrder as string[],
+    },
+  }
+}
+
 // 자동 문제 선택
 export async function getAutoQuestions(
   configs: AutoConfig[],

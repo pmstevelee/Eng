@@ -22,6 +22,15 @@ import type { TestFormInput, AutoConfig, QuestionRowMin } from '../../actions'
 type ClassOption = { id: string; name: string }
 type DeployClass = { id: string; name: string; students: Array<{ id: string; name: string }> }
 
+type InitialData = {
+  title: string
+  type: 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE'
+  classId: string | null
+  timeLimitMin: number | null
+  instructions: string | null
+  questionOrder: string[]
+}
+
 type Props = {
   classes: ClassOption[]
   questions: QuestionRow[]
@@ -34,6 +43,10 @@ type Props = {
   getAutoQuestionsAction: (
     configs: AutoConfig[],
   ) => Promise<{ questions: QuestionRowMin[]; error?: string }>
+  /** 편집 모드: 기존 데이터 */
+  initialData?: InitialData
+  /** 편집 모드: 수정 저장 액션 */
+  updateTestAction?: (input: TestFormInput) => Promise<{ error?: string }>
   /** 저장/배포 성공 후 이동할 경로 (기본값: '/teacher/tests') */
   successHref?: string
 }
@@ -92,21 +105,31 @@ export default function TestFormClient({
   createAndDeployTestAction,
   getStudentsForDeployAction,
   getAutoQuestionsAction,
+  initialData,
+  updateTestAction,
   successHref = '/teacher/tests',
 }: Props) {
   const router = useRouter()
+  const isEditMode = !!initialData && !!updateTestAction
 
   // ── Basic info ──────────────────────────────────────────────────────────────
-  const [title, setTitle] = useState('')
-  const [type, setType] = useState<'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE'>('LEVEL_TEST')
-  const [classId, setClassId] = useState('')
-  const [timeLimitEnabled, setTimeLimitEnabled] = useState(false)
-  const [timeLimitMin, setTimeLimitMin] = useState(45)
-  const [instructions, setInstructions] = useState('')
+  const [title, setTitle] = useState(initialData?.title ?? '')
+  const [type, setType] = useState<'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE'>(initialData?.type ?? 'LEVEL_TEST')
+  const [classId, setClassId] = useState(initialData?.classId ?? '')
+  const [timeLimitEnabled, setTimeLimitEnabled] = useState(!!initialData?.timeLimitMin)
+  const [timeLimitMin, setTimeLimitMin] = useState(initialData?.timeLimitMin ?? 45)
+  const [instructions, setInstructions] = useState(initialData?.instructions ?? '')
 
   // ── Question selection ──────────────────────────────────────────────────────
   const [selectionMode, setSelectionMode] = useState<'manual' | 'auto'>('manual')
-  const [selectedQuestions, setSelectedQuestions] = useState<QuestionRow[]>([])
+  const [selectedQuestions, setSelectedQuestions] = useState<QuestionRow[]>(() => {
+    if (!initialData?.questionOrder?.length) return []
+    const questionMap = new Map(questions.map((q) => [q.id, q]))
+    return initialData.questionOrder.flatMap((id) => {
+      const q = questionMap.get(id)
+      return q ? [q] : []
+    })
+  })
 
   // Manual mode filters
   const [filterDomain, setFilterDomain] = useState('')
@@ -282,6 +305,19 @@ export default function TestFormClient({
     router.push(successHref)
   }
 
+  // ── Update (edit mode) ────────────────────────────────────────────────────────
+  async function handleUpdate() {
+    if (!updateTestAction) return
+    const err = validate()
+    if (err) { setFormError(err); return }
+    setFormError('')
+    setSaving(true)
+    const result = await updateTestAction(buildFormInput())
+    setSaving(false)
+    if (result.error) { setFormError(result.error); return }
+    router.push(successHref)
+  }
+
   // ── Open deploy modal ────────────────────────────────────────────────────────
   async function openDeployModal() {
     const err = validate()
@@ -341,8 +377,12 @@ export default function TestFormClient({
           <ArrowLeft size={18} />
         </button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">새 테스트 만들기</h1>
-          <p className="text-sm text-gray-500 mt-0.5">기본 정보를 입력하고 문제를 구성하세요.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+            {isEditMode ? '테스트 수정' : '새 테스트 만들기'}
+          </h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {isEditMode ? '테스트 정보와 문제를 수정하세요.' : '기본 정보를 입력하고 문제를 구성하세요.'}
+          </p>
         </div>
       </div>
 
@@ -792,22 +832,35 @@ export default function TestFormClient({
         >
           취소
         </button>
-        <button
-          onClick={handleSaveDraft}
-          disabled={saving || deploying}
-          className="flex items-center gap-2 px-5 py-2.5 border border-primary-300 bg-white hover:bg-primary-50 disabled:opacity-50 text-primary-700 rounded-xl text-sm font-medium transition-colors"
-        >
-          <Save size={15} />
-          {saving ? '저장 중...' : '임시저장'}
-        </button>
-        <button
-          onClick={openDeployModal}
-          disabled={saving || deploying}
-          className="flex items-center gap-2 px-5 py-2.5 bg-primary-700 hover:bg-primary-800 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
-        >
-          <Send size={15} />
-          배포하기
-        </button>
+        {isEditMode ? (
+          <button
+            onClick={handleUpdate}
+            disabled={saving}
+            className="flex items-center gap-2 px-5 py-2.5 bg-primary-700 hover:bg-primary-800 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
+          >
+            <Save size={15} />
+            {saving ? '저장 중...' : '수정 저장'}
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={handleSaveDraft}
+              disabled={saving || deploying}
+              className="flex items-center gap-2 px-5 py-2.5 border border-primary-300 bg-white hover:bg-primary-50 disabled:opacity-50 text-primary-700 rounded-xl text-sm font-medium transition-colors"
+            >
+              <Save size={15} />
+              {saving ? '저장 중...' : '임시저장'}
+            </button>
+            <button
+              onClick={openDeployModal}
+              disabled={saving || deploying}
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary-700 hover:bg-primary-800 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
+            >
+              <Send size={15} />
+              배포하기
+            </button>
+          </>
+        )}
       </div>
 
       {/* ─── 배포 모달 ─────────────────────────────────────────────────────── */}

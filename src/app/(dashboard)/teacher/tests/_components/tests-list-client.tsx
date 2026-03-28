@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { Clock, BookOpen, ChevronDown, ChevronUp, Send } from 'lucide-react'
-import { deployExistingTest, getStudentsForDeploy } from '../actions'
+import { useState, useTransition } from 'react'
+import { Clock, BookOpen, ChevronDown, ChevronUp, Send, Pencil, Trash2 } from 'lucide-react'
+import { deployExistingTest, getStudentsForDeploy, deleteTest } from '../actions'
 
 type SessionInfo = { status: string; studentName: string }
 
@@ -58,9 +58,15 @@ const SESSION_DOT: Record<string, string> = {
 
 type DeployClassInfo = { id: string; name: string; students: Array<{ id: string; name: string }> }
 
-export default function TestsListClient({ tests }: { tests: TestItem[] }) {
+export default function TestsListClient({ tests: initialTests }: { tests: TestItem[] }) {
+  const [tests, setTests] = useState(initialTests)
   const [activeTab, setActiveTab] = useState<'ALL' | 'DRAFT' | 'PUBLISHED' | 'GRADED'>('ALL')
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  // Delete state
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState('')
+  const [deleting, startDeleting] = useTransition()
 
   // Deploy modal state
   const [deployTestId, setDeployTestId] = useState<string | null>(null)
@@ -78,6 +84,29 @@ export default function TestsListClient({ tests }: { tests: TestItem[] }) {
   ] as const
 
   const filtered = activeTab === 'ALL' ? tests : tests.filter((t) => t.status === activeTab)
+
+  function handleDeleteConfirm(testId: string) {
+    setDeleteTargetId(testId)
+    setDeleteError('')
+  }
+
+  function handleDeleteCancel() {
+    setDeleteTargetId(null)
+    setDeleteError('')
+  }
+
+  function handleDeleteExecute() {
+    if (!deleteTargetId) return
+    startDeleting(async () => {
+      const result = await deleteTest(deleteTargetId)
+      if (result.error) {
+        setDeleteError(result.error)
+      } else {
+        setTests((prev) => prev.filter((t) => t.id !== deleteTargetId))
+        setDeleteTargetId(null)
+      }
+    })
+  }
 
   async function openDeployModal(testId: string) {
     setDeployTestId(testId)
@@ -213,6 +242,24 @@ export default function TestsListClient({ tests }: { tests: TestItem[] }) {
                           채점하기
                         </a>
                       )}
+                      {(test.status === 'DRAFT' || test.status === 'PUBLISHED') && (
+                        <>
+                          <a
+                            href={`/teacher/tests/${test.id}/edit`}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-primary-700 hover:bg-primary-50 transition-colors"
+                            title="수정"
+                          >
+                            <Pencil size={15} />
+                          </a>
+                          <button
+                            onClick={() => handleDeleteConfirm(test.id)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                            title="삭제"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </>
+                      )}
                       {test.sessions.length > 0 && (
                         <button
                           onClick={() => setExpandedId(isExpanded ? null : test.id)}
@@ -267,6 +314,40 @@ export default function TestsListClient({ tests }: { tests: TestItem[] }) {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* 삭제 확인 모달 */}
+      {deleteTargetId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-50 mx-auto mb-4">
+              <Trash2 size={22} className="text-red-600" />
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 text-center">테스트 삭제</h2>
+            <p className="text-sm text-gray-500 text-center mt-2">
+              이 테스트를 삭제하면 응시 기록도 함께 삭제됩니다.<br />정말 삭제하시겠습니까?
+            </p>
+            {deleteError && (
+              <p className="text-red-600 text-sm text-center mt-3">{deleteError}</p>
+            )}
+            <div className="flex gap-3 mt-5">
+              <button
+                onClick={handleDeleteCancel}
+                disabled={deleting}
+                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDeleteExecute}
+                disabled={deleting}
+                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
+              >
+                {deleting ? '삭제 중...' : '삭제'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
