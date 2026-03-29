@@ -30,7 +30,7 @@ export type TestFormInput = {
 
 export type QuestionRowMin = {
   id: string
-  domain: 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
+  domain: 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
   cefrLevel: string | null
   difficulty: number
   contentJson: QuestionContentJson
@@ -38,7 +38,7 @@ export type QuestionRowMin = {
 }
 
 export type AutoConfig = {
-  domain: 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
+  domain: 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
   cefrLevel?: string
   count: number
 }

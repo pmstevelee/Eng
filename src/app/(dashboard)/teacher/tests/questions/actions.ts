@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 
-type QuestionDomain = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
+type QuestionDomain = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
 
 export type QuestionContentJson = {
   type: 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay'
@@ -18,6 +18,8 @@ export type QuestionContentJson = {
   passage_image_url?: string
   question_image_url?: string
   word_limit?: number
+  audio_url?: string
+  audio_script?: string
 }
 
 type CreateQuestionInput = {

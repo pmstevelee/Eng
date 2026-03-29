@@ -70,6 +70,7 @@ enum QuestionDomain {
   VOCABULARY
   READING
   WRITING
+  LISTENING
 }
 
 enum NotificationType {
@@ -285,6 +286,7 @@ model TestSession {
   vocabularyScore    Int?          @map("vocabulary_score")
   readingScore       Int?          @map("reading_score")
   writingScore       Int?          @map("writing_score")
+  listeningScore     Int?          @map("listening_score")
   startedAt          DateTime      @default(now()) @map("started_at")
   completedAt        DateTime?     @map("completed_at")
   timeLimitMin       Int?          @map("time_limit_min")

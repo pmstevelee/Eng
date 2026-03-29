@@ -7,7 +7,7 @@ import { getDomainQuestions } from '../../actions'
 import { DomainClient } from './_components/domain-client'
 import type { QuestionDomainType } from '@/components/shared/question-bank-client'
 
-const DOMAIN_CONFIG = {
+const DOMAIN_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; desc: string }> = {
   GRAMMAR: {
     label: '문법',
     color: '#1865F2',
@@ -36,9 +36,16 @@ const DOMAIN_CONFIG = {
     border: '#FDBA74',
     desc: '영어로 생각을 글로 표현하는 능력을 키웁니다',
   },
-} as const
+  LISTENING: {
+    label: '듣기',
+    color: '#0EA5E9',
+    bg: '#E0F2FE',
+    border: '#BAE6FD',
+    desc: '영어 음성을 듣고 이해하는 능력을 키웁니다',
+  },
+}
 
-const VALID_DOMAINS = ['grammar', 'vocabulary', 'reading', 'writing']
+const VALID_DOMAINS = ['grammar', 'vocabulary', 'reading', 'writing', 'listening']
 
 export default async function DomainPracticePage({
   params,

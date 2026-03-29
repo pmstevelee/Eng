@@ -60,6 +60,7 @@ export default async function OwnerQuestionsPage() {
     VOCABULARY: questions.filter((q) => q.domain === 'VOCABULARY').length,
     READING: questions.filter((q) => q.domain === 'READING').length,
     WRITING: questions.filter((q) => q.domain === 'WRITING').length,
+    LISTENING: questions.filter((q) => q.domain === 'LISTENING').length,
   }
 
   const statCards = [
@@ -67,6 +68,7 @@ export default async function OwnerQuestionsPage() {
     { label: '어휘', count: domainCounts.VOCABULARY, color: '#7854F7', bg: '#F3EFFF' },
     { label: '읽기', count: domainCounts.READING, color: '#0FBFAD', bg: '#E6FAF8' },
     { label: '쓰기', count: domainCounts.WRITING, color: '#E35C20', bg: '#FEF0E8' },
+    { label: '듣기', count: domainCounts.LISTENING, color: '#0EA5E9', bg: '#E0F2FE' },
   ]
 
   return (
@@ -83,7 +85,7 @@ export default async function OwnerQuestionsPage() {
       </div>
 
       {/* 영역별 통계 */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         {statCards.map((item) => (
           <div key={item.label} className="rounded-xl border border-gray-200 p-4 bg-white">
             <div className="flex items-center gap-2 mb-2">

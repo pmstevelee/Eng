@@ -8,7 +8,7 @@ import { startTestSession, saveResponses, submitTest } from './actions'
 
 export type QuestionForTest = {
   id: string
-  domain: 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
+  domain: 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
   contentJson: QuestionContentJson
 }
 

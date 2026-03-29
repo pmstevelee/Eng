@@ -62,6 +62,7 @@ const DOMAIN_LABEL: Record<string, string> = {
   VOCABULARY: '어휘',
   READING: '읽기',
   WRITING: '쓰기',
+  LISTENING: '듣기',
 }
 
 const DOMAIN_COLOR: Record<string, { bg: string; text: string }> = {
@@ -69,10 +70,11 @@ const DOMAIN_COLOR: Record<string, { bg: string; text: string }> = {
   VOCABULARY: { bg: '#F3EFFF', text: '#7854F7' },
   READING: { bg: '#E6FAF8', text: '#0FBFAD' },
   WRITING: { bg: '#FEF0E8', text: '#E35C20' },
+  LISTENING: { bg: '#E0F2FE', text: '#0EA5E9' },
 }
 
 const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
-const DOMAINS = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING'] as const
+const DOMAINS = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING', 'LISTENING'] as const
 const QUESTION_TYPE_LABEL: Record<string, string> = {
   multiple_choice: '객관식',
   fill_blank: '빈칸',

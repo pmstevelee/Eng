@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
       VOCABULARY: '어휘(Vocabulary)',
       READING: '읽기(Reading)',
       WRITING: '쓰기(Writing)',
+      LISTENING: '듣기(Listening)',
     }
 
     const typeNames: Record<string, string> = {

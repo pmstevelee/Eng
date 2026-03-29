@@ -1,14 +1,29 @@
 'use client'
 
 import { useState, useMemo, useTransition, useCallback, useRef } from 'react'
-import { Plus, Search, Eye, Pencil, Trash2, X, BookOpen, ImagePlus, Loader2 } from 'lucide-react'
+import {
+  Plus,
+  Search,
+  Eye,
+  Pencil,
+  Trash2,
+  X,
+  BookOpen,
+  ImagePlus,
+  Loader2,
+  Sparkles,
+  Volume2,
+  Mic,
+  CheckSquare,
+  Square,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Image from 'next/image'
 
 // ── 타입 정의 ─────────────────────────────────────────────────────────────────
 
-export type QuestionDomainType = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
+export type QuestionDomainType = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
 export type QuestionType = 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay'
 
 export type QuestionContentJson = {
@@ -23,6 +38,8 @@ export type QuestionContentJson = {
   passage_image_url?: string
   question_image_url?: string
   word_limit?: number
+  audio_url?: string
+  audio_script?: string
 }
 
 export type QuestionRow = {
@@ -38,7 +55,6 @@ export type QuestionRow = {
   creator: { name: string } | null
 }
 
-// For modals that need the full question content
 type QuestionDetailRow = QuestionRow & { contentJson: QuestionContentJson }
 
 type CreateInput = {
@@ -58,6 +74,7 @@ const DOMAIN_LABEL: Record<QuestionDomainType, string> = {
   VOCABULARY: '어휘',
   READING: '읽기',
   WRITING: '쓰기',
+  LISTENING: '듣기',
 }
 
 const DOMAIN_COLOR: Record<QuestionDomainType, string> = {
@@ -65,6 +82,7 @@ const DOMAIN_COLOR: Record<QuestionDomainType, string> = {
   VOCABULARY: '#7854F7',
   READING: '#0FBFAD',
   WRITING: '#E35C20',
+  LISTENING: '#0EA5E9',
 }
 
 const DOMAIN_BG: Record<QuestionDomainType, string> = {
@@ -72,6 +90,7 @@ const DOMAIN_BG: Record<QuestionDomainType, string> = {
   VOCABULARY: '#F3EFFF',
   READING: '#E6FAF8',
   WRITING: '#FEF0E8',
+  LISTENING: '#E0F2FE',
 }
 
 const TYPE_LABEL: Record<QuestionType, string> = {
@@ -179,7 +198,6 @@ function ImageUploadField({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
     setUploadError('')
     setUploading(true)
     try {
@@ -187,11 +205,8 @@ function ImageUploadField({
       formData.append('file', file)
       const res = await fetch('/api/upload-image', { method: 'POST', body: formData })
       const data = await res.json()
-      if (!res.ok) {
-        setUploadError(data.error ?? '업로드 실패')
-      } else {
-        onChange(data.url)
-      }
+      if (!res.ok) setUploadError(data.error ?? '업로드 실패')
+      else onChange(data.url)
     } catch {
       setUploadError('업로드 중 오류가 발생했습니다.')
     } finally {
@@ -229,15 +244,9 @@ function ImageUploadField({
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-gray-300 text-xs text-gray-500 hover:border-primary-700 hover:text-primary-700 transition-colors disabled:opacity-50"
         >
           {uploading ? (
-            <>
-              <Loader2 size={13} className="animate-spin" />
-              업로드 중...
-            </>
+            <><Loader2 size={13} className="animate-spin" />업로드 중...</>
           ) : (
-            <>
-              <ImagePlus size={13} />
-              {label}
-            </>
+            <><ImagePlus size={13} />{label}</>
           )}
         </button>
       )}
@@ -253,17 +262,98 @@ function ImageUploadField({
   )
 }
 
+// ── 오디오 업로드 컴포넌트 ─────────────────────────────────────────────────────
+
+function AudioUploadField({
+  audioUrl,
+  onChange,
+  label = '음성 파일 업로드',
+}: {
+  audioUrl: string | null | undefined
+  onChange: (url: string | null) => void
+  label?: string
+}) {
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadError('')
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/upload-audio', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (!res.ok) setUploadError(data.error ?? '업로드 실패')
+      else onChange(data.url)
+    } catch {
+      setUploadError('업로드 중 오류가 발생했습니다.')
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ''
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      {audioUrl ? (
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-[#0EA5E9]/30 bg-[#E0F2FE]">
+          <div className="w-8 h-8 rounded-full bg-[#0EA5E9] flex items-center justify-center shrink-0">
+            <Volume2 size={15} className="text-white" />
+          </div>
+          <audio controls className="flex-1 h-8" style={{ minWidth: 0 }}>
+            <source src={audioUrl} />
+            브라우저가 오디오를 지원하지 않습니다.
+          </audio>
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="w-6 h-6 rounded-full bg-[#D92916] text-white flex items-center justify-center shrink-0 hover:bg-red-700 transition-colors"
+            title="오디오 삭제"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="w-full flex flex-col items-center gap-2 py-6 rounded-xl border-2 border-dashed border-[#0EA5E9]/40 bg-[#E0F2FE]/30 text-[#0EA5E9] hover:border-[#0EA5E9] hover:bg-[#E0F2FE]/60 transition-colors disabled:opacity-50"
+        >
+          {uploading ? (
+            <><Loader2 size={22} className="animate-spin" /><span className="text-sm">업로드 중...</span></>
+          ) : (
+            <><Mic size={22} /><span className="text-sm font-medium">{label}</span><span className="text-xs text-gray-400">MP3, WAV, M4A, OGG, AAC · 최대 30MB</span></>
+          )}
+        </button>
+      )}
+      {uploadError && <p className="text-xs text-[#D92916]">{uploadError}</p>}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="audio/mpeg,audio/mp3,audio/wav,audio/wave,audio/mp4,audio/m4a,audio/x-m4a,audio/ogg,audio/aac"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+    </div>
+  )
+}
+
 // ── 미리보기 모달 ─────────────────────────────────────────────────────────────
 
 function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onClose: () => void }) {
   const [selected, setSelected] = useState<string | null>(null)
+  const [showScript, setShowScript] = useState(false)
   const content = question.contentJson
   const domainColor = DOMAIN_COLOR[question.domain]
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-sm">
-        {/* 헤더 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <div className="flex items-center gap-2">
             <Eye size={18} className="text-gray-500" />
@@ -275,14 +365,41 @@ function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onCl
           </button>
         </div>
 
-        {/* 문제 카드 */}
         <div className="p-6">
           <div className="rounded-xl border border-gray-200 p-8 relative overflow-hidden">
-            <div
-              className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
-              style={{ backgroundColor: domainColor }}
-            />
+            <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style={{ backgroundColor: domainColor }} />
 
+            {/* 리스닝: 오디오 플레이어 */}
+            {question.domain === 'LISTENING' && content.audio_url && (
+              <div className="mb-6">
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-2 tracking-wide">음성 파일</p>
+                <div className="flex items-center gap-3 p-3 rounded-xl border border-[#0EA5E9]/30 bg-[#E0F2FE]">
+                  <div className="w-8 h-8 rounded-full bg-[#0EA5E9] flex items-center justify-center shrink-0">
+                    <Volume2 size={15} className="text-white" />
+                  </div>
+                  <audio controls className="flex-1">
+                    <source src={content.audio_url} />
+                  </audio>
+                </div>
+                {content.audio_script && (
+                  <div className="mt-2">
+                    <button
+                      onClick={() => setShowScript(!showScript)}
+                      className="text-xs text-[#0EA5E9] hover:underline"
+                    >
+                      {showScript ? '스크립트 숨기기' : '스크립트 보기'}
+                    </button>
+                    {showScript && (
+                      <div className="mt-2 p-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {content.audio_script}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 읽기: 지문 */}
             {content.passage && (
               <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200 text-sm text-gray-700 leading-relaxed">
                 <p className="text-xs font-semibold text-gray-500 uppercase mb-2 tracking-wide">지문</p>
@@ -329,14 +446,10 @@ function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onCl
                       key={i}
                       onClick={() => setSelected(label)}
                       className={`w-full text-left rounded-lg border-2 p-4 transition-all ${
-                        isSelected
-                          ? 'border-primary-700 bg-primary-100'
-                          : 'border-gray-200 hover:border-gray-400 hover:bg-gray-50'
+                        isSelected ? 'border-primary-700 bg-primary-100' : 'border-gray-200 hover:border-gray-400 hover:bg-gray-50'
                       }`}
                     >
-                      <span className="font-semibold mr-3" style={{ color: domainColor }}>
-                        {label}.
-                      </span>
+                      <span className="font-semibold mr-3" style={{ color: domainColor }}>{label}.</span>
                       <span className="text-gray-900 text-sm">{opt || `선택지 ${label}`}</span>
                       {selected && isCorrect && (
                         <span className="ml-2 text-xs text-accent-green font-semibold">✓ 정답</span>
@@ -454,6 +567,8 @@ function QuestionFormModal({
     initial?.contentJson.question_image_url ?? null,
   )
   const [wordLimit, setWordLimit] = useState<number>(initial?.contentJson.word_limit ?? 200)
+  const [audioUrl, setAudioUrl] = useState<string | null>(initial?.contentJson.audio_url ?? null)
+  const [audioScript, setAudioScript] = useState(initial?.contentJson.audio_script ?? '')
 
   const TABS: { key: QuestionType; label: string }[] = [
     { key: 'multiple_choice', label: '객관식' },
@@ -463,15 +578,10 @@ function QuestionFormModal({
   ]
 
   const updateOption = (i: number, val: string) => {
-    const next = [...options]
-    next[i] = val
-    setOptions(next)
+    const next = [...options]; next[i] = val; setOptions(next)
   }
-
   const updateOptionImage = (i: number, url: string | null) => {
-    const next = [...optionImages]
-    next[i] = url
-    setOptionImages(next)
+    const next = [...optionImages]; next[i] = url; setOptionImages(next)
   }
 
   const buildContentJson = (): QuestionContentJson => {
@@ -482,14 +592,22 @@ function QuestionFormModal({
       explanation: explanation || undefined,
       question_image_url: questionImageUrl || undefined,
     }
+    if (domain === 'LISTENING') {
+      const result: QuestionContentJson = {
+        ...base,
+        audio_url: audioUrl || undefined,
+        audio_script: audioScript || undefined,
+      }
+      if (qType === 'multiple_choice') {
+        const hasOptionImages = optionImages.some((img) => img !== null)
+        return { ...result, options, option_images: hasOptionImages ? optionImages : undefined, correct_answer: correctAnswer }
+      }
+      if (qType === 'fill_blank' || qType === 'short_answer') return { ...result, correct_answer: correctAnswer }
+      return result
+    }
     if (qType === 'multiple_choice') {
       const hasOptionImages = optionImages.some((img) => img !== null)
-      return {
-        ...base,
-        options,
-        option_images: hasOptionImages ? optionImages : undefined,
-        correct_answer: correctAnswer,
-      }
+      return { ...base, options, option_images: hasOptionImages ? optionImages : undefined, correct_answer: correctAnswer }
     }
     if (qType === 'fill_blank') return { ...base, correct_answer: correctAnswer }
     if (qType === 'short_answer') return { ...base, correct_answer: correctAnswer }
@@ -503,30 +621,19 @@ function QuestionFormModal({
 
   const handleSubmit = () => {
     if (!questionText.trim()) { setError('문제 본문을 입력해주세요.'); return }
-    if (qType !== 'essay' && !correctAnswer.trim()) { setError('정답을 입력해주세요.'); return }
-
+    if (domain === 'LISTENING' && !audioUrl) { setError('음성 파일을 업로드해주세요.'); return }
+    if (qType !== 'essay' && domain !== 'LISTENING' && !correctAnswer.trim()) { setError('정답을 입력해주세요.'); return }
+    if (qType !== 'essay' && domain === 'LISTENING' && qType !== 'multiple_choice' && !correctAnswer.trim()) {
+      setError('정답을 입력해주세요.'); return
+    }
     setError('')
     const contentJson = buildContentJson()
-
     startTransition(async () => {
       let result
       if (isEdit) {
-        result = await actUpdate({
-          id: initial!.id,
-          domain,
-          subCategory: subCategory || undefined,
-          difficulty,
-          cefrLevel: cefrLevel || undefined,
-          contentJson,
-        })
+        result = await actUpdate({ id: initial!.id, domain, subCategory: subCategory || undefined, difficulty, cefrLevel: cefrLevel || undefined, contentJson })
       } else {
-        result = await actCreate({
-          domain,
-          subCategory: subCategory || undefined,
-          difficulty,
-          cefrLevel: cefrLevel || undefined,
-          contentJson,
-        })
+        result = await actCreate({ domain, subCategory: subCategory || undefined, difficulty, cefrLevel: cefrLevel || undefined, contentJson })
       }
       if (result.error) setError(result.error)
       else onSaved()
@@ -540,9 +647,7 @@ function QuestionFormModal({
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-sm flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
           <h2 className="font-bold text-gray-900 text-lg">{isEdit ? '문제 수정' : '새 문제 추가'}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700">
-            <X size={20} />
-          </button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={20} /></button>
         </div>
 
         <div className="p-6 space-y-6 flex-1 overflow-y-auto">
@@ -557,6 +662,7 @@ function QuestionFormModal({
                   <option value="VOCABULARY">어휘 (Vocabulary)</option>
                   <option value="READING">읽기 (Reading)</option>
                   <option value="WRITING">쓰기 (Writing)</option>
+                  <option value="LISTENING">듣기 (Listening)</option>
                 </StyledSelect>
               </div>
               <div>
@@ -570,32 +676,35 @@ function QuestionFormModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">세부 카테고리 (선택)</label>
-                <Input
-                  value={subCategory}
-                  onChange={(e) => setSubCategory(e.target.value)}
-                  placeholder="예: 현재완료, 관계대명사..."
-                />
+                <Input value={subCategory} onChange={(e) => setSubCategory(e.target.value)} placeholder="예: 현재완료, 관계대명사..." />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   난이도 <DifficultyStars value={difficulty} />
                 </label>
                 <div className="flex items-center gap-3 h-11">
-                  <input
-                    type="range"
-                    min={1}
-                    max={5}
-                    value={difficulty}
-                    onChange={(e) => setDifficulty(Number(e.target.value))}
-                    className="w-full accent-primary-700"
-                  />
+                  <input type="range" min={1} max={5} value={difficulty} onChange={(e) => setDifficulty(Number(e.target.value))} className="w-full accent-primary-700" />
                   <span className="text-sm font-bold text-gray-700 w-4">{difficulty}</span>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* 유형 탭 */}
+          {/* 리스닝: 음성 파일 */}
+          {domain === 'LISTENING' && (
+            <section className="space-y-3">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
+                <Volume2 size={14} />음성 파일
+              </h3>
+              <AudioUploadField audioUrl={audioUrl} onChange={setAudioUrl} label="음성 파일 업로드 (MP3, WAV 등)" />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">스크립트 (선택)</label>
+                <StyledTextarea value={audioScript} onChange={setAudioScript} placeholder="오디오 스크립트/대본을 입력하세요 (학생에게 숨김)..." rows={4} />
+              </div>
+            </section>
+          )}
+
+          {/* 문제 유형 */}
           <section>
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">문제 유형</h3>
             <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
@@ -604,9 +713,7 @@ function QuestionFormModal({
                   key={tab.key}
                   onClick={() => setQType(tab.key)}
                   className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                    qType === tab.key
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                    qType === tab.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
                   {tab.label}
@@ -615,16 +722,12 @@ function QuestionFormModal({
             </div>
           </section>
 
-          {/* 지문 (읽기) */}
+          {/* 지문 (읽기만) */}
           {domain === 'READING' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">지문 (선택)</label>
               <StyledTextarea value={passage} onChange={setPassage} placeholder="읽기 지문을 입력하세요..." rows={5} />
-              <ImageUploadField
-                imageUrl={passageImageUrl}
-                onChange={setPassageImageUrl}
-                label="지문 이미지 추가"
-              />
+              <ImageUploadField imageUrl={passageImageUrl} onChange={setPassageImageUrl} label="지문 이미지 추가" />
             </div>
           )}
 
@@ -637,21 +740,13 @@ function QuestionFormModal({
               <p className="text-xs text-gray-400 mb-1">빈칸은 ____로 표시하세요 (예: I ____ to school.)</p>
             )}
             <StyledTextarea value={questionText} onChange={setQuestionText} placeholder="문제를 입력하세요..." rows={3} />
-            <ImageUploadField
-              imageUrl={questionImageUrl}
-              onChange={setQuestionImageUrl}
-              label="문제 이미지 추가"
-            />
+            <ImageUploadField imageUrl={questionImageUrl} onChange={setQuestionImageUrl} label="문제 이미지 추가" />
           </div>
 
           {/* 한국어 번역 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">한국어 번역 (선택)</label>
-            <Input
-              value={questionTextKo}
-              onChange={(e) => setQuestionTextKo(e.target.value)}
-              placeholder="학생에게 보여줄 한국어 해석"
-            />
+            <Input value={questionTextKo} onChange={(e) => setQuestionTextKo(e.target.value)} placeholder="학생에게 보여줄 한국어 해석" />
           </div>
 
           {/* 선택지 (객관식) */}
@@ -669,26 +764,15 @@ function QuestionFormModal({
                           type="button"
                           onClick={() => setCorrectAnswer(isCorrect ? '' : label)}
                           className={`w-8 h-8 rounded-full text-sm font-bold border-2 shrink-0 transition-all ${
-                            isCorrect
-                              ? 'border-[#1FAF54] bg-[#1FAF54] text-white'
-                              : 'border-gray-200 text-gray-400 hover:border-[#1FAF54] hover:text-[#1FAF54]'
+                            isCorrect ? 'border-[#1FAF54] bg-[#1FAF54] text-white' : 'border-gray-200 text-gray-400 hover:border-[#1FAF54] hover:text-[#1FAF54]'
                           }`}
                           title="클릭하여 정답 선택"
                         >
                           {label}
                         </button>
-                        <Input
-                          value={opt}
-                          onChange={(e) => updateOption(i, e.target.value)}
-                          placeholder={`선택지 ${label}`}
-                          className="flex-1"
-                        />
+                        <Input value={opt} onChange={(e) => updateOption(i, e.target.value)} placeholder={`선택지 ${label}`} className="flex-1" />
                       </div>
-                      <ImageUploadField
-                        imageUrl={optionImages[i]}
-                        onChange={(url) => updateOptionImage(i, url)}
-                        label={`선택지 ${label} 이미지`}
-                      />
+                      <ImageUploadField imageUrl={optionImages[i]} onChange={(url) => updateOptionImage(i, url)} label={`선택지 ${label} 이미지`} />
                     </div>
                   )
                 })}
@@ -714,15 +798,11 @@ function QuestionFormModal({
           )}
 
           {/* 단어 수 제한 (서술형) */}
-          {qType === 'essay' && (
+          {qType === 'essay' && domain !== 'LISTENING' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">최대 단어 수</label>
               <div className="flex items-center gap-3 h-11">
-                <input
-                  type="range" min={50} max={500} step={50} value={wordLimit}
-                  onChange={(e) => setWordLimit(Number(e.target.value))}
-                  className="w-full accent-primary-700"
-                />
+                <input type="range" min={50} max={500} step={50} value={wordLimit} onChange={(e) => setWordLimit(Number(e.target.value))} className="w-full accent-primary-700" />
                 <span className="text-sm font-bold text-gray-700 w-12">{wordLimit}자</span>
               </div>
             </div>
@@ -734,19 +814,13 @@ function QuestionFormModal({
             <StyledTextarea value={explanation} onChange={setExplanation} placeholder="정답에 대한 해설을 입력하세요..." rows={3} />
           </div>
 
-          {/* 도메인 색상 인디케이터 */}
           <div className="h-1 rounded-full w-full" style={{ backgroundColor: domainColor }} />
-
           {error && <p className="text-sm text-[#D92916] font-medium">{error}</p>}
         </div>
 
         <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 shrink-0">
           <Button variant="outline" onClick={onClose} disabled={isPending}>취소</Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isPending}
-            style={{ backgroundColor: domainColor, borderColor: domainColor }}
-          >
+          <Button onClick={handleSubmit} disabled={isPending} style={{ backgroundColor: domainColor, borderColor: domainColor }}>
             {isPending ? '저장 중...' : isEdit ? '수정 완료' : '문제 추가'}
           </Button>
         </div>
@@ -795,15 +869,259 @@ function DeleteModal({
         {error && <p className="text-sm text-[#D92916] text-center">{error}</p>}
         <div className="flex gap-3">
           <Button variant="outline" onClick={onClose} disabled={isPending} className="flex-1">취소</Button>
-          <Button
-            onClick={handleDelete}
-            disabled={isPending}
-            className="flex-1 text-white border-0"
-            style={{ backgroundColor: '#D92916' }}
-          >
+          <Button onClick={handleDelete} disabled={isPending} className="flex-1 text-white border-0" style={{ backgroundColor: '#D92916' }}>
             {isPending ? '삭제 중...' : '삭제'}
           </Button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ── AI 유사문제 생성 모달 ─────────────────────────────────────────────────────
+
+type GeneratedSimilarQuestion = {
+  domain: string
+  subCategory?: string
+  difficulty: number
+  cefrLevel: string
+  contentJson: QuestionContentJson
+}
+
+function SimilarQuestionsModal({
+  question,
+  onClose,
+  onSaved,
+  actCreate,
+}: {
+  question: QuestionDetailRow
+  onClose: () => void
+  onSaved: () => void
+  actCreate: (input: CreateInput) => Promise<{ error?: string; id?: string }>
+}) {
+  const [loading, setLoading] = useState(false)
+  const [generated, setGenerated] = useState<GeneratedSimilarQuestion[]>([])
+  const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [saveError, setSaveError] = useState('')
+  const [savedCount, setSavedCount] = useState(0)
+
+  const generate = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    setGenerated([])
+    setSelected(new Set())
+    setSavedCount(0)
+    try {
+      const res = await fetch('/api/ai/generate-similar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain: question.domain,
+          difficulty: question.difficulty,
+          cefrLevel: question.cefrLevel ?? 'B1',
+          contentJson: question.contentJson,
+          count: 3,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        setError(data.error ?? 'AI 생성 중 오류가 발생했습니다.')
+      } else {
+        setGenerated(data.questions ?? [])
+        setSelected(new Set((data.questions ?? []).map((_: unknown, i: number) => i)))
+      }
+    } catch {
+      setError('네트워크 오류가 발생했습니다.')
+    } finally {
+      setLoading(false)
+    }
+  }, [question])
+
+  const toggleSelect = (i: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(i)) next.delete(i)
+      else next.add(i)
+      return next
+    })
+  }
+
+  const handleSave = async () => {
+    const toSave = generated.filter((_, i) => selected.has(i))
+    if (toSave.length === 0) { setSaveError('저장할 문제를 선택해주세요.'); return }
+    setSaving(true)
+    setSaveError('')
+    let count = 0
+    for (const q of toSave) {
+      const result = await actCreate({
+        domain: q.domain as QuestionDomainType,
+        subCategory: q.subCategory,
+        difficulty: q.difficulty,
+        cefrLevel: q.cefrLevel,
+        contentJson: q.contentJson,
+      })
+      if (!result.error) count++
+    }
+    setSaving(false)
+    setSavedCount(count)
+    if (count > 0) {
+      setTimeout(() => onSaved(), 1200)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-sm">
+        {/* 헤더 */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-[#F3EFFF] flex items-center justify-center">
+              <Sparkles size={16} className="text-[#7854F7]" />
+            </div>
+            <div>
+              <h2 className="font-bold text-gray-900">AI 유사문제 생성</h2>
+              <p className="text-xs text-gray-400">선택한 문제와 유사한 문제를 AI가 생성합니다</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={20} /></button>
+        </div>
+
+        {/* 원본 문제 요약 */}
+        <div className="px-6 py-3 bg-gray-50 border-b border-gray-200 shrink-0">
+          <p className="text-xs text-gray-500 mb-1 font-semibold uppercase tracking-wide">원본 문제</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <DomainBadge domain={question.domain} />
+            <span className="text-xs text-gray-500">CEFR: {question.cefrLevel ?? '–'}</span>
+            <span className="text-xs text-gray-500">난이도: {question.difficulty}/5</span>
+            <span className="text-xs text-gray-900 font-medium truncate max-w-xs">{question.questionText || '(본문 없음)'}</span>
+          </div>
+        </div>
+
+        {/* 본문 */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {!loading && generated.length === 0 && !error && (
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <div className="w-16 h-16 rounded-full bg-[#F3EFFF] flex items-center justify-center mb-4">
+                <Sparkles size={28} className="text-[#7854F7]" />
+              </div>
+              <p className="text-gray-700 font-medium">AI 유사문제 생성</p>
+              <p className="text-sm text-gray-400 mt-1">같은 영역·난이도의 유사한 문제 3개를 생성합니다</p>
+              <Button
+                onClick={generate}
+                className="mt-5 gap-2"
+                style={{ backgroundColor: '#7854F7', borderColor: '#7854F7' }}
+              >
+                <Sparkles size={15} />
+                유사문제 생성하기
+              </Button>
+            </div>
+          )}
+
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-10">
+              <Loader2 size={32} className="text-[#7854F7] animate-spin mb-3" />
+              <p className="text-sm text-gray-500">AI가 유사문제를 생성하고 있습니다...</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="p-4 rounded-xl bg-[#FFF0EE] border border-[#D92916]/20 text-center">
+              <p className="text-sm text-[#D92916]">{error}</p>
+              <Button variant="outline" onClick={generate} className="mt-3 text-xs">다시 시도</Button>
+            </div>
+          )}
+
+          {savedCount > 0 && (
+            <div className="p-4 rounded-xl bg-[#E6F7ED] border border-[#1FAF54]/20 text-center">
+              <p className="text-sm text-[#1FAF54] font-semibold">{savedCount}개 문제가 문제 뱅크에 저장되었습니다!</p>
+            </div>
+          )}
+
+          {generated.length > 0 && savedCount === 0 && (
+            <>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-gray-700">{generated.length}개 문제 생성됨</p>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setSelected(new Set(generated.map((_, i) => i)))} className="text-xs text-primary-700 hover:underline">전체 선택</button>
+                  <span className="text-gray-300">|</span>
+                  <button onClick={() => setSelected(new Set())} className="text-xs text-gray-400 hover:underline">선택 해제</button>
+                  <Button variant="outline" onClick={generate} className="text-xs h-8 gap-1">
+                    <Sparkles size={12} />다시 생성
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {generated.map((q, i) => {
+                  const isSelected = selected.has(i)
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => toggleSelect(i)}
+                      className={`rounded-xl border-2 p-4 cursor-pointer transition-all ${
+                        isSelected ? 'border-[#7854F7] bg-[#F3EFFF]/50' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 shrink-0">
+                          {isSelected
+                            ? <CheckSquare size={18} className="text-[#7854F7]" />
+                            : <Square size={18} className="text-gray-300" />
+                          }
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                            <DomainBadge domain={q.domain as QuestionDomainType} />
+                            {q.subCategory && <span className="text-xs text-gray-500">{q.subCategory}</span>}
+                            <span className="text-xs text-gray-400">CEFR: {q.cefrLevel}</span>
+                            <DifficultyStars value={q.difficulty} />
+                            <span className="text-xs text-gray-400">{TYPE_LABEL[q.contentJson.type]}</span>
+                          </div>
+                          <p className="text-sm text-gray-900 font-medium leading-snug">{q.contentJson.question_text}</p>
+                          {q.contentJson.options && (
+                            <div className="mt-2 space-y-1">
+                              {q.contentJson.options.map((opt, j) => (
+                                <p key={j} className={`text-xs ${q.contentJson.correct_answer === String.fromCharCode(65 + j) ? 'text-[#1FAF54] font-semibold' : 'text-gray-500'}`}>
+                                  {String.fromCharCode(65 + j)}. {opt}
+                                  {q.contentJson.correct_answer === String.fromCharCode(65 + j) && ' ✓'}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+                          {q.contentJson.correct_answer && !q.contentJson.options && (
+                            <p className="text-xs text-[#1FAF54] mt-1 font-medium">정답: {q.contentJson.correct_answer}</p>
+                          )}
+                          {q.contentJson.explanation && (
+                            <p className="text-xs text-gray-400 mt-1.5 italic">{q.contentJson.explanation}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {saveError && <p className="text-sm text-[#D92916]">{saveError}</p>}
+            </>
+          )}
+        </div>
+
+        {/* 푸터 */}
+        {generated.length > 0 && savedCount === 0 && (
+          <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 shrink-0">
+            <Button variant="outline" onClick={onClose} disabled={saving}>취소</Button>
+            <Button
+              onClick={handleSave}
+              disabled={saving || selected.size === 0}
+              style={{ backgroundColor: '#7854F7', borderColor: '#7854F7' }}
+              className="gap-2"
+            >
+              {saving ? <><Loader2 size={14} className="animate-spin" />저장 중...</> : `선택한 ${selected.size}개 문제 저장`}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -830,12 +1148,10 @@ export default function QuestionBankClient({
   const [filterCefr, setFilterCefr] = useState<string>('ALL')
   const [filterDifficulty, setFilterDifficulty] = useState<number>(0)
 
-  const [formModal, setFormModal] = useState<{ open: boolean; question: QuestionDetailRow | null }>({
-    open: false,
-    question: null,
-  })
+  const [formModal, setFormModal] = useState<{ open: boolean; question: QuestionDetailRow | null }>({ open: false, question: null })
   const [previewQuestion, setPreviewQuestion] = useState<QuestionDetailRow | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<QuestionRow | null>(null)
+  const [similarTarget, setSimilarTarget] = useState<QuestionDetailRow | null>(null)
 
   const filtered = useMemo(() => {
     return initialQuestions.filter((q) => {
@@ -845,10 +1161,7 @@ export default function QuestionBankClient({
       if (filterDifficulty > 0 && q.difficulty !== filterDifficulty) return false
       if (search) {
         const s = search.toLowerCase()
-        return (
-          q.questionText.toLowerCase().includes(s) ||
-          (q.subCategory ?? '').toLowerCase().includes(s)
-        )
+        return q.questionText.toLowerCase().includes(s) || (q.subCategory ?? '').toLowerCase().includes(s)
       }
       return true
     })
@@ -880,6 +1193,13 @@ export default function QuestionBankClient({
     if (contentJson) setFormModal({ open: true, question: { ...q, contentJson } })
   }, [loadDetail])
 
+  const openSimilar = useCallback(async (q: QuestionRow) => {
+    setLoadingDetailId(q.id)
+    const contentJson = await loadDetail(q.id)
+    setLoadingDetailId(null)
+    if (contentJson) setSimilarTarget({ ...q, contentJson })
+  }, [loadDetail])
+
   const handleSaved = useCallback(() => {
     setFormModal({ open: false, question: null })
     window.location.reload()
@@ -887,6 +1207,11 @@ export default function QuestionBankClient({
 
   const handleDeleted = useCallback(() => {
     setDeleteTarget(null)
+    window.location.reload()
+  }, [])
+
+  const handleSimilarSaved = useCallback(() => {
+    setSimilarTarget(null)
     window.location.reload()
   }, [])
 
@@ -910,6 +1235,7 @@ export default function QuestionBankClient({
           <option value="VOCABULARY">어휘</option>
           <option value="READING">읽기</option>
           <option value="WRITING">쓰기</option>
+          <option value="LISTENING">듣기</option>
         </StyledSelect>
 
         <StyledSelect value={filterType} onChange={(v) => setFilterType(v as QuestionType | 'ALL')}>
@@ -962,8 +1288,10 @@ export default function QuestionBankClient({
       ) : (
         <div className="rounded-xl border border-gray-200 overflow-hidden">
           {/* 테이블 헤더 */}
-          <div className="bg-gray-50 px-5 py-3 grid gap-4 text-xs font-semibold text-gray-500 uppercase tracking-wide"
-            style={{ gridTemplateColumns: '1fr 100px 90px 70px 70px 80px 100px' }}>
+          <div
+            className="bg-gray-50 px-5 py-3 grid gap-4 text-xs font-semibold text-gray-500 uppercase tracking-wide"
+            style={{ gridTemplateColumns: '1fr 100px 90px 70px 70px 80px 130px' }}
+          >
             <span>문제</span>
             <span>영역</span>
             <span>유형</span>
@@ -980,40 +1308,36 @@ export default function QuestionBankClient({
               const isLoadingThis = loadingDetailId === q.id
               return (
                 <div key={q.id} className="flex items-center hover:bg-gray-50/50 transition-colors">
-                  {/* 도메인 바 */}
                   <div className="w-1 self-stretch shrink-0" style={{ backgroundColor: domainColor }} />
-
-                  {/* 그리드 컨테이너 */}
                   <div
                     className="flex-1 grid gap-4 px-4 py-4 items-center"
-                    style={{ gridTemplateColumns: '1fr 100px 90px 70px 70px 80px 100px' }}
+                    style={{ gridTemplateColumns: '1fr 100px 90px 70px 70px 80px 130px' }}
                   >
                     {/* 문제 본문 */}
                     <div className="min-w-0">
-                      <p className="text-sm text-gray-900 font-medium truncate leading-snug">
-                        {q.questionText || '(본문 없음)'}
-                      </p>
+                      <div className="flex items-center gap-1.5">
+                        {q.domain === 'LISTENING' && (
+                          <Volume2 size={13} className="text-[#0EA5E9] shrink-0" />
+                        )}
+                        <p className="text-sm text-gray-900 font-medium truncate leading-snug">
+                          {q.questionText || '(본문 없음)'}
+                        </p>
+                      </div>
                       {q.subCategory && (
                         <p className="text-xs text-gray-400 mt-0.5 truncate">{q.subCategory}</p>
                       )}
                     </div>
 
                     <DomainBadge domain={q.domain} />
-
                     <span className="text-xs text-gray-500">{TYPE_LABEL[q.questionType]}</span>
-
                     <DifficultyStars value={q.difficulty} />
-
                     <span>
                       {q.cefrLevel ? (
-                        <span className="inline-flex items-center rounded-full border border-gray-200 px-2 py-0.5 text-xs text-gray-600">
-                          {q.cefrLevel}
-                        </span>
+                        <span className="inline-flex items-center rounded-full border border-gray-200 px-2 py-0.5 text-xs text-gray-600">{q.cefrLevel}</span>
                       ) : (
                         <span className="text-gray-300 text-xs">–</span>
                       )}
                     </span>
-
                     <CorrectRateBadge rate={q.statsJson?.correct_rate ?? null} />
 
                     {/* 액션 버튼 */}
@@ -1025,6 +1349,14 @@ export default function QuestionBankClient({
                         title="미리보기"
                       >
                         {isLoadingThis ? <span className="block w-[15px] h-[15px] border-2 border-gray-300 border-t-primary-700 rounded-full animate-spin" /> : <Eye size={15} />}
+                      </button>
+                      <button
+                        onClick={() => openSimilar(q)}
+                        disabled={isLoadingThis}
+                        className="p-2 rounded-lg text-gray-400 hover:text-[#7854F7] hover:bg-[#F3EFFF] transition-colors disabled:opacity-40"
+                        title="AI 유사문제 생성"
+                      >
+                        <Sparkles size={15} />
                       </button>
                       <button
                         onClick={() => openEdit(q)}
@@ -1070,6 +1402,14 @@ export default function QuestionBankClient({
           onClose={() => setDeleteTarget(null)}
           onDeleted={handleDeleted}
           actDelete={actDelete}
+        />
+      )}
+      {similarTarget && (
+        <SimilarQuestionsModal
+          question={similarTarget}
+          onClose={() => setSimilarTarget(null)}
+          onSaved={handleSimilarSaved}
+          actCreate={actCreate}
         />
       )}
     </div>

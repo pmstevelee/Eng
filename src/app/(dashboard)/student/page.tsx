@@ -426,11 +426,12 @@ const LEVEL_COLORS = [
 const DOMAIN_KEYS = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING'] as const
 type DomainKey = (typeof DOMAIN_KEYS)[number]
 
-const DOMAIN_CONFIG: Record<DomainKey, { label: string; color: string }> = {
+const DOMAIN_CONFIG: Record<string, { label: string; color: string }> = {
   GRAMMAR: { label: 'Grammar', color: '#1865F2' },
   VOCABULARY: { label: 'Vocabulary', color: '#7854F7' },
   READING: { label: 'Reading', color: '#0FBFAD' },
   WRITING: { label: 'Writing', color: '#E35C20' },
+  LISTENING: { label: 'Listening', color: '#0EA5E9' },
 }
 
 const DOMAIN_LABEL: Record<string, string> = {
@@ -438,4 +439,5 @@ const DOMAIN_LABEL: Record<string, string> = {
   VOCABULARY: 'Vocabulary',
   READING: 'Reading',
   WRITING: 'Writing',
+  LISTENING: 'Listening',
 }

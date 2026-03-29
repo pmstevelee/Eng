@@ -8,7 +8,7 @@ import {
   useTransition,
   TouchEvent,
 } from 'react'
-import { ChevronLeft, ChevronRight, Clock, Save, AlertTriangle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, Save, AlertTriangle, Volume2 } from 'lucide-react'
 import type { QuestionForTest, SessionForTest, TestForTest, InitialAnswers } from '../page'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 
@@ -19,6 +19,7 @@ const DOMAIN_COLOR: Record<string, string> = {
   VOCABULARY: '#7854F7',
   READING: '#0FBFAD',
   WRITING: '#E35C20',
+  LISTENING: '#0EA5E9',
 }
 
 const DOMAIN_LABEL: Record<string, string> = {
@@ -26,6 +27,7 @@ const DOMAIN_LABEL: Record<string, string> = {
   VOCABULARY: '어휘',
   READING: '읽기',
   WRITING: '쓰기',
+  LISTENING: '듣기',
 }
 
 const LETTERS = ['A', 'B', 'C', 'D']
@@ -449,6 +451,16 @@ function QuestionRenderer({
     return <EssayQuestion content={content} answer={answer} onAnswer={onAnswer} />
   }
 
+  if (content.audio_url) {
+    return (
+      <ListeningQuestion
+        content={content}
+        answer={answer}
+        onAnswer={onAnswer}
+      />
+    )
+  }
+
   if (content.type === 'multiple_choice' && content.passage) {
     return (
       <ReadingQuestion
@@ -682,6 +694,91 @@ function QuestionAndOptions({
           )
         })}
       </div>
+    </div>
+  )
+}
+
+// ── 리스닝 문제 ───────────────────────────────────────────────────────────────
+
+function ListeningQuestion({
+  content,
+  answer,
+  onAnswer,
+}: {
+  content: QuestionContentJson
+  answer: string
+  onAnswer: (v: string) => void
+}) {
+  const options = content.options ?? []
+
+  return (
+    <div>
+      {/* 오디오 플레이어 */}
+      <div className="mb-6 rounded-xl border border-[#0EA5E9]/30 bg-[#E0F2FE] p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-7 h-7 rounded-full bg-[#0EA5E9] flex items-center justify-center shrink-0">
+            <Volume2 size={14} className="text-white" />
+          </div>
+          <span className="text-sm font-semibold text-[#0EA5E9]">음성을 들어보세요</span>
+        </div>
+        <audio controls className="w-full" controlsList="nodownload">
+          <source src={content.audio_url} />
+          브라우저가 오디오를 지원하지 않습니다.
+        </audio>
+        <p className="text-xs text-[#0EA5E9]/70 mt-2">여러 번 들을 수 있습니다.</p>
+      </div>
+
+      {/* 문제 */}
+      <p className="mb-4 text-base leading-relaxed text-gray-900">{content.question_text}</p>
+      {content.question_text_ko && (
+        <p className="mb-4 text-sm leading-relaxed text-gray-500">{content.question_text_ko}</p>
+      )}
+
+      {/* 객관식 선택지 */}
+      {content.type === 'multiple_choice' && options.length > 0 && (
+        <div className="space-y-3">
+          {options.map((opt, i) => {
+            const letter = LETTERS[i] ?? String(i + 1)
+            const isSelected = answer === letter
+            return (
+              <button
+                key={i}
+                onClick={() => onAnswer(letter)}
+                className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-all ${
+                  isSelected
+                    ? 'border-[#0EA5E9] bg-[#E0F2FE] ring-1 ring-[#0EA5E9]'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <span
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                    isSelected ? 'bg-[#0EA5E9] text-white' : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  {letter}
+                </span>
+                <span className={`mt-0.5 text-sm leading-relaxed ${isSelected ? 'text-[#0EA5E9] font-medium' : 'text-gray-700'}`}>
+                  {opt}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {/* 단답형/빈칸 */}
+      {(content.type === 'fill_blank' || content.type === 'short_answer') && (
+        <div className="mt-4">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">답변 입력</label>
+          <input
+            type="text"
+            value={answer}
+            onChange={(e) => onAnswer(e.target.value)}
+            placeholder="답을 입력하세요"
+            className="h-11 w-full rounded-xl border border-gray-200 px-4 text-sm text-gray-900 outline-none transition-all focus:border-[#0EA5E9] focus:ring-2 focus:ring-[#0EA5E9]/20"
+          />
+        </div>
+      )}
     </div>
   )
 }
