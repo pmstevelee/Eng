@@ -18,8 +18,13 @@ interface GenerateSimilarRequest {
 }
 
 export async function POST(req: NextRequest) {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   try {
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) {
+      return NextResponse.json({ error: 'OpenAI API 키가 설정되지 않았습니다.' }, { status: 500 })
+    }
+    const openai = new OpenAI({ apiKey })
+
     const supabase = await createClient()
     const {
       data: { user },

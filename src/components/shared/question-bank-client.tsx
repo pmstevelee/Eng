@@ -925,15 +925,21 @@ function SimilarQuestionsModal({
           count: 3,
         }),
       })
-      const data = await res.json()
+      let data: { success?: boolean; questions?: GeneratedSimilarQuestion[]; error?: string } = {}
+      try {
+        data = await res.json()
+      } catch {
+        setError(`서버 오류가 발생했습니다. (HTTP ${res.status})`)
+        return
+      }
       if (!res.ok || !data.success) {
-        setError(data.error ?? 'AI 생성 중 오류가 발생했습니다.')
+        setError(data.error ?? `AI 생성 중 오류가 발생했습니다. (HTTP ${res.status})`)
       } else {
         setGenerated(data.questions ?? [])
         setSelected(new Set((data.questions ?? []).map((_: unknown, i: number) => i)))
       }
     } catch {
-      setError('네트워크 오류가 발생했습니다.')
+      setError('네트워크 연결을 확인해주세요.')
     } finally {
       setLoading(false)
     }
