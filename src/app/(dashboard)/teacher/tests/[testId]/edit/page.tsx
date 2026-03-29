@@ -5,6 +5,7 @@ import TestFormClient from '../../new/_components/test-form-client'
 import type { QuestionRow } from '@/components/shared/question-bank-client'
 import {
   updateTest,
+  updateDeployedStudents,
   saveTestDraft,
   createAndDeployTest,
   getStudentsForDeploy,
@@ -62,6 +63,7 @@ export default async function EditTestPage({
   })
 
   const boundUpdateTest = updateTest.bind(null, params.testId)
+  const boundUpdateDeployedStudents = updateDeployedStudents.bind(null, params.testId)
 
   return (
     <TestFormClient
@@ -73,6 +75,7 @@ export default async function EditTestPage({
       getAutoQuestionsAction={getAutoQuestions}
       initialData={test}
       updateTestAction={boundUpdateTest}
+      updateDeployedStudentsAction={boundUpdateDeployedStudents}
       successHref="/teacher/tests"
     />
   )

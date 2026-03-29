@@ -25,10 +25,12 @@ type DeployClass = { id: string; name: string; students: Array<{ id: string; nam
 type InitialData = {
   title: string
   type: 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE'
+  status?: 'DRAFT' | 'PUBLISHED'
   classId: string | null
   timeLimitMin: number | null
   instructions: string | null
   questionOrder: string[]
+  deployedSessions?: Array<{ studentId: string; status: string }>
 }
 
 type Props = {
@@ -47,6 +49,8 @@ type Props = {
   initialData?: InitialData
   /** 편집 모드: 수정 저장 액션 */
   updateTestAction?: (input: TestFormInput) => Promise<{ error?: string }>
+  /** 편집 모드: 배포 학생 수정 액션 */
+  updateDeployedStudentsAction?: (studentIds: string[]) => Promise<{ error?: string }>
   /** 저장/배포 성공 후 이동할 경로 (기본값: '/teacher/tests') */
   successHref?: string
 }
@@ -107,10 +111,18 @@ export default function TestFormClient({
   getAutoQuestionsAction,
   initialData,
   updateTestAction,
+  updateDeployedStudentsAction,
   successHref = '/teacher/tests',
 }: Props) {
   const router = useRouter()
   const isEditMode = !!initialData && !!updateTestAction
+
+  // 잠긴 학생 (이미 응시 중 또는 완료): 체크 해제 불가
+  const lockedStudentIds = new Set(
+    (initialData?.deployedSessions ?? [])
+      .filter((s) => s.status !== 'NOT_STARTED')
+      .map((s) => s.studentId),
+  )
 
   // ── Basic info ──────────────────────────────────────────────────────────────
   const [title, setTitle] = useState(initialData?.title ?? '')
@@ -320,11 +332,21 @@ export default function TestFormClient({
 
   // ── Open deploy modal ────────────────────────────────────────────────────────
   async function openDeployModal() {
-    const err = validate()
-    if (err) { setFormError(err); return }
+    if (!isEditMode) {
+      const err = validate()
+      if (err) { setFormError(err); return }
+    }
     setFormError('')
     setDeployError('')
-    setSelectedStudentIds([])
+
+    // 수정 모드: 기존 배포 학생 미리 선택
+    if (isEditMode) {
+      const preSelected = (initialData?.deployedSessions ?? []).map((s) => s.studentId)
+      setSelectedStudentIds(preSelected)
+    } else {
+      setSelectedStudentIds([])
+    }
+
     setDeployOpen(true)
     setDeployLoading(true)
     const result = await getStudentsForDeployAction()
@@ -334,13 +356,15 @@ export default function TestFormClient({
 
   // ── Deploy helpers ───────────────────────────────────────────────────────────
   function toggleStudent(id: string) {
+    // 잠긴 학생은 체크 해제 불가
+    if (lockedStudentIds.has(id)) return
     setSelectedStudentIds((prev) =>
       prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
     )
   }
 
   function toggleClass(students: Array<{ id: string }>) {
-    const ids = students.map((s) => s.id)
+    const ids = students.map((s) => s.id).filter((id) => !lockedStudentIds.has(id))
     const allSel = ids.every((id) => selectedStudentIds.includes(id))
     if (allSel) {
       setSelectedStudentIds((prev) => prev.filter((id) => !ids.includes(id)))
@@ -356,12 +380,25 @@ export default function TestFormClient({
     }
     setDeploying(true)
     setDeployError('')
-    const result = await createAndDeployTestAction(buildFormInput(), selectedStudentIds)
-    setDeploying(false)
-    if (result.error) {
-      setDeployError(result.error)
+
+    // 수정 모드: 배포 학생 수정 액션 사용
+    if (isEditMode && updateDeployedStudentsAction) {
+      const result = await updateDeployedStudentsAction(selectedStudentIds)
+      setDeploying(false)
+      if (result.error) {
+        setDeployError(result.error)
+      } else {
+        setDeployOpen(false)
+        router.refresh()
+      }
     } else {
-      router.push(successHref)
+      const result = await createAndDeployTestAction(buildFormInput(), selectedStudentIds)
+      setDeploying(false)
+      if (result.error) {
+        setDeployError(result.error)
+      } else {
+        router.push(successHref)
+      }
     }
   }
 
@@ -833,14 +870,26 @@ export default function TestFormClient({
           취소
         </button>
         {isEditMode ? (
-          <button
-            onClick={handleUpdate}
-            disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 bg-primary-700 hover:bg-primary-800 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
-          >
-            <Save size={15} />
-            {saving ? '저장 중...' : '수정 저장'}
-          </button>
+          <>
+            {updateDeployedStudentsAction && (
+              <button
+                onClick={openDeployModal}
+                disabled={saving}
+                className="flex items-center gap-2 px-5 py-2.5 border border-primary-300 bg-white hover:bg-primary-50 disabled:opacity-50 text-primary-700 rounded-xl text-sm font-medium transition-colors"
+              >
+                <Send size={15} />
+                배포 학생 관리
+              </button>
+            )}
+            <button
+              onClick={handleUpdate}
+              disabled={saving}
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary-700 hover:bg-primary-800 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
+            >
+              <Save size={15} />
+              {saving ? '저장 중...' : '수정 저장'}
+            </button>
+          </>
         ) : (
           <>
             <button
@@ -869,8 +918,14 @@ export default function TestFormClient({
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-gray-900">테스트 배포</h2>
-                <p className="text-sm text-gray-500 mt-0.5">배포할 학생을 선택하세요.</p>
+                <h2 className="text-lg font-bold text-gray-900">
+                  {isEditMode ? '배포 학생 관리' : '테스트 배포'}
+                </h2>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {isEditMode
+                    ? '학생을 추가하거나 미응시 학생을 제거할 수 있습니다.'
+                    : '배포할 학생을 선택하세요.'}
+                </p>
               </div>
               <button
                 onClick={() => setDeployOpen(false)}
@@ -913,23 +968,30 @@ export default function TestFormClient({
                         </label>
                       </div>
                       <div className="ml-6 grid grid-cols-2 gap-1.5">
-                        {cls.students.map((s) => (
-                          <div key={s.id} className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              id={`deploy-stu-${s.id}`}
-                              checked={selectedStudentIds.includes(s.id)}
-                              onChange={() => toggleStudent(s.id)}
-                              className="w-4 h-4 rounded accent-primary-700"
-                            />
-                            <label
-                              htmlFor={`deploy-stu-${s.id}`}
-                              className="text-sm text-gray-600 cursor-pointer truncate"
-                            >
-                              {s.name}
-                            </label>
-                          </div>
-                        ))}
+                        {cls.students.map((s) => {
+                          const isLocked = lockedStudentIds.has(s.id)
+                          return (
+                            <div key={s.id} className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                id={`deploy-stu-${s.id}`}
+                                checked={selectedStudentIds.includes(s.id)}
+                                onChange={() => toggleStudent(s.id)}
+                                disabled={isLocked}
+                                className="w-4 h-4 rounded accent-primary-700 disabled:opacity-60"
+                              />
+                              <label
+                                htmlFor={`deploy-stu-${s.id}`}
+                                className={`text-sm truncate ${isLocked ? 'text-gray-400 cursor-not-allowed' : 'text-gray-600 cursor-pointer'}`}
+                              >
+                                {s.name}
+                                {isLocked && (
+                                  <span className="ml-1 text-xs text-amber-500">(응시중)</span>
+                                )}
+                              </label>
+                            </div>
+                          )
+                        })}
                         {cls.students.length === 0 && (
                           <p className="text-xs text-gray-400 col-span-2">학생이 없습니다.</p>
                         )}
@@ -947,7 +1009,12 @@ export default function TestFormClient({
                 <span className="font-semibold text-gray-900">
                   {selectedStudentIds.length}명
                 </span>
-                에게 배포됩니다.
+                {isEditMode ? '에게 배포됩니다.' : '에게 배포됩니다.'}
+                {isEditMode && lockedStudentIds.size > 0 && (
+                  <span className="ml-2 text-xs text-amber-600">
+                    (응시중 {lockedStudentIds.size}명 고정)
+                  </span>
+                )}
               </p>
               <div className="flex gap-3">
                 <button

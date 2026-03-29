@@ -322,10 +322,12 @@ export async function getTestForEdit(testId: string): Promise<{
     id: string
     title: string
     type: 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE'
+    status: 'DRAFT' | 'PUBLISHED'
     classId: string | null
     timeLimitMin: number | null
     instructions: string | null
     questionOrder: string[]
+    deployedSessions: Array<{ studentId: string; status: string }>
   }
   error?: string
 }> {
@@ -338,12 +340,16 @@ export async function getTestForEdit(testId: string): Promise<{
       id: true,
       title: true,
       type: true,
+      status: true,
       classId: true,
       timeLimitMin: true,
       instructions: true,
       questionOrder: true,
       createdBy: true,
       academyId: true,
+      testSessions: {
+        select: { studentId: true, status: true },
+      },
     },
   })
 
@@ -356,11 +362,106 @@ export async function getTestForEdit(testId: string): Promise<{
       id: test.id,
       title: test.title,
       type: test.type as 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE',
+      status: test.status as 'DRAFT' | 'PUBLISHED',
       classId: test.classId,
       timeLimitMin: test.timeLimitMin,
       instructions: test.instructions,
       questionOrder: test.questionOrder as string[],
+      deployedSessions: test.testSessions.map((s) => ({
+        studentId: s.studentId,
+        status: s.status,
+      })),
     },
+  }
+}
+
+// 배포 학생 수정 (추가/제거)
+export async function updateDeployedStudents(
+  testId: string,
+  newStudentIds: string[],
+): Promise<{ error?: string }> {
+  const user = await getAuthedTeacher()
+  if (!user) return { error: '권한이 없습니다.' }
+
+  const test = await prisma.test.findUnique({
+    where: { id: testId },
+    select: {
+      id: true,
+      title: true,
+      createdBy: true,
+      academyId: true,
+      timeLimitMin: true,
+      status: true,
+    },
+  })
+  if (!test || test.createdBy !== user.id || test.academyId !== user.academyId) {
+    return { error: '권한이 없습니다.' }
+  }
+
+  try {
+    const existingSessions = await prisma.testSession.findMany({
+      where: { testId },
+      select: { id: true, studentId: true, status: true },
+    })
+
+    const existingStudentIds = new Set(existingSessions.map((s) => s.studentId))
+    const newStudentIdSet = new Set(newStudentIds)
+
+    // 새로 추가할 학생 (기존 세션 없는 경우만)
+    const toAddIds = newStudentIds.filter((id) => !existingStudentIds.has(id))
+
+    // NOT_STARTED 상태이고 새 목록에 없는 세션 제거
+    const toRemoveSessions = existingSessions.filter(
+      (s) => s.status === 'NOT_STARTED' && !newStudentIdSet.has(s.studentId),
+    )
+
+    const toAddStudents = await prisma.student.findMany({
+      where: { id: { in: toAddIds }, status: 'ACTIVE' },
+      select: { id: true, userId: true },
+    })
+
+    await prisma.$transaction(async (tx) => {
+      // DRAFT → PUBLISHED 전환 (학생 추가 시)
+      if (test.status === 'DRAFT' && newStudentIds.length > 0) {
+        await tx.test.update({ where: { id: testId }, data: { status: 'PUBLISHED' } })
+      }
+
+      // NOT_STARTED 세션 제거
+      if (toRemoveSessions.length > 0) {
+        await tx.testSession.deleteMany({
+          where: { id: { in: toRemoveSessions.map((s) => s.id) } },
+        })
+      }
+
+      // 새 세션 생성 + 알림 발송
+      for (const student of toAddStudents) {
+        await tx.testSession.create({
+          data: {
+            testId,
+            studentId: student.id,
+            status: 'NOT_STARTED',
+            timeLimitMin: test.timeLimitMin,
+          },
+        })
+        await tx.notification.create({
+          data: {
+            userId: student.userId,
+            academyId: user.academyId!,
+            type: 'INFO',
+            title: '새 테스트가 배포되었습니다',
+            message: `"${test.title}" 테스트에 응시해 주세요.`,
+          },
+        })
+      }
+    })
+
+    revalidateTag(`teacher-${user.id}-tests`)
+    revalidateTag(`teacher-${user.id}-dashboard`)
+    revalidatePath('/teacher/tests')
+    return {}
+  } catch (e) {
+    console.error(e)
+    return { error: '배포 학생 수정에 실패했습니다.' }
   }
 }
 
