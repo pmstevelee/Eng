@@ -278,8 +278,8 @@ export function SubscriptionClient({ currentPlan, academyName, pendingSubscripti
         </div>
 
         {/* 기능 비교 표 */}
-        <div className="border border-gray-200 rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="border border-gray-200 rounded-xl overflow-x-auto">
+          <table className="w-full text-sm min-w-[480px]">
             <thead>
               <tr className="bg-gray-50">
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">

@@ -22,9 +22,37 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
         <p className="text-sm text-gray-500 mt-1">학원 및 계정 설정을 관리합니다</p>
       </div>
 
+      {/* 모바일: 상단 탭 네비게이션 */}
+      <nav className="flex md:hidden overflow-x-auto gap-1 border-b border-gray-200 pb-0 -mb-px scrollbar-none">
+        {navItems.map((item) => {
+          const isActive = pathname.startsWith(item.href)
+          const isWithdraw = item.href === '/owner/settings/withdraw'
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`
+                flex-shrink-0 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap
+                ${
+                  isActive
+                    ? isWithdraw
+                      ? 'border-red-500 text-red-600'
+                      : 'border-[#1865F2] text-[#1865F2]'
+                    : isWithdraw
+                      ? 'border-transparent text-gray-500 hover:text-red-600 hover:border-red-300'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }
+              `}
+            >
+              {item.label}
+            </Link>
+          )
+        })}
+      </nav>
+
       <div className="flex gap-8 items-start">
-        {/* 사이드 네비게이션 */}
-        <aside className="w-44 flex-shrink-0">
+        {/* 데스크탑: 사이드 네비게이션 */}
+        <aside className="hidden md:block w-44 flex-shrink-0">
           <nav className="space-y-0.5">
             {navItems.map((item) => {
               const isActive = pathname.startsWith(item.href)
