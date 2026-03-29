@@ -997,12 +997,24 @@ function SimilarQuestionsModal({
         {/* 원본 문제 요약 */}
         <div className="px-6 py-3 bg-gray-50 border-b border-gray-200 shrink-0">
           <p className="text-xs text-gray-500 mb-1 font-semibold uppercase tracking-wide">원본 문제</p>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
             <DomainBadge domain={question.domain} />
             <span className="text-xs text-gray-500">CEFR: {question.cefrLevel ?? '–'}</span>
             <span className="text-xs text-gray-500">난이도: {question.difficulty}/5</span>
             <span className="text-xs text-gray-900 font-medium truncate max-w-xs">{question.questionText || '(본문 없음)'}</span>
           </div>
+          {question.domain === 'READING' && question.contentJson.passage && (
+            <p className="text-xs text-[#0FBFAD] flex items-center gap-1">
+              <span>📄</span>
+              <span>지문 포함 — AI가 지문 내용을 참조하여 유사한 새 지문과 문제를 생성합니다</span>
+            </p>
+          )}
+          {question.domain === 'READING' && question.contentJson.passage_image_url && (
+            <p className="text-xs text-[#7854F7] flex items-center gap-1 mt-0.5">
+              <span>🖼️</span>
+              <span>이미지 포함 — AI가 이미지를 분석하여 유사문제를 생성합니다 (GPT-4o 사용)</span>
+            </p>
+          )}
         </div>
 
         {/* 본문 */}
@@ -1085,6 +1097,15 @@ function SimilarQuestionsModal({
                             <DifficultyStars value={q.difficulty} />
                             <span className="text-xs text-gray-400">{TYPE_LABEL[q.contentJson.type]}</span>
                           </div>
+                          {/* 읽기 영역: 생성된 지문 미리보기 */}
+                          {q.domain === 'READING' && q.contentJson.passage && (
+                            <div className="mb-2 p-3 bg-[#F0FBFA] border border-[#0FBFAD]/30 rounded-lg">
+                              <p className="text-[10px] font-semibold text-[#0FBFAD] uppercase tracking-wide mb-1">생성된 지문</p>
+                              <p className="text-xs text-gray-600 leading-relaxed line-clamp-4 whitespace-pre-wrap">
+                                {q.contentJson.passage}
+                              </p>
+                            </div>
+                          )}
                           <p className="text-sm text-gray-900 font-medium leading-snug">{q.contentJson.question_text}</p>
                           {q.contentJson.options && (
                             <div className="mt-2 space-y-1">
