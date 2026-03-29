@@ -3,6 +3,7 @@
 import { useState, useTransition, useEffect } from 'react'
 import { X, Pencil, Eye, EyeOff } from 'lucide-react'
 import { updateStudentProfile } from '../actions'
+import { GRADE_OPTIONS } from './grade-options'
 
 type StudentToEdit = {
   id: string
@@ -116,15 +117,16 @@ export default function EditStudentDialog({ student, onClose }: Props) {
           {/* 학년 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">학년</label>
-            <input
-              type="number"
+            <select
               value={grade}
               onChange={(e) => setGrade(e.target.value)}
-              min={1}
-              max={12}
-              placeholder="미입력"
-              className="w-full h-11 px-3 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-700"
-            />
+              className="w-full h-11 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-700"
+            >
+              <option value="">미입력</option>
+              {GRADE_OPTIONS.map((g) => (
+                <option key={g.value} value={g.value}>{g.label}</option>
+              ))}
+            </select>
           </div>
 
           {/* 새 비밀번호 */}

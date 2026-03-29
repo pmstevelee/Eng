@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { X, Eye, EyeOff, RefreshCw, UserPlus } from 'lucide-react'
 import { createStudent } from '../actions'
+import { GRADE_OPTIONS } from './grade-options'
 
 type ClassOption = { id: string; name: string }
 
@@ -21,6 +22,7 @@ export default function AddStudentDialog({ open, onClose, classes }: Props) {
   const [isPending, startTransition] = useTransition()
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const today = new Date().toISOString().slice(0, 10)
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -28,13 +30,14 @@ export default function AddStudentDialog({ open, onClose, classes }: Props) {
     classId: '',
     grade: '',
     currentLevel: '1',
+    joinedAt: today,
   })
 
   if (!open) return null
 
   const handleClose = () => {
     setError('')
-    setForm({ name: '', email: '', password: '', classId: '', grade: '', currentLevel: '1' })
+    setForm({ name: '', email: '', password: '', classId: '', grade: '', currentLevel: '1', joinedAt: today })
     onClose()
   }
 
@@ -49,6 +52,7 @@ export default function AddStudentDialog({ open, onClose, classes }: Props) {
         classId: form.classId || undefined,
         grade: form.grade ? parseInt(form.grade) : undefined,
         currentLevel: parseInt(form.currentLevel),
+        joinedAt: form.joinedAt || undefined,
       })
       if (result.error) {
         setError(result.error)
@@ -166,15 +170,16 @@ export default function AddStudentDialog({ open, onClose, classes }: Props) {
             </div>
             <div className="w-28">
               <label className="block text-sm font-medium text-gray-700 mb-1.5">학년</label>
-              <input
-                type="number"
+              <select
                 value={form.grade}
                 onChange={(e) => setForm({ ...form, grade: e.target.value })}
-                min={1}
-                max={12}
-                placeholder="–"
-                className="w-full h-11 px-3 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-700"
-              />
+                className="w-full h-11 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-700"
+              >
+                <option value="">–</option>
+                {GRADE_OPTIONS.map((g) => (
+                  <option key={g.value} value={g.value}>{g.label}</option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -190,6 +195,17 @@ export default function AddStudentDialog({ open, onClose, classes }: Props) {
                 <option key={l} value={l}>Lv.{l}</option>
               ))}
             </select>
+          </div>
+
+          {/* 가입일 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">가입일</label>
+            <input
+              type="date"
+              value={form.joinedAt}
+              onChange={(e) => setForm({ ...form, joinedAt: e.target.value })}
+              className="w-full h-11 px-3 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent"
+            />
           </div>
 
           {/* 에러 */}
