@@ -70,7 +70,7 @@ export function ScoreHistogramChart({ data }: { data: ScoreHistogramItem[] }) {
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="range" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} allowDecimals={false} />
-        <Tooltip contentStyle={tooltipStyle} formatter={(v) => [String(v ?? 0) + "명", "학생 수"]} />
+        <Tooltip contentStyle={tooltipStyle} cursor={false} formatter={(v) => [String(v ?? 0) + "명", "학생 수"]} />
         <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={64}>
           {data.map((entry, i) => (
             <Cell key={i} fill={fillColor(entry.range)} />
@@ -107,7 +107,7 @@ export function LevelPieChart({ data }: { data: LevelDistItem[] }) {
               <Cell key={i} fill={LEVEL_COLORS[i % LEVEL_COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip contentStyle={tooltipStyle} formatter={(v) => [String(v ?? 0) + "명", "학생 수"]} />
+          <Tooltip contentStyle={tooltipStyle} cursor={false} formatter={(v) => [String(v ?? 0) + "명", "학생 수"]} />
         </PieChart>
       </ResponsiveContainer>
       <div className="flex flex-1 flex-col gap-2">
@@ -137,7 +137,7 @@ export function LevelAvgBarChart({ data }: { data: LevelAvgItem[] }) {
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="level" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
-        <Tooltip contentStyle={tooltipStyle} formatter={(v) => [String(v ?? 0) + "점", "평균 점수"]} />
+        <Tooltip contentStyle={tooltipStyle} cursor={false} formatter={(v) => [String(v ?? 0) + "점", "평균 점수"]} />
         <Bar dataKey="avgScore" name="평균 점수" fill="#7854F7" radius={[4, 4, 0, 0]} maxBarSize={48} />
       </BarChart>
     </ResponsiveContainer>
@@ -164,7 +164,7 @@ export function DomainRadarChart({ data }: { data: DomainAvgItem[] }) {
           strokeWidth={2}
           dot={{ r: 4, fill: '#7854F7', strokeWidth: 0 }}
         />
-        <Tooltip contentStyle={tooltipStyle} formatter={(v) => [String(v ?? 0) + "점", "평균"]} />
+        <Tooltip contentStyle={tooltipStyle} cursor={false} formatter={(v) => [String(v ?? 0) + "점", "평균"]} />
       </RadarChart>
     </ResponsiveContainer>
   )
@@ -215,7 +215,7 @@ export function MonthlyTrendLineChart({ data }: { data: MonthlyTrendItem[] }) {
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
-        <Tooltip contentStyle={tooltipStyle} formatter={(v) => [String(v ?? 0) + "점", "평균 점수"]} />
+        <Tooltip contentStyle={tooltipStyle} cursor={false} formatter={(v) => [String(v ?? 0) + "점", "평균 점수"]} />
         <Line
           type="monotone"
           dataKey="avg"
@@ -252,7 +252,7 @@ export function ClassMultiLineChart({
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
-        <Tooltip contentStyle={tooltipStyle} formatter={(v) => [String(v ?? 0) + '점', '']} />
+        <Tooltip contentStyle={tooltipStyle} cursor={false} formatter={(v) => [String(v ?? 0) + '점', '']} />
         <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px' }} />
         {classNames.map((name, i) => (
           <Line
@@ -289,7 +289,7 @@ export function ClassDomainGroupedBarChart({ data }: { data: ClassDomainItem[] }
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
-        <Tooltip contentStyle={tooltipStyle} formatter={(v) => [String(v ?? 0) + '점', '']} />
+        <Tooltip contentStyle={tooltipStyle} cursor={false} formatter={(v) => [String(v ?? 0) + '점', '']} />
         <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px' }} />
         <Bar dataKey="Grammar" fill="#1865F2" radius={[2, 2, 0, 0]} maxBarSize={18} />
         <Bar dataKey="Vocabulary" fill="#7854F7" radius={[2, 2, 0, 0]} maxBarSize={18} />
@@ -313,7 +313,7 @@ export function WeekdayAttendanceBarChart({ data }: { data: WeekdayAvgItem[] }) 
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
-        <Tooltip contentStyle={tooltipStyle} formatter={(v) => [String(v ?? 0) + "%", "평균 출석률"]} />
+        <Tooltip contentStyle={tooltipStyle} cursor={false} formatter={(v) => [String(v ?? 0) + "%", "평균 출석률"]} />
         <Bar dataKey="avg" name="평균 출석률" fill="#1FAF54" radius={[4, 4, 0, 0]} maxBarSize={48} />
       </BarChart>
     </ResponsiveContainer>
@@ -333,7 +333,7 @@ export function MonthlyEnrollmentChart({ data }: { data: MonthlyEnrollmentItem[]
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} allowDecimals={false} />
-        <Tooltip contentStyle={tooltipStyle} />
+        <Tooltip contentStyle={tooltipStyle} cursor={false} />
         <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px' }} />
         <Bar dataKey="newStudents" name="신규 등록" fill="#1FAF54" radius={[4, 4, 0, 0]} maxBarSize={40} />
         <Bar dataKey="withdrawn" name="퇴원/휴원" fill="#D92916" radius={[4, 4, 0, 0]} maxBarSize={40} />
@@ -355,7 +355,7 @@ export function TeacherActivityBarChart({ data }: { data: TeacherActivityItem[] 
         <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" vertical={false} />
         <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fontSize: 12, fill: '#6B6F7A' }} axisLine={false} tickLine={false} allowDecimals={false} />
-        <Tooltip contentStyle={tooltipStyle} />
+        <Tooltip contentStyle={tooltipStyle} cursor={false} />
         <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px' }} />
         <Bar dataKey="tests" name="테스트 출제" fill="#1865F2" radius={[2, 2, 0, 0]} maxBarSize={28} />
         <Bar dataKey="comments" name="코멘트 작성" fill="#7854F7" radius={[2, 2, 0, 0]} maxBarSize={28} />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useCallback } from 'react'
 import { Download, TrendingUp, TrendingDown, Minus, AlertTriangle, Star } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -735,15 +735,17 @@ interface AnalyticsClientProps {
 
 export function AnalyticsClient({ data, period, activeTab }: AnalyticsClientProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   const updateParam = useCallback(
     (key: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString())
-      params.set(key, value)
+      const newPeriod = key === 'period' ? value : period
+      const newTab = key === 'tab' ? value : activeTab
+      const params = new URLSearchParams()
+      params.set('period', newPeriod)
+      params.set('tab', newTab)
       router.push(`/owner/analytics?${params.toString()}`)
     },
-    [router, searchParams],
+    [router, period, activeTab],
   )
 
   const handlePrint = () => window.print()
