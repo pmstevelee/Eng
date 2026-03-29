@@ -129,6 +129,7 @@ export async function createStudent(data: {
   classId?: string
   grade?: number
   currentLevel?: number
+  joinedAt?: string
 }): Promise<{ error?: string; studentId?: string }> {
   const owner = await getOwner()
   if (!owner) return { error: '권한이 없습니다.' }
@@ -182,6 +183,7 @@ export async function createStudent(data: {
         grade: data.grade ?? null,
         currentLevel: data.currentLevel ?? 1,
         status: 'ACTIVE',
+        ...(data.joinedAt ? { createdAt: new Date(data.joinedAt) } : {}),
       },
     })
 

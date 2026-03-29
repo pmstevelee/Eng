@@ -28,13 +28,14 @@ export default function AddStudentDialog({ open, onClose, classes }: Props) {
     classId: '',
     grade: '',
     currentLevel: '1',
+    joinedAt: new Date().toISOString().slice(0, 10),
   })
 
   if (!open) return null
 
   const handleClose = () => {
     setError('')
-    setForm({ name: '', email: '', password: '', classId: '', grade: '', currentLevel: '1' })
+    setForm({ name: '', email: '', password: '', classId: '', grade: '', currentLevel: '1', joinedAt: new Date().toISOString().slice(0, 10) })
     onClose()
   }
 
@@ -49,6 +50,7 @@ export default function AddStudentDialog({ open, onClose, classes }: Props) {
         classId: form.classId || undefined,
         grade: form.grade ? parseInt(form.grade) : undefined,
         currentLevel: parseInt(form.currentLevel),
+        joinedAt: form.joinedAt || undefined,
       })
       if (result.error) {
         setError(result.error)
@@ -176,6 +178,17 @@ export default function AddStudentDialog({ open, onClose, classes }: Props) {
                 className="w-full h-11 px-3 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-700"
               />
             </div>
+          </div>
+
+          {/* 가입일 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">가입일</label>
+            <input
+              type="date"
+              value={form.joinedAt}
+              onChange={(e) => setForm({ ...form, joinedAt: e.target.value })}
+              className="w-full h-11 px-3 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent"
+            />
           </div>
 
           {/* 레벨 */}

@@ -84,7 +84,7 @@ const getDynamicStudentsData = (
         prisma.student.count({ where }),
         prisma.student.findMany({
           where,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { user: { name: 'asc' } },
           skip: (page - 1) * PAGE_SIZE,
           take: PAGE_SIZE,
           select: {
