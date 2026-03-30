@@ -378,6 +378,7 @@ export default async function TeacherDashboard() {
 
         {/* 할일 체크리스트 */}
         <TeacherTodo
+          userId={user.id}
           pendingGradingCount={stats.pendingGradingCount}
           publishedTestCount={stats.publishedTestCount}
           lowScoreStudentCount={lowScoreStudentCount}
