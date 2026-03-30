@@ -30,7 +30,7 @@ const getCachedDbUser = (userId: string) =>
  * React cache()로 감싸서 같은 요청(렌더링 트리) 안에서
  * 레이아웃 → 페이지로 이어지는 중복 호출을 방지합니다.
  *
- * getSession(): 쿠키에서 JWT 로컬 검증 (~1ms, HTTP 왕복 없음)
+ * getUser(): Supabase Auth 서버에 요청하여 토큰 진위 검증 (보안 강화)
  * getCachedDbUser(): 30초 in-memory 캐시 → 두 번째 요청부터 DB 왕복 없이 즉시 반환
  *
  * 결과: 첫 로드 ~50ms(DB), 이후 페이지 이동 ~2ms(캐시 히트)
@@ -38,12 +38,12 @@ const getCachedDbUser = (userId: string) =>
 export const getCurrentUser = cache(async () => {
   const supabase = await createClient()
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user: authUser },
+  } = await supabase.auth.getUser()
 
-  if (!session?.user) return null
+  if (!authUser) return null
 
-  const user = await getCachedDbUser(session.user.id)
+  const user = await getCachedDbUser(authUser.id)
 
-  return user ? { ...user, authId: session.user.id } : null
+  return user ? { ...user, authId: authUser.id } : null
 })
