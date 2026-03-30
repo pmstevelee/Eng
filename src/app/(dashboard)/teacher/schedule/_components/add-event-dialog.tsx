@@ -77,12 +77,14 @@ export function AddEventDialog({ open, onClose, onAdd, defaultDate }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/40 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="w-full sm:max-w-md rounded-t-2xl sm:rounded-xl border border-gray-200 bg-white shadow-sm max-h-[92vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+      {/* 모달 박스: flex-col 구조로 헤더 고정 + 폼만 스크롤 */}
+      <div className="flex flex-col w-full sm:max-w-md rounded-t-2xl sm:rounded-xl border border-gray-200 bg-white shadow-sm" style={{ maxHeight: '88vh' }}>
+
+        {/* 헤더 (항상 고정) */}
+        <div className="flex-shrink-0 flex items-center justify-between border-b border-gray-100 px-5 py-4">
           <h2 className="text-base font-semibold text-gray-900">일정 추가</h2>
           <button
             onClick={onClose}
@@ -92,45 +94,45 @@ export function AddEventDialog({ open, onClose, onAdd, defaultDate }: Props) {
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 px-5 py-4">
-          {/* 제목 */}
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-gray-700">
-              제목 <span className="text-accent-red">*</span>
-            </Label>
-            <Input
-              placeholder="일정 제목을 입력하세요"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="h-11"
-              required
-            />
-          </div>
-
-          {/* 유형 */}
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-gray-700">유형</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {TYPES.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setType(t)}
-                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    type === t
-                      ? 'border-primary-700 bg-primary-100 text-primary-700'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {EVENT_TYPE_LABELS[t]}
-                </button>
-              ))}
+        {/* 폼 영역 (스크롤 가능) */}
+        <div className="flex-1 overflow-y-auto">
+          <form onSubmit={handleSubmit} className="space-y-4 px-5 py-4 pb-6">
+            {/* 제목 */}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-gray-700">
+                제목 <span className="text-accent-red">*</span>
+              </Label>
+              <Input
+                placeholder="일정 제목을 입력하세요"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="h-11"
+                required
+              />
             </div>
-          </div>
 
-          {/* 날짜 + 반복 */}
-          <div className="grid grid-cols-2 gap-3">
+            {/* 유형 */}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-gray-700">유형</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {TYPES.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setType(t)}
+                    className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${
+                      type === t
+                        ? 'border-primary-700 bg-primary-100 text-primary-700'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {EVENT_TYPE_LABELS[t]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 날짜 */}
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-gray-700">
                 날짜 <span className="text-accent-red">*</span>
@@ -139,10 +141,12 @@ export function AddEventDialog({ open, onClose, onAdd, defaultDate }: Props) {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="h-11"
+                className="h-11 w-full"
                 required
               />
             </div>
+
+            {/* 반복 */}
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-gray-700">반복</Label>
               <select
@@ -155,70 +159,71 @@ export function AddEventDialog({ open, onClose, onAdd, defaultDate }: Props) {
                 ))}
               </select>
             </div>
-          </div>
 
-          {/* 시간 */}
-          <div className="grid grid-cols-2 gap-3">
+            {/* 시간 */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-gray-700">시작 시간</Label>
+                <Input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-gray-700">종료 시간</Label>
+                <Input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+            </div>
+
+            {/* 메모 */}
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-gray-700">시작 시간</Label>
-              <Input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="h-11"
+              <Label className="text-sm font-medium text-gray-700">메모</Label>
+              <textarea
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                placeholder="추가 메모 (선택)"
+                rows={2}
+                className="w-full resize-none rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-700"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-gray-700">종료 시간</Label>
-              <Input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="h-11"
-              />
+
+            {/* 반복 안내 */}
+            {repeat !== 'NONE' && (
+              <p className="rounded-lg bg-primary-100 px-3 py-2 text-xs text-primary-700">
+                {repeat === 'WEEKLY'
+                  ? `매주 ${new Date(date + 'T00:00:00').toLocaleDateString('ko-KR', { weekday: 'long' })}에 반복됩니다`
+                  : `매월 ${new Date(date + 'T00:00:00').getDate()}일에 반복됩니다`}
+              </p>
+            )}
+
+            {/* Buttons */}
+            <div className="flex gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 h-11"
+                onClick={onClose}
+              >
+                취소
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 h-11 bg-primary-700 text-white hover:bg-primary-800"
+                disabled={!title.trim()}
+              >
+                추가
+              </Button>
             </div>
-          </div>
+          </form>
+        </div>
 
-          {/* 메모 */}
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-gray-700">메모</Label>
-            <textarea
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
-              placeholder="추가 메모 (선택)"
-              rows={2}
-              className="w-full resize-none rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-700"
-            />
-          </div>
-
-          {/* 반복 안내 */}
-          {repeat !== 'NONE' && (
-            <p className="rounded-lg bg-primary-100 px-3 py-2 text-xs text-primary-700">
-              {repeat === 'WEEKLY'
-                ? `매주 ${new Date(date + 'T00:00:00').toLocaleDateString('ko-KR', { weekday: 'long' })}에 반복됩니다`
-                : `매월 ${new Date(date + 'T00:00:00').getDate()}일에 반복됩니다`}
-            </p>
-          )}
-
-          {/* Buttons */}
-          <div className="flex gap-2 pt-1">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1 h-11"
-              onClick={onClose}
-            >
-              취소
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1 h-11 bg-primary-700 text-white hover:bg-primary-800"
-              disabled={!title.trim()}
-            >
-              추가
-            </Button>
-          </div>
-        </form>
       </div>
     </div>
   )
