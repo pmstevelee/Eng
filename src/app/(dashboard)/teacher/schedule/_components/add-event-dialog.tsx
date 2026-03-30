@@ -77,10 +77,10 @@ export function AddEventDialog({ open, onClose, onAdd, defaultDate }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/40 overflow-y-auto"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="w-full sm:max-w-md rounded-t-2xl sm:rounded-xl border border-gray-200 bg-white shadow-sm max-h-[92vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
           <h2 className="text-base font-semibold text-gray-900">일정 추가</h2>
@@ -111,7 +111,7 @@ export function AddEventDialog({ open, onClose, onAdd, defaultDate }: Props) {
           {/* 유형 */}
           <div className="space-y-1.5">
             <Label className="text-sm font-medium text-gray-700">유형</Label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {TYPES.map((t) => (
                 <button
                   key={t}

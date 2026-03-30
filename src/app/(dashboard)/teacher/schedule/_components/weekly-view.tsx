@@ -116,10 +116,14 @@ export function WeeklyView({
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      {/* ── 가로 스크롤 래퍼 (모바일 대응) ── */}
+      <div className="overflow-x-auto">
+        <div style={{ minWidth: '480px' }}>
+
       {/* ── 요일 헤더 ── */}
       <div className="flex border-b border-gray-200 bg-gray-50">
         {/* 시간 열 공백 */}
-        <div className="w-14 shrink-0 border-r border-gray-200" />
+        <div className="w-12 shrink-0 border-r border-gray-200" />
         {weekDates.map((date, i) => {
           const dateStr = formatDateStr(date)
           const isToday = dateStr === todayStr
@@ -172,7 +176,7 @@ export function WeeklyView({
       <div className="overflow-y-auto" style={{ maxHeight: '580px' }}>
         <div className="flex" style={{ height: `${TOTAL_HOURS * HOUR_HEIGHT}px` }}>
           {/* 시간 레이블 열 */}
-          <div className="w-14 shrink-0 border-r border-gray-200 relative">
+          <div className="w-12 shrink-0 border-r border-gray-200 relative">
             {hours.map((h) => (
               <div
                 key={h}
@@ -199,6 +203,7 @@ export function WeeklyView({
                 className={`flex-1 relative border-r border-gray-200 last:border-r-0 ${
                   isToday ? 'bg-primary-50/40' : ''
                 }`}
+                style={{ minWidth: '56px' }}
               >
                 {/* 시간 구분선 */}
                 {hours.map((h) => (
@@ -335,6 +340,9 @@ export function WeeklyView({
           })}
         </div>
       </div>
+
+        </div>{/* minWidth div */}
+      </div>{/* overflow-x-auto */}
 
       {/* ── 범례 ── */}
       {classes.length > 0 && (
