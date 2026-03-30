@@ -35,6 +35,12 @@ export type GradeResult = {
   explanation: string | null
 }
 
+export type PracticeResultItem = {
+  questionId: string
+  domain: string
+  isCorrect: boolean
+}
+
 export type WrongAnswerItem = {
   questionId: string
   domain: string
@@ -275,6 +281,33 @@ export async function getWrongAnswersForReview() {
   }
 
   return { items, total: items.length }
+}
+
+// ── 연습 세션 저장 ────────────────────────────────────────────────────────────
+
+export async function savePracticeSession(params: {
+  mode: string
+  domain?: string
+  results: PracticeResultItem[]
+}): Promise<void> {
+  const studentId = await requireStudentId()
+  const { mode, domain, results } = params
+  if (results.length === 0) return
+
+  const correctCount = results.filter((r) => r.isCorrect).length
+  const score = Math.round((correctCount / results.length) * 100)
+
+  await prisma.practiceLog.create({
+    data: {
+      studentId,
+      mode,
+      domain: domain as Parameters<typeof prisma.practiceLog.create>[0]['data']['domain'],
+      totalCount: results.length,
+      correctCount,
+      score,
+      resultsJson: results,
+    },
+  })
 }
 
 // ── 답변 채점 (클라이언트에서 호출) ──────────────────────────────────────────

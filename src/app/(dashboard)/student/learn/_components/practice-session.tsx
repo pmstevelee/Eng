@@ -36,12 +36,13 @@ type Props = {
   questions: PracticeQuestion[]
   onGrade: (questionId: string, answer: string) => Promise<GradeResult>
   onLoadMore?: (excludeIds: string[]) => Promise<PracticeQuestion[]>
+  onComplete?: (results: PracticeResult[]) => void
   headerSlot?: React.ReactNode
 }
 
 // ── 메인 컴포넌트 ──────────────────────────────────────────────────────────────
 
-export function PracticeSession({ questions: initialQuestions, onGrade, onLoadMore, headerSlot }: Props) {
+export function PracticeSession({ questions: initialQuestions, onGrade, onLoadMore, onComplete, headerSlot }: Props) {
   const [questions, setQuestions] = useState(initialQuestions)
   const [currentIdx, setCurrentIdx] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState('')
@@ -75,6 +76,7 @@ export function PracticeSession({ questions: initialQuestions, onGrade, onLoadMo
       setReadingTab('passage')
     } else {
       setPhase('complete')
+      onComplete?.(results)
     }
   }
 

@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { PracticeSession } from '../../../_components/practice-session'
-import { gradeAnswer, getDomainQuestions } from '../../../actions'
-import type { PracticeQuestion } from '../../../actions'
+import { gradeAnswer, getDomainQuestions, savePracticeSession } from '../../../actions'
+import type { PracticeQuestion, PracticeResultItem } from '../../../actions'
 
 const DIFFICULTY_LABELS = [
   { value: 1, label: '쉬움' },
@@ -35,6 +35,15 @@ export function DomainClient({ domain, domainColor, initialQuestions }: Props) {
 
   async function handleLoadMore(excludeIds: string[]): Promise<PracticeQuestion[]> {
     return getDomainQuestions(domain, difficulty, excludeIds)
+  }
+
+  function handleComplete(results: Array<{ questionId: string; domain: string; isCorrect: boolean }>) {
+    const items: PracticeResultItem[] = results.map((r) => ({
+      questionId: r.questionId,
+      domain: r.domain,
+      isCorrect: r.isCorrect,
+    }))
+    savePracticeSession({ mode: 'domain', domain: domain.toUpperCase(), results: items }).catch(() => {})
   }
 
   const header = (
@@ -73,6 +82,7 @@ export function DomainClient({ domain, domainColor, initialQuestions }: Props) {
       questions={questions}
       onGrade={gradeAnswer}
       onLoadMore={handleLoadMore}
+      onComplete={handleComplete}
       headerSlot={header}
     />
   )

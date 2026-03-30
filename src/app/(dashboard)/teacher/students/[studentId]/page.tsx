@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, BookOpen } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { StudentDetailClient } from './student-detail-client'
@@ -124,16 +124,25 @@ export default async function StudentDetailPage({
           <ArrowLeft size={15} />
           학생 목록으로
         </Link>
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-[#1865F2]/10 flex items-center justify-center text-[#1865F2] font-bold text-lg">
-            {student.user.name.charAt(0)}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-[#1865F2]/10 flex items-center justify-center text-[#1865F2] font-bold text-lg">
+              {student.user.name.charAt(0)}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{student.user.name}</h1>
+              <p className="text-sm text-gray-500">
+                {student.class?.name ?? '반 미배정'} · Level {student.currentLevel} · {student.user.email}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{student.user.name}</h1>
-            <p className="text-sm text-gray-500">
-              {student.class?.name ?? '반 미배정'} · Level {student.currentLevel} · {student.user.email}
-            </p>
-          </div>
+          <Link
+            href={`/teacher/students/${student.id}/practice-logs`}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors shrink-0"
+          >
+            <BookOpen size={15} />
+            연습 기록
+          </Link>
         </div>
       </div>
 

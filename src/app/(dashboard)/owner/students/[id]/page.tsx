@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { unstable_cache } from 'next/cache'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, BookOpen } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import StudentDetailClient from './_components/student-detail-client'
@@ -136,14 +136,23 @@ export default async function StudentDetailPage({
 
   return (
     <div className="space-y-6">
-      {/* 뒤로 가기 */}
-      <Link
-        href="/owner/students"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-      >
-        <ChevronLeft size={16} />
-        학생 목록
-      </Link>
+      {/* 뒤로 가기 + 연습 기록 */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/owner/students"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          <ChevronLeft size={16} />
+          학생 목록
+        </Link>
+        <Link
+          href={`/owner/students/${studentId}/practice-logs`}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          <BookOpen size={15} />
+          연습 기록
+        </Link>
+      </div>
 
       <StudentDetailClient student={studentData} classes={classData} />
     </div>

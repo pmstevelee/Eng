@@ -216,6 +216,7 @@ model Student {
   enrollments      Enrollment[]
   streak           StudentStreak?
   dailyMissions    DailyMission[]
+  practiceLogs     PracticeLog[]
 
   @@index([classId])
   @@index([status])
@@ -573,6 +574,25 @@ model Subscription {
   academy Academy @relation(fields: [academyId], references: [id])
 
   @@map("subscriptions")
+}
+
+/// 20. 학습공간 연습 로그
+model PracticeLog {
+  id           String          @id @default(uuid())
+  studentId    String          @map("student_id")
+  mode         String          // "adaptive" | "domain" | "review"
+  domain       QuestionDomain?
+  totalCount   Int             @map("total_count")
+  correctCount Int             @map("correct_count")
+  score        Int
+  resultsJson  Json            @map("results_json")
+  createdAt    DateTime        @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@index([studentId])
+  @@index([createdAt])
+  @@map("practice_logs")
 }
 
 /// 18. 요금제 정의
