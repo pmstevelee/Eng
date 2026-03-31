@@ -73,6 +73,8 @@ export function TestTakingClient({
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   // 제출 다이얼로그
   const [showSubmitDialog, setShowSubmitDialog] = useState(false)
+  // 채점 중 오버레이 (제출 확인 후 표시)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   // 타이머 (남은 초)
   const [remainingSec, setRemainingSec] = useState<number | null>(null)
   // 읽기 문제 탭 상태
@@ -102,6 +104,7 @@ export function TestTakingClient({
       questionId,
       answer,
     }))
+    setIsSubmitting(true)
     startTransition(async () => {
       await onSubmit(session.id, allAnswers)
     })
@@ -240,6 +243,7 @@ export function TestTakingClient({
   function handleConfirmSubmit() {
     if (isPending) return
     setShowSubmitDialog(false)
+    setIsSubmitting(true)
     // Flush pending saves first, then submit
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     const allAnswers = Object.entries(answers).map(([questionId, answer]) => ({
@@ -405,6 +409,9 @@ export function TestTakingClient({
           onCancel={() => setShowSubmitDialog(false)}
         />
       )}
+
+      {/* ── 채점 중 오버레이 ── */}
+      {isSubmitting && <GradingOverlay />}
     </div>
   )
 }
@@ -830,6 +837,31 @@ function EssayQuestion({
         >
           {charCount.toLocaleString()}{wordLimit ? ` / ${wordLimit.toLocaleString()}자` : '자'}
           {isOverLimit && <span className="ml-1 font-medium">최대 글자수 초과</span>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── 채점 중 오버레이 ──────────────────────────────────────────────────────────
+
+function GradingOverlay() {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/95">
+      <div className="flex flex-col items-center gap-6">
+        {/* 스피너 */}
+        <div className="relative h-16 w-16">
+          <div className="absolute inset-0 rounded-full border-4 border-gray-100" />
+          <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-[#1865F2]" />
+        </div>
+        {/* 텍스트 */}
+        <div className="text-center">
+          <p className="text-lg font-bold text-gray-900">채점 중...</p>
+          <p className="mt-1 text-sm text-gray-500">잠시만 기다려 주세요.</p>
+        </div>
+        {/* 진행 애니메이션 바 */}
+        <div className="h-1.5 w-48 overflow-hidden rounded-full bg-gray-100">
+          <div className="h-full w-1/2 animate-progress rounded-full bg-[#1865F2]" />
         </div>
       </div>
     </div>

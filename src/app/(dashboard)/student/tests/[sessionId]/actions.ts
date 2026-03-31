@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
+import { recordActivityAndCheckBadges } from '@/app/(dashboard)/student/_actions/gamification'
 
 async function getAuthedStudent() {
   const supabase = await createClient()
@@ -75,27 +76,32 @@ export async function saveResponses(
   if (!session || session.status !== 'IN_PROGRESS') return { error: '유효하지 않은 세션입니다.' }
 
   try {
-    // PgBouncer 호환: 인터랙티브 트랜잭션 대신 순차 쿼리
-    for (const r of responses) {
-      const existing = await prisma.questionResponse.findFirst({
-        where: { sessionId, questionId: r.questionId },
-        select: { id: true },
-      })
-      if (existing) {
-        await prisma.questionResponse.update({
-          where: { id: existing.id },
-          data: { answer: r.answer },
-        })
-      } else {
-        await prisma.questionResponse.create({
+    // 기존 응답 일괄 조회 (N번 findFirst → 1번 findMany)
+    const existingResponses = await prisma.questionResponse.findMany({
+      where: { sessionId, questionId: { in: responses.map((r) => r.questionId) } },
+      select: { id: true, questionId: true },
+    })
+    const existingMap = new Map(existingResponses.map((r) => [r.questionId, r.id]))
+
+    // 병렬 저장 + 세션 업데이트 동시 실행
+    await Promise.all([
+      ...responses.map((r) => {
+        const existingId = existingMap.get(r.questionId)
+        if (existingId) {
+          return prisma.questionResponse.update({
+            where: { id: existingId },
+            data: { answer: r.answer },
+          })
+        }
+        return prisma.questionResponse.create({
           data: { sessionId, questionId: r.questionId, answer: r.answer },
         })
-      }
-    }
-    await prisma.testSession.update({
-      where: { id: sessionId },
-      data: { lastSavedAt: new Date(), currentQuestionIdx },
-    })
+      }),
+      prisma.testSession.update({
+        where: { id: sessionId },
+        data: { lastSavedAt: new Date(), currentQuestionIdx },
+      }),
+    ])
     return {}
   } catch {
     return { error: '저장에 실패했습니다.' }
@@ -148,18 +154,15 @@ export async function submitTest(
   let hasEssay = false
 
   try {
-    // PgBouncer 호환: 인터랙티브 트랜잭션 대신 순차 쿼리
-    // 1단계: 응답 저장 + 채점 계산
-    for (const q of questions) {
+    // 1단계: 채점 계산 (동기, DB 없음)
+    const questionGrades = questions.map((q) => {
       const content = q.contentJson as QuestionContentJson
       const studentAnswer = answerMap.get(q.id) ?? ''
       const domain = q.domain as DomainKey
-
       let isCorrect: boolean | null = null
 
       if (content.type === 'essay') {
         hasEssay = true
-        isCorrect = null
       } else if (
         (content.type === 'multiple_choice' ||
           content.type === 'fill_blank' ||
@@ -174,23 +177,17 @@ export async function submitTest(
         }
       }
 
-      const existing = await prisma.questionResponse.findFirst({
-        where: { sessionId, questionId: q.id },
-        select: { id: true },
-      })
-      if (existing) {
-        await prisma.questionResponse.update({
-          where: { id: existing.id },
-          data: { answer: studentAnswer || null, isCorrect },
-        })
-      } else if (studentAnswer) {
-        await prisma.questionResponse.create({
-          data: { sessionId, questionId: q.id, answer: studentAnswer, isCorrect },
-        })
-      }
-    }
+      return { q, studentAnswer, isCorrect }
+    })
 
-    // 2단계: 도메인별 점수 계산
+    // 2단계: 기존 응답 일괄 조회 (N번 findFirst → 1번 findMany)
+    const existingResponses = await prisma.questionResponse.findMany({
+      where: { sessionId },
+      select: { id: true, questionId: true },
+    })
+    const existingMap = new Map(existingResponses.map((r) => [r.questionId, r.id]))
+
+    // 3단계: 도메인별 점수 계산
     const calcDomainScore = (key: DomainKey): number | null => {
       const { correct, total } = domainStats[key]
       if (total === 0) return null
@@ -211,53 +208,67 @@ export async function submitTest(
     )
     const score = totalObjective > 0 ? Math.round((totalCorrect / totalObjective) * 100) : null
 
-    // 3단계: 세션 상태 업데이트 (에세이 없으면 GRADED, 있으면 COMPLETED)
-    await prisma.testSession.update({
-      where: { id: sessionId },
-      data: {
-        status: hasEssay ? 'COMPLETED' : 'GRADED',
-        completedAt: new Date(),
-        lastSavedAt: new Date(),
-        score,
-        grammarScore,
-        vocabularyScore,
-        readingScore,
-      },
-    })
+    const now = new Date()
 
-    // 4단계: 영역별 SkillAssessment 기록
-    for (const [domain, stats] of Object.entries(domainStats)) {
-      if (stats.total > 0) {
-        const domScore = Math.round((stats.correct / stats.total) * 100)
-        await prisma.skillAssessment.create({
-          data: {
-            studentId: auth.studentId,
-            domain: domain as DomainKey,
-            level: 1,
-            score: domScore,
-            notes: `자동 채점 - ${session.test.title}`,
-          },
-        })
-      }
-    }
-
-    // 5단계: 교사 알림 (쓰기 문제가 있는 경우)
-    if (hasEssay) {
-      await prisma.notification.create({
+    // 4단계: 응답 저장 + 세션 업데이트 + SkillAssessment + 알림 병렬 실행
+    await Promise.all([
+      // 응답 저장 (병렬)
+      ...questionGrades.map(({ q, studentAnswer, isCorrect }) => {
+        const existingId = existingMap.get(q.id)
+        if (existingId) {
+          return prisma.questionResponse.update({
+            where: { id: existingId },
+            data: { answer: studentAnswer || null, isCorrect },
+          })
+        } else if (studentAnswer) {
+          return prisma.questionResponse.create({
+            data: { sessionId, questionId: q.id, answer: studentAnswer, isCorrect },
+          })
+        }
+        return Promise.resolve()
+      }),
+      // 세션 상태 업데이트
+      prisma.testSession.update({
+        where: { id: sessionId },
         data: {
-          userId: session.test.createdBy,
-          academyId: session.test.academyId,
-          type: 'WARNING',
-          title: '쓰기 채점 대기 중',
-          message: `"${session.test.title}" 테스트에서 학생의 쓰기 답안이 채점을 기다리고 있습니다.`,
+          status: hasEssay ? 'COMPLETED' : 'GRADED',
+          completedAt: now,
+          lastSavedAt: now,
+          score,
+          grammarScore,
+          vocabularyScore,
+          readingScore,
         },
-      })
-    }
+      }),
+      // SkillAssessment 병렬 생성
+      ...Object.entries(domainStats)
+        .filter(([, stats]) => stats.total > 0)
+        .map(([domain, stats]) =>
+          prisma.skillAssessment.create({
+            data: {
+              studentId: auth.studentId,
+              domain: domain as DomainKey,
+              level: 1,
+              score: Math.round((stats.correct / stats.total) * 100),
+              notes: `자동 채점 - ${session.test.title}`,
+            },
+          }),
+        ),
+      // 교사 알림 (쓰기 문제가 있는 경우)
+      hasEssay
+        ? prisma.notification.create({
+            data: {
+              userId: session.test.createdBy,
+              academyId: session.test.academyId,
+              type: 'WARNING',
+              title: '쓰기 채점 대기 중',
+              message: `"${session.test.title}" 테스트에서 학생의 쓰기 답안이 채점을 기다리고 있습니다.`,
+            },
+          })
+        : Promise.resolve(),
+    ])
 
-    // 6단계: 게이미피케이션 (스트릭, 배지, 레벨업)
-    const { recordActivityAndCheckBadges } = await import(
-      '@/app/(dashboard)/student/_actions/gamification'
-    )
+    // 5단계: 게이미피케이션 (세션 업데이트 완료 후 실행)
     const gamification = await recordActivityAndCheckBadges(auth.studentId, sessionId)
 
     revalidateTag(`student-${auth.studentId}-tests`)

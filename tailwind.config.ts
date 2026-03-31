@@ -87,6 +87,16 @@ const config: Config = {
           writing: "#E35C20",
         },
       },
+      keyframes: {
+        progress: {
+          "0%": { transform: "translateX(-100%)" },
+          "50%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(200%)" },
+        },
+      },
+      animation: {
+        progress: "progress 1.2s ease-in-out infinite",
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
