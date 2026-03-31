@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
-import { getDomainQuestions } from '../../actions'
+import { getDomainProfileData } from '../../actions'
 import { DomainClient } from './_components/domain-client'
 import type { QuestionDomainType } from '@/components/shared/question-bank-client'
 
@@ -68,14 +68,8 @@ export default async function DomainPracticePage({
   })
   if (!dbUser?.student) redirect('/login')
 
-  const skillAssessment = await prisma.skillAssessment.findFirst({
-    where: { studentId: dbUser.student.id, domain: domainKey },
-    orderBy: { assessedAt: 'desc' },
-    select: { score: true },
-  })
-
-  // 기본 난이도 2로 초기 문제 로드
-  const initialQuestions = await getDomainQuestions(domainKey, 2)
+  // 도메인 프로필 데이터 (카테고리별 정확도 포함)
+  const profileData = await getDomainProfileData(domainKey)
 
   return (
     <div className="space-y-4">
@@ -93,34 +87,14 @@ export default async function DomainPracticePage({
         </div>
       </div>
 
-      {/* 현재 점수 배너 */}
-      <div
-        className="flex items-center justify-between rounded-xl border px-5 py-3.5"
-        style={{ backgroundColor: cfg.bg, borderColor: cfg.border }}
-      >
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cfg.color }} />
-          <span className="text-sm font-semibold" style={{ color: cfg.color }}>
-            {cfg.label}
-          </span>
-        </div>
-        {skillAssessment?.score !== null && skillAssessment?.score !== undefined ? (
-          <div className="text-right">
-            <span className="text-lg font-black" style={{ color: cfg.color }}>
-              {skillAssessment.score}점
-            </span>
-            <span className="ml-1 text-xs text-gray-400">/ 100</span>
-          </div>
-        ) : (
-          <span className="text-xs text-gray-400">테스트 완료 후 점수 측정</span>
-        )}
-      </div>
-
-      {/* 도메인 클라이언트 (난이도 선택 + 풀이) */}
+      {/* 도메인 클라이언트 (모드 선택 + 풀이) */}
       <DomainClient
         domain={domainKey}
+        domainLabel={cfg.label}
         domainColor={cfg.color}
-        initialQuestions={initialQuestions}
+        domainBg={cfg.bg}
+        domainBorder={cfg.border}
+        profileData={profileData}
       />
     </div>
   )

@@ -324,6 +324,187 @@ export async function selectDomainQuestions(
 }
 
 /**
+ * smart domain 모드: 3가지 학습 모드 지원
+ * - weakness: 가장 약한 카테고리 집중, 현재 레벨 or -1 난이도
+ * - balanced: 균등 배분, 약점 30% 가중
+ * - levelup: 현재 레벨+1 난이도, 강한 카테고리 우선
+ */
+export async function selectSmartDomainQuestions(
+  profile: StudentProfile,
+  domain: string,
+  mode: 'weakness' | 'balanced' | 'levelup',
+  count: number,
+  excludeIds: string[] = [],
+): Promise<SelectedQuestion[]> {
+  const usedIds: string[] = [...excludeIds]
+  const result: SelectedQuestion[] = []
+
+  const dk = domain.toLowerCase() as keyof typeof profile.domainScores
+  const weakCats = profile.domainScores[dk]?.weakCategories.slice(0, 3) ?? []
+
+  if (mode === 'weakness') {
+    // 약점 카테고리 집중, 난이도: currentLevel or max(1, currentLevel - 1)
+    const targetLevel = Math.max(1, profile.currentLevel)
+    const easierLevel = Math.max(1, profile.currentLevel - 1)
+
+    // 1차: 약점 카테고리에서 가져오기
+    if (weakCats.length > 0) {
+      for (const cat of weakCats) {
+        if (result.length >= count) break
+        const rows = await fetchCandidates({
+          domain,
+          subCategory: cat,
+          minDifficulty: easierLevel,
+          maxDifficulty: targetLevel,
+          studentId: profile.studentId,
+          excludeIds: usedIds,
+          take: Math.ceil(count / Math.max(weakCats.length, 1)) + 1,
+        })
+        for (const q of rows) {
+          if (result.length >= count) break
+          usedIds.push(q.id)
+          result.push({ ...q, tag: { type: 'weakness', label: `약점 보강: ${cat}`, category: cat } })
+        }
+      }
+    }
+
+    // 2차: 부족하면 영역 전체에서 같은 난이도로 채우기
+    if (result.length < count) {
+      const fallback = await fetchCandidates({
+        domain,
+        minDifficulty: easierLevel,
+        maxDifficulty: targetLevel,
+        studentId: profile.studentId,
+        excludeIds: usedIds,
+        take: count - result.length,
+      })
+      for (const q of fallback) {
+        if (result.length >= count) break
+        usedIds.push(q.id)
+        result.push({
+          ...q,
+          tag: { type: 'weakness', label: `${DOMAIN_LABEL_KO[domain] ?? domain} 연습` },
+        })
+      }
+    }
+  } else if (mode === 'balanced') {
+    // 균등 배분: 약점 카테고리에서 약간 더 (30% 가중)
+    const targetLevel = profile.currentLevel
+
+    // 약점 카테고리에서 40% 가져오기
+    const weakShare = Math.ceil(count * 0.4)
+    if (weakCats.length > 0) {
+      for (const cat of weakCats) {
+        if (result.filter((q) => q.tag.type === 'weakness').length >= weakShare) break
+        const take = Math.ceil(weakShare / Math.max(weakCats.length, 1))
+        const rows = await fetchCandidates({
+          domain,
+          subCategory: cat,
+          minDifficulty: targetLevel,
+          maxDifficulty: targetLevel,
+          studentId: profile.studentId,
+          excludeIds: usedIds,
+          take,
+        })
+        for (const q of rows) {
+          if (result.filter((q2) => q2.tag.type === 'weakness').length >= weakShare) break
+          usedIds.push(q.id)
+          result.push({ ...q, tag: { type: 'weakness', label: `약점 보강: ${cat}`, category: cat } })
+        }
+      }
+    }
+
+    // 나머지는 전체 영역에서 균등하게
+    const remaining = count - result.length
+    if (remaining > 0) {
+      const rows = await fetchCandidates({
+        domain,
+        minDifficulty: targetLevel,
+        maxDifficulty: targetLevel,
+        studentId: profile.studentId,
+        excludeIds: usedIds,
+        take: remaining,
+      })
+      for (const q of rows) {
+        if (result.length >= count) break
+        usedIds.push(q.id)
+        result.push({
+          ...q,
+          tag: { type: 'maintain', label: `${DOMAIN_LABEL_KO[domain] ?? domain} 연습` },
+        })
+      }
+    }
+
+    // 최종 fallback: 난이도 범위 확장
+    if (result.length < count) {
+      const fallback = await fetchCandidates({
+        domain,
+        minDifficulty: Math.max(1, targetLevel - 1),
+        maxDifficulty: Math.min(5, targetLevel + 1),
+        studentId: profile.studentId,
+        excludeIds: usedIds,
+        take: count - result.length,
+      })
+      for (const q of fallback) {
+        if (result.length >= count) break
+        usedIds.push(q.id)
+        result.push({
+          ...q,
+          tag: { type: 'maintain', label: `${DOMAIN_LABEL_KO[domain] ?? domain} 연습` },
+        })
+      }
+    }
+  } else {
+    // levelup: 현재 레벨+1, 강한 카테고리(약점이 아닌 것) 우선
+    const targetLevel = Math.min(5, profile.currentLevel + 1)
+    const fallbackLevel = Math.min(5, profile.currentLevel + 2)
+
+    // 1차: 높은 난이도로 가져오기
+    const rows = await fetchCandidates({
+      domain,
+      minDifficulty: targetLevel,
+      maxDifficulty: fallbackLevel,
+      studentId: profile.studentId,
+      excludeIds: usedIds,
+      take: count,
+    })
+    for (const q of rows) {
+      if (result.length >= count) break
+      usedIds.push(q.id)
+      result.push({
+        ...q,
+        tag: {
+          type: 'challenge',
+          label: `도전 문제: Level ${targetLevel}`,
+        },
+      })
+    }
+
+    // 2차 fallback: 현재 레벨에서 채우기
+    if (result.length < count) {
+      const fallback = await fetchCandidates({
+        domain,
+        minDifficulty: profile.currentLevel,
+        maxDifficulty: targetLevel,
+        studentId: profile.studentId,
+        excludeIds: usedIds,
+        take: count - result.length,
+      })
+      for (const q of fallback) {
+        if (result.length >= count) break
+        usedIds.push(q.id)
+        result.push({
+          ...q,
+          tag: { type: 'challenge', label: `도전 문제: Level ${profile.currentLevel}` },
+        })
+      }
+    }
+  }
+
+  return result
+}
+
+/**
  * review 모드: 스페이스드 리피티션 기반 오늘의 복습 문제
  */
 export async function selectReviewQuestions(

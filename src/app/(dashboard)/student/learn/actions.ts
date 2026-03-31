@@ -2,10 +2,11 @@
 
 import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
+import OpenAI from 'openai'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { getStudentProfile } from '@/lib/ai/student-analyzer'
-import { selectAdaptiveQuestions } from '@/lib/ai/question-selector'
+import { selectAdaptiveQuestions, selectSmartDomainQuestions } from '@/lib/ai/question-selector'
 import type {
   QuestionContentJson,
   QuestionDomainType,
@@ -74,6 +75,41 @@ export type WrongAnswerItem = {
   difficulty: number
   wrongAt: string
   content: PracticeContent
+}
+
+// ── 스마트 도메인 연습 타입 ──────────────────────────────────────────────────
+
+export type LearningMode = 'weakness' | 'balanced' | 'levelup'
+
+export type CategoryAccuracy = {
+  name: string
+  correct: number
+  total: number
+  accuracy: number // 0~100
+}
+
+export type DomainProfileData = {
+  domainScore: number | null
+  currentLevel: number
+  cefrLevel: string
+  categories: CategoryAccuracy[]
+  levelUpScore: number  // 80
+  levelUpGap: number    // 80 - domainScore (양수면 부족)
+  weakestCategories: string[]
+  strongestCategories: string[]
+}
+
+// 스마트 도메인 문제 (subCategory 포함)
+export type SmartDomainQuestion = PracticeQuestion & {
+  subCategory?: string | null
+}
+
+export type SessionAdvice = {
+  advice: string
+  nextRecommendation: {
+    mode: LearningMode
+    reason: string
+  }
 }
 
 // ── 내부 헬퍼 ─────────────────────────────────────────────────────────────────
@@ -313,6 +349,254 @@ export async function getDomainQuestions(
   }
 
   return [...rawQuestions].sort(() => Math.random() - 0.5).slice(0, 5).map(sanitizeQuestion)
+}
+
+// ── 도메인 스킬 프로필 (카테고리별 정확도) ──────────────────────────────────
+
+export async function getDomainProfileData(domain: string): Promise<DomainProfileData> {
+  const studentId = await requireStudentId()
+
+  const domainKey = domain.toUpperCase() as QuestionDomainType
+  if (!DOMAINS.includes(domainKey)) {
+    return {
+      domainScore: null,
+      currentLevel: 1,
+      cefrLevel: 'A1-A2',
+      categories: [],
+      levelUpScore: 80,
+      levelUpGap: 80,
+      weakestCategories: [],
+      strongestCategories: [],
+    }
+  }
+
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const [student, skillAssessment, responses] = await Promise.all([
+    prisma.student.findUnique({
+      where: { id: studentId },
+      select: { currentLevel: true },
+    }),
+    prisma.skillAssessment.findFirst({
+      where: { studentId, domain: domainKey },
+      orderBy: { assessedAt: 'desc' },
+      select: { score: true },
+    }),
+    prisma.questionResponse.findMany({
+      where: {
+        session: {
+          studentId,
+          status: { in: ['COMPLETED', 'GRADED'] },
+        },
+        question: { domain: domainKey },
+        createdAt: { gte: thirtyDaysAgo },
+      },
+      select: {
+        isCorrect: true,
+        question: { select: { subCategory: true } },
+      },
+    }),
+  ])
+
+  const currentLevel = student?.currentLevel ?? 1
+  const CEFR_MAP: Record<number, string> = {
+    1: 'Pre-A1',
+    2: 'A1-A2',
+    3: 'B1',
+    4: 'B2',
+    5: 'C1-C2',
+  }
+  const cefrLevel = CEFR_MAP[currentLevel] ?? 'A1-A2'
+  const domainScore = skillAssessment?.score ?? null
+
+  // 카테고리별 집계
+  const catMap: Record<string, { correct: number; total: number }> = {}
+  for (const r of responses) {
+    const cat = r.question.subCategory ?? 'general'
+    if (!catMap[cat]) catMap[cat] = { correct: 0, total: 0 }
+    catMap[cat].total++
+    if (r.isCorrect === true) catMap[cat].correct++
+  }
+
+  const categories: CategoryAccuracy[] = Object.entries(catMap)
+    .map(([name, { correct, total }]) => ({
+      name,
+      correct,
+      total,
+      accuracy: total > 0 ? Math.round((correct / total) * 100) : 0,
+    }))
+    .sort((a, b) => a.accuracy - b.accuracy) // 낮은 순 (약한 것 먼저)
+
+  const weakestCategories = categories
+    .filter((c) => c.accuracy < 65)
+    .slice(0, 3)
+    .map((c) => c.name)
+
+  const strongestCategories = [...categories]
+    .sort((a, b) => b.accuracy - a.accuracy)
+    .filter((c) => c.total >= 2)
+    .slice(0, 2)
+    .map((c) => c.name)
+
+  const levelUpScore = 80
+  const levelUpGap = levelUpScore - (domainScore ?? 0)
+
+  return {
+    domainScore,
+    currentLevel,
+    cefrLevel,
+    categories,
+    levelUpScore,
+    levelUpGap,
+    weakestCategories,
+    strongestCategories,
+  }
+}
+
+// ── 스마트 도메인 문제 선택 ───────────────────────────────────────────────────
+
+export async function getSmartDomainQuestions(
+  domain: string,
+  mode: LearningMode,
+  count: number = 5,
+  excludeIds: string[] = [],
+): Promise<SmartDomainQuestion[]> {
+  const studentId = await requireStudentId()
+
+  const domainKey = domain.toUpperCase() as QuestionDomainType
+  if (!DOMAINS.includes(domainKey)) return []
+
+  const profile = await getStudentProfile(studentId)
+  const selected = await selectSmartDomainQuestions(profile, domain.toLowerCase(), mode, count, excludeIds)
+
+  return selected.map((q) => {
+    const content = q.contentJson as QuestionContentJson
+    return {
+      id: q.id,
+      domain: q.domain,
+      difficulty: q.difficulty,
+      subCategory: q.subCategory,
+      content: {
+        type: content.type,
+        question_text: content.question_text,
+        ...(content.question_text_ko ? { question_text_ko: content.question_text_ko } : {}),
+        ...(content.options ? { options: content.options } : {}),
+        ...(content.passage ? { passage: content.passage } : {}),
+        ...(content.word_limit ? { word_limit: content.word_limit } : {}),
+      },
+    }
+  })
+}
+
+// ── AI 세션 분석 조언 ─────────────────────────────────────────────────────────
+
+export async function generateSessionAdvice(params: {
+  domain: string
+  mode: LearningMode
+  categoryResults: Array<{
+    name: string
+    correct: number
+    total: number
+    prevAccuracy: number
+    newAccuracy: number
+  }>
+  totalCorrect: number
+  totalCount: number
+}): Promise<SessionAdvice> {
+  const { domain, mode, categoryResults, totalCorrect, totalCount } = params
+
+  const DOMAIN_LABEL_KO: Record<string, string> = {
+    GRAMMAR: '문법',
+    VOCABULARY: '어휘',
+    READING: '독해',
+    WRITING: '쓰기',
+  }
+
+  const MODE_LABEL: Record<string, string> = {
+    weakness: '약점 집중 모드',
+    balanced: '균형 연습 모드',
+    levelup: '레벨업 도전 모드',
+  }
+
+  const catSummary = categoryResults
+    .map((c) => {
+      const trend =
+        c.newAccuracy > c.prevAccuracy + 2
+          ? '상승 ↑'
+          : c.newAccuracy < c.prevAccuracy - 2
+            ? '하락 ↓'
+            : '유지 →'
+      return `- ${c.name}: ${c.correct}/${c.total} (${c.prevAccuracy}% → ${c.newAccuracy}% ${trend})`
+    })
+    .join('\n')
+
+  const userPrompt = `학생이 ${DOMAIN_LABEL_KO[domain.toUpperCase()] ?? domain} 영역 연습을 완료했어.
+
+모드: ${MODE_LABEL[mode] ?? mode}
+전체 결과: ${totalCorrect}/${totalCount} (${Math.round((totalCorrect / totalCount) * 100)}%)
+
+카테고리별 결과:
+${catSummary || '카테고리 데이터 없음'}
+
+JSON 응답:
+{
+  "advice": "학생 결과 분석 + 구체적 학습 조언 (2~3문장, 한국어, 격려 포함)",
+  "nextRecommendation": {
+    "mode": "weakness 또는 balanced 또는 levelup",
+    "reason": "이 모드를 추천하는 이유 한 문장 (한국어)"
+  }
+}`
+
+  try {
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) throw new Error('OPENAI_API_KEY not set')
+
+    const openai = new OpenAI({ apiKey })
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content:
+            '너는 영어 교육 전문 AI 코치야. 학생의 연습 결과를 분석하고 격려와 구체적인 학습 조언을 한국어로 제공해. 반드시 JSON만 응답해.',
+        },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.6,
+      response_format: { type: 'json_object' },
+    })
+
+    const raw = completion.choices[0]?.message?.content
+    if (!raw) throw new Error('No AI response')
+
+    const parsed = JSON.parse(raw) as {
+      advice: string
+      nextRecommendation: { mode: string; reason: string }
+    }
+
+    const validModes: LearningMode[] = ['weakness', 'balanced', 'levelup']
+    const nextMode = validModes.includes(parsed.nextRecommendation?.mode as LearningMode)
+      ? (parsed.nextRecommendation.mode as LearningMode)
+      : 'balanced'
+
+    return {
+      advice: parsed.advice ?? '수고했어요! 계속 연습하면 실력이 늘 거예요.',
+      nextRecommendation: {
+        mode: nextMode,
+        reason: parsed.nextRecommendation?.reason ?? '균형 잡힌 연습이 도움이 됩니다.',
+      },
+    }
+  } catch {
+    return {
+      advice: `${totalCorrect}/${totalCount} 정답이에요. 꾸준한 연습이 실력 향상의 지름길입니다!`,
+      nextRecommendation: {
+        mode: totalCorrect / totalCount < 0.6 ? 'weakness' : 'balanced',
+        reason: totalCorrect / totalCount < 0.6 ? '약한 부분을 집중적으로 보완해보세요.' : '균형 있게 연습해보세요.',
+      },
+    }
+  }
 }
 
 // ── 오답 복습 목록 ────────────────────────────────────────────────────────────
