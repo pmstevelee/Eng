@@ -453,7 +453,7 @@ const getCachedDashboardData = (studentId: string) =>
         }),
         prisma.student.findUnique({
           where: { id: studentId },
-          select: { currentLevel: true, weeklyGoalTarget: true },
+          select: { currentLevel: true, weeklyGoalTarget: true, totalXp: true },
         }),
         prisma.questionResponse.count({
           where: {
@@ -676,6 +676,7 @@ export async function getStudentDashboardData() {
     weeklyQuestionCount: weeklyCount,
     weeklyGoal: student?.weeklyGoalTarget ?? 20,
     currentLevel: student?.currentLevel ?? 1,
+    totalXp: student?.totalXp ?? 0,
     recentAvgScore,
     domainScores,
     upcomingSessions: upcomingSessions.filter((s) => s.test.isActive),

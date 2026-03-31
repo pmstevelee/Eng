@@ -2,10 +2,8 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import {
   Flame,
-  Target,
   ChevronRight,
   CalendarCheck,
-  CheckCircle2,
   ClipboardList,
   Clock,
   TrendingUp,
@@ -13,6 +11,7 @@ import {
 import { getCurrentUser } from '@/lib/auth'
 import { getStudentDashboardData } from './_actions/gamification'
 import { levelLabel } from './_utils/level'
+import { DailyMissionCard } from '@/components/student/daily-mission-card'
 
 export default async function StudentDashboardPage() {
   const pageStart = performance.now()
@@ -38,11 +37,11 @@ export default async function StudentDashboardPage() {
     weeklyQuestionCount,
     weeklyGoal,
     currentLevel,
+    totalXp,
     recentAvgScore,
     domainScores,
     upcomingSessions,
     recentActivities,
-    missionQuestions,
   } = data
 
   const firstName = user.name.split(' ')[0]
@@ -85,10 +84,10 @@ export default async function StudentDashboardPage() {
           </h1>
           <p className="mt-1 text-sm text-gray-500">
             {streak.currentStreak > 0
-              ? `🔥 연속 ${streak.currentStreak}일째 학습 중! 훌륭해요!`
+              ? `🔥${streak.currentStreak}일  ⚡${totalXp} XP`
               : isActiveToday
-                ? '오늘도 학습했어요. 내일도 이어가요!'
-                : '오늘부터 시작해볼까요? 첫 미션을 완료해보세요!'}
+                ? `오늘도 학습했어요. ⚡${totalXp} XP`
+                : `오늘부터 시작해볼까요? ⚡${totalXp} XP`}
           </p>
         </div>
         {/* Streak badge */}
@@ -187,96 +186,7 @@ export default async function StudentDashboardPage() {
       </div>
 
       {/* ── 오늘의 미션 카드 ─────────────────────────────────────────────── */}
-      {mission && (
-        <div
-          className={`rounded-xl border-2 p-5 ${
-            mission.isCompleted
-              ? 'border-[#1FAF54] bg-green-50'
-              : 'border-[#7854F7] bg-purple-50/40'
-          }`}
-        >
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div
-                className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${
-                  mission.isCompleted ? 'bg-[#1FAF54]' : 'bg-[#7854F7]'
-                }`}
-              >
-                {mission.isCompleted ? (
-                  <CheckCircle2 size={16} className="text-white" />
-                ) : (
-                  <Target size={16} className="text-white" />
-                )}
-              </div>
-              <div>
-                <span className="text-sm font-bold text-gray-900">오늘의 학습 미션</span>
-                <span className="ml-2 rounded-full bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-[#7854F7]">
-                  AI 추천
-                </span>
-              </div>
-            </div>
-            {!mission.isCompleted && (
-              <Link
-                href="/student/daily-mission"
-                className="flex min-h-[36px] flex-shrink-0 items-center gap-1 rounded-lg bg-[#7854F7] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[#6644e0]"
-              >
-                미션 시작
-                <ChevronRight size={13} />
-              </Link>
-            )}
-          </div>
-
-          {mission.isCompleted ? (
-            <div className="flex items-center gap-3 rounded-xl bg-white/70 p-4">
-              <span className="text-2xl">🎉</span>
-              <div>
-                <p className="font-bold text-[#1FAF54]">미션 완료!</p>
-                <p className="text-sm text-gray-600">내일도 만나요! 스트릭을 유지하고 있어요.</p>
-              </div>
-            </div>
-          ) : missionQuestions.length > 0 ? (
-            <div className="space-y-2">
-              {missionQuestions.map((q, idx) => (
-                <div
-                  key={q.id}
-                  className="flex items-center justify-between rounded-xl border border-gray-100 bg-white px-4 py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-medium text-gray-400">{idx + 1}</span>
-                    <span
-                      className="rounded-full px-2 py-0.5 text-[11px] font-bold text-white"
-                      style={{ backgroundColor: DOMAIN_CONFIG[q.domain]?.color ?? '#1865F2' }}
-                    >
-                      {DOMAIN_LABEL[q.domain] ?? q.domain}
-                    </span>
-                    <span className="text-xs">
-                      <span className="text-[#FFB100]">
-                        {'★'.repeat(Math.min(q.difficulty, 5))}
-                      </span>
-                      <span className="text-gray-200">
-                        {'★'.repeat(Math.max(0, 5 - Math.min(q.difficulty, 5)))}
-                      </span>
-                    </span>
-                  </div>
-                  <Link
-                    href="/student/daily-mission"
-                    className="text-xs font-bold text-[#7854F7] hover:underline"
-                  >
-                    풀기 →
-                  </Link>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-xl bg-white/70 p-4">
-              <p className="text-sm text-gray-600">
-                {DOMAIN_LABEL[mission.domainFocus ?? ''] ?? '영어'} 집중 학습 ·{' '}
-                {(mission.questionIds as string[]).length}문제
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+      {mission && <DailyMissionCard mission={mission} />}
 
       {/* ── 예정된 테스트 카드 ───────────────────────────────────────────── */}
       {upcomingSessions.length > 0 && (
@@ -424,7 +334,6 @@ const LEVEL_COLORS = [
 ]
 
 const DOMAIN_KEYS = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING'] as const
-type DomainKey = (typeof DOMAIN_KEYS)[number]
 
 const DOMAIN_CONFIG: Record<string, { label: string; color: string }> = {
   GRAMMAR: { label: 'Grammar', color: '#1865F2' },
@@ -434,10 +343,3 @@ const DOMAIN_CONFIG: Record<string, { label: string; color: string }> = {
   LISTENING: { label: 'Listening', color: '#0EA5E9' },
 }
 
-const DOMAIN_LABEL: Record<string, string> = {
-  GRAMMAR: 'Grammar',
-  VOCABULARY: 'Vocabulary',
-  READING: 'Reading',
-  WRITING: 'Writing',
-  LISTENING: 'Listening',
-}
