@@ -4,10 +4,13 @@ import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { getStudentProfile } from '@/lib/ai/student-analyzer'
+import { selectAdaptiveQuestions } from '@/lib/ai/question-selector'
 import type {
   QuestionContentJson,
   QuestionDomainType,
 } from '@/components/shared/question-bank-client'
+import type { QuestionTag } from '@/lib/ai/question-selector'
 
 const DOMAINS: QuestionDomainType[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
 
@@ -27,6 +30,30 @@ export type PracticeQuestion = {
   domain: string
   difficulty: number
   content: PracticeContent
+}
+
+// 태그가 포함된 맞춤형 문제 타입
+export type AdaptiveQuestion = PracticeQuestion & {
+  tag: QuestionTag
+  subCategory?: string | null
+}
+
+export type { QuestionTag }
+
+// 학생 프로필 요약 (클라이언트에 전달용)
+export type StudentProfileSummary = {
+  currentLevel: number
+  cefrLevel: string
+  overallWeakest: string
+  overallStrongest: string
+  weakestScore: number | null
+  strongestScore: number | null
+  topWeakCategories: string[]
+  weakCount: number
+  maintainCount: number
+  challengeCount: number
+  readyForLevelUp: boolean
+  streakDays: number
 }
 
 export type GradeResult = {
@@ -148,7 +175,63 @@ export async function getLearnHubData() {
   return getCachedLearnHubData(studentId)
 }
 
-// ── 맞춤형 학습 문제 ──────────────────────────────────────────────────────────
+// ── AI 스마트 맞춤형 학습 (신규) ─────────────────────────────────────────────
+
+export async function getSmartAdaptiveData(count = 7): Promise<{
+  questions: AdaptiveQuestion[]
+  summary: StudentProfileSummary
+}> {
+  const studentId = await requireStudentId()
+
+  const profile = await getStudentProfile(studentId)
+  const selected = await selectAdaptiveQuestions(profile, count)
+
+  const weakCount = selected.filter((q) => q.tag.type === 'weakness').length
+  const maintainCount = selected.filter((q) => q.tag.type === 'maintain').length
+  const challengeCount = selected.filter((q) => q.tag.type === 'challenge').length
+
+  const domainScores = profile.domainScores
+  const weakestKey = profile.overallWeakest as keyof typeof domainScores
+  const strongestKey = profile.overallStrongest as keyof typeof domainScores
+
+  const questions: AdaptiveQuestion[] = selected.map((q) => {
+    const content = q.contentJson as QuestionContentJson
+    return {
+      id: q.id,
+      domain: q.domain,
+      difficulty: q.difficulty,
+      subCategory: q.subCategory,
+      tag: q.tag,
+      content: {
+        type: content.type,
+        question_text: content.question_text,
+        ...(content.question_text_ko ? { question_text_ko: content.question_text_ko } : {}),
+        ...(content.options ? { options: content.options } : {}),
+        ...(content.passage ? { passage: content.passage } : {}),
+        ...(content.word_limit ? { word_limit: content.word_limit } : {}),
+      },
+    }
+  })
+
+  const summary: StudentProfileSummary = {
+    currentLevel: profile.currentLevel,
+    cefrLevel: profile.cefrLevel,
+    overallWeakest: profile.overallWeakest,
+    overallStrongest: profile.overallStrongest,
+    weakestScore: domainScores[weakestKey]?.avg ?? null,
+    strongestScore: domainScores[strongestKey]?.avg ?? null,
+    topWeakCategories: profile.recentMistakes.slice(0, 2).map((m) => m.category),
+    weakCount,
+    maintainCount,
+    challengeCount,
+    readyForLevelUp: profile.readyForLevelUp,
+    streakDays: profile.streakDays,
+  }
+
+  return { questions, summary }
+}
+
+// ── 맞춤형 학습 문제 (레거시) ─────────────────────────────────────────────────
 
 export async function getAdaptiveQuestions() {
   const studentId = await requireStudentId()

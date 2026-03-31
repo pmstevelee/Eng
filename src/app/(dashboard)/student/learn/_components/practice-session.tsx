@@ -38,11 +38,12 @@ type Props = {
   onLoadMore?: (excludeIds: string[]) => Promise<PracticeQuestion[]>
   onComplete?: (results: PracticeResult[]) => void
   headerSlot?: React.ReactNode
+  tagRenderer?: (question: PracticeQuestion) => React.ReactNode
 }
 
 // ── 메인 컴포넌트 ──────────────────────────────────────────────────────────────
 
-export function PracticeSession({ questions: initialQuestions, onGrade, onLoadMore, onComplete, headerSlot }: Props) {
+export function PracticeSession({ questions: initialQuestions, onGrade, onLoadMore, onComplete, headerSlot, tagRenderer }: Props) {
   const [questions, setQuestions] = useState(initialQuestions)
   const [currentIdx, setCurrentIdx] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState('')
@@ -249,6 +250,9 @@ export function PracticeSession({ questions: initialQuestions, onGrade, onLoadMo
               ●
             </span>
           ))}
+          {tagRenderer && (
+            <div className="ml-auto">{tagRenderer(currentQuestion)}</div>
+          )}
         </div>
 
         <div className="px-5 py-5">
