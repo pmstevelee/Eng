@@ -685,25 +685,6 @@ export async function getStudentDashboardData() {
   }
 }
 
-function pickWeakestDomain(
-  assessments: Array<{ domain: QuestionDomain; score: number | null }>,
-): QuestionDomain {
-  const domains: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
-  let weakest: QuestionDomain = 'GRAMMAR'
-  let lowestAvg = Infinity
-  for (const domain of domains) {
-    const relevant = assessments.filter((a) => a.domain === domain)
-    if (relevant.length > 0) {
-      const avg = relevant.reduce((s, a) => s + (a.score ?? 0), 0) / relevant.length
-      if (avg < lowestAvg) {
-        lowestAvg = avg
-        weakest = domain
-      }
-    }
-  }
-  return weakest
-}
-
 const DASH_DOMAIN_LABEL: Record<string, string> = {
   GRAMMAR: 'Grammar',
   VOCABULARY: 'Vocabulary',
