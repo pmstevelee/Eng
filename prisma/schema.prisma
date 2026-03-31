@@ -196,12 +196,16 @@ model User {
 model Student {
   id           String        @id @default(uuid())
   userId       String        @unique @map("user_id")
-  grade        Int?
-  currentLevel Int           @default(1) @map("current_level")
-  classId      String?       @map("class_id")
-  status       StudentStatus @default(ACTIVE)
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
+  grade               Int?
+  currentLevel        Int           @default(1) @map("current_level")
+  classId             String?       @map("class_id")
+  status              StudentStatus @default(ACTIVE)
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+  totalXp             Int           @default(0) @map("total_xp")
+  weeklyGoalTarget    Int           @default(20) @map("weekly_goal_target")
+  weeklyGoalCurrent   Int           @default(0) @map("weekly_goal_current")
+  weeklyGoalResetAt   DateTime      @default(now()) @map("weekly_goal_reset_at")
 
   user  User   @relation(fields: [userId], references: [id])
   class Class? @relation(fields: [classId], references: [id])
@@ -217,6 +221,7 @@ model Student {
   streak           StudentStreak?
   dailyMissions    DailyMission[]
   practiceLogs     PracticeLog[]
+  xpHistory        StudentXp[]
 
   @@index([classId])
   @@index([status])
@@ -519,19 +524,42 @@ model StudentStreak {
 
 /// 16-b. 오늘의 미션
 model DailyMission {
-  id          String    @id @default(uuid())
-  studentId   String    @map("student_id")
-  missionDate DateTime  @map("mission_date")
-  questionIds Json      @map("question_ids")
-  domainFocus String?   @map("domain_focus")
-  isCompleted Boolean   @default(false) @map("is_completed")
-  completedAt DateTime? @map("completed_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
+  id               String    @id @default(uuid())
+  studentId        String    @map("student_id")
+  missionDate      DateTime  @map("mission_date")
+  questionIds      Json      @map("question_ids")
+  domainFocus      String?   @map("domain_focus")
+  isCompleted      Boolean   @default(false) @map("is_completed")
+  completedAt      DateTime? @map("completed_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  status           String    @default("GENERATED")
+  missionsJson     Json?     @map("missions_json")
+  totalMissions    Int       @default(0) @map("total_missions")
+  completedMissions Int      @default(0) @map("completed_missions")
+  startedAt        DateTime? @map("started_at")
+  xpEarned         Int       @default(0) @map("xp_earned")
+  streakCounted    Boolean   @default(false) @map("streak_counted")
 
   student Student @relation(fields: [studentId], references: [id])
 
   @@unique([studentId, missionDate])
+  @@index([status])
   @@map("daily_missions")
+}
+
+/// 16-c. 학생 XP 기록
+model StudentXp {
+  id        String   @id @default(uuid())
+  studentId String   @map("student_id")
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  amount    Int
+  source    String
+  sourceId  String?  @map("source_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([studentId])
+  @@index([createdAt])
+  @@map("student_xp")
 }
 
 model BadgeEarning {

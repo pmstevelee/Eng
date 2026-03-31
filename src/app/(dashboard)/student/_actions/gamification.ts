@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma/client'
 import { BadgeType, QuestionDomain } from '@/generated/prisma'
 import { calcLevelFromScore } from '@/app/(dashboard)/student/_utils/level'
 import { getCurrentUser } from '@/lib/auth'
+import { getOrCreateTodayMission, buildDailyMissions } from '@/lib/missions/mission-engine'
+import { updateStreak } from '@/lib/missions/streak-manager'
+import { awardXP, BADGE_XP } from '@/lib/missions/xp-manager'
 
 // ─── Auth helper ─────────────────────────────────────────────────────────────
 
@@ -55,7 +58,7 @@ export async function getGamificationData() {
       }),
       prisma.student.findUnique({
         where: { id: studentId },
-        select: { currentLevel: true },
+        select: { currentLevel: true, weeklyGoalTarget: true },
       }),
       prisma.testSession.findMany({
         where: { studentId, status: { in: ['COMPLETED', 'GRADED'] }, score: { not: null } },
@@ -102,7 +105,7 @@ export async function getGamificationData() {
     isActiveToday,
     mission,
     weeklyQuestionCount: weeklyCount,
-    weeklyGoal: 20,
+    weeklyGoal: student?.weeklyGoalTarget ?? 20,
     currentLevel: student?.currentLevel ?? 1,
     recentAvgScore,
     badgeEarnings,
@@ -120,41 +123,8 @@ export async function recordActivityAndCheckBadges(
   todayStart.setHours(0, 0, 0, 0)
 
   // 1. Update streak
-  const existingStreak = await prisma.studentStreak.findUnique({ where: { studentId } })
-
-  let newStreakValue = 1
-  let isNewDay = true
-
-  if (existingStreak?.lastActivityDate) {
-    const last = new Date(existingStreak.lastActivityDate)
-    last.setHours(0, 0, 0, 0)
-    const diffDays = Math.round((todayStart.getTime() - last.getTime()) / 86400000)
-    if (diffDays === 0) {
-      newStreakValue = existingStreak.currentStreak
-      isNewDay = false
-    } else if (diffDays === 1) {
-      newStreakValue = existingStreak.currentStreak + 1
-    } else {
-      newStreakValue = 1
-    }
-  }
-
-  const updatedStreak = await prisma.studentStreak.upsert({
-    where: { studentId },
-    create: {
-      studentId,
-      currentStreak: 1,
-      longestStreak: 1,
-      lastActivityDate: new Date(),
-      totalDays: 1,
-    },
-    update: {
-      currentStreak: newStreakValue,
-      longestStreak: Math.max(existingStreak?.longestStreak ?? 0, newStreakValue),
-      lastActivityDate: new Date(),
-      totalDays: isNewDay ? (existingStreak?.totalDays ?? 0) + 1 : (existingStreak?.totalDays ?? 1),
-    },
-  })
+  // [LEGACY] 기존 인라인 스트릭 업데이트 코드는 streak-manager.ts로 통합됨
+  const streakResult = await updateStreak(studentId)
 
   // 2. Mark today's mission complete if exists
   const mission = await prisma.dailyMission.findFirst({
@@ -205,23 +175,27 @@ export async function recordActivityAndCheckBadges(
     { threshold: 100, code: 'STREAK_100' },
   ]
   for (const { threshold, code } of streakMap) {
-    if (updatedStreak.currentStreak >= threshold && !earned.has(code)) toAward.push(code)
+    if (streakResult.currentStreak >= threshold && !earned.has(code)) toAward.push(code)
   }
 
   // Weekly goal
   const weekStart = new Date()
   weekStart.setDate(weekStart.getDate() - weekStart.getDay())
   weekStart.setHours(0, 0, 0, 0)
-  const weeklyCount = await prisma.questionResponse.count({
-    where: {
-      session: {
-        studentId,
-        status: { in: ['COMPLETED', 'GRADED'] },
-        completedAt: { gte: weekStart },
+  const [weeklyCount, studentForGoal] = await Promise.all([
+    prisma.questionResponse.count({
+      where: {
+        session: {
+          studentId,
+          status: { in: ['COMPLETED', 'GRADED'] },
+          completedAt: { gte: weekStart },
+        },
       },
-    },
-  })
-  if (weeklyCount >= 20 && !earned.has('WEEKLY_GOAL')) toAward.push('WEEKLY_GOAL')
+    }),
+    prisma.student.findUnique({ where: { id: studentId }, select: { weeklyGoalTarget: true } }),
+  ])
+  const weeklyGoalTarget = studentForGoal?.weeklyGoalTarget ?? 20
+  if (weeklyCount >= weeklyGoalTarget && !earned.has('WEEKLY_GOAL')) toAward.push('WEEKLY_GOAL')
 
   // Mission complete
   if (mission && !earned.has('MISSION_COMPLETE')) toAward.push('MISSION_COMPLETE')
@@ -238,7 +212,7 @@ export async function recordActivityAndCheckBadges(
     const newLevel = calcLevelFromScore(avg)
     const student = await prisma.student.findUnique({
       where: { id: studentId },
-      select: { currentLevel: true },
+      select: { currentLevel: true, weeklyGoalTarget: true },
     })
     if (student && newLevel > student.currentLevel) {
       await prisma.student.update({ where: { id: studentId }, data: { currentLevel: newLevel } })
@@ -247,12 +221,14 @@ export async function recordActivityAndCheckBadges(
     }
   }
 
-  // 5. Award badges
+  // 5. Award badges + XP
   for (const code of toAward) {
     const badge = await prisma.badge.findFirst({ where: { code } })
     if (badge) {
       try {
-        await prisma.badgeEarning.create({ data: { studentId, badgeId: badge.id } })
+        const badgeEarning = await prisma.badgeEarning.create({ data: { studentId, badgeId: badge.id } })
+        const xpAmount = BADGE_XP[code]
+        if (xpAmount) await awardXP(studentId, xpAmount, 'BADGE_EARNED', badgeEarning.id)
       } catch {
         // unique constraint – already earned
       }
@@ -269,62 +245,48 @@ export async function generateOrGetDailyMission() {
   if (!auth) return null
   const { studentId } = auth
 
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
+  // 새 미션 엔진 사용
+  return await getOrCreateTodayMission(studentId)
 
-  const existing = await prisma.dailyMission.findFirst({
-    where: { studentId, missionDate: { gte: todayStart } },
-  })
-  if (existing) return existing
-
-  // Find weakest domain from recent assessments
-  const assessments = await prisma.skillAssessment.findMany({
-    where: { studentId },
-    orderBy: { assessedAt: 'desc' },
-    take: 20,
-  })
-
-  const domainScores: Record<string, { sum: number; count: number }> = {}
-  for (const a of assessments) {
-    if (!domainScores[a.domain]) domainScores[a.domain] = { sum: 0, count: 0 }
-    domainScores[a.domain].sum += a.score ?? 0
-    domainScores[a.domain].count++
-  }
-
-  const domains: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
-  let weakestDomain: QuestionDomain = 'GRAMMAR'
-  let lowestScore = Infinity
-
-  for (const domain of domains) {
-    const stats = domainScores[domain]
-    if (stats && stats.count > 0) {
-      const avg = stats.sum / stats.count
-      if (avg < lowestScore) {
-        lowestScore = avg
-        weakestDomain = domain
-      }
-    }
-  }
-
-  // Pick 5 questions from weakest domain
-  const questions = await prisma.question.findMany({
-    where: { domain: weakestDomain },
-    take: 5,
-    orderBy: { createdAt: 'desc' },
-    select: { id: true },
-  })
-
-  if (questions.length === 0) return null
-
-  return prisma.dailyMission.create({
-    data: {
-      studentId,
-      missionDate: new Date(),
-      questionIds: questions.map((q) => q.id),
-      domainFocus: weakestDomain,
-      isCompleted: false,
-    },
-  })
+  // [LEGACY] 기존 최신순 5개 선택 로직
+  // const todayStart = new Date()
+  // todayStart.setHours(0, 0, 0, 0)
+  // const existing = await prisma.dailyMission.findFirst({
+  //   where: { studentId, missionDate: { gte: todayStart } },
+  // })
+  // if (existing) return existing
+  // const assessments = await prisma.skillAssessment.findMany({
+  //   where: { studentId },
+  //   orderBy: { assessedAt: 'desc' },
+  //   take: 20,
+  // })
+  // const domainScores: Record<string, { sum: number; count: number }> = {}
+  // for (const a of assessments) {
+  //   if (!domainScores[a.domain]) domainScores[a.domain] = { sum: 0, count: 0 }
+  //   domainScores[a.domain].sum += a.score ?? 0
+  //   domainScores[a.domain].count++
+  // }
+  // const domains: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+  // let weakestDomain: QuestionDomain = 'GRAMMAR'
+  // let lowestScore = Infinity
+  // for (const domain of domains) {
+  //   const stats = domainScores[domain]
+  //   if (stats && stats.count > 0) {
+  //     const avg = stats.sum / stats.count
+  //     if (avg < lowestScore) { lowestScore = avg; weakestDomain = domain }
+  //   }
+  // }
+  // const questions = await prisma.question.findMany({
+  //   where: { domain: weakestDomain },
+  //   take: 5,
+  //   orderBy: { createdAt: 'desc' },
+  //   select: { id: true },
+  // })
+  // if (questions.length === 0) return null
+  // return prisma.dailyMission.create({
+  //   data: { studentId, missionDate: new Date(), questionIds: questions.map((q) => q.id),
+  //     domainFocus: weakestDomain, isCompleted: false },
+  // })
 }
 
 // ─── Get mission questions detail ────────────────────────────────────────────
@@ -412,43 +374,8 @@ export async function submitMissionAnswers(
   })
 
   // Update streak
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
-
-  const existingStreak = await prisma.studentStreak.findUnique({ where: { studentId } })
-  let newStreakValue = 1
-  let isNewDay = true
-
-  if (existingStreak?.lastActivityDate) {
-    const last = new Date(existingStreak.lastActivityDate)
-    last.setHours(0, 0, 0, 0)
-    const diffDays = Math.round((todayStart.getTime() - last.getTime()) / 86400000)
-    if (diffDays === 0) {
-      newStreakValue = existingStreak.currentStreak
-      isNewDay = false
-    } else if (diffDays === 1) {
-      newStreakValue = existingStreak.currentStreak + 1
-    }
-  }
-
-  const updatedStreak = await prisma.studentStreak.upsert({
-    where: { studentId },
-    create: {
-      studentId,
-      currentStreak: 1,
-      longestStreak: 1,
-      lastActivityDate: new Date(),
-      totalDays: 1,
-    },
-    update: {
-      currentStreak: newStreakValue,
-      longestStreak: Math.max(existingStreak?.longestStreak ?? 0, newStreakValue),
-      lastActivityDate: new Date(),
-      totalDays: isNewDay
-        ? (existingStreak?.totalDays ?? 0) + 1
-        : existingStreak?.totalDays ?? 1,
-    },
-  })
+  // [LEGACY] 기존 인라인 스트릭 업데이트 코드는 streak-manager.ts로 통합됨
+  const streakResult = await updateStreak(studentId)
 
   // Check badges
   const existingEarnings = await prisma.badgeEarning.findMany({
@@ -468,14 +395,16 @@ export async function submitMissionAnswers(
     { threshold: 100, code: 'STREAK_100' },
   ]
   for (const { threshold, code } of streakMap) {
-    if (updatedStreak.currentStreak >= threshold && !earned.has(code)) toAward.push(code)
+    if (streakResult.currentStreak >= threshold && !earned.has(code)) toAward.push(code)
   }
 
   for (const code of toAward) {
     const badge = await prisma.badge.findFirst({ where: { code } })
     if (badge) {
       try {
-        await prisma.badgeEarning.create({ data: { studentId, badgeId: badge.id } })
+        const badgeEarning = await prisma.badgeEarning.create({ data: { studentId, badgeId: badge.id } })
+        const xpAmount = BADGE_XP[code]
+        if (xpAmount) await awardXP(studentId, xpAmount, 'BADGE_EARNED', badgeEarning.id)
       } catch {
         // already earned
       }
@@ -502,40 +431,17 @@ const getCachedDashboardData = (studentId: string) =>
       weekStart.setDate(weekStart.getDate() - weekStart.getDay())
       weekStart.setHours(0, 0, 0, 0)
 
-      // ── 미션 확인 (없으면 생성) ───────────────────────────────────────────
+      // ── 미션 확인 (없으면 새 엔진으로 생성) ─────────────────────────────
       let mission = await prisma.dailyMission.findFirst({
         where: { studentId, missionDate: { gte: todayStart } },
       })
       if (!mission) {
-        const recentAssessments = await prisma.skillAssessment.findMany({
-          where: { studentId },
-          orderBy: { assessedAt: 'desc' },
-          take: 20,
-          select: { domain: true, score: true },
-        })
-        const weakestDomain = pickWeakestDomain(recentAssessments)
-        const questionPool = await prisma.question.findMany({
-          where: { domain: weakestDomain },
-          take: 5,
-          orderBy: { createdAt: 'desc' },
-          select: { id: true },
-        })
-        if (questionPool.length > 0) {
-          try {
-            mission = await prisma.dailyMission.create({
-              data: {
-                studentId,
-                missionDate: new Date(),
-                questionIds: questionPool.map((q) => q.id),
-                domainFocus: weakestDomain,
-                isCompleted: false,
-              },
-            })
-          } catch {
-            mission = await prisma.dailyMission.findFirst({
-              where: { studentId, missionDate: { gte: todayStart } },
-            })
-          }
+        try {
+          mission = await buildDailyMissions(studentId)
+        } catch {
+          mission = await prisma.dailyMission.findFirst({
+            where: { studentId, missionDate: { gte: todayStart } },
+          })
         }
       }
 
@@ -547,7 +453,7 @@ const getCachedDashboardData = (studentId: string) =>
         }),
         prisma.student.findUnique({
           where: { id: studentId },
-          select: { currentLevel: true },
+          select: { currentLevel: true, weeklyGoalTarget: true },
         }),
         prisma.questionResponse.count({
           where: {
@@ -768,7 +674,7 @@ export async function getStudentDashboardData() {
     streak: streak ?? { currentStreak: 0, longestStreak: 0, lastActivityDate: null, totalDays: 0 },
     isActiveToday,
     weeklyQuestionCount: weeklyCount,
-    weeklyGoal: 20,
+    weeklyGoal: student?.weeklyGoalTarget ?? 20,
     currentLevel: student?.currentLevel ?? 1,
     recentAvgScore,
     domainScores,
