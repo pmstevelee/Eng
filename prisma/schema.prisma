@@ -329,20 +329,27 @@ model Question {
 
 /// 8. 문제 응답
 model QuestionResponse {
-  id           String   @id @default(uuid())
-  sessionId    String   @map("session_id")
-  questionId   String   @map("question_id")
-  answer       String?
-  answerJson   Json?    @map("answer_json")
-  isCorrect    Boolean? @map("is_correct")
-  timeSpentSec Int?     @map("time_spent_sec")
-  createdAt    DateTime @default(now()) @map("created_at")
+  id                 String    @id @default(uuid())
+  sessionId          String    @map("session_id")
+  questionId         String    @map("question_id")
+  answer             String?
+  answerJson         Json?     @map("answer_json")
+  isCorrect          Boolean?  @map("is_correct")
+  timeSpentSec       Int?      @map("time_spent_sec")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  // 스페이스드 리피티션
+  reviewDueAt        DateTime? @map("review_due_at")
+  reviewCount        Int       @default(0) @map("review_count")
+  consecutiveCorrect Int       @default(0) @map("consecutive_correct")
+  isMastered         Boolean   @default(false) @map("is_mastered")
 
   session  TestSession @relation(fields: [sessionId], references: [id])
   question Question    @relation(fields: [questionId], references: [id])
 
   @@index([sessionId])
   @@index([questionId])
+  @@index([reviewDueAt])
   @@map("question_responses")
 }
 
