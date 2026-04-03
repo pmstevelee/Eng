@@ -17,7 +17,7 @@ export default async function WithdrawPage() {
 
       <div className="bg-white rounded-xl border border-red-200 p-6 space-y-4">
         <div>
-          <h3 className="text-base font-semibold text-red-600">위험 구역</h3>
+          <h3 className="text-base font-semibold text-red-600">탈퇴안내</h3>
           <p className="text-sm text-gray-600 mt-1">
             학원을 탈퇴하면 학원에 속한 모든 교사, 학생, 테스트, 성적 데이터가
             <span className="font-medium text-gray-900"> 영구적으로 삭제</span>됩니다.
