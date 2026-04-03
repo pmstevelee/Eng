@@ -23,9 +23,10 @@ function getInitials(name: string): string {
 
 interface LoginFormProps {
   academyName: string
+  academyInitials?: string
 }
 
-export default function LoginForm({ academyName }: LoginFormProps) {
+export default function LoginForm({ academyName, academyInitials }: LoginFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -34,7 +35,7 @@ export default function LoginForm({ academyName }: LoginFormProps) {
   const [forgotMessage, setForgotMessage] = useState<string | null>(null)
   const [isForgotPending, startForgotTransition] = useTransition()
 
-  const initials = getInitials(academyName)
+  const initials = academyInitials ?? getInitials(academyName)
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
