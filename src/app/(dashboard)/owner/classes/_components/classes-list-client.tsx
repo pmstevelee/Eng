@@ -127,6 +127,7 @@ function CardMenu({
     <div ref={ref} className="relative">
       <button
         onClick={(e) => {
+          e.preventDefault()
           e.stopPropagation()
           setOpen((v) => !v)
         }}
@@ -138,7 +139,9 @@ function CardMenu({
       {open && (
         <div className="absolute right-0 top-9 z-20 w-40 bg-white rounded-xl border border-gray-200 shadow-sm py-1">
           <button
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
               setOpen(false)
               onEdit()
             }}
@@ -148,7 +151,9 @@ function CardMenu({
             수정
           </button>
           <button
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
               setOpen(false)
               onToggleActive()
             }}
@@ -159,7 +164,9 @@ function CardMenu({
           </button>
           <div className="my-1 border-t border-gray-100" />
           <button
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
               setOpen(false)
               onDelete()
             }}
