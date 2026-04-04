@@ -8,7 +8,7 @@ type StudentToEdit = {
   id: string
   name: string
   email: string
-  grade?: number | null
+  grade?: string | null
 }
 
 type Props = {
@@ -30,7 +30,7 @@ export default function EditStudentDialog({ student, onClose }: Props) {
     if (student) {
       setName(student.name)
       setEmail(student.email)
-      setGrade(student.grade ? String(student.grade) : '')
+      setGrade(student.grade ?? '')
       setPassword('')
       setShowPassword(false)
       setError('')
@@ -51,7 +51,7 @@ export default function EditStudentDialog({ student, onClose }: Props) {
       const result = await updateStudentProfile(student.id, {
         name: name.trim(),
         email: email.trim(),
-        grade: grade ? parseInt(grade) : undefined,
+        grade: grade || undefined,
         password: password || undefined,
       })
       if (result.error) {
@@ -116,15 +116,24 @@ export default function EditStudentDialog({ student, onClose }: Props) {
           {/* 학년 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">학년</label>
-            <input
-              type="number"
+            <select
               value={grade}
               onChange={(e) => setGrade(e.target.value)}
-              min={1}
-              max={12}
-              placeholder="미입력"
-              className="w-full h-11 px-3 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-700"
-            />
+              className="w-full h-11 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-700"
+            >
+              <option value="">미선택</option>
+              <option value="초1">초1</option>
+              <option value="초2">초2</option>
+              <option value="초3">초3</option>
+              <option value="중1">중1</option>
+              <option value="중2">중2</option>
+              <option value="중3">중3</option>
+              <option value="고1">고1</option>
+              <option value="고2">고2</option>
+              <option value="고3">고3</option>
+              <option value="일반">일반</option>
+              <option value="기타">기타</option>
+            </select>
           </div>
 
           {/* 새 비밀번호 */}

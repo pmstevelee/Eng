@@ -127,7 +127,7 @@ export async function createStudent(data: {
   email: string
   password: string
   classId?: string
-  grade?: number
+  grade?: string
   currentLevel?: number
   joinedAt?: string
 }): Promise<{ error?: string; studentId?: string }> {
@@ -202,7 +202,7 @@ export async function createStudent(data: {
 
 export async function updateStudentProfile(
   studentId: string,
-  data: { name: string; email: string; grade?: number; password?: string },
+  data: { name: string; email: string; grade?: string; password?: string },
 ): Promise<{ error?: string }> {
   const owner = await getOwner()
   if (!owner) return { error: '권한이 없습니다.' }

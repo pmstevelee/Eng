@@ -17,7 +17,7 @@ type Student = {
   currentLevel: number
   status: 'ACTIVE' | 'ON_LEAVE' | 'WITHDRAWN'
   createdAt: string
-  grade?: number | null
+  grade?: string | null
 }
 
 type ClassOption = {

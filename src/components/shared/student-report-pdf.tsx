@@ -30,7 +30,7 @@ type TeacherCommentData = {
 type Props = {
   studentName: string
   studentId: string
-  grade?: number | null
+  grade?: string | null
   currentLevel: number
   className?: string | null
   academyName: string
@@ -190,7 +190,7 @@ export function StudentReportPdf({
               { label: '학생명', value: studentName },
               { label: '현재 레벨', value: `Level ${currentLevel}` },
               { label: '소속 반', value: className ?? '미배정' },
-              { label: '학년', value: grade ? `${grade}학년` : '미등록' },
+              { label: '학년', value: grade ?? '미등록' },
             ].map((item) => (
               <div key={item.label} className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
                 <p className="text-xs text-gray-500 uppercase tracking-wide">{item.label}</p>
@@ -353,7 +353,7 @@ export function StudentReportPdf({
           {/* 리포트 푸터 */}
           <div className="pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
             <span>{academyName}</span>
-            <span>EduLevel LMS · {today}</span>
+            <span>위고업잉글리시 · {today}</span>
           </div>
         </div>
       </div>

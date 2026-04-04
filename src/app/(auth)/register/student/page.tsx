@@ -15,18 +15,17 @@ type Step = 1 | 2 | 3
 const STEP_LABELS = ['초대 코드', '기본 정보', '약관 동의']
 
 const GRADES = [
-  { value: '1', label: '초등 1학년' },
-  { value: '2', label: '초등 2학년' },
-  { value: '3', label: '초등 3학년' },
-  { value: '4', label: '초등 4학년' },
-  { value: '5', label: '초등 5학년' },
-  { value: '6', label: '초등 6학년' },
-  { value: '7', label: '중학교 1학년' },
-  { value: '8', label: '중학교 2학년' },
-  { value: '9', label: '중학교 3학년' },
-  { value: '10', label: '고등학교 1학년' },
-  { value: '11', label: '고등학교 2학년' },
-  { value: '12', label: '고등학교 3학년' },
+  { value: '초1', label: '초1' },
+  { value: '초2', label: '초2' },
+  { value: '초3', label: '초3' },
+  { value: '중1', label: '중1' },
+  { value: '중2', label: '중2' },
+  { value: '중3', label: '중3' },
+  { value: '고1', label: '고1' },
+  { value: '고2', label: '고2' },
+  { value: '고3', label: '고3' },
+  { value: '일반', label: '일반' },
+  { value: '기타', label: '기타' },
 ]
 
 function StepIndicator({ current }: { current: number }) {

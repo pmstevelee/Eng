@@ -6,7 +6,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-muted/50 p-4">
       <div className="w-full max-w-2xl space-y-8">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">IVY LMS</h1>
+          <h1 className="text-3xl font-bold tracking-tight">위고업잉글리시</h1>
           <p className="text-muted-foreground">어떤 역할로 가입하시겠습니까?</p>
         </div>
 

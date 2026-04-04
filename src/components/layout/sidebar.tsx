@@ -32,8 +32,8 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname()
 
-  // 로고에 표시할 이름: businessName > academyName > 'EduLevel'
-  const displayName = businessName || academyName || 'EduLevel'
+  // 로고에 표시할 이름: businessName > academyName > '위고업잉글리시'
+  const displayName = businessName || academyName || '위고업잉글리시'
   const isSuperAdmin = !academyName && !businessName
 
   const NavLink = ({
@@ -108,7 +108,7 @@ export function Sidebar({
         {/* 로고 영역 */}
         <div className="relative flex items-center h-16 border-b border-primary-800 shrink-0 px-3">
           {isCollapsed ? (
-            /* 접힌 상태: 원형 이니셜 + EduLevel 워드마크 */
+            /* 접힌 상태: 원형 이니셜 + 위고업잉글리시 워드마크 */
             <button
               onClick={onToggleCollapse}
               title="사이드바 펼치기"
@@ -117,21 +117,21 @@ export function Sidebar({
               <div className="w-8 h-8 rounded-full bg-primary-700 flex items-center justify-center text-white font-bold text-sm shrink-0">
                 {displayName.charAt(0)}
               </div>
-              <span className="text-[10px] text-gray-400 leading-none">EduLevel</span>
+              <span className="text-[10px] text-gray-400 leading-none">위고업잉글리시</span>
             </button>
           ) : (
-            /* 펼친 상태: 텍스트 이름 + EduLevel 워드마크 */
+            /* 펼친 상태: 텍스트 이름 + 위고업잉글리시 워드마크 */
             <>
               <div className="min-w-0 flex-1">
                 {isSuperAdmin ? (
                   <>
-                    <p className="text-lg font-bold text-white truncate leading-tight">EduLevel</p>
+                    <p className="text-lg font-bold text-white truncate leading-tight">위고업잉글리시</p>
                     <p className="text-xs text-gray-400">Admin</p>
                   </>
                 ) : (
                   <>
                     <p className="text-lg font-bold text-white truncate leading-tight">{displayName}</p>
-                    <p className="text-xs text-gray-400">EduLevel</p>
+                    <p className="text-xs text-gray-400">위고업잉글리시</p>
                   </>
                 )}
               </div>
@@ -191,13 +191,13 @@ export function Sidebar({
           <div className="min-w-0">
             {isSuperAdmin ? (
               <>
-                <p className="text-lg font-bold text-white truncate leading-tight">EduLevel</p>
+                <p className="text-lg font-bold text-white truncate leading-tight">위고업잉글리시</p>
                 <p className="text-xs text-gray-400">Admin</p>
               </>
             ) : (
               <>
                 <p className="text-lg font-bold text-white truncate leading-tight">{displayName}</p>
-                <p className="text-xs text-gray-400">EduLevel</p>
+                <p className="text-xs text-gray-400">위고업잉글리시</p>
               </>
             )}
           </div>

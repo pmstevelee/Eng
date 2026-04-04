@@ -85,7 +85,7 @@ export async function registerStudent(
       await tx.student.create({
         data: {
           userId,
-          grade: data.grade ? parseInt(data.grade, 10) : null,
+          grade: data.grade || null,
         },
       })
     })

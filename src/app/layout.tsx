@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "IVY LMS",
+  title: "위고업잉글리시",
   description: "영어학원 학습관리 시스템",
 };
 

@@ -48,7 +48,7 @@ export default function AddStudentDialog({ open, onClose, classes }: Props) {
         email: form.email.trim(),
         password: form.password,
         classId: form.classId || undefined,
-        grade: form.grade ? parseInt(form.grade) : undefined,
+        grade: form.grade || undefined,
         currentLevel: parseInt(form.currentLevel),
         joinedAt: form.joinedAt || undefined,
       })
@@ -166,17 +166,26 @@ export default function AddStudentDialog({ open, onClose, classes }: Props) {
                 ))}
               </select>
             </div>
-            <div className="w-28">
+            <div className="w-32">
               <label className="block text-sm font-medium text-gray-700 mb-1.5">학년</label>
-              <input
-                type="number"
+              <select
                 value={form.grade}
                 onChange={(e) => setForm({ ...form, grade: e.target.value })}
-                min={1}
-                max={12}
-                placeholder="–"
-                className="w-full h-11 px-3 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-700"
-              />
+                className="w-full h-11 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-700"
+              >
+                <option value="">미선택</option>
+                <option value="초1">초1</option>
+                <option value="초2">초2</option>
+                <option value="초3">초3</option>
+                <option value="중1">중1</option>
+                <option value="중2">중2</option>
+                <option value="중3">중3</option>
+                <option value="고1">고1</option>
+                <option value="고2">고2</option>
+                <option value="고3">고3</option>
+                <option value="일반">일반</option>
+                <option value="기타">기타</option>
+              </select>
             </div>
           </div>
 

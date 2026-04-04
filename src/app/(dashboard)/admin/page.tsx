@@ -110,7 +110,7 @@ export default async function AdminDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">시스템 대시보드</h1>
-        <p className="text-sm text-gray-500 mt-1">EduLevel 전체 운영 현황</p>
+        <p className="text-sm text-gray-500 mt-1">위고업잉글리시 전체 운영 현황</p>
       </div>
 
       {/* Stats grid */}

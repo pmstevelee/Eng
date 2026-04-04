@@ -196,7 +196,7 @@ model User {
 model Student {
   id           String        @id @default(uuid())
   userId       String        @unique @map("user_id")
-  grade               Int?
+  grade               String?
   currentLevel        Int           @default(1) @map("current_level")
   classId             String?       @map("class_id")
   status              StudentStatus @default(ACTIVE)
