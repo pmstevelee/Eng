@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
+import { prisma } from '@/lib/prisma/client'
 
 // ── 타입 정의 ──────────────────────────────────────────────────────────────────
 
@@ -242,6 +243,58 @@ export async function POST(req: NextRequest) {
     }
 
     const result = JSON.parse(rawContent) as WritingEvaluationResult
+
+    // ── DB 저장: 학생 조회 후 skill_assessments + reports 저장 ──────────────────
+    try {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.id, isDeleted: false },
+        select: { student: { select: { id: true, currentLevel: true } } },
+      })
+
+      if (dbUser?.student) {
+        const { id: studentId, currentLevel } = dbUser.student
+
+        await prisma.$transaction([
+          // 1) skill_assessments에 WRITING 점수 저장
+          prisma.skillAssessment.create({
+            data: {
+              studentId,
+              domain: 'WRITING',
+              level: currentLevel,
+              score: Math.round(result.percentage),
+              notes: `AI 쓰기 연습 - ${body.topicTitle}`,
+            },
+          }),
+          // 2) reports에 전체 평가 결과 저장
+          prisma.report.create({
+            data: {
+              studentId,
+              type: 'WRITING_PRACTICE',
+              dataJson: {
+                topicTitle: body.topicTitle,
+                topicPrompt: body.topicPrompt,
+                essay: body.essay,
+                wordCount,
+                level: currentLevel,
+                cefrLevel: body.studentProfile.cefrLevel,
+                scores: result.scores,
+                totalScore: result.totalScore,
+                totalMaxScore: result.totalMaxScore,
+                percentage: result.percentage,
+                overallComment: result.overallComment,
+                corrections: result.corrections,
+                levelUpStrategy: result.levelUpStrategy,
+                modelEssay: result.modelEssay,
+              },
+            },
+          }),
+        ])
+      }
+    } catch (dbError) {
+      // DB 저장 실패해도 AI 결과는 반환 (로그만 남김)
+      console.error('[evaluate-writing] DB 저장 오류:', dbError)
+    }
+
     return NextResponse.json({ success: true, data: result })
   } catch (error) {
     console.error('[evaluate-writing] error:', error)

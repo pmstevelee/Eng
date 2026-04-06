@@ -145,13 +145,22 @@ export default async function StudentDetailPage({
           <ChevronLeft size={16} />
           학생 목록
         </Link>
-        <Link
-          href={`/owner/students/${studentId}/practice-logs`}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-        >
-          <BookOpen size={15} />
-          연습 기록
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/owner/students/${studentId}/writing-logs`}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            <BookOpen size={15} />
+            쓰기 기록
+          </Link>
+          <Link
+            href={`/owner/students/${studentId}/practice-logs`}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            <BookOpen size={15} />
+            연습 기록
+          </Link>
+        </div>
       </div>
 
       <StudentDetailClient student={studentData} classes={classData} />

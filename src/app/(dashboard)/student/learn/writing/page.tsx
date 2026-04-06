@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft, PenLine } from 'lucide-react'
+import { ChevronLeft, PenLine, History } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { WritingClient } from './_components/writing-client'
@@ -73,12 +73,19 @@ export default async function WritingPage() {
         >
           <ChevronLeft className="h-4 w-4" />
         </Link>
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl font-bold text-gray-900">쓰기 연습</h1>
           <p className="text-xs text-gray-500">
             Level {studentProfile.currentLevel} ({studentProfile.cefrLevel}) · 레벨 맞춤 주제
           </p>
         </div>
+        <Link
+          href="/student/learn/writing/history"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+        >
+          <History className="h-4 w-4" />
+          이력
+        </Link>
       </div>
 
       {/* 안내 배너 */}

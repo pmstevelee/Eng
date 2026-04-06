@@ -136,13 +136,22 @@ export default async function StudentDetailPage({
               </p>
             </div>
           </div>
-          <Link
-            href={`/teacher/students/${student.id}/practice-logs`}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors shrink-0"
-          >
-            <BookOpen size={15} />
-            연습 기록
-          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href={`/teacher/students/${student.id}/writing-logs`}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              <BookOpen size={15} />
+              쓰기 기록
+            </Link>
+            <Link
+              href={`/teacher/students/${student.id}/practice-logs`}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              <BookOpen size={15} />
+              연습 기록
+            </Link>
+          </div>
         </div>
       </div>
 
