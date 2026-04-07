@@ -59,11 +59,16 @@ const DOMAIN_NAMES: Record<string, string> = {
 }
 
 const LEVEL_GUIDANCE: Record<number, string> = {
-  1: '짧고 단순한 문장, 일상생활 주제, 기초 어휘',
-  2: '단순한 문장, 일상생활·학교 주제, 기초~중급 어휘',
-  3: '중급 문법, 학교·취미·사회 주제, 중급 어휘',
-  4: '복잡한 문장 구조, 학술·사회 주제, 고급 어휘',
-  5: '고급 문법·어휘, 추상적·학술적 주제, 복잡한 논증',
+  1:  '매우 짧고 단순한 문장, 기초 인사·숫자·색상 주제, 극기초 어휘',
+  2:  '짧고 단순한 문장, 일상생활 주제, 기초 어휘',
+  3:  '단순한 문장, 일상생활·학교 주제, 기초~중급 어휘',
+  4:  '기초 문법 구조, 학교·가족·취미 주제, 중급 어휘',
+  5:  '다양한 문장 구조, 일상·사회 주제, 중급 어휘',
+  6:  '중급 문법, 학교·취미·사회 주제, 중급~고급 어휘',
+  7:  '복잡한 문장 구조, 학술·사회 주제, 고급 어휘',
+  8:  '고급 문법, 학술·시사 주제, 다양한 고급 어휘',
+  9:  '고급 문법·어휘, 추상적·학술적 주제, 복잡한 논증',
+  10: '최고급 문법·어휘, 전문적·추상적 주제, 학술 논문 수준',
 }
 
 // ── 메인 함수 ──────────────────────────────────────────────────────────────────
@@ -136,7 +141,7 @@ export async function generateSimilarQuestions(
 ## 원본 문제
 - 영역: ${DOMAIN_NAMES[domain] ?? domain}
 - 카테고리: ${originalQuestion.subCategory ?? '없음'}
-- 난이도: ${originalQuestion.difficulty}/5
+- 난이도: ${originalQuestion.difficulty}/10
 - CEFR: ${originalQuestion.cefrLevel ?? profile.cefrLevel}
 - 문제: ${originalQuestion.contentJson.question_text}
 ${isReading && originalQuestion.contentJson.passage ? `- 지문: ${originalQuestion.contentJson.passage}` : ''}

@@ -73,7 +73,7 @@ const DOMAIN_COLOR: Record<string, { bg: string; text: string }> = {
   LISTENING: { bg: '#E0F2FE', text: '#0EA5E9' },
 }
 
-const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+const CEFR_LEVELS = ['Pre-A1', 'A1 하', 'A1 상', 'A2 하', 'A2 상', 'B1 하', 'B1 상', 'B2 하', 'B2 상', 'C1+']
 const DOMAINS = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING', 'LISTENING'] as const
 const QUESTION_TYPE_LABEL: Record<string, string> = {
   multiple_choice: '객관식',
@@ -97,8 +97,10 @@ function DomainBadge({ domain }: { domain: string }) {
 }
 
 function DifficultyStars({ n }: { n: number }) {
+  const filled = Math.min(n, 10)
+  const empty = Math.max(0, 10 - filled)
   return (
-    <span className="text-xs text-amber-400">{'★'.repeat(n)}{'☆'.repeat(5 - n)}</span>
+    <span className="text-xs text-amber-400">{'★'.repeat(filled)}{'☆'.repeat(empty)}</span>
   )
 }
 

@@ -1,16 +1,10 @@
 import { prisma } from '@/lib/prisma/client'
 
+import { LEVEL_TO_CEFR, LEVEL_UP_THRESHOLDS } from '@/lib/constants/levels'
+
 // ── CEFR 매핑 ──────────────────────────────────────────────────────────────────
 
-const CEFR_MAP: Record<number, string> = {
-  1: 'Pre-A1',
-  2: 'A1-A2',
-  3: 'B1',
-  4: 'B2',
-  5: 'C1-C2',
-}
-
-const LEVEL_UP_THRESHOLD = 80
+const CEFR_MAP: Record<number, string> = LEVEL_TO_CEFR
 
 // ── 타입 정의 ──────────────────────────────────────────────────────────────────
 
@@ -210,6 +204,9 @@ export async function getStudentProfile(studentId: string): Promise<StudentProfi
 
   // ── 레벨업 판정 ─────────────────────────────────────────────────────────────
 
+  const levelThreshold = LEVEL_UP_THRESHOLDS.find((t) => t.from === currentLevel)
+  const levelUpRequired = levelThreshold?.requiredAvg ?? 93
+
   const readyForLevelUp =
     recentSessions.length >= 3 &&
     recentSessions.slice(0, 3).every((s) => {
@@ -217,14 +214,14 @@ export async function getStudentProfile(studentId: string): Promise<StudentProfi
         (v): v is number => v !== null && v !== undefined,
       )
       if (vals.length === 0) return false
-      return vals.reduce((a, b) => a + b, 0) / vals.length >= LEVEL_UP_THRESHOLD
+      return vals.reduce((a, b) => a + b, 0) / vals.length >= levelUpRequired
     })
 
   const levelUpGap = {
-    grammar: (domainScores.grammar.avg ?? 0) - LEVEL_UP_THRESHOLD,
-    vocabulary: (domainScores.vocabulary.avg ?? 0) - LEVEL_UP_THRESHOLD,
-    reading: (domainScores.reading.avg ?? 0) - LEVEL_UP_THRESHOLD,
-    writing: (domainScores.writing.avg ?? 0) - LEVEL_UP_THRESHOLD,
+    grammar: (domainScores.grammar.avg ?? 0) - levelUpRequired,
+    vocabulary: (domainScores.vocabulary.avg ?? 0) - levelUpRequired,
+    reading: (domainScores.reading.avg ?? 0) - levelUpRequired,
+    writing: (domainScores.writing.avg ?? 0) - levelUpRequired,
   }
 
   return {

@@ -3,7 +3,7 @@
 import { unstable_cache, revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import { BadgeType, QuestionDomain } from '@/generated/prisma'
-import { calcLevelFromScore } from '@/app/(dashboard)/student/_utils/level'
+import { LEVEL_UP_THRESHOLDS } from '@/lib/constants/levels'
 import { getCurrentUser } from '@/lib/auth'
 import { getOrCreateTodayMission, buildDailyMissions } from '@/lib/missions/mission-engine'
 import { updateStreak } from '@/lib/missions/streak-manager'
@@ -209,15 +209,18 @@ export async function recordActivityAndCheckBadges(
   })
   if (recent3.length >= 3) {
     const avg = recent3.reduce((s, r) => s + (r.score ?? 0), 0) / 3
-    const newLevel = calcLevelFromScore(avg)
     const student = await prisma.student.findUnique({
       where: { id: studentId },
       select: { currentLevel: true, weeklyGoalTarget: true },
     })
-    if (student && newLevel > student.currentLevel) {
-      await prisma.student.update({ where: { id: studentId }, data: { currentLevel: newLevel } })
-      if (!earned.has('LEVEL_UP')) toAward.push('LEVEL_UP')
-      if (newLevel >= 7 && !earned.has('MASTER')) toAward.push('MASTER')
+    if (student) {
+      const threshold = LEVEL_UP_THRESHOLDS.find((t) => t.from === student.currentLevel)
+      if (threshold && avg >= threshold.requiredAvg) {
+        const newLevel = threshold.to
+        await prisma.student.update({ where: { id: studentId }, data: { currentLevel: newLevel } })
+        if (!earned.has('LEVEL_UP')) toAward.push('LEVEL_UP')
+        if (newLevel >= 10 && !earned.has('MASTER')) toAward.push('MASTER')
+      }
     }
   }
 
@@ -705,7 +708,7 @@ export async function seedSystemBadges() {
     { code: 'PERFECT_SCORE', name: '퍼펙트!', description: '테스트에서 100점을 받았어요!', iconUrl: '💯' },
     { code: 'SPEED_DEMON', name: '빠른 영웅', description: '시간 절반 안에 테스트를 완료했어요!', iconUrl: '⚡' },
     { code: 'LEVEL_UP', name: '레벨업!', description: '영어 레벨이 올라갔어요!', iconUrl: '🆙' },
-    { code: 'MASTER', name: '마스터', description: 'C2 최고 레벨에 도달했어요!', iconUrl: '🏆' },
+    { code: 'MASTER', name: '마스터', description: 'Level 10 C1+ 최고 레벨에 도달했어요!', iconUrl: '🏆' },
     { code: 'WEEKLY_GOAL', name: '주간 목표', description: '이번 주 20문제 목표 달성!', iconUrl: '🎉' },
     { code: 'MISSION_COMPLETE', name: '미션 클리어', description: '오늘의 미션을 완료했어요!', iconUrl: '✅' },
   ]

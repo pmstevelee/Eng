@@ -197,7 +197,7 @@ model Student {
   id           String        @id @default(uuid())
   userId       String        @unique @map("user_id")
   grade               String?
-  currentLevel        Int           @default(1) @map("current_level")
+  currentLevel        Int           @default(1) @map("current_level") // 1~10
   classId             String?       @map("class_id")
   status              StudentStatus @default(ACTIVE)
   createdAt           DateTime      @default(now()) @map("created_at")
@@ -317,8 +317,8 @@ model Question {
   academyId   String?        @map("academy_id")
   domain      QuestionDomain
   subCategory String?        @map("sub_category")
-  difficulty  Int            @default(1)
-  cefrLevel   String?        @map("cefr_level")
+  difficulty  Int            @default(1) // 1~10
+  cefrLevel   String?        @map("cefr_level") // Pre-A1, A1 하, A1 상, A2 하, A2 상, B1 하, B1 상, B2 하, B2 상, C1+
   contentJson Json           @map("content_json")
   statsJson   Json?          @map("stats_json")
   createdBy   String?        @map("created_by")

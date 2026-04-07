@@ -383,7 +383,7 @@ export async function selectMissionQuestions(
 
   // CHALLENGE: 가장 강한 영역에서 레벨+1
   if (missionType === 'CHALLENGE') {
-    const targetLevel = Math.min(5, currentLevel + 1)
+    const targetLevel = Math.min(10, currentLevel + 1)
     let questionIds = await fetchQuestions({
       domain: strongestDomain,
       minDifficulty: targetLevel,
@@ -436,7 +436,7 @@ export async function selectMissionQuestions(
       const more = await fetchQuestions({
         domain: 'VOCABULARY',
         minDifficulty: Math.max(1, currentLevel - 1),
-        maxDifficulty: Math.min(5, currentLevel + 1),
+        maxDifficulty: Math.min(10, currentLevel + 1),
         studentId,
         excludeIds: [...usedIds, ...questionIds],
         take: count - questionIds.length,
@@ -457,12 +457,12 @@ export async function selectMissionQuestions(
     }
   }
 
-  // MINI_WRITING: WRITING 영역 (Level 4+ 전용)
+  // MINI_WRITING: WRITING 영역 (Level 7+ 전용)
   if (missionType === 'MINI_WRITING') {
     const questionIds = await fetchQuestions({
       domain: 'WRITING',
       minDifficulty: Math.max(1, currentLevel - 1),
-      maxDifficulty: Math.min(5, currentLevel + 1),
+      maxDifficulty: Math.min(10, currentLevel + 1),
       studentId,
       excludeIds: usedIds,
       take: count,
@@ -493,6 +493,7 @@ export async function buildDailyMissions(studentId: string) {
   let missionConfigs: MissionConfig[]
 
   if (currentLevel <= 2) {
+    // Level 1~2 (입문/기초): 3미션, 4문제, 쉬운 구성
     missionConfigs = [
       { type: 'VOCAB_QUIZ', count: 1, xpReward: 8 },
       { type: 'WEAKNESS_DRILL', count: 2, xpReward: 20 },
@@ -500,7 +501,21 @@ export async function buildDailyMissions(studentId: string) {
     if (reviewDueCount > 0) {
       missionConfigs.push({ type: 'REVIEW_MISSION', count: 1, xpReward: 15 })
     }
-  } else if (currentLevel === 3) {
+  } else if (currentLevel <= 4) {
+    // Level 3~4 (초급): 4미션, 6문제
+    missionConfigs = [
+      { type: 'VOCAB_QUIZ', count: 1, xpReward: 8 },
+      { type: 'REVIEW_MISSION', count: 2, xpReward: 30 },
+      { type: 'WEAKNESS_DRILL', count: 3, xpReward: 30 },
+      { type: 'BALANCE_PRACTICE', count: 2, xpReward: 20 },
+    ]
+    if (reviewDueCount === 0) {
+      missionConfigs = missionConfigs.map((c) =>
+        c.type === 'REVIEW_MISSION' ? { ...c, type: 'BALANCE_PRACTICE' as MissionType } : c,
+      )
+    }
+  } else if (currentLevel <= 6) {
+    // Level 5~6 (중급 입문): 4미션, 7문제
     missionConfigs = [
       { type: 'VOCAB_QUIZ', count: 1, xpReward: 8 },
       { type: 'REVIEW_MISSION', count: 2, xpReward: 30 },
@@ -513,14 +528,28 @@ export async function buildDailyMissions(studentId: string) {
         c.type === 'REVIEW_MISSION' ? { ...c, type: 'BALANCE_PRACTICE' as MissionType } : c,
       )
     }
-  } else {
-    // Level 4-5
+  } else if (currentLevel <= 8) {
+    // Level 7~8 (중급~중상급): 5미션, 9문제
     missionConfigs = [
       { type: 'REVIEW_MISSION', count: 2, xpReward: 30 },
       { type: 'WEAKNESS_DRILL', count: 3, xpReward: 30 },
       { type: 'BALANCE_PRACTICE', count: 2, xpReward: 20 },
       { type: 'CHALLENGE', count: 1, xpReward: 25 },
       { type: 'MINI_WRITING', count: 1, xpReward: 30 },
+    ]
+    if (reviewDueCount === 0) {
+      missionConfigs = missionConfigs.map((c) =>
+        c.type === 'REVIEW_MISSION' ? { ...c, type: 'BALANCE_PRACTICE' as MissionType } : c,
+      )
+    }
+  } else {
+    // Level 9~10 (상급): 5미션, 10문제+에세이
+    missionConfigs = [
+      { type: 'REVIEW_MISSION', count: 2, xpReward: 30 },
+      { type: 'WEAKNESS_DRILL', count: 3, xpReward: 30 },
+      { type: 'BALANCE_PRACTICE', count: 2, xpReward: 20 },
+      { type: 'CHALLENGE', count: 2, xpReward: 30 },
+      { type: 'MINI_WRITING', count: 1, xpReward: 35 },
     ]
     if (reviewDueCount === 0) {
       missionConfigs = missionConfigs.map((c) =>
@@ -552,7 +581,7 @@ export async function buildDailyMissions(studentId: string) {
       subCategory: result.subCategory,
       questionIds: result.questionIds,
       questionCount: result.questionIds.length,
-      difficulty: config.type === 'CHALLENGE' ? Math.min(5, currentLevel + 1) : currentLevel,
+      difficulty: config.type === 'CHALLENGE' ? Math.min(10, currentLevel + 1) : currentLevel,
       status: i === 0 ? 'AVAILABLE' : 'LOCKED',
       completedAt: null,
       correctCount: 0,

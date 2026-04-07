@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { getStudentDashboardData } from './_actions/gamification'
-import { levelLabel } from './_utils/level'
+import { getLevelInfo, LEVEL_UP_THRESHOLDS } from '@/lib/constants/levels'
 import { DailyMissionCard } from '@/components/student/daily-mission-card'
 
 export default async function StudentDashboardPage() {
@@ -50,24 +50,29 @@ export default async function StudentDashboardPage() {
   const greeting =
     hour < 12 ? '좋은 아침이에요' : hour < 18 ? '안녕하세요' : '오늘도 수고했어요'
 
-  const levelColor = LEVEL_COLORS[currentLevel] ?? 'text-[#1865F2]'
+  const levelInfo = getLevelInfo(currentLevel)
+  const levelColor = LEVEL_TEXT_COLORS[currentLevel] ?? 'text-[#1865F2]'
   const weeklyProgress = Math.min(100, Math.round((weeklyQuestionCount / weeklyGoal) * 100))
 
-  // Level ring progress
-  const currentThreshold = LEVEL_THRESHOLDS[currentLevel] ?? 0
-  const nextThreshold = LEVEL_THRESHOLDS[Math.min(currentLevel + 1, 8)] ?? 100
+  // Level ring progress (LEVEL_UP_THRESHOLDS 기반)
+  const currentThresholdEntry = LEVEL_UP_THRESHOLDS.find((t) => t.from === currentLevel)
+  const currentThreshold = currentThresholdEntry?.requiredAvg ?? 0
+  const prevThresholdEntry = LEVEL_UP_THRESHOLDS.find((t) => t.to === currentLevel)
+  const prevThreshold = prevThresholdEntry?.requiredAvg ?? 0
   const levelRingProgress =
-    recentAvgScore !== null && nextThreshold > currentThreshold
+    recentAvgScore !== null && currentThreshold > prevThreshold
       ? Math.min(
           100,
           Math.max(
             0,
-            ((recentAvgScore - currentThreshold) / (nextThreshold - currentThreshold)) * 100,
+            ((recentAvgScore - prevThreshold) / (currentThreshold - prevThreshold)) * 100,
           ),
         )
       : 0
   const pointsToNext =
-    recentAvgScore !== null && currentLevel < 7 ? Math.max(0, nextThreshold - recentAvgScore) : null
+    recentAvgScore !== null && currentLevel < 10
+      ? Math.max(0, currentThreshold - recentAvgScore)
+      : null
 
   // SVG ring constants
   const SVG_R = 52
@@ -143,7 +148,7 @@ export default async function StudentDashboardPage() {
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className={`text-3xl font-black ${levelColor}`}>Lv.{currentLevel}</span>
                 <span className="mt-0.5 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-bold text-gray-600">
-                  {levelLabel(currentLevel)}
+                  {levelInfo.nameKo}
                 </span>
               </div>
             </div>
@@ -320,18 +325,19 @@ function formatRelativeTime(date: Date): string {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LEVEL_THRESHOLDS = [0, 0, 40, 55, 65, 75, 85, 95, 100]
-
-const LEVEL_COLORS = [
-  '',
-  'text-gray-500',
-  'text-green-600',
-  'text-teal-600',
-  'text-[#1865F2]',
-  'text-[#7854F7]',
-  'text-orange-500',
-  'text-[#FFB100]',
-]
+// 레벨별 텍스트 색상 (10단계)
+const LEVEL_TEXT_COLORS: Record<number, string> = {
+  1:  'text-gray-500',
+  2:  'text-gray-600',
+  3:  'text-green-600',
+  4:  'text-green-700',
+  5:  'text-[#1865F2]',
+  6:  'text-blue-700',
+  7:  'text-[#7854F7]',
+  8:  'text-purple-700',
+  9:  'text-orange-500',
+  10: 'text-[#FFB100]',
+}
 
 const DOMAIN_KEYS = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING'] as const
 

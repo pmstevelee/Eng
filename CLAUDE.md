@@ -99,3 +99,14 @@
 ## 데이터 삭제
 - 탈퇴 시 모든 데이터 완전 삭제
 - Prisma 트랜잭션 + Supabase Auth 삭제
+
+## 레벨 시스템 (10단계)
+- Level 1 (Pre-A1) ~ Level 10 (C1+)
+- 점수 기반: 0~10 = Lv1, 11~20 = Lv2, 21~30 = Lv3, ..., 91~100 = Lv10
+- 레벨 상수: `src/lib/constants/levels.ts`의 `LEVELS`, `LEVEL_UP_THRESHOLDS`, `LEVEL_COLORS` 사용
+- 레벨 표시: `getLevelInfo(level)`, `LEVEL_COLORS[level]` 사용
+- 점수→레벨 변환: `scoreToLevel(score)` 함수 사용
+- 레벨업 기준: `LEVEL_UP_THRESHOLDS[].requiredAvg` (최근 3회 평균)
+- CEFR 목록: `CEFR_LEVEL_LIST` (Pre-A1, A1 하, A1 상, A2 하, A2 상, B1 하, B1 상, B2 하, B2 상, C1+)
+- 기존 5단계에서 하드코딩된 1~5 범위는 모두 1~10으로 변경됨
+- DB 마이그레이션 스크립트: `scripts/migrate-levels.ts`

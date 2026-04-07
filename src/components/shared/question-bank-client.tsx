@@ -100,7 +100,7 @@ const TYPE_LABEL: Record<QuestionType, string> = {
   essay: '서술형',
 }
 
-const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+const CEFR_LEVELS = ['Pre-A1', 'A1 하', 'A1 상', 'A2 하', 'A2 상', 'B1 하', 'B1 상', 'B2 하', 'B2 상', 'C1+']
 
 // ── 헬퍼 컴포넌트 ──────────────────────────────────────────────────────────────
 
@@ -116,10 +116,12 @@ function DomainBadge({ domain }: { domain: QuestionDomainType }) {
 }
 
 function DifficultyStars({ value }: { value: number }) {
+  const filled = Math.min(value, 10)
+  const empty = Math.max(0, 10 - filled)
   return (
-    <span className="text-sm text-accent-gold tracking-tight">
-      {'★'.repeat(value)}
-      <span className="text-gray-200">{'★'.repeat(5 - value)}</span>
+    <span className="text-xs text-accent-gold tracking-tight">
+      {'★'.repeat(filled)}
+      <span className="text-gray-200">{'★'.repeat(empty)}</span>
     </span>
   )
 }
@@ -683,7 +685,7 @@ function QuestionFormModal({
                   난이도 <DifficultyStars value={difficulty} />
                 </label>
                 <div className="flex items-center gap-3 h-11">
-                  <input type="range" min={1} max={5} value={difficulty} onChange={(e) => setDifficulty(Number(e.target.value))} className="w-full accent-primary-700" />
+                  <input type="range" min={1} max={10} value={difficulty} onChange={(e) => setDifficulty(Number(e.target.value))} className="w-full accent-primary-700" />
                   <span className="text-sm font-bold text-gray-700 w-4">{difficulty}</span>
                 </div>
               </div>
@@ -1000,7 +1002,7 @@ function SimilarQuestionsModal({
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <DomainBadge domain={question.domain} />
             <span className="text-xs text-gray-500">CEFR: {question.cefrLevel ?? '–'}</span>
-            <span className="text-xs text-gray-500">난이도: {question.difficulty}/5</span>
+            <span className="text-xs text-gray-500">난이도: {question.difficulty}/10</span>
             <span className="text-xs text-gray-900 font-medium truncate max-w-xs">{question.questionText || '(본문 없음)'}</span>
           </div>
           {question.domain === 'READING' && question.contentJson.passage && (
@@ -1280,7 +1282,7 @@ export default function QuestionBankClient({
 
         <StyledSelect value={String(filterDifficulty)} onChange={(v) => setFilterDifficulty(Number(v))}>
           <option value="0">전체 난이도</option>
-          {[1, 2, 3, 4, 5].map((d) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((d) => (
             <option key={d} value={d}>{'★'.repeat(d)} ({d})</option>
           ))}
         </StyledSelect>

@@ -37,7 +37,7 @@ const DOMAIN_LABEL_KO: Record<string, string> = {
   writing: '쓰기',
 }
 
-const CEFR_LEVELS = ['Pre-A1', 'A1-A2', 'B1', 'B2', 'C1-C2']
+const CEFR_LEVELS = ['Pre-A1', 'A1 하', 'A1 상', 'A2 하', 'A2 상', 'B1 하', 'B1 상', 'B2 하', 'B2 상', 'C1+']
 
 // ── 헬퍼 ───────────────────────────────────────────────────────────────────────
 
@@ -218,8 +218,8 @@ export async function selectAdaptiveQuestions(
 
   const challengeRows = await fetchCandidates({
     domain: profile.overallStrongest,
-    minDifficulty: Math.min(5, profile.currentLevel + 1),
-    maxDifficulty: Math.min(5, profile.currentLevel + 2),
+    minDifficulty: Math.min(10, profile.currentLevel + 1),
+    maxDifficulty: Math.min(10, profile.currentLevel + 2),
     studentId: profile.studentId,
     excludeIds: usedIds,
     take: challengeCount,
@@ -231,7 +231,7 @@ export async function selectAdaptiveQuestions(
       ...q,
       tag: {
         type: 'challenge',
-        label: `도전 문제: Level ${Math.min(5, profile.currentLevel + 1)}`,
+        label: `도전 문제: Level ${Math.min(10, profile.currentLevel + 1)}`,
       },
     })
   }
@@ -241,7 +241,7 @@ export async function selectAdaptiveQuestions(
     const fallbackChal = await fetchCandidates({
       domain: profile.overallWeakest,
       minDifficulty: profile.currentLevel,
-      maxDifficulty: Math.min(5, profile.currentLevel + 1),
+      maxDifficulty: Math.min(10, profile.currentLevel + 1),
       studentId: profile.studentId,
       excludeIds: usedIds,
       take: challengeCount,
@@ -252,7 +252,7 @@ export async function selectAdaptiveQuestions(
         ...q,
         tag: {
           type: 'challenge',
-          label: `도전 문제: Level ${Math.min(5, profile.currentLevel + 1)}`,
+          label: `도전 문제: Level ${Math.min(10, profile.currentLevel + 1)}`,
         },
       })
     }
@@ -270,7 +270,7 @@ export async function selectDomainQuestions(
   difficulty: number,
   count: number,
 ): Promise<SelectedQuestion[]> {
-  const targetLevel = Math.max(1, Math.min(5, difficulty))
+  const targetLevel = Math.max(1, Math.min(10, difficulty))
   const usedIds: string[] = []
   const result: SelectedQuestion[] = []
 
@@ -440,7 +440,7 @@ export async function selectSmartDomainQuestions(
       const fallback = await fetchCandidates({
         domain,
         minDifficulty: Math.max(1, targetLevel - 1),
-        maxDifficulty: Math.min(5, targetLevel + 1),
+        maxDifficulty: Math.min(10, targetLevel + 1),
         studentId: profile.studentId,
         excludeIds: usedIds,
         take: count - result.length,
@@ -456,8 +456,8 @@ export async function selectSmartDomainQuestions(
     }
   } else {
     // levelup: 현재 레벨+1, 강한 카테고리(약점이 아닌 것) 우선
-    const targetLevel = Math.min(5, profile.currentLevel + 1)
-    const fallbackLevel = Math.min(5, profile.currentLevel + 2)
+    const targetLevel = Math.min(10, profile.currentLevel + 1)
+    const fallbackLevel = Math.min(10, profile.currentLevel + 2)
 
     // 1차: 높은 난이도로 가져오기
     const rows = await fetchCandidates({
