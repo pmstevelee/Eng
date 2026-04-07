@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 import { recordActivityAndCheckBadges } from '@/app/(dashboard)/student/_actions/gamification'
+import { recordLevelTestUsage } from '@/lib/questions/usage-tracker'
+import { updateQuestionQuality } from '@/lib/questions/quality-updater'
 
 async function getAuthedStudent() {
   const supabase = await createClient()
@@ -120,12 +122,14 @@ export async function submitTest(
     where: { id: sessionId, studentId: auth.studentId },
     select: {
       id: true,
+      testId: true,
       status: true,
       studentId: true,
       test: {
         select: {
           questionOrder: true,
           title: true,
+          type: true,
           createdBy: true,
           academyId: true,
         },
@@ -270,6 +274,18 @@ export async function submitTest(
 
     // 5단계: 게이미피케이션 (세션 업데이트 완료 후 실행)
     const gamification = await recordActivityAndCheckBadges(auth.studentId, sessionId)
+
+    // 6단계: 레벨 테스트 사용 이력 기록 (비동기, 다음 레벨 테스트 중복 방지용)
+    if (session.test.type === 'LEVEL_TEST' && session.test.academyId) {
+      recordLevelTestUsage(session.test.academyId, session.testId, questionIds).catch(
+        console.error,
+      )
+    }
+
+    // 7단계: 문제 품질 점수 비동기 갱신 (학생 응답 속도에 영향 없음)
+    for (const qId of questionIds) {
+      updateQuestionQuality(qId).catch(console.error)
+    }
 
     revalidateTag(`student-${auth.studentId}-tests`)
     revalidateTag(`student-${auth.studentId}-grades`)

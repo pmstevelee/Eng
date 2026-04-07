@@ -113,6 +113,13 @@ enum TestStatus {
   GRADED
 }
 
+enum QuestionSource {
+  SYSTEM           // 시스템 초기 생성
+  AI_GENERATED     // AI가 생성 (유사문제 등)
+  TEACHER_CREATED  // 교사가 직접 생성
+  AI_SHARED        // AI 유사문제 중 공용 풀에 공유된 것
+}
+
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 /// 1. 학원
@@ -151,6 +158,7 @@ model Academy {
   enrollments   Enrollment[]
   subscriptions Subscription[]
   announcements Announcement[]
+  questionUsageLogs QuestionUsageLog[]
 
   @@map("academies")
 }
@@ -314,7 +322,7 @@ model TestSession {
 /// 7. 문제 뱅크
 model Question {
   id          String         @id @default(uuid())
-  academyId   String?        @map("academy_id")
+  academyId   String?        @map("academy_id") // null: 공용, 특정 ID: 해당 학원 전용
   domain      QuestionDomain
   subCategory String?        @map("sub_category")
   difficulty  Int            @default(1) // 1~10
@@ -324,11 +332,26 @@ model Question {
   createdBy   String?        @map("created_by")
   createdAt   DateTime       @default(now()) @map("created_at")
 
-  academy   Academy?           @relation(fields: [academyId], references: [id])
-  creator   User?              @relation(fields: [createdBy], references: [id])
-  responses QuestionResponse[]
+  // 공용 문제 뱅크 필드
+  source             QuestionSource @default(SYSTEM)
+  isVerified         Boolean        @default(false) @map("is_verified")
+  usageCount         Int            @default(0) @map("usage_count")
+  qualityScore       Float?         @map("quality_score")
+  isActive           Boolean        @default(true) @map("is_active")
+  originalQuestionId String?        @map("original_question_id") // AI 유사문제인 경우 원본 ID
+
+  academy          Academy?           @relation(fields: [academyId], references: [id])
+  creator          User?              @relation(fields: [createdBy], references: [id])
+  responses        QuestionResponse[]
+  usageLogs        QuestionUsageLog[]
+  originalQuestion Question?          @relation("QuestionVariants", fields: [originalQuestionId], references: [id])
+  variants         Question[]         @relation("QuestionVariants")
 
   @@index([academyId])
+  @@index([academyId, domain, difficulty, isActive])
+  @@index([source, isVerified, isActive])
+  @@index([domain, difficulty, isActive, isVerified])
+  @@index([qualityScore])
   @@map("questions")
 }
 
@@ -628,6 +651,37 @@ model PracticeLog {
   @@index([studentId])
   @@index([createdAt])
   @@map("practice_logs")
+}
+
+/// 21. 문제 사용 이력 (같은 학원에 재출제 방지)
+model QuestionUsageLog {
+  id         String   @id @default(uuid())
+  questionId String   @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  academyId  String   @map("academy_id")
+  academy    Academy  @relation(fields: [academyId], references: [id], onDelete: Cascade)
+  testType   String   @map("test_type") // LEVEL_TEST, UNIT_TEST, PRACTICE
+  testId     String   @map("test_id")
+  usedAt     DateTime @default(now()) @map("used_at")
+
+  @@unique([questionId, academyId, testType])
+  @@index([academyId, testType])
+  @@index([questionId])
+  @@map("question_usage_log")
+}
+
+/// 22. 문제 뱅크 통계 캐시
+model QuestionBankStats {
+  id              String   @id @default(uuid())
+  domain          String   // GRAMMAR, VOCABULARY, READING, WRITING
+  difficulty      Int      // 1~10
+  totalCount      Int      @default(0) @map("total_count")
+  verifiedCount   Int      @default(0) @map("verified_count")
+  avgQualityScore Float?   @map("avg_quality_score")
+  lastUpdatedAt   DateTime @default(now()) @map("last_updated_at")
+
+  @@unique([domain, difficulty])
+  @@map("question_bank_stats")
 }
 
 /// 18. 요금제 정의

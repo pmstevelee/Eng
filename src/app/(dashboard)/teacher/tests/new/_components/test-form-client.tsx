@@ -44,7 +44,9 @@ type Props = {
   getStudentsForDeployAction: () => Promise<{ classes: DeployClass[]; error?: string }>
   getAutoQuestionsAction: (
     configs: AutoConfig[],
+    testType?: 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE',
   ) => Promise<{ questions: QuestionRowMin[]; error?: string }>
+
   /** 편집 모드: 기존 데이터 */
   initialData?: InitialData
   /** 편집 모드: 수정 저장 액션 */
@@ -237,7 +239,7 @@ export default function TestFormClient({
         count: c.count,
       }))
 
-    const result = await getAutoQuestionsAction(configs)
+    const result = await getAutoQuestionsAction(configs, type)
     setAutoLoading(false)
 
     if (result.error) {
@@ -269,7 +271,7 @@ export default function TestFormClient({
     const configs: AutoConfig[] = [
       { domain: current.domain, cefrLevel: current.cefrLevel ?? undefined, count: 1 },
     ]
-    const result = await getAutoQuestionsAction(configs)
+    const result = await getAutoQuestionsAction(configs, type)
     if (result.error || result.questions.length === 0) return
 
     const replacement = result.questions[0]

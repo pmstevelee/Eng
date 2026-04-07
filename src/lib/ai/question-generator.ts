@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
 import { prisma } from '@/lib/prisma/client'
+import { shareQuestionToPublicPool } from '@/lib/questions/share-to-pool'
 import type { StudentProfile } from './student-analyzer'
 
 // ── 타입 ───────────────────────────────────────────────────────────────────────
@@ -81,6 +82,7 @@ export async function generateSimilarQuestions(
   originalQuestion: SourceQuestion,
   profile: StudentProfile,
   count: number,
+  academyId?: string,
 ): Promise<GeneratedQuestion[]> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
@@ -205,13 +207,27 @@ ${originalQuestion.contentJson.options?.length ? `- 선택지: ${originalQuestio
             difficulty: originalQuestion.difficulty,
             cefrLevel: originalQuestion.cefrLevel ?? profile.cefrLevel,
             contentJson,
+            source: 'AI_GENERATED',
+            isVerified: true,
+            isActive: true,
+            originalQuestionId: originalQuestion.id,
             statsJson: {
               aiGenerated: true,
               sourceQuestionId: originalQuestion.id,
             },
-            // academyId: null → 공용 문제
+            ...(academyId ? { academyId } : {}),
           },
         })
+
+        // 공용 풀에 비동기 공유 (학생 응답 속도에 영향 없음)
+        shareQuestionToPublicPool({
+          id: saved.id,
+          domain: saved.domain,
+          subCategory: saved.subCategory,
+          difficulty: saved.difficulty,
+          cefrLevel: saved.cefrLevel,
+          contentJson: contentJson as Record<string, unknown> & { question_text: string },
+        }).catch(console.error)
 
         savedQuestions.push({
           id: saved.id,

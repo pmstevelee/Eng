@@ -110,3 +110,17 @@
 - CEFR 목록: `CEFR_LEVEL_LIST` (Pre-A1, A1 하, A1 상, A2 하, A2 상, B1 하, B1 상, B2 하, B2 상, C1+)
 - 기존 5단계에서 하드코딩된 1~5 범위는 모두 1~10으로 변경됨
 - DB 마이그레이션 스크립트: `scripts/migrate-levels.ts`
+
+## 문제 뱅크 구조
+- 공용 문제: `academyId = null` (모든 학원 사용 가능, isVerified=true)
+- 학원 전용: `academyId = 특정 ID` (해당 학원만 사용)
+- 문제 검색: `WHERE (academyId IS NULL OR academyId = 현재학원) AND isActive = true`
+- AI 유사문제는 공용 풀에 비동기 공유 (`source: AI_SHARED`, `share-to-pool.ts`)
+- 레벨 테스트: `question_usage_log`로 학원별 1년 중복 방지 (`usage-tracker.ts`)
+- 연습/학습공간: 중복 허용
+- 통계 캐시: `question_bank_stats` 테이블 (도메인×난이도별 집계, `updateQuestionBankStatsForDomain()`)
+- 캐시 레이어: `src/lib/questions/cached-queries.ts` (`unstable_cache`, tag: `question-bank`)
+- 캐시 무효화: `revalidateTag('question-bank')` 문제 추가/수정/삭제 시
+- 적응형 테스트 최적화: `preloadAdaptiveQuestions()` → 영역별 전체 로드 후 메모리에서 선택
+- 관리자 대시보드: `/admin/question-bank` (히트맵, AI 자동 생성, 품질 관리)
+- 출처(source): SYSTEM / AI_GENERATED / AI_SHARED / TEACHER_CREATED

@@ -6,6 +6,7 @@ import OpenAI from 'openai'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { getStudentProfile } from '@/lib/ai/student-analyzer'
+import { updateQuestionQuality } from '@/lib/questions/quality-updater'
 import { selectAdaptiveQuestions, selectSmartDomainQuestions } from '@/lib/ai/question-selector'
 import type {
   QuestionContentJson,
@@ -704,6 +705,9 @@ export async function gradeAnswer(
     content.type === 'multiple_choice'
       ? answer.trim() === correctAnswer.trim()
       : answer.trim().toLowerCase() === correctAnswer.trim().toLowerCase()
+
+  // 품질 점수 비동기 갱신 (학생 응답 속도에 영향 없음)
+  updateQuestionQuality(questionId).catch(console.error)
 
   return {
     isCorrect,

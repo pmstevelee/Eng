@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
+import { getUsedLevelTestQuestions } from '@/lib/questions/usage-tracker'
 
 async function getAuthedTeacher() {
   const supabase = await createClient()
@@ -468,38 +469,88 @@ export async function updateDeployedStudents(
 // 자동 문제 선택
 export async function getAutoQuestions(
   configs: AutoConfig[],
+  testType?: 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE',
 ): Promise<{ questions: QuestionRowMin[]; error?: string }> {
   const user = await getAuthedTeacher()
   if (!user) return { questions: [], error: '권한이 없습니다.' }
 
+  // 레벨 테스트: 최근 1년 이내 이 학원에서 사용된 문제 ID 조회
+  const levelTestExcludeIds =
+    testType === 'LEVEL_TEST' ? await getUsedLevelTestQuestions(user.academyId!) : []
+
   const results: QuestionRowMin[] = []
-  const usedIds = new Set<string>()
+  const sessionUsedIds = new Set<string>()
+
+  const selectFields = {
+    id: true,
+    domain: true,
+    cefrLevel: true,
+    difficulty: true,
+    contentJson: true,
+    subCategory: true,
+  } as const
 
   for (const config of configs) {
     if (config.count <= 0) continue
 
-    const questions = await prisma.question.findMany({
+    const excludeIds = [...Array.from(sessionUsedIds), ...levelTestExcludeIds]
+
+    // 1차: 공용 풀 + 학원 문제, 품질 높은 것 우선
+    let questions = await prisma.question.findMany({
       where: {
-        academyId: user.academyId!,
+        OR: [{ academyId: null }, { academyId: user.academyId! }],
         domain: config.domain,
+        isActive: true,
         ...(config.cefrLevel ? { cefrLevel: config.cefrLevel } : {}),
-        NOT: { id: { in: Array.from(usedIds) } },
+        ...(excludeIds.length > 0 ? { NOT: { id: { in: excludeIds } } } : {}),
       },
-      take: config.count * 3, // fetch more for shuffling
-      select: {
-        id: true,
-        domain: true,
-        cefrLevel: true,
-        difficulty: true,
-        contentJson: true,
-        subCategory: true,
-      },
+      take: config.count * 3,
+      select: selectFields,
+      orderBy: [{ qualityScore: 'desc' }, { usageCount: 'asc' }],
     })
 
-    // shuffle and take
+    // 2차: 레벨 테스트이고 문제 부족 시 1년 이상 된 문제도 허용
+    if (testType === 'LEVEL_TEST' && questions.length < config.count) {
+      const recentExcludeIds = Array.from(sessionUsedIds)
+      questions = await prisma.question.findMany({
+        where: {
+          OR: [{ academyId: null }, { academyId: user.academyId! }],
+          domain: config.domain,
+          isActive: true,
+          ...(config.cefrLevel ? { cefrLevel: config.cefrLevel } : {}),
+          ...(recentExcludeIds.length > 0
+            ? { NOT: { id: { in: recentExcludeIds } } }
+            : {}),
+        },
+        take: config.count * 3,
+        select: selectFields,
+        orderBy: [{ qualityScore: 'desc' }, { usageCount: 'asc' }],
+      })
+    }
+
+    // 3차: 인접 난이도까지 확장 (cefrLevel 조건 완화)
+    if (questions.length < config.count) {
+      const recentExcludeIds = Array.from(sessionUsedIds)
+      const additional = await prisma.question.findMany({
+        where: {
+          OR: [{ academyId: null }, { academyId: user.academyId! }],
+          domain: config.domain,
+          isActive: true,
+          ...(recentExcludeIds.length > 0
+            ? { NOT: { id: { in: recentExcludeIds } } }
+            : {}),
+        },
+        take: (config.count - questions.length) * 3,
+        select: selectFields,
+        orderBy: [{ qualityScore: 'desc' }, { usageCount: 'asc' }],
+      })
+      const existingIds = new Set(questions.map((q) => q.id))
+      questions = [...questions, ...additional.filter((q) => !existingIds.has(q.id))]
+    }
+
     const shuffled = questions.sort(() => Math.random() - 0.5).slice(0, config.count)
     for (const q of shuffled) {
-      usedIds.add(q.id)
+      sessionUsedIds.add(q.id)
       results.push({
         id: q.id,
         domain: q.domain,

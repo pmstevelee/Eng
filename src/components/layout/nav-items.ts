@@ -39,6 +39,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '대시보드', href: '/admin', icon: LayoutDashboard },
     { label: '학원 관리', href: '/admin/academies', icon: Building2 },
     { label: '구독 관리', href: '/admin/subscriptions', icon: CreditCard },
+    { label: '문제 뱅크', href: '/admin/question-bank', icon: Library },
   ],
   ACADEMY_OWNER: [
     { label: '대시보드', href: '/owner', icon: LayoutDashboard },
