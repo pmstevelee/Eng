@@ -3,22 +3,15 @@ import Link from 'next/link'
 import { ChevronLeft, PenLine, History } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { calculateDomainLevels } from '@/lib/ai/domain-level-calculator'
+import { getLevelInfo } from '@/lib/constants/levels'
 import { WritingClient } from './_components/writing-client'
 import type { StudentProfileForWriting } from './_components/writing-client'
-
-const CEFR_MAP: Record<number, string> = {
-  1: 'Pre-A1',
-  2: 'A1-A2',
-  3: 'B1',
-  4: 'B2',
-  5: 'C1-C2',
-}
 
 export default async function WritingPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'STUDENT') redirect('/login')
 
-  // 학생 레코드 조회
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id, isDeleted: false },
     select: {
@@ -31,36 +24,31 @@ export default async function WritingPage() {
   if (!dbUser?.student) redirect('/login')
   const { id: studentId, currentLevel } = dbUser.student
 
-  // 최근 스킬 평가 점수 조회
-  const skillAssessments = await prisma.skillAssessment.findMany({
-    where: { studentId },
+  // 최근 스킬 평가 점수 조회 (최근 쓰기 점수 추이용)
+  const recentWriting = await prisma.skillAssessment.findMany({
+    where: { studentId, domain: 'WRITING', score: { not: null } },
     orderBy: { assessedAt: 'desc' },
-    take: 50,
-    select: { domain: true, score: true },
+    take: 5,
+    select: { score: true },
   })
+  const recentWritingScores = recentWriting.map((r) => r.score as number)
 
-  // 도메인별 최신 점수 추출
-  const latestByDomain: Record<string, number | null> = {}
-  for (const sa of skillAssessments) {
-    if (!(sa.domain in latestByDomain)) {
-      latestByDomain[sa.domain] = sa.score
-    }
-  }
+  // 4영역 10단계 레벨 계산
+  const domainLevels = await calculateDomainLevels(studentId)
 
-  // 최근 쓰기 점수 추이 (최근 5회)
-  const recentWritingScores = skillAssessments
-    .filter((sa) => sa.domain === 'WRITING' && sa.score !== null)
-    .slice(0, 5)
-    .map((sa) => sa.score as number)
+  // currentLevel은 10단계 기준으로 보정 (1~10)
+  const safeLevel = Math.min(Math.max(currentLevel, 1), 10)
+  const levelInfo = getLevelInfo(safeLevel)
 
   const studentProfile: StudentProfileForWriting = {
-    currentLevel: Math.min(Math.max(currentLevel, 1), 5),
-    cefrLevel: CEFR_MAP[currentLevel] ?? 'Pre-A1',
-    grammarAvg: latestByDomain['GRAMMAR'] ?? null,
-    vocabAvg: latestByDomain['VOCABULARY'] ?? null,
-    readingAvg: latestByDomain['READING'] ?? null,
-    writingAvg: latestByDomain['WRITING'] ?? null,
+    currentLevel: safeLevel,
+    cefrLevel: levelInfo.cefr,
+    grammarAvg: domainLevels.grammar.score || null,
+    vocabAvg: domainLevels.vocabulary.score || null,
+    readingAvg: domainLevels.reading.score || null,
+    writingAvg: domainLevels.writing.score || null,
     recentWritingScores,
+    domainLevels,
   }
 
   return (
@@ -76,7 +64,7 @@ export default async function WritingPage() {
         <div className="flex-1">
           <h1 className="text-xl font-bold text-gray-900">쓰기 연습</h1>
           <p className="text-xs text-gray-500">
-            Level {studentProfile.currentLevel} ({studentProfile.cefrLevel}) · 레벨 맞춤 주제
+            Level {safeLevel} ({levelInfo.cefr}) · 레벨 맞춤 주제
           </p>
         </div>
         <Link
@@ -100,9 +88,9 @@ export default async function WritingPage() {
           <PenLine className="h-5 w-5 text-white" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-gray-900">AI 맞춤형 쓰기 평가</p>
+          <p className="text-sm font-semibold text-gray-900">AI 10단계 쓰기 레벨 평가</p>
           <p className="text-xs text-gray-500">
-            현재 레벨 기준으로 문법·구성·어휘·표현을 평가하고 레벨업 전략을 제시해 드립니다
+            에세이 실력을 독립적으로 판정하고, 4영역 간 레벨 격차를 분석해 드립니다
           </p>
         </div>
       </div>
