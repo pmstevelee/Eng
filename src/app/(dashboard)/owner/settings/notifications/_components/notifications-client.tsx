@@ -19,8 +19,12 @@ const LEVEL_TEST_PERIOD_OPTIONS = [
   { value: 'none', label: '사용 안 함' },
 ]
 
+type BooleanNotificationKey = {
+  [K in keyof NotificationSettings]: NotificationSettings[K] extends boolean ? K : never
+}[keyof NotificationSettings]
+
 const items: {
-  key: keyof NotificationSettings
+  key: BooleanNotificationKey
   label: string
   description: string
   alwaysOn?: boolean
