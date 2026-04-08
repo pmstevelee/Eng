@@ -207,16 +207,13 @@ export async function submitAdaptiveAnswer(
   let serverIsCorrect: boolean | null = isCorrect
   if (question) {
     const content = question.contentJson as QuestionContentJson
-    if (
-      content.type === 'multiple_choice' ||
-      content.type === 'fill_blank' ||
-      content.type === 'short_answer'
-    ) {
-      serverIsCorrect = content.correct_answer
-        ? answer.toLowerCase().trim() === content.correct_answer.toLowerCase().trim()
-        : null
-    } else if (content.type === 'essay') {
+    if (content.type === 'essay') {
       serverIsCorrect = null // AI가 별도 채점
+    } else if (content.correct_answer) {
+      // multiple_choice, fill_blank, short_answer, reading_comprehension 등 모두 동일하게 채점
+      serverIsCorrect = answer.toLowerCase().trim() === content.correct_answer.toLowerCase().trim()
+    } else {
+      serverIsCorrect = null
     }
   }
 
@@ -455,6 +452,10 @@ async function finalizeAdaptiveTest(
       completedAt: now,
       lastSavedAt: now,
       isPlacement: true,
+      grammarScore: result.grammarLevel * 10,
+      vocabularyScore: result.vocabularyLevel * 10,
+      readingScore: result.readingLevel * 10,
+      writingScore: result.writingLevel * 10,
       assessedLevels: {
         grammar: result.grammarLevel,
         vocabulary: result.vocabularyLevel,
@@ -532,6 +533,9 @@ async function finalizeAdaptiveTestWithWriting(
       completedAt: now,
       lastSavedAt: now,
       isPlacement: true,
+      grammarScore: result.grammarLevel * 10,
+      vocabularyScore: result.vocabularyLevel * 10,
+      readingScore: result.readingLevel * 10,
       writingScore: writingEstimate * 10,
       assessedLevels: {
         grammar: result.grammarLevel,

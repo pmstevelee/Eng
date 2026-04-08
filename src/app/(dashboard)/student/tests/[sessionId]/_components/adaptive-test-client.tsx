@@ -132,7 +132,7 @@ function MultipleChoiceQuestion({
   selectedAnswer: string
   onSelect: (v: string) => void
 }) {
-  if (content.type !== 'multiple_choice' || !content.options) return null
+  if (!content.options || content.options.length === 0) return null
 
   return (
     <div className="space-y-2.5">
@@ -208,6 +208,7 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle }: Props)
 
   // ── 채점 헬퍼 ────────────────────────────────────────────────────────────────
   function checkAnswer(content: QuestionContentJson, userAnswer: string): boolean {
+    if (content.type === 'essay') return false
     if (!content.correct_answer || !userAnswer) return false
     return userAnswer.toLowerCase().trim() === content.correct_answer.toLowerCase().trim()
   }
@@ -557,7 +558,7 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle }: Props)
             </p>
 
             {/* 선택지 / 답변 입력 */}
-            {contentJson.type === 'multiple_choice' ? (
+            {contentJson.options && contentJson.options.length > 0 ? (
               <MultipleChoiceQuestion
                 content={contentJson}
                 selectedAnswer={answer}
