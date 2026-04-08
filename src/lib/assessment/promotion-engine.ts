@@ -12,6 +12,7 @@
  *   - 오늘의 미션 전체 완료 시
  */
 
+import { Prisma } from '@/generated/prisma'
 import { prisma } from '@/lib/prisma/client'
 
 // ─── 반환 타입 ────────────────────────────────────────────────────────────────
@@ -282,11 +283,11 @@ export async function checkPromotionStatus(studentId: string): Promise<Promotion
       currentLevel: statusCurrentLevel,
       targetLevel: statusTargetLevel,
       condition1Met: promoted ? false : condition1Met,
-      condition1Detail: promoted ? {} : condition1Detail,
+      condition1Detail: promoted ? ({} as Prisma.InputJsonValue) : condition1Detail,
       condition2Met: promoted ? false : condition2Met,
-      condition2Detail: promoted ? {} : condition2Detail,
+      condition2Detail: promoted ? ({} as Prisma.InputJsonValue) : condition2Detail,
       condition3Met: promoted ? false : condition3Met,
-      condition3Detail: promoted ? {} : condition3Detail,
+      condition3Detail: promoted ? ({} as Prisma.InputJsonValue) : condition3Detail,
       allConditionsMet: promoted ? false : allConditionsMet,
       promotedAt: promoted ? new Date() : undefined,
     },
@@ -295,11 +296,11 @@ export async function checkPromotionStatus(studentId: string): Promise<Promotion
       currentLevel: statusCurrentLevel,
       targetLevel: statusTargetLevel,
       condition1Met: promoted ? false : condition1Met,
-      condition1Detail: promoted ? {} : condition1Detail,
+      condition1Detail: promoted ? ({} as Prisma.InputJsonValue) : condition1Detail,
       condition2Met: promoted ? false : condition2Met,
-      condition2Detail: promoted ? {} : condition2Detail,
+      condition2Detail: promoted ? ({} as Prisma.InputJsonValue) : condition2Detail,
       condition3Met: promoted ? false : condition3Met,
-      condition3Detail: promoted ? {} : condition3Detail,
+      condition3Detail: promoted ? ({} as Prisma.InputJsonValue) : condition3Detail,
       allConditionsMet: false,
       promotedAt: promoted ? new Date() : null,
     },
