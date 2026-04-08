@@ -9,3 +9,8 @@ ALTER TABLE "test_sessions"
   ADD COLUMN IF NOT EXISTS "assessed_levels"   JSONB,
   ADD COLUMN IF NOT EXISTS "placement_result"  JSONB,
   ADD COLUMN IF NOT EXISTS "listening_score"   INTEGER;
+
+-- AlterTable: notifications에 링크/관련ID 필드 추가
+ALTER TABLE "notifications"
+  ADD COLUMN IF NOT EXISTS "link"        TEXT,
+  ADD COLUMN IF NOT EXISTS "related_id"  TEXT;
