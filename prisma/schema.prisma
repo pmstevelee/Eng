@@ -195,6 +195,7 @@ model User {
   generatedReports Report[]         @relation("ReportGenerator")
   notifications    Notification[]
   announcements    Announcement[]   @relation("AnnouncementAuthor")
+  levelAssessments LevelAssessment[] @relation("AssessmentOverrider")
 
   @@index([academyId])
   @@map("users")
@@ -230,6 +231,8 @@ model Student {
   dailyMissions    DailyMission[]
   practiceLogs     PracticeLog[]
   xpHistory        StudentXp[]
+  levelAssessments LevelAssessment[]
+  promotionStatus  LevelPromotionStatus?
 
   @@index([classId])
   @@index([status])
@@ -279,6 +282,15 @@ model Test {
   isActive      Boolean    @default(true) @map("is_active")
   createdAt     DateTime   @default(now()) @map("created_at")
 
+  // 적응형 레벨 테스트 필드
+  isAdaptive     Boolean @default(false) @map("is_adaptive")
+  adaptiveConfig Json?   @map("adaptive_config")
+
+  // 단원 테스트 필드 (승급 조건 연동)
+  targetLevel        Int?    @map("target_level")         // 이 테스트의 대상 레벨 (1~10)
+  unitName           String? @map("unit_name")            // 단원명 (예: "Unit 3: 관계대명사")
+  learningObjectives String? @map("learning_objectives")  // 학습 목표
+
   academy      Academy       @relation(fields: [academyId], references: [id])
   creator      User          @relation("TestCreator", fields: [createdBy], references: [id])
   class        Class?        @relation(fields: [classId], references: [id])
@@ -308,9 +320,15 @@ model TestSession {
   lastSavedAt        DateTime?     @map("last_saved_at")
   status             SessionStatus @default(NOT_STARTED)
 
+  // 적응형 레벨 테스트 결과 필드
+  isPlacement     Boolean @default(false) @map("is_placement")
+  assessedLevels  Json?   @map("assessed_levels")
+  placementResult Json?   @map("placement_result")
+
   test              Test               @relation(fields: [testId], references: [id])
   student           Student            @relation(fields: [studentId], references: [id])
   questionResponses QuestionResponse[]
+  levelAssessments  LevelAssessment[]
 
   @@index([testId])
   @@index([studentId])
@@ -682,6 +700,55 @@ model QuestionBankStats {
 
   @@unique([domain, difficulty])
   @@map("question_bank_stats")
+}
+
+/// 23. 레벨 평가 이력 (적응형 배치고사 결과)
+model LevelAssessment {
+  id             String    @id @default(uuid())
+  studentId      String    @map("student_id")
+  testSessionId  String?   @map("test_session_id")
+  overrideBy     String?   @map("override_by") // 교사 수동 조정 시 user id
+  assessmentType String    @map("assessment_type") // PLACEMENT, PERIODIC, PROMOTION, TEACHER_OVERRIDE
+  grammarLevel   Int       @map("grammar_level")
+  vocabularyLevel Int      @map("vocabulary_level")
+  readingLevel   Int       @map("reading_level")
+  writingLevel   Int       @map("writing_level")
+  overallLevel   Int       @map("overall_level")
+  detailJson     Json      @map("detail_json")
+  assessedAt     DateTime  @default(now()) @map("assessed_at")
+  assessedBy     String    @map("assessed_by") // SYSTEM, TEACHER_OVERRIDE
+  isCurrent      Boolean   @default(true) @map("is_current")
+
+  student     Student      @relation(fields: [studentId], references: [id])
+  testSession TestSession? @relation(fields: [testSessionId], references: [id])
+  overrider   User?        @relation("AssessmentOverrider", fields: [overrideBy], references: [id])
+
+  @@index([studentId])
+  @@index([isCurrent])
+  @@index([studentId, isCurrent])
+  @@map("level_assessments")
+}
+
+/// 24. 레벨 승급 상태 추적
+model LevelPromotionStatus {
+  id               String    @id @default(uuid())
+  studentId        String    @unique @map("student_id")
+  currentLevel     Int       @map("current_level")
+  targetLevel      Int       @map("target_level")
+  condition1Met    Boolean   @default(false) @map("condition1_met")    // 레벨 테스트: 4영역 중 3개 이상 목표 레벨 충족
+  condition1Detail Json?     @map("condition1_detail")                  // 영역별 측정 레벨
+  condition2Met    Boolean   @default(false) @map("condition2_met")    // 단원 테스트: 이수율 70%↑ + 평균 60점↑
+  condition2Detail Json?     @map("condition2_detail")                  // 이수율, 평균점수
+  condition3Met    Boolean   @default(false) @map("condition3_met")    // 학습 활동: 문제 50개↑ 또는 미션 20일↑
+  condition3Detail Json?     @map("condition3_detail")                  // 문제 수, 미션 완료일
+  allConditionsMet Boolean   @default(false) @map("all_conditions_met")
+  promotedAt       DateTime? @map("promoted_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@index([studentId])
+  @@map("level_promotion_status")
 }
 
 /// 18. 요금제 정의
