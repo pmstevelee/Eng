@@ -196,8 +196,8 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     }),
   ])
 
-  // Batch 3: 출석/학생 현황 데이터 + 카운트
-  const [attendanceRaw, newStudentsRaw, withdrawnRaw, totalActiveStudents] = await Promise.all([
+  // Batch 3: 출석/학생 현황 데이터 + 카운트 + 승급 대기
+  const [attendanceRaw, newStudentsRaw, withdrawnRaw, totalActiveStudents, nearPromotionStudents] = await Promise.all([
     // 7. Attendance raw (for heatmap + weekday)
     prisma.attendance.findMany({
       where: {
@@ -241,6 +241,28 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     // 10. Active student count
     prisma.student.count({
       where: { user: { academyId, isActive: true }, status: 'ACTIVE' },
+    }),
+
+    // 11. 승급 대기 학생 (조건1 또는 조건3은 충족, 조건2만 미충족으로 근접)
+    prisma.levelPromotionStatus.findMany({
+      where: {
+        student: { user: { academyId, isActive: true }, status: 'ACTIVE' },
+        allConditionsMet: false,
+        condition1Met: true,
+        condition3Met: true,
+      },
+      select: {
+        currentLevel: true,
+        targetLevel: true,
+        condition2Detail: true,
+        student: {
+          select: {
+            user: { select: { name: true } },
+            class: { select: { name: true } },
+          },
+        },
+      },
+      take: 10,
     }),
   ])
 
@@ -520,6 +542,23 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     withdrawn: monthlyEnrollmentMap[k].withdrawn,
   }))
 
+  // 승급 대기 학생 처리
+  const nearPromotion = nearPromotionStudents.map((ps) => {
+    const c2 = (ps.condition2Detail ?? {}) as Record<string, unknown>
+    const completionRate = typeof c2.completionRate === 'number' ? c2.completionRate : 0
+    const remaining = typeof c2.totalTests === 'number' && typeof c2.completedTests === 'number'
+      ? Math.ceil((c2.totalTests as number) * 0.7) - (c2.completedTests as number)
+      : null
+    return {
+      name: ps.student.user.name,
+      className: ps.student.class?.name ?? '반 미배정',
+      currentLevel: ps.currentLevel,
+      targetLevel: ps.targetLevel,
+      completionRate,
+      remaining,
+    }
+  }).sort((a, b) => b.completionRate - a.completionRate)
+
   return {
     scoreHistogram,
     scoreStats,
@@ -540,6 +579,7 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     absentTop10,
     monthlyEnrollments,
     totalActiveStudents,
+    nearPromotion,
   }
 }
 

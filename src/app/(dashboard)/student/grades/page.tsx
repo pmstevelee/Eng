@@ -63,8 +63,8 @@ const getCachedStudentGrades = (studentId: string) =>
       const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
       const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
 
-      // Fetch student level + sessions + skill assessments in parallel
-      const [student, sessions, skillAssessments] = await Promise.all([
+      // Fetch student level + sessions + skill assessments + level assessments in parallel
+      const [student, sessions, skillAssessments, levelAssessments] = await Promise.all([
         prisma.student.findUnique({
           where: { id: studentId },
           select: { currentLevel: true },
@@ -94,6 +94,23 @@ const getCachedStudentGrades = (studentId: string) =>
           orderBy: { assessedAt: 'asc' },
           take: 200,
           select: { level: true, score: true, assessedAt: true },
+        }),
+        prisma.levelAssessment.findMany({
+          where: { studentId },
+          orderBy: { assessedAt: 'desc' },
+          take: 50,
+          select: {
+            id: true,
+            assessmentType: true,
+            grammarLevel: true,
+            vocabularyLevel: true,
+            readingLevel: true,
+            writingLevel: true,
+            overallLevel: true,
+            assessedAt: true,
+            assessedBy: true,
+            isCurrent: true,
+          },
         }),
       ])
 
@@ -244,7 +261,7 @@ const getCachedStudentGrades = (studentId: string) =>
           .sort((a, b) => a.rate - b.rate)
       }
 
-      // ── 레벨 히스토리 ──
+      // ── 레벨 히스토리 (SkillAssessment 기반) ──
       const levelHistory: {
         date: string
         fromLevel: number
@@ -264,6 +281,24 @@ const getCachedStudentGrades = (studentId: string) =>
         prevLevel = sa.level
       }
 
+      // ── 공식 레벨 평가 이력 (LevelAssessment 기반) ──
+      const assessmentHistory = levelAssessments.map((la) => ({
+        id: la.id,
+        date: new Date(la.assessedAt).toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }),
+        assessmentType: la.assessmentType,
+        grammarLevel: la.grammarLevel,
+        vocabularyLevel: la.vocabularyLevel,
+        readingLevel: la.readingLevel,
+        writingLevel: la.writingLevel,
+        overallLevel: la.overallLevel,
+        assessedBy: la.assessedBy,
+        isCurrent: la.isCurrent,
+      }))
+
       return {
         currentLevel,
         overallAvg,
@@ -279,6 +314,7 @@ const getCachedStudentGrades = (studentId: string) =>
         historyData,
         subCategoryData,
         levelHistory,
+        assessmentHistory,
       }
     },
     ['student-grades', studentId],
@@ -319,6 +355,7 @@ export default async function GradesPage() {
     historyData,
     subCategoryData,
     levelHistory,
+    assessmentHistory,
   } = await getCachedStudentGrades(dbUser.student.id)
   console.log(`  [쿼리3] getCachedStudentGrades: ${(performance.now() - dataStart).toFixed(0)}ms`)
 
@@ -480,6 +517,7 @@ export default async function GradesPage() {
         historyData={historyData}
         subCategoryData={subCategoryData}
         levelHistory={levelHistory}
+        assessmentHistory={assessmentHistory}
         currentLevel={currentLevel}
         domainSessionPoints={sessionPoints}
       />

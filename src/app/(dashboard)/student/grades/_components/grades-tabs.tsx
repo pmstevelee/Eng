@@ -66,6 +66,19 @@ type LevelHistoryItem = {
   score: number | null
 }
 
+type AssessmentHistoryItem = {
+  id: string
+  date: string
+  assessmentType: string
+  grammarLevel: number
+  vocabularyLevel: number
+  readingLevel: number
+  writingLevel: number
+  overallLevel: number
+  assessedBy: string
+  isCurrent: boolean
+}
+
 type SessionPoint = {
   id: string
   title: string
@@ -82,6 +95,7 @@ type Props = {
   historyData: HistoryItem[]
   subCategoryData: Record<DomainKey, SubCategoryItem[]>
   levelHistory: LevelHistoryItem[]
+  assessmentHistory: AssessmentHistoryItem[]
   currentLevel: number
   domainSessionPoints: SessionPoint[]
 }
@@ -103,10 +117,32 @@ const TABS: { key: TabKey; label: string }[] = [
 
 const DOMAINS: DomainKey[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
 
+const ASSESSMENT_TYPE_LABEL: Record<string, string> = {
+  PLACEMENT: '입학 배치',
+  PERIODIC: '정기 레벨 테스트',
+  PROMOTION: '승급 판정',
+  TEACHER_OVERRIDE: '교사 수동 조정',
+}
+
+const ASSESSMENT_TYPE_COLOR: Record<string, string> = {
+  PLACEMENT: '#0FBFAD',
+  PERIODIC: '#1865F2',
+  PROMOTION: '#1FAF54',
+  TEACHER_OVERRIDE: '#FFB100',
+}
+
+const DOMAIN_SHORT: Record<string, string> = {
+  GRAMMAR: '문법',
+  VOCABULARY: '어휘',
+  READING: '읽기',
+  WRITING: '쓰기',
+}
+
 export function GradesTabs({
   historyData,
   subCategoryData,
   levelHistory,
+  assessmentHistory,
   currentLevel,
   domainSessionPoints,
 }: Props) {
@@ -364,13 +400,82 @@ export function GradesTabs({
             </div>
           </div>
 
-          {/* Timeline */}
-          {levelHistory.length === 0 ? (
+          {/* Assessment Timeline (LevelAssessment 기반) */}
+          {assessmentHistory.length > 0 ? (
+            <div className="relative pl-7">
+              <div className="absolute left-[13px] top-2 h-[calc(100%-2rem)] w-0.5 bg-gray-200" />
+              {assessmentHistory.map((item) => {
+                const isPromotion = item.assessmentType === 'PROMOTION'
+                const dotColor = ASSESSMENT_TYPE_COLOR[item.assessmentType] ?? '#6B7280'
+                return (
+                  <div key={item.id} className="relative mb-4">
+                    <div
+                      className="absolute -left-7 top-4 h-4 w-4 rounded-full border-2 border-white shadow-sm"
+                      style={{ backgroundColor: dotColor }}
+                    />
+                    <div
+                      className={`rounded-xl border p-4 ${isPromotion ? 'border-[#1FAF54]/40 bg-[#F0FDF4]' : 'border-gray-100 bg-white'}`}
+                    >
+                      <div className="mb-2 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="rounded-full px-2.5 py-0.5 text-xs font-medium"
+                            style={{ backgroundColor: `${dotColor}20`, color: dotColor }}
+                          >
+                            {ASSESSMENT_TYPE_LABEL[item.assessmentType] ?? item.assessmentType}
+                          </span>
+                          {item.isCurrent && (
+                            <span className="rounded-full bg-[#1865F2]/10 px-2 py-0.5 text-xs font-medium text-[#1865F2]">
+                              현재
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-400">{item.date}</p>
+                      </div>
+
+                      {isPromotion ? (
+                        <p className="text-sm font-bold text-[#1FAF54]">
+                          🎉 Level {item.overallLevel} 승급!
+                        </p>
+                      ) : (
+                        <>
+                          <p className="mb-2 text-sm font-semibold text-gray-700">
+                            종합 Level {item.overallLevel} 판정
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {(
+                              [
+                                { key: 'GRAMMAR', val: item.grammarLevel },
+                                { key: 'VOCABULARY', val: item.vocabularyLevel },
+                                { key: 'READING', val: item.readingLevel },
+                                { key: 'WRITING', val: item.writingLevel },
+                              ] as const
+                            ).map(({ key, val }) => (
+                              <span
+                                key={key}
+                                className="rounded-lg bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600"
+                              >
+                                {DOMAIN_SHORT[key]} Lv{val}
+                              </span>
+                            ))}
+                          </div>
+                          {item.assessedBy === 'TEACHER_OVERRIDE' && (
+                            <p className="mt-1.5 text-xs text-[#FFB100]">교사 수동 조정</p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : levelHistory.length === 0 ? (
             <div className="rounded-xl bg-gray-50 py-14 text-center">
-              <p className="text-sm font-medium text-gray-400">레벨 변화 기록이 없습니다</p>
+              <p className="text-sm font-medium text-gray-400">레벨 평가 기록이 없습니다</p>
               <p className="mt-1 text-xs text-gray-300">레벨 테스트를 응시하면 기록됩니다</p>
             </div>
           ) : (
+            /* 레거시: SkillAssessment 기반 표시 */
             <div className="relative pl-7">
               <div className="absolute left-[13px] top-2 h-[calc(100%-2rem)] w-0.5 bg-gray-200" />
               {[...levelHistory].reverse().map((item, idx) => {

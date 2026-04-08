@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpen } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { StudentDetailClient } from './student-detail-client'
+import { getPromotionProgress } from '@/lib/assessment/promotion-engine'
 
 export default async function StudentDetailPage({
   params,
@@ -30,7 +31,7 @@ export default async function StudentDetailPage({
   const now = new Date()
   const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1)
 
-  const [testSessions, learningPath, teacherComments, attendanceRecords] = await Promise.all([
+  const [testSessions, learningPath, teacherComments, attendanceRecords, levelAssessments, promotionProgress] = await Promise.all([
     prisma.testSession.findMany({
       where: {
         studentId: student.id,
@@ -72,6 +73,25 @@ export default async function StudentDetailPage({
       orderBy: { date: 'asc' },
       select: { id: true, date: true, status: true, classId: true },
     }),
+    prisma.levelAssessment.findMany({
+      where: { studentId: student.id },
+      orderBy: { assessedAt: 'desc' },
+      take: 20,
+      select: {
+        id: true,
+        assessmentType: true,
+        grammarLevel: true,
+        vocabularyLevel: true,
+        readingLevel: true,
+        writingLevel: true,
+        overallLevel: true,
+        assessedAt: true,
+        assessedBy: true,
+        isCurrent: true,
+        detailJson: true,
+      },
+    }),
+    getPromotionProgress(student.id),
   ])
 
   // Serialize all Date objects
@@ -111,6 +131,20 @@ export default async function StudentDetailPage({
     date: a.date.toISOString(),
     status: a.status as 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED',
     classId: a.classId,
+  }))
+
+  const serializedLevelAssessments = levelAssessments.map((la) => ({
+    id: la.id,
+    assessmentType: la.assessmentType,
+    grammarLevel: la.grammarLevel,
+    vocabularyLevel: la.vocabularyLevel,
+    readingLevel: la.readingLevel,
+    writingLevel: la.writingLevel,
+    overallLevel: la.overallLevel,
+    assessedAt: la.assessedAt.toISOString(),
+    assessedBy: la.assessedBy,
+    isCurrent: la.isCurrent,
+    detailJson: la.detailJson,
   }))
 
   return (
@@ -164,6 +198,8 @@ export default async function StudentDetailPage({
         learningPath={serializedLearningPath}
         comments={serializedComments}
         attendance={serializedAttendance}
+        levelAssessments={serializedLevelAssessments}
+        promotionProgress={promotionProgress}
       />
     </div>
   )

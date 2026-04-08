@@ -8,6 +8,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { getOrCreateTodayMission, buildDailyMissions } from '@/lib/missions/mission-engine'
 import { updateStreak } from '@/lib/missions/streak-manager'
 import { awardXP, BADGE_XP } from '@/lib/missions/xp-manager'
+import { getPromotionProgress } from '@/lib/assessment/promotion-engine'
 
 // ─── Auth helper ─────────────────────────────────────────────────────────────
 
@@ -564,18 +565,24 @@ export async function getStudentDashboardData() {
   todayStart.setHours(0, 0, 0, 0)
 
   // 모든 쿼리가 캐시 안에 있음 → 캐시 히트 시 DB 왕복 0건
-  const {
-    mission: rawMission,
-    streak: cachedStreak,
-    student,
-    weeklyCount,
-    completedSessions: rawSessions,
-    badgeEarnings: rawBadges,
-    assessments,
-    upcomingSessions,
-    completedMissions: rawMissions,
-    missionQuestions,
-  } = await getCachedDashboardData(studentId)
+  const [
+    {
+      mission: rawMission,
+      streak: cachedStreak,
+      student,
+      weeklyCount,
+      completedSessions: rawSessions,
+      badgeEarnings: rawBadges,
+      assessments,
+      upcomingSessions,
+      completedMissions: rawMissions,
+      missionQuestions,
+    },
+    promotionProgress,
+  ] = await Promise.all([
+    getCachedDashboardData(studentId),
+    getPromotionProgress(studentId),
+  ])
 
   // ISO 문자열 → Date 역직렬화
   const mission = rawMission
@@ -685,6 +692,7 @@ export async function getStudentDashboardData() {
     upcomingSessions: upcomingSessions.filter((s) => s.test.isActive),
     recentActivities: activities.slice(0, 3),
     missionQuestions,
+    promotionProgress,
   }
 }
 

@@ -204,3 +204,115 @@ export async function regenerateLearningPath(studentId: string): Promise<{ error
   revalidatePath(`/teacher/students/${studentId}`)
   return {}
 }
+
+// ─── 레벨 수동 조정 ────────────────────────────────────────────────────────────
+
+export async function overrideStudentLevel(input: {
+  studentId: string
+  targetLevel: number
+  reason: string
+}): Promise<{ error?: string }> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'TEACHER') return { error: '권한이 없습니다.' }
+  if (input.targetLevel < 1 || input.targetLevel > 10) return { error: '레벨은 1~10 사이여야 합니다.' }
+  if (!input.reason.trim()) return { error: '조정 사유를 입력해주세요.' }
+
+  const student = await prisma.student.findUnique({
+    where: { id: input.studentId },
+    select: { currentLevel: true, userId: true, user: { select: { academyId: true } } },
+  })
+  if (!student) return { error: '학생을 찾을 수 없습니다.' }
+
+  await prisma.$transaction(async (tx) => {
+    // 이전 isCurrent 플래그 해제
+    await tx.levelAssessment.updateMany({
+      where: { studentId: input.studentId, isCurrent: true },
+      data: { isCurrent: false },
+    })
+
+    // 수동 조정 이력 생성
+    await tx.levelAssessment.create({
+      data: {
+        studentId: input.studentId,
+        overrideBy: user.id,
+        assessmentType: 'TEACHER_OVERRIDE',
+        grammarLevel: input.targetLevel,
+        vocabularyLevel: input.targetLevel,
+        readingLevel: input.targetLevel,
+        writingLevel: input.targetLevel,
+        overallLevel: input.targetLevel,
+        detailJson: { reason: input.reason, previousLevel: student.currentLevel },
+        assessedBy: 'TEACHER_OVERRIDE',
+        isCurrent: true,
+      },
+    })
+
+    // 학생 레벨 업데이트
+    await tx.student.update({
+      where: { id: input.studentId },
+      data: { currentLevel: input.targetLevel },
+    })
+
+    // 알림 생성
+    await tx.notification.create({
+      data: {
+        userId: student.userId,
+        academyId: student.user.academyId,
+        type: 'INFO',
+        title: '레벨 조정',
+        message: `선생님이 레벨을 Level ${input.targetLevel}로 조정했습니다.`,
+        link: '/student/grades',
+      },
+    })
+  })
+
+  revalidatePath(`/teacher/students/${input.studentId}`)
+  return {}
+}
+
+// ─── 레벨 테스트 배포 ─────────────────────────────────────────────────────────
+
+export async function deployLevelTestToStudent(input: {
+  studentId: string
+}): Promise<{ error?: string; sessionId?: string }> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'TEACHER' || !user.academyId) return { error: '권한이 없습니다.' }
+
+  const student = await prisma.student.findUnique({
+    where: { id: input.studentId },
+    select: { currentLevel: true, userId: true, user: { select: { academyId: true } } },
+  })
+  if (!student) return { error: '학생을 찾을 수 없습니다.' }
+
+  // 적응형 레벨 테스트 생성
+  const test = await prisma.test.create({
+    data: {
+      academyId: user.academyId,
+      title: `레벨 테스트 (${new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })})`,
+      type: 'LEVEL_TEST',
+      status: 'PUBLISHED',
+      createdBy: user.id,
+      isAdaptive: true,
+      adaptiveConfig: {
+        questionsPerDomain: 8,
+        startLevel: student.currentLevel,
+        domains: ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING'],
+      },
+      totalScore: 100,
+      timeLimitMin: 40,
+    },
+  })
+
+  // 학생 세션 생성
+  const session = await prisma.testSession.create({
+    data: {
+      testId: test.id,
+      studentId: input.studentId,
+      status: 'NOT_STARTED',
+      isPlacement: true,
+    },
+  })
+
+  revalidatePath(`/teacher/students/${input.studentId}`)
+  return { sessionId: session.id }
+}

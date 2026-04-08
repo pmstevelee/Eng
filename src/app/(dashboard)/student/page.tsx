@@ -7,10 +7,13 @@ import {
   ClipboardList,
   Clock,
   TrendingUp,
+  CheckCircle2,
+  Circle,
+  AlertCircle,
 } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { getStudentDashboardData } from './_actions/gamification'
-import { getLevelInfo, LEVEL_UP_THRESHOLDS } from '@/lib/constants/levels'
+import { getLevelInfo } from '@/lib/constants/levels'
 import { DailyMissionCard } from '@/components/student/daily-mission-card'
 
 export default async function StudentDashboardPage() {
@@ -38,10 +41,9 @@ export default async function StudentDashboardPage() {
     weeklyGoal,
     currentLevel,
     totalXp,
-    recentAvgScore,
-    domainScores,
     upcomingSessions,
     recentActivities,
+    promotionProgress,
   } = data
 
   const firstName = user.name.split(' ')[0]
@@ -53,31 +55,6 @@ export default async function StudentDashboardPage() {
   const levelInfo = getLevelInfo(currentLevel)
   const levelColor = LEVEL_TEXT_COLORS[currentLevel] ?? 'text-[#1865F2]'
   const weeklyProgress = Math.min(100, Math.round((weeklyQuestionCount / weeklyGoal) * 100))
-
-  // Level ring progress (LEVEL_UP_THRESHOLDS 기반)
-  const currentThresholdEntry = LEVEL_UP_THRESHOLDS.find((t) => t.from === currentLevel)
-  const currentThreshold = currentThresholdEntry?.requiredAvg ?? 0
-  const prevThresholdEntry = LEVEL_UP_THRESHOLDS.find((t) => t.to === currentLevel)
-  const prevThreshold = prevThresholdEntry?.requiredAvg ?? 0
-  const levelRingProgress =
-    recentAvgScore !== null && currentThreshold > prevThreshold
-      ? Math.min(
-          100,
-          Math.max(
-            0,
-            ((recentAvgScore - prevThreshold) / (currentThreshold - prevThreshold)) * 100,
-          ),
-        )
-      : 0
-  const pointsToNext =
-    recentAvgScore !== null && currentLevel < 10
-      ? Math.max(0, currentThreshold - recentAvgScore)
-      : null
-
-  // SVG ring constants
-  const SVG_R = 52
-  const SVG_C = 2 * Math.PI * SVG_R
-  const svgOffset = SVG_C * (1 - levelRingProgress / 100)
 
   return (
     <div className="space-y-6">
@@ -114,81 +91,145 @@ export default async function StudentDashboardPage() {
         </div>
       </div>
 
-      {/* ── 내 레벨 카드 ────────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <TrendingUp size={18} className={levelColor} />
-          <span className="text-sm font-medium text-gray-700">내 레벨</span>
-        </div>
-        <div className="flex flex-col items-center gap-6 sm:flex-row">
-          {/* Circular ring */}
-          <div className="flex flex-shrink-0 flex-col items-center gap-2">
-            <div className="relative h-36 w-36">
-              <svg
-                width="144"
-                height="144"
-                viewBox="0 0 144 144"
-                className="-rotate-90"
-                aria-hidden="true"
-              >
-                <circle cx="72" cy="72" r={SVG_R} fill="none" stroke="#E5E7EB" strokeWidth="10" />
-                <circle
-                  cx="72"
-                  cy="72"
-                  r={SVG_R}
-                  fill="none"
-                  stroke="#1FAF54"
-                  strokeWidth="10"
-                  strokeLinecap="round"
-                  strokeDasharray={SVG_C}
-                  strokeDashoffset={svgOffset}
-                  className="transition-all duration-700"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={`text-3xl font-black ${levelColor}`}>Lv.{currentLevel}</span>
-                <span className="mt-0.5 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-bold text-gray-600">
-                  {levelInfo.nameKo}
-                </span>
-              </div>
+      {/* ── 승급 진행 카드 ──────────────────────────────────────────────── */}
+      {promotionProgress.allMet ? (
+        /* 승급 완료 축하 카드 */
+        <div className="rounded-xl border border-[#1FAF54]/40 bg-[#F0FDF4] p-5">
+          <div className="mb-1 flex items-center gap-2">
+            <TrendingUp size={18} className="text-[#1FAF54]" />
+            <span className="text-sm font-medium text-[#1FAF54]">레벨 승급</span>
+          </div>
+          <div className="mt-3 text-center">
+            <p className="text-2xl font-black text-gray-900">🎉 축하합니다!</p>
+            <p className="mt-1 text-base font-bold text-[#1FAF54]">
+              Level {promotionProgress.currentLevel} → Level {promotionProgress.targetLevel} 승급!
+            </p>
+            <p className="mt-1 text-sm text-gray-600">
+              &quot;{getLevelInfo(promotionProgress.currentLevel).nameKo}&quot; →{' '}
+              &quot;{getLevelInfo(promotionProgress.targetLevel).nameKo}&quot;
+            </p>
+            <div className="mt-3 flex justify-center gap-4">
+              <span className="rounded-full bg-[#FFB100]/20 px-3 py-1 text-sm font-bold text-[#FFB100]">
+                +100 XP 획득!
+              </span>
+              <span className="rounded-full bg-[#1FAF54]/20 px-3 py-1 text-sm font-bold text-[#1FAF54]">
+                🏆 LEVEL_UP 배지
+              </span>
             </div>
-            {pointsToNext !== null ? (
-              <p className="text-center text-sm text-gray-500">
-                다음 레벨까지{' '}
-                <span className="font-bold text-gray-700">{pointsToNext}점</span> 필요
-              </p>
-            ) : recentAvgScore === null ? (
-              <p className="text-center text-xs text-gray-400">테스트를 완료하면 갱신돼요</p>
-            ) : (
-              <p className="text-center text-sm font-bold text-[#FFB100]">🏆 최고 레벨 달성!</p>
-            )}
+            <Link
+              href="/student/missions"
+              className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[#1FAF54] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#178a42]"
+            >
+              새 레벨의 학습 시작하기
+              <ChevronRight size={14} />
+            </Link>
+          </div>
+        </div>
+      ) : (
+        /* 승급 진행 카드 */
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={18} className={levelColor} />
+              <span className="text-sm font-medium text-gray-700">현재 레벨</span>
+            </div>
+            <Link href="/student/grades" className="text-xs text-[#1865F2] hover:underline">
+              레벨 이력 보기 →
+            </Link>
           </div>
 
-          {/* Domain bars */}
-          <div className="w-full flex-1 space-y-3">
-            {DOMAIN_KEYS.map((domain) => {
-              const cfg = DOMAIN_CONFIG[domain]
-              const score = domainScores[domain] ?? 0
-              return (
-                <div key={domain}>
-                  <div className="mb-1.5 flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">{cfg.label}</span>
-                    <span className="text-sm font-bold" style={{ color: cfg.color }}>
-                      {score}/100
-                    </span>
-                  </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
-                    <div
-                      className="h-2.5 rounded-full transition-all duration-700"
-                      style={{ width: `${score}%`, backgroundColor: cfg.color }}
-                    />
-                  </div>
-                </div>
-              )
-            })}
+          {/* 현재 레벨 배지 */}
+          <div className="mb-4 flex items-center gap-3">
+            <div
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white"
+              style={{ backgroundColor: LEVEL_BG_COLORS[currentLevel] ?? '#1865F2' }}
+            >
+              <div className="text-center">
+                <p className="text-[10px] font-semibold uppercase leading-none tracking-wide opacity-80">
+                  Level
+                </p>
+                <p className="text-2xl font-black leading-tight">{currentLevel}</p>
+              </div>
+            </div>
+            <div>
+              <p className={`text-lg font-black ${levelColor}`}>{levelInfo.nameKo}</p>
+              <p className="text-xs text-gray-400">{levelInfo.cefr}</p>
+            </div>
           </div>
+
+          {/* Level 승급 조건 */}
+          <p className="mb-3 text-xs font-semibold text-gray-500">
+            Level {promotionProgress.targetLevel} 승급까지:
+          </p>
+          <div className="space-y-3">
+            {/* 조건 1: 레벨 테스트 */}
+            <ConditionRow
+              met={promotionProgress.conditions.levelTest.met}
+              label="레벨 테스트 통과"
+              detail={promotionProgress.conditions.levelTest.detail}
+            />
+
+            {/* 조건 2: 단원 테스트 */}
+            <div>
+              <ConditionRow
+                met={promotionProgress.conditions.unitTests.met}
+                label={`단원 테스트 이수`}
+                detail={promotionProgress.conditions.unitTests.detail}
+              />
+              {!promotionProgress.conditions.unitTests.met &&
+                promotionProgress.conditions.unitTests.progress !== undefined &&
+                promotionProgress.conditions.unitTests.progress > 0 && (
+                  <div className="mt-1.5 pl-7">
+                    <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                      <div
+                        className="h-2 rounded-full bg-[#1865F2] transition-all"
+                        style={{ width: `${promotionProgress.conditions.unitTests.progress}%` }}
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-gray-400">
+                      {promotionProgress.conditions.unitTests.progress}% 이수
+                      {promotionProgress.conditions.unitTests.remaining
+                        ? ` · ${promotionProgress.conditions.unitTests.remaining}`
+                        : ''}
+                    </p>
+                  </div>
+                )}
+            </div>
+
+            {/* 조건 3: 학습 활동 */}
+            <ConditionRow
+              met={promotionProgress.conditions.learningActivity.met}
+              label="학습 활동 충족"
+              detail={promotionProgress.conditions.learningActivity.detail}
+            />
+          </div>
+
+          {/* 다음 액션 안내 */}
+          <div className="mt-4 rounded-xl bg-[#EEF4FF] px-4 py-3">
+            <p className="text-xs font-medium text-[#1865F2]">💡 {promotionProgress.nextAction}</p>
+          </div>
+
+          {/* 취약 영역 경고 */}
+          {promotionProgress.weakAreas.length > 0 && (
+            <div className="mt-2 rounded-xl bg-[#FFF7E6] px-4 py-3">
+              <div className="flex items-start gap-2">
+                <AlertCircle size={14} className="mt-0.5 shrink-0 text-[#FFB100]" />
+                <div>
+                  <p className="text-xs font-medium text-[#FFB100]">
+                    보강 추천: {promotionProgress.weakAreas.slice(0, 2).join(', ')}
+                  </p>
+                  <Link
+                    href="/student/missions"
+                    className="mt-0.5 text-xs text-[#FFB100] underline"
+                  >
+                    학습 시작하기 →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       {/* ── 오늘의 미션 카드 ─────────────────────────────────────────────── */}
       {mission && <DailyMissionCard mission={mission} />}
@@ -309,6 +350,32 @@ export default async function StudentDashboardPage() {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+function ConditionRow({
+  met,
+  label,
+  detail,
+}: {
+  met: boolean
+  label: string
+  detail: string
+}) {
+  return (
+    <div className="flex items-start gap-2">
+      {met ? (
+        <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-[#1FAF54]" />
+      ) : (
+        <Circle size={16} className="mt-0.5 shrink-0 text-gray-300" />
+      )}
+      <div className="min-w-0">
+        <p className={`text-sm font-medium ${met ? 'text-[#1FAF54]' : 'text-gray-700'}`}>
+          {label}
+        </p>
+        <p className="text-xs text-gray-400 leading-relaxed">{detail}</p>
+      </div>
+    </div>
+  )
+}
+
 function formatRelativeTime(date: Date): string {
   const now = new Date()
   const diffMin = Math.floor((now.getTime() - date.getTime()) / 60000)
@@ -325,6 +392,20 @@ function formatRelativeTime(date: Date): string {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
+// 레벨별 배경 색상 (10단계)
+const LEVEL_BG_COLORS: Record<number, string> = {
+  1:  '#9CA3AF',
+  2:  '#6B7280',
+  3:  '#16A34A',
+  4:  '#15803D',
+  5:  '#1865F2',
+  6:  '#1D4ED8',
+  7:  '#7854F7',
+  8:  '#6D28D9',
+  9:  '#EA580C',
+  10: '#FFB100',
+}
+
 // 레벨별 텍스트 색상 (10단계)
 const LEVEL_TEXT_COLORS: Record<number, string> = {
   1:  'text-gray-500',
@@ -339,13 +420,4 @@ const LEVEL_TEXT_COLORS: Record<number, string> = {
   10: 'text-[#FFB100]',
 }
 
-const DOMAIN_KEYS = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING'] as const
-
-const DOMAIN_CONFIG: Record<string, { label: string; color: string }> = {
-  GRAMMAR: { label: 'Grammar', color: '#1865F2' },
-  VOCABULARY: { label: 'Vocabulary', color: '#7854F7' },
-  READING: { label: 'Reading', color: '#0FBFAD' },
-  WRITING: { label: 'Writing', color: '#E35C20' },
-  LISTENING: { label: 'Listening', color: '#0EA5E9' },
-}
 

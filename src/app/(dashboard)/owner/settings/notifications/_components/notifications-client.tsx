@@ -9,7 +9,15 @@ type NotificationSettings = {
   newStudentJoin: boolean
   testCompleted: boolean
   subscriptionExpiring: boolean
+  levelTestPeriod: string
 }
+
+const LEVEL_TEST_PERIOD_OPTIONS = [
+  { value: 'monthly', label: '매월' },
+  { value: 'bimonthly', label: '격월' },
+  { value: 'quarterly', label: '분기 (3개월)' },
+  { value: 'none', label: '사용 안 함' },
+]
 
 const items: {
   key: keyof NotificationSettings
@@ -70,29 +78,68 @@ export function NotificationsClient({ initialSettings }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-      {items.map((item) => (
-        <div key={item.key} className="flex items-center justify-between px-6 py-5">
-          <div className="flex-1 pr-8">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-medium text-gray-900">{item.label}</p>
-              {item.alwaysOn && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                  필수
-                </span>
-              )}
+    <div className="space-y-5">
+      <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+        {items.map((item) => (
+          <div key={item.key} className="flex items-center justify-between px-6 py-5">
+            <div className="flex-1 pr-8">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-gray-900">{item.label}</p>
+                {item.alwaysOn && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                    필수
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+            <Switch
+              checked={settings[item.key]}
+              onCheckedChange={(v) => handleChange(item.key, v)}
+              disabled={item.alwaysOn}
+            />
           </div>
-          <Switch
-            checked={settings[item.key]}
-            onCheckedChange={(v) => handleChange(item.key, v)}
-            disabled={item.alwaysOn}
-          />
-        </div>
-      ))}
+        ))}
+      </div>
 
-      <div className="px-6 py-5 flex items-center gap-4">
+      {/* 정기 레벨 테스트 주기 설정 */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-gray-900">정기 레벨 테스트 주기</h3>
+          <p className="text-xs text-gray-500 mt-1">
+            설정된 주기에 따라 교사와 학생에게 레벨 테스트 알림을 자동 발송합니다.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {LEVEL_TEST_PERIOD_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => {
+                setSettings((prev) => ({ ...prev, levelTestPeriod: opt.value }))
+                setSaved(false)
+              }}
+              className={`min-h-[44px] rounded-xl border text-sm font-medium transition-colors ${
+                settings.levelTestPeriod === opt.value
+                  ? 'border-[#1865F2] bg-[#EEF4FF] text-[#1865F2]'
+                  : 'border-gray-200 text-gray-600 hover:border-gray-300'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        {settings.levelTestPeriod !== 'none' && (
+          <div className="mt-4 rounded-xl bg-[#EEF4FF] px-4 py-3">
+            <p className="text-xs text-[#1865F2]">
+              💡 <span className="font-medium">
+                {LEVEL_TEST_PERIOD_OPTIONS.find((o) => o.value === settings.levelTestPeriod)?.label}
+              </span> 주기로 교사에게 "레벨 테스트 배포" 알림과 학생에게 "레벨 테스트 예정" 알림이 발송됩니다.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-4">
         <button
           onClick={handleSave}
           disabled={isPending}

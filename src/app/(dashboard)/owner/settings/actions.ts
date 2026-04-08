@@ -153,6 +153,7 @@ export async function updateNotificationSettings(settings: {
   newStudentJoin: boolean
   testCompleted: boolean
   subscriptionExpiring: boolean
+  levelTestPeriod?: string
 }): Promise<{ error?: string; success?: boolean }> {
   const supabase = await createClient()
   const {
@@ -186,6 +187,7 @@ export async function updateNotificationSettings(settings: {
           newStudentJoin: settings.newStudentJoin,
           testCompleted: settings.testCompleted,
           subscriptionExpiring: true, // 항상 ON
+          levelTestPeriod: settings.levelTestPeriod ?? 'monthly',
         },
       },
     },

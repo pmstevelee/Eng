@@ -8,6 +8,7 @@ const DEFAULT_SETTINGS = {
   newStudentJoin: true,
   testCompleted: false,
   subscriptionExpiring: true,
+  levelTestPeriod: 'monthly' as string,
 }
 
 export default async function NotificationsSettingsPage() {
@@ -41,6 +42,8 @@ export default async function NotificationsSettingsPage() {
     testCompleted:
       typeof saved.testCompleted === 'boolean' ? saved.testCompleted : DEFAULT_SETTINGS.testCompleted,
     subscriptionExpiring: true,
+    levelTestPeriod:
+      typeof saved.levelTestPeriod === 'string' ? saved.levelTestPeriod : DEFAULT_SETTINGS.levelTestPeriod,
   }
 
   return (

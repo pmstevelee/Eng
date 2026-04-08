@@ -100,7 +100,7 @@
 - 탈퇴 시 모든 데이터 완전 삭제
 - Prisma 트랜잭션 + Supabase Auth 삭제
 
-## 레벨 시스템 (10단계)
+## 레벨 시스템 (10단계, 적응형)
 - Level 1 (Pre-A1) ~ Level 10 (C1+)
 - 점수 기반: 0~10 = Lv1, 11~20 = Lv2, 21~30 = Lv3, ..., 91~100 = Lv10
 - 레벨 상수: `src/lib/constants/levels.ts`의 `LEVELS`, `LEVEL_UP_THRESHOLDS`, `LEVEL_COLORS` 사용
@@ -110,6 +110,22 @@
 - CEFR 목록: `CEFR_LEVEL_LIST` (Pre-A1, A1 하, A1 상, A2 하, A2 상, B1 하, B1 상, B2 하, B2 상, C1+)
 - 기존 5단계에서 하드코딩된 1~5 범위는 모두 1~10으로 변경됨
 - DB 마이그레이션 스크립트: `scripts/migrate-levels.ts`
+
+## 레벨 승급 시스템
+- 레벨은 레벨 테스트(적응형 배치 시험)로만 직접 결정
+- 승급 조건 3가지 모두 충족 필요:
+  1. 레벨 테스트: 4영역 중 3개 이상 목표 레벨 도달
+  2. 단원 테스트: 현재 레벨 단원 70% 이수 + 평균 60점
+  3. 학습 활동: 30일 내 문제 50개 또는 미션 20일 완료
+- 연습/학습공간은 레벨에 직접 영향 없음 (활동량만 카운트)
+- 교사가 수동으로 레벨 조정 가능 (기록 남음): `overrideStudentLevel()` in teacher students actions
+- `level_assessments` 테이블: 레벨 평가 공식 이력 (assessmentType: PLACEMENT/PERIODIC/PROMOTION/TEACHER_OVERRIDE)
+- `level_promotion_status` 테이블: 승급 진행 상태 (조건별 met 여부 + detail JSON)
+- 승급 판정 엔진: `src/lib/assessment/promotion-engine.ts` (`checkPromotionStatus`, `getPromotionProgress`)
+- 학생 홈(`/student`)에서 승급 진행 카드 표시 (promotionProgress via getStudentDashboardData)
+- 교사 학생상세(`/teacher/students/[id]`)에 "레벨 관리" 탭: 레벨 조회/이력/수동조정/테스트배포
+- 학원장 분석(`/owner/analytics`)에 승급 대기 학생 목록 표시
+- 학원 설정(`/owner/settings/notifications`)에서 정기 레벨 테스트 주기 설정 (settingsJson.notifications.levelTestPeriod)
 
 ## 문제 뱅크 구조
 - 공용 문제: `academyId = null` (모든 학원 사용 가능, isVerified=true)

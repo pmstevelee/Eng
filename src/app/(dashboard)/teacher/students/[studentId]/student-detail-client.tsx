@@ -27,8 +27,11 @@ import {
   Sparkles,
   CheckCircle,
   Circle,
+  TrendingUp,
+  CheckCircle2,
 } from 'lucide-react'
-import { saveTeacherComment, updateAttendance, regenerateLearningPath } from '../actions'
+import { saveTeacherComment, updateAttendance, regenerateLearningPath, overrideStudentLevel, deployLevelTestToStudent } from '../actions'
+import type { PromotionProgress } from '@/lib/assessment/promotion-engine'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -74,6 +77,20 @@ type GoalsJson = {
 }
 
 type ProgressJson = Record<string, { progress: number }>
+
+type LevelAssessmentData = {
+  id: string
+  assessmentType: string
+  grammarLevel: number
+  vocabularyLevel: number
+  readingLevel: number
+  writingLevel: number
+  overallLevel: number
+  assessedAt: string
+  assessedBy: string
+  isCurrent: boolean
+  detailJson: unknown
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -837,10 +854,325 @@ function AttendanceTab({
   )
 }
 
+// ─── Tab 5: 레벨 관리 ─────────────────────────────────────────────────────────
+
+const ASSESSMENT_TYPE_LABEL: Record<string, string> = {
+  PLACEMENT: '입학 배치',
+  PERIODIC: '정기 레벨 테스트',
+  PROMOTION: '승급 판정',
+  TEACHER_OVERRIDE: '교사 수동 조정',
+}
+
+const ASSESSMENT_TYPE_COLOR: Record<string, string> = {
+  PLACEMENT: '#0FBFAD',
+  PERIODIC: '#1865F2',
+  PROMOTION: '#1FAF54',
+  TEACHER_OVERRIDE: '#FFB100',
+}
+
+const DOMAIN_SHORT_KO: Record<string, string> = {
+  GRAMMAR: '문법',
+  VOCABULARY: '어휘',
+  READING: '읽기',
+  WRITING: '쓰기',
+}
+
+function LevelTab({
+  studentId,
+  currentLevel,
+  levelAssessments,
+  promotionProgress,
+}: {
+  studentId: string
+  currentLevel: number
+  levelAssessments: LevelAssessmentData[]
+  promotionProgress: PromotionProgress
+}) {
+  const [isPending, startTransition] = useTransition()
+  const [deployPending, startDeployTransition] = useTransition()
+  const [showOverrideDialog, setShowOverrideDialog] = useState(false)
+  const [overrideLevel, setOverrideLevel] = useState(currentLevel)
+  const [overrideReason, setOverrideReason] = useState('')
+  const [overrideError, setOverrideError] = useState('')
+  const [deployMsg, setDeployMsg] = useState('')
+
+  const currentAssessment = levelAssessments.find((la) => la.isCurrent)
+
+  const handleOverride = () => {
+    if (!overrideReason.trim()) {
+      setOverrideError('조정 사유를 입력해주세요.')
+      return
+    }
+    setOverrideError('')
+    startTransition(async () => {
+      const result = await overrideStudentLevel({ studentId, targetLevel: overrideLevel, reason: overrideReason })
+      if (result.error) {
+        setOverrideError(result.error)
+      } else {
+        setShowOverrideDialog(false)
+        setOverrideReason('')
+      }
+    })
+  }
+
+  const handleDeployTest = () => {
+    setDeployMsg('')
+    startDeployTransition(async () => {
+      const result = await deployLevelTestToStudent({ studentId })
+      if (result.error) {
+        setDeployMsg(`오류: ${result.error}`)
+      } else {
+        setDeployMsg('레벨 테스트가 학생에게 배포되었습니다.')
+      }
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* a) 현재 레벨 정보 */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <TrendingUp size={16} className="text-[#1865F2]" />
+            <span className="text-sm font-semibold text-gray-700">현재 레벨 정보</span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleDeployTest}
+              disabled={deployPending}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#1865F2] px-3 py-1.5 text-xs font-medium text-[#1865F2] hover:bg-blue-50 disabled:opacity-50 transition-colors"
+            >
+              {deployPending ? '배포 중...' : '레벨 테스트 배포'}
+            </button>
+            <button
+              onClick={() => setShowOverrideDialog(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#FFB100] px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-500 transition-colors"
+            >
+              레벨 수동 변경
+            </button>
+          </div>
+        </div>
+
+        {deployMsg && (
+          <p className={`mb-3 rounded-xl px-3 py-2 text-xs ${deployMsg.startsWith('오류') ? 'bg-red-50 text-[#D92916]' : 'bg-green-50 text-[#1FAF54]'}`}>
+            {deployMsg}
+          </p>
+        )}
+
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="text-center">
+            <p className="text-xs text-gray-400">공식 레벨</p>
+            <p className="mt-1 text-2xl font-black text-[#1865F2]">Lv.{currentLevel}</p>
+          </div>
+          {currentAssessment && (
+            <>
+              {(
+                [
+                  { key: 'GRAMMAR', val: currentAssessment.grammarLevel },
+                  { key: 'VOCABULARY', val: currentAssessment.vocabularyLevel },
+                  { key: 'READING', val: currentAssessment.readingLevel },
+                  { key: 'WRITING', val: currentAssessment.writingLevel },
+                ] as const
+              ).map(({ key, val }) => (
+                <div key={key} className="text-center">
+                  <p className="text-xs text-gray-400">{DOMAIN_SHORT_KO[key]}</p>
+                  <p
+                    className="mt-1 text-2xl font-black"
+                    style={{ color: DOMAIN_COLORS[key as keyof typeof DOMAIN_COLORS] }}
+                  >
+                    Lv.{val}
+                  </p>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+
+        {currentAssessment && (
+          <p className="mt-3 text-xs text-gray-400">
+            마지막 레벨 테스트:{' '}
+            {new Date(currentAssessment.assessedAt).toLocaleDateString('ko-KR', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+            {' '}({Math.floor((Date.now() - new Date(currentAssessment.assessedAt).getTime()) / 86400000)}일 전)
+          </p>
+        )}
+      </div>
+
+      {/* 승급 진행 */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <h3 className="mb-3 text-sm font-semibold text-gray-700">
+          Level {promotionProgress.targetLevel} 승급 진행
+        </h3>
+        <div className="space-y-3">
+          {[
+            { label: '레벨 테스트', cond: promotionProgress.conditions.levelTest },
+            { label: '단원 테스트', cond: promotionProgress.conditions.unitTests },
+            { label: '학습 활동', cond: promotionProgress.conditions.learningActivity },
+          ].map(({ label, cond }) => (
+            <div key={label} className="flex items-start gap-2">
+              {cond.met ? (
+                <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-[#1FAF54]" />
+              ) : (
+                <Circle size={15} className="mt-0.5 shrink-0 text-gray-300" />
+              )}
+              <div className="flex-1">
+                <p className={`text-sm font-medium ${cond.met ? 'text-[#1FAF54]' : 'text-gray-700'}`}>
+                  {label}
+                </p>
+                <p className="text-xs text-gray-400">{cond.detail}</p>
+                {!cond.met && cond.progress !== undefined && cond.progress > 0 && (
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-gray-100">
+                    <div
+                      className="h-full rounded-full bg-[#1865F2]"
+                      style={{ width: `${cond.progress}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* b) 레벨 테스트 이력 */}
+      {levelAssessments.length > 0 && (
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+          <div className="border-b border-gray-100 px-5 py-4">
+            <h3 className="text-sm font-semibold text-gray-700">레벨 평가 이력</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px] text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  {['날짜', '유형', '문법', '어휘', '읽기', '쓰기', '종합'].map((h) => (
+                    <th
+                      key={h}
+                      className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {levelAssessments.map((la) => {
+                  const typeColor = ASSESSMENT_TYPE_COLOR[la.assessmentType] ?? '#6B7280'
+                  return (
+                    <tr key={la.id} className={la.isCurrent ? 'bg-[#EEF4FF]/50' : 'hover:bg-gray-50'}>
+                      <td className="whitespace-nowrap px-4 py-3 text-xs text-gray-500">
+                        {new Date(la.assessedAt).toLocaleDateString('ko-KR')}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className="rounded-full px-2 py-0.5 text-xs font-medium"
+                          style={{ backgroundColor: `${typeColor}20`, color: typeColor }}
+                        >
+                          {ASSESSMENT_TYPE_LABEL[la.assessmentType] ?? la.assessmentType}
+                        </span>
+                        {la.isCurrent && (
+                          <span className="ml-1 rounded-full bg-[#1865F2]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#1865F2]">현재</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold" style={{ color: DOMAIN_COLORS.GRAMMAR }}>
+                        Lv{la.grammarLevel}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold" style={{ color: DOMAIN_COLORS.VOCABULARY }}>
+                        Lv{la.vocabularyLevel}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold" style={{ color: DOMAIN_COLORS.READING }}>
+                        Lv{la.readingLevel}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold" style={{ color: DOMAIN_COLORS.WRITING }}>
+                        Lv{la.writingLevel}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-bold text-gray-900">
+                        Lv{la.overallLevel}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* c) 수동 조정 Dialog */}
+      {showOverrideDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
+            <h3 className="mb-1 text-base font-bold text-gray-900">레벨 수동 변경</h3>
+            <p className="mb-4 text-xs text-gray-500">
+              ⚠️ 수동 조정은 기록에 남으며, 다음 레벨 테스트에서 재측정됩니다.
+            </p>
+
+            <div className="mb-4">
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                변경할 레벨
+              </label>
+              <div className="grid grid-cols-5 gap-1.5">
+                {Array.from({ length: 10 }, (_, i) => i + 1).map((lv) => (
+                  <button
+                    key={lv}
+                    onClick={() => setOverrideLevel(lv)}
+                    className={`h-10 rounded-xl text-sm font-bold transition-colors ${
+                      overrideLevel === lv
+                        ? 'bg-[#1865F2] text-white'
+                        : 'border border-gray-200 text-gray-600 hover:border-[#1865F2] hover:text-[#1865F2]'
+                    }`}
+                  >
+                    {lv}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                조정 사유 <span className="text-[#D92916]">*</span>
+              </label>
+              <textarea
+                value={overrideReason}
+                onChange={(e) => setOverrideReason(e.target.value)}
+                placeholder="예: 학생의 학습 수준을 직접 평가한 결과 조정"
+                rows={3}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-300 focus:border-[#1865F2] focus:outline-none"
+              />
+              {overrideError && (
+                <p className="mt-1 text-xs text-[#D92916]">{overrideError}</p>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setShowOverrideDialog(false); setOverrideReason(''); setOverrideError('') }}
+                className="flex-1 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleOverride}
+                disabled={isPending}
+                className="flex-1 h-11 rounded-xl bg-[#1865F2] text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                {isPending ? '변경 중...' : `Level ${overrideLevel}로 변경`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const TABS = [
   { id: 'score', label: '성적 종합', icon: BarChart2 },
+  { id: 'level', label: '레벨 관리', icon: TrendingUp },
   { id: 'path', label: '학습 경로', icon: BookOpen },
   { id: 'comment', label: '교사 코멘트', icon: MessageSquare },
   { id: 'attendance', label: '출석', icon: Calendar },
@@ -857,6 +1189,8 @@ export function StudentDetailClient({
   learningPath,
   comments,
   attendance,
+  levelAssessments,
+  promotionProgress,
 }: {
   studentId: string
   studentName: string
@@ -866,6 +1200,8 @@ export function StudentDetailClient({
   learningPath: LearningPathData | null
   comments: CommentData[]
   attendance: AttendanceData[]
+  levelAssessments: LevelAssessmentData[]
+  promotionProgress: PromotionProgress
 }) {
   const [activeTab, setActiveTab] = useState<TabId>('score')
 
@@ -892,6 +1228,14 @@ export function StudentDetailClient({
       {/* Tab Content */}
       {activeTab === 'score' && (
         <ScoreTab sessions={testSessions} currentLevel={currentLevel} />
+      )}
+      {activeTab === 'level' && (
+        <LevelTab
+          studentId={studentId}
+          currentLevel={currentLevel}
+          levelAssessments={levelAssessments}
+          promotionProgress={promotionProgress}
+        />
       )}
       {activeTab === 'path' && (
         <LearningPathTab studentId={studentId} learningPath={learningPath} />

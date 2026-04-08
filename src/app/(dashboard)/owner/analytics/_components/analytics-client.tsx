@@ -45,6 +45,15 @@ export type ScoreStats = {
 
 export type LevelUpStudent = { name: string; className: string; level: number }
 
+export type NearPromotionStudent = {
+  name: string
+  className: string
+  currentLevel: number
+  targetLevel: number
+  completionRate: number
+  remaining: number | null
+}
+
 export type ClassComparisonRow = {
   id: string
   name: string
@@ -91,6 +100,7 @@ export type AnalyticsData = {
   // Tab 5
   monthlyEnrollments: MonthlyEnrollmentItem[]
   totalActiveStudents: number
+  nearPromotion: NearPromotionStudent[]
 }
 
 // ─── Period Options ───────────────────────────────────────────────────────────
@@ -175,7 +185,7 @@ function ScoreColor({ score }: { score: number | null }) {
 // ─── Tab: 학생 성적 분석 ───────────────────────────────────────────────────────
 
 function ScoreAnalysisTab({ data }: { data: AnalyticsData }) {
-  const { scoreHistogram, scoreStats, levelDistribution, levelAvgScores, levelUpStudents, domainAvgs, weakestDomain, monthlyTrend, classTrendNames, classTrendData } = data
+  const { scoreHistogram, scoreStats, levelDistribution, levelAvgScores, levelUpStudents, domainAvgs, weakestDomain, monthlyTrend, classTrendNames, classTrendData, nearPromotion } = data
 
   return (
     <div className="space-y-5">
@@ -259,6 +269,56 @@ function ScoreAnalysisTab({ data }: { data: AnalyticsData }) {
           )}
         </CardContent>
       </Card>
+
+      {/* 승급 대기 학생 */}
+      {nearPromotion.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <span className="h-3 w-3 rounded-full bg-[#FFB100]" />
+              승급 대기 학생
+              <span className="ml-auto rounded-full bg-[#FFB100]/20 px-2 py-0.5 text-xs font-semibold text-[#B37D00]">
+                {nearPromotion.length}명
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-3 text-xs text-gray-500">단원 테스트만 더 응시하면 승급 가능한 학생</p>
+            <div className="space-y-2">
+              {nearPromotion.map((s, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-xl border border-gray-100 px-4 py-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFB100]/20 text-xs font-bold text-[#B37D00]">
+                    {s.name.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-gray-900">{s.name}</p>
+                      <span className="text-xs text-gray-500">{s.className}</span>
+                    </div>
+                    <div className="mt-1 flex items-center gap-2">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+                        <div
+                          className="h-full rounded-full bg-[#FFB100] transition-all"
+                          style={{ width: `${s.completionRate}%` }}
+                        />
+                      </div>
+                      <span className="shrink-0 text-xs text-gray-500">{s.completionRate}%</span>
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-xs font-semibold text-[#1865F2]">
+                      Lv{s.currentLevel} → Lv{s.targetLevel}
+                    </p>
+                    {s.remaining !== null && s.remaining > 0 && (
+                      <p className="mt-0.5 text-xs text-gray-400">{s.remaining}개 남음</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Domain analysis */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
