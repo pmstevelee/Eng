@@ -90,7 +90,7 @@ export async function checkPromotionStatus(studentId: string): Promise<Promotion
   })
 
   let condition1Met = false
-  let condition1Detail: Record<string, unknown> = {}
+  let condition1Detail: Prisma.InputJsonObject = {}
 
   if (latestAssessment) {
     const domainLevels = [
@@ -115,7 +115,7 @@ export async function checkPromotionStatus(studentId: string): Promise<Promotion
 
   // ── 조건 2: 단원 테스트 ─────────────────────────────────────────────────────
   let condition2Met = false
-  let condition2Detail: Record<string, unknown> = {}
+  let condition2Detail: Prisma.InputJsonObject = {}
 
   if (!academyId) {
     // 학원 미소속 → 조건 자동 통과
@@ -212,7 +212,7 @@ export async function checkPromotionStatus(studentId: string): Promise<Promotion
   ])
 
   const condition3Met = practiceCount >= 50 || missionDays >= 20
-  const condition3Detail: Record<string, unknown> = {
+  const condition3Detail: Prisma.InputJsonObject = {
     practiceCount,
     missionDays,
     practiceRequired: 50,
@@ -283,11 +283,11 @@ export async function checkPromotionStatus(studentId: string): Promise<Promotion
       currentLevel: statusCurrentLevel,
       targetLevel: statusTargetLevel,
       condition1Met: promoted ? false : condition1Met,
-      condition1Detail: promoted ? ({} as Prisma.InputJsonValue) : condition1Detail,
+      condition1Detail: promoted ? {} : condition1Detail,
       condition2Met: promoted ? false : condition2Met,
-      condition2Detail: promoted ? ({} as Prisma.InputJsonValue) : condition2Detail,
+      condition2Detail: promoted ? {} : condition2Detail,
       condition3Met: promoted ? false : condition3Met,
-      condition3Detail: promoted ? ({} as Prisma.InputJsonValue) : condition3Detail,
+      condition3Detail: promoted ? {} : condition3Detail,
       allConditionsMet: promoted ? false : allConditionsMet,
       promotedAt: promoted ? new Date() : undefined,
     },
@@ -296,11 +296,11 @@ export async function checkPromotionStatus(studentId: string): Promise<Promotion
       currentLevel: statusCurrentLevel,
       targetLevel: statusTargetLevel,
       condition1Met: promoted ? false : condition1Met,
-      condition1Detail: promoted ? ({} as Prisma.InputJsonValue) : condition1Detail,
+      condition1Detail: promoted ? {} : condition1Detail,
       condition2Met: promoted ? false : condition2Met,
-      condition2Detail: promoted ? ({} as Prisma.InputJsonValue) : condition2Detail,
+      condition2Detail: promoted ? {} : condition2Detail,
       condition3Met: promoted ? false : condition3Met,
-      condition3Detail: promoted ? ({} as Prisma.InputJsonValue) : condition3Detail,
+      condition3Detail: promoted ? {} : condition3Detail,
       allConditionsMet: false,
       promotedAt: promoted ? new Date() : null,
     },
