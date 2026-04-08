@@ -162,7 +162,7 @@ export async function createAndDeployTest(
     return { id: test.id }
   } catch (e) {
     console.error(e)
-    return { error: '배포에 실패했습니다.' }
+    return { error: `배포에 실패했습니다. [${e instanceof Error ? e.message : String(e)}]` }
   }
 }
 
@@ -224,7 +224,7 @@ export async function deployExistingTest(
     return {}
   } catch (e) {
     console.error(e)
-    return { error: '배포에 실패했습니다.' }
+    return { error: `배포에 실패했습니다. [${e instanceof Error ? e.message : String(e)}]` }
   }
 }
 
