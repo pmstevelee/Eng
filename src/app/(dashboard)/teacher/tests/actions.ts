@@ -27,6 +27,16 @@ export type TestFormInput = {
   timeLimitMin?: number
   instructions?: string
   questionIds: string[]
+  isAdaptive?: boolean
+  adaptiveConfig?: {
+    questionsPerDomain: number
+    startLevel: number
+    writingQuestions: number
+  }
+  // 단원 테스트 전용 (승급 조건 2 연동)
+  targetLevel?: number       // 이 테스트의 대상 레벨 (1~10)
+  unitName?: string          // 단원명 (예: "Unit 3: 관계대명사")
+  learningObjectives?: string // 학습 목표
 }
 
 export type QuestionRowMin = {
@@ -66,6 +76,11 @@ export async function saveTestDraft(
         totalScore: input.questionIds.length || 0,
         createdBy: user.id,
         isActive: true,
+        isAdaptive: input.isAdaptive ?? false,
+        adaptiveConfig: input.adaptiveConfig ?? undefined,
+        targetLevel: input.targetLevel ?? null,
+        unitName: input.unitName || null,
+        learningObjectives: input.learningObjectives || null,
       },
     })
     revalidateTag(`teacher-${user.id}-tests`)
@@ -110,6 +125,11 @@ export async function createAndDeployTest(
           totalScore: input.questionIds.length || 0,
           createdBy: user.id,
           isActive: true,
+          isAdaptive: input.isAdaptive ?? false,
+          adaptiveConfig: input.adaptiveConfig ?? undefined,
+          targetLevel: input.targetLevel ?? null,
+          unitName: input.unitName || null,
+          learningObjectives: input.learningObjectives || null,
         },
       })
 
@@ -267,6 +287,9 @@ export async function updateTest(
         instructions: input.instructions || null,
         questionOrder: input.questionIds,
         totalScore: input.questionIds.length || 0,
+        targetLevel: input.targetLevel ?? null,
+        unitName: input.unitName || null,
+        learningObjectives: input.learningObjectives || null,
       },
     })
     revalidateTag(`teacher-${user.id}-tests`)

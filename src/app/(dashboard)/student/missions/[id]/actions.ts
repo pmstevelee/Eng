@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { updateStreak } from '@/lib/missions/streak-manager'
 import { awardXP, BADGE_XP } from '@/lib/missions/xp-manager'
 import { BadgeType, QuestionDomain } from '@/generated/prisma'
+import { checkPromotionStatus } from '@/lib/assessment/promotion-engine'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -444,6 +445,12 @@ export async function completeMission(
         domainAfter.reduce((s, a) => s + (a.score ?? 0), 0) / domainAfter.length,
       )
     }
+  }
+
+  // 미션 전체 완료 시 승급 조건 3 업데이트 (비동기)
+  // 오늘의 미션 완료일 수가 변경되어 학습 활동량 조건 재계산 필요
+  if (isAllComplete) {
+    checkPromotionStatus(studentId).catch(console.error)
   }
 
   // 대시보드 캐시 무효화

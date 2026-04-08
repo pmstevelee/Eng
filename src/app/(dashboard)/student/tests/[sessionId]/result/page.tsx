@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 import { ResultRadarChart } from './_components/result-radar-chart'
+import { PlacementResultView } from './_components/placement-result-view'
 import {
   CheckCircle2,
   XCircle,
@@ -12,6 +13,7 @@ import {
   TrendingDown,
   Minus,
 } from 'lucide-react'
+import type { PlacementResult } from '@/lib/assessment/adaptive-test-engine'
 
 type DomainKey = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
 
@@ -92,6 +94,7 @@ export default async function TestResultPage({
           type: true,
           totalScore: true,
           questionOrder: true,
+          isAdaptive: true,
         },
       },
       questionResponses: {
@@ -109,6 +112,18 @@ export default async function TestResultPage({
   if (!session) notFound()
   if (session.status === 'NOT_STARTED' || session.status === 'IN_PROGRESS') {
     redirect(`/student/tests/${sessionId}`)
+  }
+
+  // ── 적응형 배치 시험 결과 분기 ─────────────────────────────────────────────
+  if (session.test.isAdaptive && session.isPlacement && session.placementResult) {
+    return (
+      <PlacementResultView
+        sessionId={sessionId}
+        testTitle={session.test.title}
+        placementResult={session.placementResult as unknown as PlacementResult}
+        completedAt={session.completedAt?.toISOString() ?? null}
+      />
+    )
   }
 
   // 문제 데이터 로드 (questionOrder 순서 보장)

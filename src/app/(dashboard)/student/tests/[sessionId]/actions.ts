@@ -7,6 +7,7 @@ import type { QuestionContentJson } from '@/components/shared/question-bank-clie
 import { recordActivityAndCheckBadges } from '@/app/(dashboard)/student/_actions/gamification'
 import { recordLevelTestUsage } from '@/lib/questions/usage-tracker'
 import { updateQuestionQuality } from '@/lib/questions/quality-updater'
+import { checkPromotionStatus } from '@/lib/assessment/promotion-engine'
 
 async function getAuthedStudent() {
   const supabase = await createClient()
@@ -280,6 +281,12 @@ export async function submitTest(
       recordLevelTestUsage(session.test.academyId, session.testId, questionIds).catch(
         console.error,
       )
+    }
+
+    // 7-1단계: 단원 테스트 완료 시 승급 조건 2 업데이트 (비동기)
+    // 단원 테스트 이수율과 평균점수가 변경될 수 있으므로 승급 조건을 재계산
+    if (session.test.type === 'UNIT_TEST') {
+      checkPromotionStatus(auth.studentId).catch(console.error)
     }
 
     // 7단계: 문제 품질 점수 비동기 갱신 (학생 응답 속도에 영향 없음)

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma/client'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 import { TestStartScreen } from './_components/test-start-screen'
 import { TestTakingClient } from './_components/test-taking-client'
+import { AdaptiveTestClient } from './_components/adaptive-test-client'
 import { startTestSession, saveResponses, submitTest } from './actions'
 
 export type QuestionForTest = {
@@ -69,6 +70,8 @@ export default async function TestSessionPage({
           timeLimitMin: true,
           totalScore: true,
           questionOrder: true,
+          isAdaptive: true,
+          adaptiveConfig: true,
         },
       },
       questionResponses: {
@@ -84,6 +87,23 @@ export default async function TestSessionPage({
     redirect(`/student/tests/${sessionId}/result`)
   }
 
+  // ── 적응형 레벨 테스트 분기 ────────────────────────────────────────────────
+  if (session.test.isAdaptive) {
+    // 학생 이름 조회
+    const dbUserForName = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { name: true },
+    })
+    return (
+      <AdaptiveTestClient
+        sessionId={sessionId}
+        studentName={dbUserForName?.name ?? '학생'}
+        testTitle={session.test.title}
+      />
+    )
+  }
+
+  // ── 일반 테스트 ───────────────────────────────────────────────────────────
   // 문제 ID 목록
   const questionIds = (session.test.questionOrder as string[]) || []
 

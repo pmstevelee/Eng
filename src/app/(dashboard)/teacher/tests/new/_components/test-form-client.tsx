@@ -31,6 +31,10 @@ type InitialData = {
   instructions: string | null
   questionOrder: string[]
   deployedSessions?: Array<{ studentId: string; status: string }>
+  // 단원 테스트 전용
+  targetLevel?: number | null
+  unitName?: string | null
+  learningObjectives?: string | null
 }
 
 type Props = {
@@ -137,6 +141,16 @@ export default function TestFormClient({
   const [timeLimitEnabled, setTimeLimitEnabled] = useState(!!initialData?.timeLimitMin)
   const [timeLimitMin, setTimeLimitMin] = useState(initialData?.timeLimitMin ?? 45)
   const [instructions, setInstructions] = useState(initialData?.instructions ?? '')
+
+  // ── Adaptive settings ─────────────────────────────────────────────────────
+  const [isAdaptive, setIsAdaptive] = useState(false)
+  const [adaptiveQuestionsPerDomain, setAdaptiveQuestionsPerDomain] = useState(8)
+  const [adaptiveStartLevel, setAdaptiveStartLevel] = useState(5)
+
+  // ── Unit test settings (승급 조건 2 연동) ─────────────────────────────────
+  const [targetLevel, setTargetLevel] = useState<number>(initialData?.targetLevel ?? 1)
+  const [unitName, setUnitName] = useState(initialData?.unitName ?? '')
+  const [learningObjectives, setLearningObjectives] = useState(initialData?.learningObjectives ?? '')
 
   // ── Question selection ──────────────────────────────────────────────────────
   const [selectionMode, setSelectionMode] = useState<'manual' | 'auto'>('manual')
@@ -295,19 +309,33 @@ export default function TestFormClient({
 
   // ── Form validation ──────────────────────────────────────────────────────────
   function buildFormInput(): TestFormInput {
+    const adaptiveMode = type === 'LEVEL_TEST' && isAdaptive
+    const unitTestMode = type === 'UNIT_TEST'
     return {
       title: title.trim(),
       type,
       classId: classId || undefined,
       timeLimitMin: timeLimitEnabled ? timeLimitMin : undefined,
       instructions: instructions.trim() || undefined,
-      questionIds: selectedQuestions.map((q) => q.id),
+      questionIds: adaptiveMode ? [] : selectedQuestions.map((q) => q.id),
+      isAdaptive: adaptiveMode,
+      adaptiveConfig: adaptiveMode
+        ? {
+            questionsPerDomain: adaptiveQuestionsPerDomain,
+            startLevel: adaptiveStartLevel,
+            writingQuestions: 2,
+          }
+        : undefined,
+      targetLevel: unitTestMode ? targetLevel : undefined,
+      unitName: unitTestMode ? unitName.trim() || undefined : undefined,
+      learningObjectives: unitTestMode ? learningObjectives.trim() || undefined : undefined,
     }
   }
 
   function validate(): string | null {
     if (!title.trim()) return '제목을 입력해 주세요.'
-    if (selectedQuestions.length === 0) return '문제를 1개 이상 선택해 주세요.'
+    const adaptiveMode = type === 'LEVEL_TEST' && isAdaptive
+    if (!adaptiveMode && selectedQuestions.length === 0) return '문제를 1개 이상 선택해 주세요.'
     return null
   }
 
@@ -480,6 +508,102 @@ export default function TestFormClient({
           </div>
         </div>
 
+        {/* 적응형 레벨 테스트 옵션 (LEVEL_TEST일 때만 표시) */}
+        {type === 'LEVEL_TEST' && (
+          <div className="rounded-xl border border-[#7854F7]/20 bg-[#7854F7]/5 p-4 space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isAdaptive}
+                onChange={(e) => setIsAdaptive(e.target.checked)}
+                className="w-4 h-4 rounded accent-[#7854F7]"
+              />
+              <div>
+                <span className="text-sm font-semibold text-[#7854F7]">적응형 배치 시험 사용</span>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  학생의 응답에 따라 난이도가 자동 조정됩니다. 문제를 직접 선택할 필요가 없습니다.
+                </p>
+              </div>
+            </label>
+            {isAdaptive && (
+              <div className="flex gap-4 pl-7 flex-wrap">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">영역당 문제 수</label>
+                  <select
+                    value={adaptiveQuestionsPerDomain}
+                    onChange={(e) => setAdaptiveQuestionsPerDomain(Number(e.target.value))}
+                    className="h-9 px-3 border border-[#7854F7]/30 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#7854F7]/30"
+                  >
+                    {[6, 7, 8, 9, 10].map((n) => (
+                      <option key={n} value={n}>{n}문제</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">시작 난이도</label>
+                  <select
+                    value={adaptiveStartLevel}
+                    onChange={(e) => setAdaptiveStartLevel(Number(e.target.value))}
+                    className="h-9 px-3 border border-[#7854F7]/30 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#7854F7]/30"
+                  >
+                    {[3, 4, 5, 6, 7].map((n) => (
+                      <option key={n} value={n}>Level {n}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 단원 테스트 설정 (UNIT_TEST일 때만 표시) */}
+        {type === 'UNIT_TEST' && (
+          <div className="rounded-xl border border-[#1865F2]/20 bg-[#1865F2]/5 p-4 space-y-4">
+            <div>
+              <p className="text-sm font-semibold text-[#1865F2]">단원 테스트 설정</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                대상 레벨을 설정하면 해당 레벨 학생의 승급 조건(단원 테스트 이수)에 자동 반영됩니다.
+              </p>
+            </div>
+            <div className="flex gap-4 flex-wrap">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  대상 레벨 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={targetLevel}
+                  onChange={(e) => setTargetLevel(Number(e.target.value))}
+                  className="h-9 px-3 border border-[#1865F2]/30 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1865F2]/30"
+                >
+                  {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>Level {n}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1 min-w-[160px]">
+                <label className="block text-xs font-medium text-gray-600 mb-1">단원명</label>
+                <input
+                  type="text"
+                  value={unitName}
+                  onChange={(e) => setUnitName(e.target.value)}
+                  placeholder="예: Unit 3: 관계대명사"
+                  className="w-full h-9 px-3 border border-[#1865F2]/30 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1865F2]/30"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">학습 목표</label>
+              <input
+                type="text"
+                value={learningObjectives}
+                onChange={(e) => setLearningObjectives(e.target.value)}
+                placeholder="예: 관계대명사 who, which, that의 올바른 사용"
+                className="w-full h-9 px-3 border border-[#1865F2]/30 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1865F2]/30"
+              />
+            </div>
+          </div>
+        )}
+
         {/* 대상 반 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">대상 반</label>
@@ -541,8 +665,8 @@ export default function TestFormClient({
         </div>
       </section>
 
-      {/* ─── Section 2: 문제 구성 ─────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      {/* ─── Section 2: 문제 구성 (적응형 OFF일 때만 표시) ─────────────────── */}
+      {!(type === 'LEVEL_TEST' && isAdaptive) && <section className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         <div className="p-6 pb-0">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-semibold text-gray-900">
@@ -858,7 +982,7 @@ export default function TestFormClient({
             </div>
           </div>
         )}
-      </section>
+      </section>}
 
       {/* ─── 에러 표시 ────────────────────────────────────────────────────── */}
       {formError && (
