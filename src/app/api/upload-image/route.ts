@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
 
 const BUCKET = 'question-images'
 const MAX_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
@@ -40,7 +40,11 @@ export async function POST(req: NextRequest) {
   const arrayBuffer = await file.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
 
-  const admin = await createAdminClient()
+  const admin = createSupabaseAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
   const { error: uploadError } = await admin.storage.from(BUCKET).upload(fileName, buffer, {
     contentType: file.type,
     upsert: false,
