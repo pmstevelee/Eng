@@ -58,7 +58,7 @@ const getCachedPublicQuestions = unstable_cache(
   },
   ['public-questions-list'],
   { revalidate: 600, tags: ['question-bank'] },
-)()
+)
 
 // ── 페이지 컴포넌트 ────────────────────────────────────────────────────────────
 
@@ -72,7 +72,7 @@ export default async function OwnerQuestionsPage({ searchParams }: { searchParam
 
   const [rawAcademy, rawPublic] = await Promise.all([
     getCachedAcademyQuestions(user.academyId),
-    tab === 'academy' ? Promise.resolve([]) : getCachedPublicQuestions,
+    tab === 'academy' ? Promise.resolve([]) : getCachedPublicQuestions(),
   ])
 
   // 학원 문제 → QuestionRow
