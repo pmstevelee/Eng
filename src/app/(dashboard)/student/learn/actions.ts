@@ -14,7 +14,7 @@ import type {
 } from '@/components/shared/question-bank-client'
 import type { QuestionTag } from '@/lib/ai/question-selector'
 
-const DOMAINS: QuestionDomainType[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+const DOMAINS: QuestionDomainType[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
 
 // ── 공개 타입 ──────────────────────────────────────────────────────────────────
 

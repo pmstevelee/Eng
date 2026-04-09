@@ -17,7 +17,7 @@ type DomainScore = {
   score: number
   fullMark: number
   color: string
-  key: 'grammar' | 'vocabulary' | 'reading' | 'writing'
+  key: 'grammar' | 'vocabulary' | 'reading' | 'listening' | 'writing'
 }
 
 type TeacherCommentData = {
@@ -44,6 +44,7 @@ const DOMAIN_COLORS: Record<string, string> = {
   grammar: '#1865F2',
   vocabulary: '#7854F7',
   reading: '#0FBFAD',
+  listening: '#E91E8A',
   writing: '#E35C20',
 }
 
@@ -51,6 +52,7 @@ const DOMAIN_LABEL: Record<string, string> = {
   grammar: '문법',
   vocabulary: '어휘',
   reading: '읽기',
+  listening: '듣기',
   writing: '쓰기',
 }
 

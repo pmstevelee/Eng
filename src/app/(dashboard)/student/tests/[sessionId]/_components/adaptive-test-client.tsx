@@ -18,6 +18,7 @@ const DOMAIN_COLOR: Record<AdaptiveDomain, string> = {
   GRAMMAR: '#1865F2',
   VOCABULARY: '#7854F7',
   READING: '#0FBFAD',
+  LISTENING: '#E91E8A',
   WRITING: '#E35C20',
 }
 
@@ -25,10 +26,11 @@ const DOMAIN_LABEL: Record<AdaptiveDomain, string> = {
   GRAMMAR: '문법',
   VOCABULARY: '어휘',
   READING: '읽기',
+  LISTENING: '듣기',
   WRITING: '쓰기',
 }
 
-const DOMAIN_ORDER: AdaptiveDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+const DOMAIN_ORDER: AdaptiveDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E']
 

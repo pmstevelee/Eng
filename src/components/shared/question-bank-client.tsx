@@ -40,6 +40,7 @@ export type QuestionContentJson = {
   word_limit?: number
   audio_url?: string
   audio_script?: string
+  play_count?: number
 }
 
 export type QuestionRow = {
@@ -82,7 +83,7 @@ const DOMAIN_COLOR: Record<QuestionDomainType, string> = {
   VOCABULARY: '#7854F7',
   READING: '#0FBFAD',
   WRITING: '#E35C20',
-  LISTENING: '#0EA5E9',
+  LISTENING: '#E91E8A',
 }
 
 const DOMAIN_BG: Record<QuestionDomainType, string> = {
@@ -90,7 +91,7 @@ const DOMAIN_BG: Record<QuestionDomainType, string> = {
   VOCABULARY: '#F3EFFF',
   READING: '#E6FAF8',
   WRITING: '#FEF0E8',
-  LISTENING: '#E0F2FE',
+  LISTENING: '#FDE7F3',
 }
 
 const TYPE_LABEL: Record<QuestionType, string> = {
@@ -302,8 +303,8 @@ function AudioUploadField({
   return (
     <div className="space-y-2">
       {audioUrl ? (
-        <div className="flex items-center gap-3 p-3 rounded-xl border border-[#0EA5E9]/30 bg-[#E0F2FE]">
-          <div className="w-8 h-8 rounded-full bg-[#0EA5E9] flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-[#E91E8A]/30 bg-[#FDE7F3]">
+          <div className="w-8 h-8 rounded-full bg-[#E91E8A] flex items-center justify-center shrink-0">
             <Volume2 size={15} className="text-white" />
           </div>
           <audio controls className="flex-1 h-8" style={{ minWidth: 0 }}>
@@ -324,7 +325,7 @@ function AudioUploadField({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="w-full flex flex-col items-center gap-2 py-6 rounded-xl border-2 border-dashed border-[#0EA5E9]/40 bg-[#E0F2FE]/30 text-[#0EA5E9] hover:border-[#0EA5E9] hover:bg-[#E0F2FE]/60 transition-colors disabled:opacity-50"
+          className="w-full flex flex-col items-center gap-2 py-6 rounded-xl border-2 border-dashed border-[#E91E8A]/40 bg-[#FDE7F3]/30 text-[#E91E8A] hover:border-[#E91E8A] hover:bg-[#FDE7F3]/60 transition-colors disabled:opacity-50"
         >
           {uploading ? (
             <><Loader2 size={22} className="animate-spin" /><span className="text-sm">업로드 중...</span></>
@@ -375,8 +376,8 @@ function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onCl
             {question.domain === 'LISTENING' && content.audio_url && (
               <div className="mb-6">
                 <p className="text-xs font-semibold text-gray-500 uppercase mb-2 tracking-wide">음성 파일</p>
-                <div className="flex items-center gap-3 p-3 rounded-xl border border-[#0EA5E9]/30 bg-[#E0F2FE]">
-                  <div className="w-8 h-8 rounded-full bg-[#0EA5E9] flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-3 p-3 rounded-xl border border-[#E91E8A]/30 bg-[#FDE7F3]">
+                  <div className="w-8 h-8 rounded-full bg-[#E91E8A] flex items-center justify-center shrink-0">
                     <Volume2 size={15} className="text-white" />
                   </div>
                   <audio controls className="flex-1">
@@ -387,7 +388,7 @@ function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onCl
                   <div className="mt-2">
                     <button
                       onClick={() => setShowScript(!showScript)}
-                      className="text-xs text-[#0EA5E9] hover:underline"
+                      className="text-xs text-[#E91E8A] hover:underline"
                     >
                       {showScript ? '스크립트 숨기기' : '스크립트 보기'}
                     </button>
@@ -1346,7 +1347,7 @@ export default function QuestionBankClient({
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
                         {q.domain === 'LISTENING' && (
-                          <Volume2 size={13} className="text-[#0EA5E9] shrink-0" />
+                          <Volume2 size={13} className="text-[#E91E8A] shrink-0" />
                         )}
                         <p className="text-sm text-gray-900 font-medium truncate leading-snug">
                           {q.questionText || '(본문 없음)'}

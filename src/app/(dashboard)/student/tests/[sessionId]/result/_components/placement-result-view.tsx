@@ -9,6 +9,7 @@ const DOMAIN_COLOR: Record<AdaptiveDomain, string> = {
   GRAMMAR: '#1865F2',
   VOCABULARY: '#7854F7',
   READING: '#0FBFAD',
+  LISTENING: '#E91E8A',
   WRITING: '#E35C20',
 }
 
@@ -16,6 +17,7 @@ const DOMAIN_LABEL: Record<AdaptiveDomain, string> = {
   GRAMMAR: '문법',
   VOCABULARY: '어휘',
   READING: '읽기',
+  LISTENING: '듣기',
   WRITING: '쓰기',
 }
 
@@ -34,10 +36,22 @@ function DomainLevelBar({
   overallLevel,
 }: {
   domain: AdaptiveDomain
-  level: number
+  level: number | null
   overallLevel: number
 }) {
   const color = DOMAIN_COLOR[domain]
+
+  // 미측정 (듣기 문제 부족 등)
+  if (level === null) {
+    return (
+      <div className="flex items-center gap-3">
+        <span className="w-8 text-xs font-medium text-gray-500">{DOMAIN_LABEL[domain]}</span>
+        <div className="flex-1 h-2 rounded-full bg-gray-100" />
+        <div className="w-36 text-xs text-gray-400">미측정</div>
+      </div>
+    )
+  }
+
   const info = getLevelInfo(level)
   const isWeak = level <= overallLevel - 3
 
@@ -80,6 +94,7 @@ export function PlacementResultView({ sessionId, testTitle, placementResult, com
     grammarLevel,
     vocabularyLevel,
     readingLevel,
+    listeningLevel,
     writingLevel,
     imbalanceWarning,
     weakestDomain,
@@ -90,10 +105,11 @@ export function PlacementResultView({ sessionId, testTitle, placementResult, com
 
   const overallInfo = getLevelInfo(overallLevel)
 
-  const domainEntries: { domain: AdaptiveDomain; level: number }[] = [
+  const domainEntries: { domain: AdaptiveDomain; level: number | null }[] = [
     { domain: 'GRAMMAR', level: grammarLevel },
     { domain: 'VOCABULARY', level: vocabularyLevel },
     { domain: 'READING', level: readingLevel },
+    { domain: 'LISTENING', level: listeningLevel ?? null },
     { domain: 'WRITING', level: writingLevel },
   ]
 
@@ -185,6 +201,11 @@ export function PlacementResultView({ sessionId, testTitle, placementResult, com
 
         {/* 분석 코멘트 */}
         <div className="rounded-lg bg-gray-50 p-4 text-sm text-gray-600 space-y-1">
+          {listeningLevel === null && (
+            <p className="text-gray-400 text-xs mb-1">
+              * 듣기 미측정 — 듣기 문제가 충분해지면 다음 레벨 테스트에서 측정됩니다.
+            </p>
+          )}
           <p>
             <span className="font-semibold" style={{ color: DOMAIN_COLOR[strongestDomain] }}>
               {DOMAIN_LABEL[strongestDomain]}

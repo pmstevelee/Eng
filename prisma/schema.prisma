@@ -712,6 +712,7 @@ model LevelAssessment {
   grammarLevel   Int       @map("grammar_level")
   vocabularyLevel Int      @map("vocabulary_level")
   readingLevel   Int       @map("reading_level")
+  listeningLevel Int?      @map("listening_level")   // null: 듣기 문제 부족으로 미측정
   writingLevel   Int       @map("writing_level")
   overallLevel   Int       @map("overall_level")
   detailJson     Json      @map("detail_json")

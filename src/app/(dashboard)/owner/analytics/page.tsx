@@ -69,6 +69,7 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
         grammarScore: true,
         vocabularyScore: true,
         readingScore: true,
+        listeningScore: true,
         writingScore: true,
         completedAt: true,
         student: {
@@ -145,6 +146,7 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
                 grammarScore: true,
                 vocabularyScore: true,
                 readingScore: true,
+                listeningScore: true,
                 writingScore: true,
                 completedAt: true,
               },
@@ -311,11 +313,12 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     level: b.student.currentLevel,
   }))
 
-  // Domain averages
+  // Domain averages (5영역)
   const domainScores = {
     Grammar: gradedSessions.map((s) => s.grammarScore).filter((v): v is number => v !== null),
     Vocabulary: gradedSessions.map((s) => s.vocabularyScore).filter((v): v is number => v !== null),
     Reading: gradedSessions.map((s) => s.readingScore).filter((v): v is number => v !== null),
+    Listening: gradedSessions.map((s) => s.listeningScore).filter((v): v is number => v !== null),
     Writing: gradedSessions.map((s) => s.writingScore).filter((v): v is number => v !== null),
   }
   const domainAvgs = Object.entries(domainScores).map(([domain, scores]) => ({

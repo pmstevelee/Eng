@@ -31,6 +31,7 @@ export type StudentProfile = {
     grammar: DomainScoreInfo
     vocabulary: DomainScoreInfo
     reading: DomainScoreInfo
+    listening: DomainScoreInfo | null  // null: 듣기 데이터 없음
     writing: DomainScoreInfo
   }
   overallWeakest: string
@@ -70,6 +71,7 @@ export async function getStudentProfile(studentId: string): Promise<StudentProfi
           grammarScore: true,
           vocabularyScore: true,
           readingScore: true,
+          listeningScore: true,
           writingScore: true,
           completedAt: true,
         },
@@ -106,22 +108,25 @@ export async function getStudentProfile(studentId: string): Promise<StudentProfi
 
   // ── 영역별 점수 계산 ────────────────────────────────────────────────────────
 
-  type ScoreField = 'grammarScore' | 'vocabularyScore' | 'readingScore' | 'writingScore'
+  type ScoreField = 'grammarScore' | 'vocabularyScore' | 'readingScore' | 'writingScore' | 'listeningScore'
 
   const domainScoreFields: Record<string, ScoreField> = {
     grammar: 'grammarScore',
     vocabulary: 'vocabularyScore',
     reading: 'readingScore',
+    listening: 'listeningScore',
     writing: 'writingScore',
   }
 
-  function computeDomainInfo(domain: string): DomainScoreInfo {
+  function computeDomainInfo(domain: string): DomainScoreInfo | null {
     const field = domainScoreFields[domain]
     const scores = recentSessions
       .map((s) => s[field])
       .filter((v): v is number => v !== null && v !== undefined)
 
     if (scores.length === 0) {
+      // 듣기는 데이터 없으면 null 반환, 나머지는 unknown 반환
+      if (domain === 'listening') return null
       return { avg: null, trend: 'unknown', weakCategories: [] }
     }
 
@@ -139,10 +144,11 @@ export async function getStudentProfile(studentId: string): Promise<StudentProfi
   }
 
   const domainScores = {
-    grammar: computeDomainInfo('grammar'),
-    vocabulary: computeDomainInfo('vocabulary'),
-    reading: computeDomainInfo('reading'),
-    writing: computeDomainInfo('writing'),
+    grammar: computeDomainInfo('grammar') ?? { avg: null, trend: 'unknown' as DomainTrend, weakCategories: [] },
+    vocabulary: computeDomainInfo('vocabulary') ?? { avg: null, trend: 'unknown' as DomainTrend, weakCategories: [] },
+    reading: computeDomainInfo('reading') ?? { avg: null, trend: 'unknown' as DomainTrend, weakCategories: [] },
+    listening: computeDomainInfo('listening'),
+    writing: computeDomainInfo('writing') ?? { avg: null, trend: 'unknown' as DomainTrend, weakCategories: [] },
   }
 
   // ── 하위 카테고리 오답 집계 ─────────────────────────────────────────────────
@@ -187,18 +193,21 @@ export async function getStudentProfile(studentId: string): Promise<StudentProfi
 
   // ── 가장 약한/강한 영역 ─────────────────────────────────────────────────────
 
-  const domainKeys = ['grammar', 'vocabulary', 'reading', 'writing'] as const
-  const scored = domainKeys.filter((d) => domainScores[d].avg !== null)
+  const domainKeys = ['grammar', 'vocabulary', 'reading', 'listening', 'writing'] as const
+  const scored = domainKeys.filter((d) => {
+    const info = domainScores[d]
+    return info !== null && info.avg !== null
+  })
 
   let overallWeakest = 'grammar'
   let overallStrongest = 'reading'
 
   if (scored.length > 0) {
     overallWeakest = scored.reduce((a, b) =>
-      (domainScores[a].avg ?? 100) < (domainScores[b].avg ?? 100) ? a : b,
+      ((domainScores[a]?.avg ?? 100) < (domainScores[b]?.avg ?? 100) ? a : b),
     )
     overallStrongest = scored.reduce((a, b) =>
-      (domainScores[a].avg ?? 0) > (domainScores[b].avg ?? 0) ? a : b,
+      ((domainScores[a]?.avg ?? 0) > (domainScores[b]?.avg ?? 0) ? a : b),
     )
   }
 
@@ -210,18 +219,21 @@ export async function getStudentProfile(studentId: string): Promise<StudentProfi
   const readyForLevelUp =
     recentSessions.length >= 3 &&
     recentSessions.slice(0, 3).every((s) => {
-      const vals = [s.grammarScore, s.vocabularyScore, s.readingScore, s.writingScore].filter(
+      const vals = [s.grammarScore, s.vocabularyScore, s.readingScore, s.listeningScore, s.writingScore].filter(
         (v): v is number => v !== null && v !== undefined,
       )
       if (vals.length === 0) return false
       return vals.reduce((a, b) => a + b, 0) / vals.length >= levelUpRequired
     })
 
-  const levelUpGap = {
+  const levelUpGap: Record<string, number> = {
     grammar: (domainScores.grammar.avg ?? 0) - levelUpRequired,
     vocabulary: (domainScores.vocabulary.avg ?? 0) - levelUpRequired,
     reading: (domainScores.reading.avg ?? 0) - levelUpRequired,
     writing: (domainScores.writing.avg ?? 0) - levelUpRequired,
+  }
+  if (domainScores.listening !== null) {
+    levelUpGap.listening = (domainScores.listening.avg ?? 0) - levelUpRequired
   }
 
   return {

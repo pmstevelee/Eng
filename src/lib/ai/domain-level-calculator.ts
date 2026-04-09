@@ -14,6 +14,7 @@ export type DomainLevels = {
   grammar: DomainLevelInfo
   vocabulary: DomainLevelInfo
   reading: DomainLevelInfo
+  listening: DomainLevelInfo | null  // null: 듣기 데이터 없음
   writing: DomainLevelInfo
   overall: { avgScore: number; level: number }
   gaps: {
@@ -27,7 +28,7 @@ export type DomainLevels = {
 // ── 도메인별 최근 5회 평균 → 10단계 레벨 변환 ────────────────────────────────
 
 export async function calculateDomainLevels(studentId: string): Promise<DomainLevels> {
-  const domains = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING'] as const
+  const domains = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING'] as const
 
   // 각 도메인별 최근 5회 점수 병렬 조회
   const results = await Promise.all(
@@ -41,14 +42,14 @@ export async function calculateDomainLevels(studentId: string): Promise<DomainLe
     ),
   )
 
-  const domainScores: Record<string, number> = {}
+  const domainScores: Record<string, number | null> = {}
   domains.forEach((domain, i) => {
     const rows = results[i]
     if (rows.length > 0) {
       const avg = rows.reduce((sum, r) => sum + (r.score ?? 0), 0) / rows.length
       domainScores[domain] = Math.round(avg)
     } else {
-      domainScores[domain] = 0
+      domainScores[domain] = null
     }
   })
 
@@ -61,17 +62,28 @@ export async function calculateDomainLevels(studentId: string): Promise<DomainLe
   const grammar = makeDomainInfo(domainScores['GRAMMAR'] ?? 0)
   const vocabulary = makeDomainInfo(domainScores['VOCABULARY'] ?? 0)
   const reading = makeDomainInfo(domainScores['READING'] ?? 0)
+  const listeningScore = domainScores['LISTENING']
+  const listening = listeningScore !== null ? makeDomainInfo(listeningScore) : null
   const writing = makeDomainInfo(domainScores['WRITING'] ?? 0)
 
-  const avgScore = Math.round(
-    (grammar.score + vocabulary.score + reading.score + writing.score) / 4,
-  )
+  // 종합 평균: 듣기 데이터가 있으면 5영역, 없으면 4영역
+  let avgScore: number
+  if (listening !== null) {
+    avgScore = Math.round(
+      (grammar.score + vocabulary.score + reading.score + listening.score + writing.score) / 5,
+    )
+  } else {
+    avgScore = Math.round(
+      (grammar.score + vocabulary.score + reading.score + writing.score) / 4,
+    )
+  }
   const overall = { avgScore, level: scoreToLevel(avgScore) }
 
   const allDomains = [
     { domain: 'grammar', level: grammar.level, score: grammar.score },
     { domain: 'vocabulary', level: vocabulary.level, score: vocabulary.score },
     { domain: 'reading', level: reading.level, score: reading.score },
+    ...(listening ? [{ domain: 'listening', level: listening.level, score: listening.score }] : []),
     { domain: 'writing', level: writing.level, score: writing.score },
   ]
 
@@ -83,6 +95,7 @@ export async function calculateDomainLevels(studentId: string): Promise<DomainLe
     grammar,
     vocabulary,
     reading,
+    listening,
     writing,
     overall,
     gaps: {

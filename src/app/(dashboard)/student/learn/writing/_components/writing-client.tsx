@@ -331,6 +331,7 @@ const DOMAIN_COLORS: Record<string, string> = {
   grammar: '#1865F2',
   vocabulary: '#7854F7',
   reading: '#0FBFAD',
+  listening: '#E91E8A',
   writing: '#E35C20',
 }
 
@@ -338,6 +339,7 @@ const DOMAIN_LABELS: Record<string, string> = {
   grammar: '문법',
   vocabulary: '어휘',
   reading: '읽기',
+  listening: '듣기',
   writing: '쓰기',
 }
 
@@ -792,12 +794,14 @@ function FeedbackDisplay({
         </div>
       </div>
 
-      {/* ② 4영역 레벨 비교 바 차트 */}
+      {/* ② 5영역 레벨 비교 바 차트 (듣기 데이터 있는 경우 포함) */}
       {domainLevels && (
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <div className="mb-3 flex items-center gap-2">
             <BarChart2 className="h-4 w-4 text-gray-500" />
-            <h3 className="text-sm font-semibold text-gray-700">4영역 레벨 비교 (10단계)</h3>
+            <h3 className="text-sm font-semibold text-gray-700">
+              {domainLevels.listening ? '5영역' : '4영역'} 레벨 비교 (10단계)
+            </h3>
           </div>
           <div className="space-y-2.5">
             {(
@@ -805,6 +809,7 @@ function FeedbackDisplay({
                 { key: 'grammar', level: domainLevels.grammar.level, score: domainLevels.grammar.score, cefr: domainLevels.grammar.cefr },
                 { key: 'vocabulary', level: domainLevels.vocabulary.level, score: domainLevels.vocabulary.score, cefr: domainLevels.vocabulary.cefr },
                 { key: 'reading', level: domainLevels.reading.level, score: domainLevels.reading.score, cefr: domainLevels.reading.cefr },
+                ...(domainLevels.listening ? [{ key: 'listening', level: domainLevels.listening.level, score: domainLevels.listening.score, cefr: domainLevels.listening.cefr }] : []),
                 { key: 'writing', level: assessedLevel, score: detailedScores.totalScore, cefr: writingLevelAssessment.assessedCefr },
               ] as { key: string; level: number; score: number; cefr: string }[]
             ).map(({ key, level, score, cefr }) => {

@@ -149,14 +149,15 @@ function buildUserPrompt(body: RequestBody, wordCount: number): string {
   const recentStr =
     recentWritingScores.length > 0 ? recentWritingScores.join(', ') + '점' : '이전 기록 없음'
 
+  const l = domainLevels?.listening
   const domainSection = domainLevels
-    ? `## 학생 4영역 현재 실력 (참고용, 쓰기 평가의 기준으로 사용하지 마)
+    ? `## 학생 ${l ? '5' : '4'}영역 현재 실력 (참고용, 쓰기 평가의 기준으로 사용하지 마)
 - 문법: ${g!.score}점 / Level ${g!.level} (${g!.cefr})
 - 어휘: ${v!.score}점 / Level ${v!.level} (${v!.cefr})
-- 읽기: ${r!.score}점 / Level ${r!.level} (${r!.cefr})
+- 읽기: ${r!.score}점 / Level ${r!.level} (${r!.cefr})${l ? `\n- 듣기: ${l.score}점 / Level ${l.level} (${l.cefr})` : ''}
 - 쓰기 최근 평균: ${w!.score}점 / Level ${w!.level} (${w!.cefr})
 - 최대 격차: ${gaps!.strongest.domain} Level ${gaps!.strongest.level} vs ${gaps!.weakest.domain} Level ${gaps!.weakest.level} (${gaps!.maxGap}단계 차이)`
-    : `## 학생 4영역 현재 실력
+    : `## 학생 영역별 현재 실력
 - 아직 충분한 평가 데이터가 없습니다. 에세이 자체 실력만으로 판정해주세요.`
 
   const targetLevel = Math.min((domainLevels?.writing.level ?? 1) + 2, 10)
@@ -264,7 +265,7 @@ ${essay}
       "detail": "구체적인 격차 내용",
       "impact": "쓰기 점수에 미치는 영향"
     },
-    "overallDiagnosis": "4영역 레벨과 쓰기 레벨을 종합적으로 분석한 진단 (2~3문장, 학생에게 직접 말하는 톤)"
+    "overallDiagnosis": "영역별 레벨과 쓰기 레벨을 종합적으로 분석한 진단 (2~3문장, 학생에게 직접 말하는 톤)"
   },
 
   "corrections": [

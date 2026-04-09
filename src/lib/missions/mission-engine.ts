@@ -8,6 +8,7 @@ export type WeaknessAnalysis = {
     grammar: number
     vocabulary: number
     reading: number
+    listening: number
     writing: number
   }
   weakestDomain: QuestionDomain
@@ -28,6 +29,7 @@ type MissionType =
   | 'BALANCE_PRACTICE'
   | 'CHALLENGE'
   | 'MINI_WRITING'
+  | 'LISTENING_DRILL'
 
 type MissionConfig = {
   type: MissionType
@@ -62,7 +64,7 @@ type SelectResult = {
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
-const ALL_DOMAINS: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+const ALL_DOMAINS: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
 
 // ── Internal helpers ───────────────────────────────────────────────────────────
 
@@ -120,6 +122,8 @@ function missionTitle(type: MissionType, subCategory: string | null): string {
       return '도전 문제'
     case 'MINI_WRITING':
       return '미니 쓰기 연습'
+    case 'LISTENING_DRILL':
+      return '듣기 연습'
   }
 }
 
@@ -137,6 +141,8 @@ function missionDescription(type: MissionType): string {
       return '한 단계 더 높은 난이도에 도전해요'
     case 'MINI_WRITING':
       return '영어 쓰기 실력을 키워요'
+    case 'LISTENING_DRILL':
+      return '영어 듣기 능력을 키워요'
   }
 }
 
@@ -197,6 +203,7 @@ export async function analyzeStudentWeakness(studentId: string): Promise<Weaknes
     grammar: domainAvg['GRAMMAR'],
     vocabulary: domainAvg['VOCABULARY'],
     reading: domainAvg['READING'],
+    listening: domainAvg['LISTENING'],
     writing: domainAvg['WRITING'],
   }
 
@@ -477,6 +484,43 @@ export async function selectMissionQuestions(
       domain: 'WRITING',
       subCategory: null,
       reason: '쓰기 실력을 한 단계 끌어올려요',
+    }
+  }
+
+  // LISTENING_DRILL: 오디오가 등록된 듣기 문제 (무제한 재생)
+  if (missionType === 'LISTENING_DRILL') {
+    // 오디오 URL이 있는 듣기 문제만 선택
+    const listeningRows = await prisma.question.findMany({
+      where: {
+        domain: 'LISTENING',
+        isActive: true,
+        difficulty: { gte: Math.max(1, currentLevel - 1), lte: Math.min(10, currentLevel + 1) },
+        ...(usedIds.length > 0 ? { id: { notIn: usedIds } } : {}),
+      },
+      select: { id: true, contentJson: true },
+      take: count * 4,
+    })
+
+    // audio_url이 실제로 존재하는 문제만 필터
+    const withAudio = listeningRows.filter((q) => {
+      const c = q.contentJson as { audio_url?: string }
+      return c?.audio_url
+    })
+    const questionIds = [...withAudio]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, count)
+      .map((r) => r.id)
+
+    if (questionIds.length < count) {
+      console.log(
+        `[MissionEngine] LISTENING_DRILL: 문제 부족 - 요청 ${count}개, 실제 ${questionIds.length}개`,
+      )
+    }
+    return {
+      questionIds,
+      domain: 'LISTENING',
+      subCategory: null,
+      reason: '영어 듣기 능력을 키워요',
     }
   }
 

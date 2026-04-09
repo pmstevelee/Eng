@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 
 interface DomainScore {
-  domain: 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
+  domain: 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'LISTENING' | 'WRITING'
   score: number
   history?: number[]
 }
@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
       GRAMMAR: '문법(Grammar)',
       VOCABULARY: '어휘(Vocabulary)',
       READING: '읽기(Reading)',
+      LISTENING: '듣기(Listening)',
       WRITING: '쓰기(Writing)',
     }
 

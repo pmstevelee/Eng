@@ -7,6 +7,7 @@ import {
   useCallback,
   useTransition,
   TouchEvent,
+  useReducer,
 } from 'react'
 import { ChevronLeft, ChevronRight, Clock, Save, AlertTriangle, Volume2 } from 'lucide-react'
 import type { QuestionForTest, SessionForTest, TestForTest, InitialAnswers } from '../page'
@@ -18,16 +19,16 @@ const DOMAIN_COLOR: Record<string, string> = {
   GRAMMAR: '#1865F2',
   VOCABULARY: '#7854F7',
   READING: '#0FBFAD',
+  LISTENING: '#E91E8A',
   WRITING: '#E35C20',
-  LISTENING: '#0EA5E9',
 }
 
 const DOMAIN_LABEL: Record<string, string> = {
   GRAMMAR: '문법',
   VOCABULARY: '어휘',
   READING: '읽기',
-  WRITING: '쓰기',
   LISTENING: '듣기',
+  WRITING: '쓰기',
 }
 
 const LETTERS = ['A', 'B', 'C', 'D']
@@ -459,11 +460,14 @@ function QuestionRenderer({
   }
 
   if (content.audio_url) {
+    // play_count 필드 기반으로 최대 재생 횟수 결정 (기본 2회)
+    const maxPlayCount = typeof content.play_count === 'number' ? content.play_count : 2
     return (
       <ListeningQuestion
         content={content}
         answer={answer}
         onAnswer={onAnswer}
+        maxPlayCount={maxPlayCount}
       />
     )
   }
@@ -707,32 +711,94 @@ function QuestionAndOptions({
 
 // ── 리스닝 문제 ───────────────────────────────────────────────────────────────
 
+const LISTENING_COLOR = '#E91E8A'
+const LISTENING_BG = '#FDE7F3'
+const LISTENING_BORDER = '#F9A8D4'
+
 function ListeningQuestion({
   content,
   answer,
   onAnswer,
+  maxPlayCount = 2,
+  unlimitedPlay = false,
 }: {
   content: QuestionContentJson
   answer: string
   onAnswer: (v: string) => void
+  maxPlayCount?: number
+  unlimitedPlay?: boolean
 }) {
+  const [playCount, setPlayCount] = useState(0)
+  const audioRef = useRef<HTMLAudioElement>(null)
   const options = content.options ?? []
+
+  const remaining = unlimitedPlay ? Infinity : maxPlayCount - playCount
+  const isExhausted = !unlimitedPlay && remaining <= 0
+
+  function handlePlay() {
+    if (isExhausted) return
+    setPlayCount((prev) => prev + 1)
+  }
 
   return (
     <div>
       {/* 오디오 플레이어 */}
-      <div className="mb-6 rounded-xl border border-[#0EA5E9]/30 bg-[#E0F2FE] p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-7 h-7 rounded-full bg-[#0EA5E9] flex items-center justify-center shrink-0">
-            <Volume2 size={14} className="text-white" />
+      <div
+        className="mb-6 rounded-xl border p-4"
+        style={{ borderColor: LISTENING_BORDER, backgroundColor: LISTENING_BG }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+              style={{ backgroundColor: LISTENING_COLOR }}
+            >
+              <Volume2 size={14} className="text-white" />
+            </div>
+            <span className="text-sm font-semibold" style={{ color: LISTENING_COLOR }}>
+              음성을 들어보세요
+            </span>
           </div>
-          <span className="text-sm font-semibold text-[#0EA5E9]">음성을 들어보세요</span>
+          {/* 재생 횟수 표시 */}
+          {!unlimitedPlay && (
+            <span
+              className="text-xs font-semibold px-2 py-0.5 rounded-full"
+              style={{
+                backgroundColor: isExhausted
+                  ? '#FEE2E2'
+                  : remaining <= 1
+                    ? '#FFF8E6'
+                    : `${LISTENING_COLOR}15`,
+                color: isExhausted ? '#D92916' : remaining <= 1 ? '#FFB100' : LISTENING_COLOR,
+              }}
+            >
+              재생 {playCount}/{maxPlayCount}회
+            </span>
+          )}
         </div>
-        <audio controls className="w-full" controlsList="nodownload">
-          <source src={content.audio_url} />
-          브라우저가 오디오를 지원하지 않습니다.
-        </audio>
-        <p className="text-xs text-[#0EA5E9]/70 mt-2">여러 번 들을 수 있습니다.</p>
+
+        {isExhausted ? (
+          <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 font-medium text-center">
+            재생 횟수를 모두 사용했습니다
+          </div>
+        ) : (
+          <audio
+            ref={audioRef}
+            controls
+            className="w-full"
+            controlsList="nodownload"
+            onPlay={handlePlay}
+          >
+            <source src={content.audio_url} />
+            브라우저가 오디오를 지원하지 않습니다.
+          </audio>
+        )}
+
+        {!unlimitedPlay && !isExhausted && (
+          <p className="text-xs mt-2" style={{ color: `${LISTENING_COLOR}99` }}>
+            {remaining === 1 ? '⚠️ 재생 횟수가 1회 남았습니다' : `재생 가능 횟수: ${remaining}회`}
+          </p>
+        )}
       </div>
 
       {/* 문제 */}
@@ -753,18 +819,25 @@ function ListeningQuestion({
                 onClick={() => onAnswer(letter)}
                 className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-all ${
                   isSelected
-                    ? 'border-[#0EA5E9] bg-[#E0F2FE] ring-1 ring-[#0EA5E9]'
+                    ? 'ring-1'
                     : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                 }`}
+                style={isSelected ? {
+                  borderColor: LISTENING_COLOR,
+                  backgroundColor: LISTENING_BG,
+                  outlineColor: LISTENING_COLOR,
+                } : {}}
               >
                 <span
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                    isSelected ? 'bg-[#0EA5E9] text-white' : 'bg-gray-100 text-gray-600'
-                  }`}
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold`}
+                  style={isSelected ? { backgroundColor: LISTENING_COLOR, color: 'white' } : { backgroundColor: '#F0F1F3', color: '#3B3E48' }}
                 >
                   {letter}
                 </span>
-                <span className={`mt-0.5 text-sm leading-relaxed ${isSelected ? 'text-[#0EA5E9] font-medium' : 'text-gray-700'}`}>
+                <span
+                  className={`mt-0.5 text-sm leading-relaxed`}
+                  style={isSelected ? { color: LISTENING_COLOR, fontWeight: 500 } : { color: '#3B3E48' }}
+                >
                   {opt}
                 </span>
               </button>
@@ -782,7 +855,10 @@ function ListeningQuestion({
             value={answer}
             onChange={(e) => onAnswer(e.target.value)}
             placeholder="답을 입력하세요"
-            className="h-11 w-full rounded-xl border border-gray-200 px-4 text-sm text-gray-900 outline-none transition-all focus:border-[#0EA5E9] focus:ring-2 focus:ring-[#0EA5E9]/20"
+            className="h-11 w-full rounded-xl border border-gray-200 px-4 text-sm text-gray-900 outline-none transition-all"
+            style={{ ['--tw-ring-color' as string]: LISTENING_COLOR }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = LISTENING_COLOR }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#E3E5EA' }}
           />
         </div>
       )}

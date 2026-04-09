@@ -36,6 +36,7 @@ const DOMAIN_META: Record<string, { color: string }> = {
   Grammar: { color: '#1865F2' },
   Vocabulary: { color: '#7854F7' },
   Reading: { color: '#0FBFAD' },
+  Listening: { color: '#E91E8A' },
   Writing: { color: '#E35C20' },
 }
 

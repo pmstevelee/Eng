@@ -239,6 +239,7 @@ export async function overrideStudentLevel(input: {
         grammarLevel: input.targetLevel,
         vocabularyLevel: input.targetLevel,
         readingLevel: input.targetLevel,
+        listeningLevel: null,
         writingLevel: input.targetLevel,
         overallLevel: input.targetLevel,
         detailJson: { reason: input.reason, previousLevel: student.currentLevel },
@@ -296,7 +297,7 @@ export async function deployLevelTestToStudent(input: {
       adaptiveConfig: {
         questionsPerDomain: 8,
         startLevel: student.currentLevel,
-        domains: ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING'],
+        domains: ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING'],
       },
       totalScore: 100,
       timeLimitMin: 40,

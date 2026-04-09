@@ -150,7 +150,7 @@ export async function startAdaptiveSession(sessionId: string): Promise<AdaptiveN
     domainQuestionIndex: 1,
     domainTotalEstimate: config.questionsPerDomain,
     currentDomain: firstDomain,
-    domainOrder: ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING'],
+    domainOrder: ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING'],
     estimatedLevel: config.startLevel,
   }
 }
@@ -236,7 +236,7 @@ export async function submitAdaptiveAnswer(
   // 현재 영역 이력 필터
   const domainHistory = history.filter((h) => h.domain === currentDomain)
 
-  const domainOrder: AdaptiveDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+  const domainOrder: AdaptiveDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
   const currentDomainIdx = domainOrder.indexOf(currentDomain)
 
   // 현재 영역 종료 여부 판단
@@ -431,7 +431,7 @@ async function finalizeAdaptiveTest(
   history: QuestionHistoryItem[],
   config: AdaptiveConfig,
 ): Promise<AdaptiveNextResult> {
-  const domainOrder: AdaptiveDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+  const domainOrder: AdaptiveDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
 
   const domainResults = domainOrder.map((d) => {
     const dHistory = history.filter((h) => h.domain === d)

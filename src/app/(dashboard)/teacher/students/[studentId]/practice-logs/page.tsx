@@ -8,6 +8,7 @@ const DOMAIN_LABEL: Record<string, string> = {
   GRAMMAR: '문법',
   VOCABULARY: '어휘',
   READING: '독해',
+  LISTENING: '듣기',
   WRITING: '쓰기',
 }
 
@@ -15,6 +16,7 @@ const DOMAIN_COLOR: Record<string, string> = {
   GRAMMAR: '#1865F2',
   VOCABULARY: '#7854F7',
   READING: '#0FBFAD',
+  LISTENING: '#E91E8A',
   WRITING: '#E35C20',
 }
 

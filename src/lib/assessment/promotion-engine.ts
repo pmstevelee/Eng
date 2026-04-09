@@ -84,6 +84,7 @@ export async function checkPromotionStatus(studentId: string): Promise<Promotion
       grammarLevel: true,
       vocabularyLevel: true,
       readingLevel: true,
+      listeningLevel: true,
       writingLevel: true,
       overallLevel: true,
     },
@@ -93,21 +94,29 @@ export async function checkPromotionStatus(studentId: string): Promise<Promotion
   let condition1Detail: Prisma.InputJsonObject = {}
 
   if (latestAssessment) {
-    const domainLevels = [
+    // 4영역은 필수, 듣기는 측정된 경우만 포함 (null이면 제외 후 4영역으로 판정)
+    const coreDomainLevels = [
       latestAssessment.grammarLevel,
       latestAssessment.vocabularyLevel,
       latestAssessment.readingLevel,
       latestAssessment.writingLevel,
     ]
-    const domainsAboveTarget = domainLevels.filter((l) => l >= targetLevel).length
+    const listeningLevel = latestAssessment.listeningLevel
+    const allDomainLevels = listeningLevel !== null
+      ? [...coreDomainLevels, listeningLevel]
+      : coreDomainLevels
+    const domainsAboveTarget = allDomainLevels.filter((l) => l >= targetLevel).length
+    // 5영역이면 3/5 이상, 4영역이면 3/4 이상
     condition1Met = domainsAboveTarget >= 3
     condition1Detail = {
       grammarLevel: latestAssessment.grammarLevel,
       vocabularyLevel: latestAssessment.vocabularyLevel,
       readingLevel: latestAssessment.readingLevel,
+      listeningLevel: listeningLevel ?? null,
       writingLevel: latestAssessment.writingLevel,
       domainsAboveTarget,
       requiredDomains: 3,
+      totalDomainsMeasured: allDomainLevels.length,
     }
   } else {
     condition1Detail = { reason: '레벨 테스트 이력 없음' }
@@ -323,6 +332,7 @@ const DOMAIN_LABEL_KO: Record<string, string> = {
   GRAMMAR: '문법',
   VOCABULARY: '어휘',
   READING: '읽기',
+  LISTENING: '듣기',
   WRITING: '쓰기',
 }
 
@@ -359,20 +369,25 @@ export async function getPromotionProgress(studentId: string): Promise<Promotion
   const weakAreas: string[] = []
 
   if (c1.grammarLevel !== undefined) {
-    const domainLevels: Record<string, number> = {
+    const domainLevels: Record<string, number | null> = {
       GRAMMAR: c1.grammarLevel as number,
       VOCABULARY: c1.vocabularyLevel as number,
       READING: c1.readingLevel as number,
+      LISTENING: (c1.listeningLevel as number | null) ?? null,
       WRITING: c1.writingLevel as number,
     }
-    const parts = Object.entries(domainLevels).map(([d, lv]) => {
-      const ok = lv >= targetLevel
-      const label = DOMAIN_LABEL_KO[d] ?? d
-      if (!ok) weakAreas.push(`${label} Lv${lv} → Lv${targetLevel} 필요`)
-      return `${label} Lv${lv}${ok ? ' ✓' : ' ✗'}`
-    })
+    const totalMeasured = (c1.totalDomainsMeasured as number) ?? 4
+    const parts = Object.entries(domainLevels)
+      .filter(([, lv]) => lv !== null)
+      .map(([d, lv]) => {
+        const ok = (lv as number) >= targetLevel
+        const label = DOMAIN_LABEL_KO[d] ?? d
+        if (!ok) weakAreas.push(`${label} Lv${lv} → Lv${targetLevel} 필요`)
+        return `${label} Lv${lv}${ok ? ' ✓' : ' ✗'}`
+      })
+    if (domainLevels.LISTENING === null) parts.push('듣기 미측정')
     const met = (c1.domainsAboveTarget as number) ?? 0
-    levelTestDetail = `${parts.join(', ')} (${met}/4 영역 충족)`
+    levelTestDetail = `${parts.join(', ')} (${met}/${totalMeasured} 영역 충족)`
   }
 
   // ── 조건 2 포맷팅 ────────────────────────────────────────────────────────

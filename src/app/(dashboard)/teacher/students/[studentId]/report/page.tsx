@@ -10,6 +10,7 @@ const DOMAIN_COLORS: Record<string, string> = {
   GRAMMAR: '#1865F2',
   VOCABULARY: '#7854F7',
   READING: '#0FBFAD',
+  LISTENING: '#E91E8A',
   WRITING: '#E35C20',
 }
 
@@ -17,6 +18,7 @@ const DOMAIN_LABEL: Record<string, string> = {
   GRAMMAR: '문법',
   VOCABULARY: '어휘',
   READING: '읽기',
+  LISTENING: '듣기',
   WRITING: '쓰기',
 }
 
@@ -53,6 +55,7 @@ export default async function StudentReportPage({
         grammarScore: true,
         vocabularyScore: true,
         readingScore: true,
+        listeningScore: true,
         writingScore: true,
         score: true,
       },
@@ -86,12 +89,16 @@ export default async function StudentReportPage({
     if (s.writingScore != null) domainAvg.WRITING.push(s.writingScore)
   })
 
+  // 듣기: 데이터 있을 때만 포함
+  const listeningScores = latestSessions.flatMap((s) => (s.listeningScore != null ? [s.listeningScore] : []))
+  if (listeningScores.length > 0) domainAvg.LISTENING = listeningScores
+
   const domainScores = Object.entries(domainAvg).map(([key, scores]) => ({
     subject: DOMAIN_LABEL[key],
     score: scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0,
     fullMark: 100,
     color: DOMAIN_COLORS[key],
-    key: key.toLowerCase() as 'grammar' | 'vocabulary' | 'reading' | 'writing',
+    key: key.toLowerCase() as 'grammar' | 'vocabulary' | 'reading' | 'listening' | 'writing',
   }))
 
   const comments = teacherComments.map((c) => ({

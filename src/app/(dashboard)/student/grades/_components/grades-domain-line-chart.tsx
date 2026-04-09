@@ -17,15 +17,17 @@ type SessionPoint = {
   grammarScore: number | null
   vocabularyScore: number | null
   readingScore: number | null
+  listeningScore: number | null
   writingScore: number | null
 }
 
-type DomainKey = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
+type DomainKey = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'LISTENING' | 'WRITING'
 
 const DOMAIN_DATA_KEY: Record<DomainKey, keyof SessionPoint> = {
   GRAMMAR: 'grammarScore',
   VOCABULARY: 'vocabularyScore',
   READING: 'readingScore',
+  LISTENING: 'listeningScore',
   WRITING: 'writingScore',
 }
 

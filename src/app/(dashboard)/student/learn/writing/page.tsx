@@ -33,7 +33,7 @@ export default async function WritingPage() {
   })
   const recentWritingScores = recentWriting.map((r) => r.score as number)
 
-  // 4영역 10단계 레벨 계산
+  // 5영역 10단계 레벨 계산 (듣기는 데이터 없으면 null)
   const domainLevels = await calculateDomainLevels(studentId)
 
   // currentLevel은 10단계 기준으로 보정 (1~10)

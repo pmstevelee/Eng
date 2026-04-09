@@ -7,12 +7,13 @@ import { GradesRadarChart } from './_components/grades-radar-chart'
 import { GradesLineChartWrapper } from './_components/grades-line-chart-wrapper'
 import { GradesTabs } from './_components/grades-tabs'
 
-type DomainKey = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
+type DomainKey = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'LISTENING' | 'WRITING'
 
 const DOMAIN_COLOR: Record<DomainKey, string> = {
   GRAMMAR: '#1865F2',
   VOCABULARY: '#7854F7',
   READING: '#0FBFAD',
+  LISTENING: '#E91E8A',
   WRITING: '#E35C20',
 }
 
@@ -20,10 +21,11 @@ const DOMAIN_LABELS: Record<DomainKey, string> = {
   GRAMMAR: '문법',
   VOCABULARY: '어휘',
   READING: '독해',
+  LISTENING: '듣기',
   WRITING: '쓰기',
 }
 
-const DOMAINS: DomainKey[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+const DOMAINS: DomainKey[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
 
 function avg(nums: (number | null)[]): number | null {
   const valid = nums.filter((n): n is number => n !== null)
@@ -43,6 +45,7 @@ function getDomainScore(
     grammarScore: number | null
     vocabularyScore: number | null
     readingScore: number | null
+    listeningScore: number | null
     writingScore: number | null
   },
   domain: DomainKey,
@@ -50,6 +53,7 @@ function getDomainScore(
   if (domain === 'GRAMMAR') return session.grammarScore
   if (domain === 'VOCABULARY') return session.vocabularyScore
   if (domain === 'READING') return session.readingScore
+  if (domain === 'LISTENING') return session.listeningScore
   return session.writingScore
 }
 
@@ -81,6 +85,7 @@ const getCachedStudentGrades = (studentId: string) =>
             grammarScore: true,
             vocabularyScore: true,
             readingScore: true,
+            listeningScore: true,
             writingScore: true,
             startedAt: true,
             completedAt: true,
@@ -105,6 +110,7 @@ const getCachedStudentGrades = (studentId: string) =>
             grammarLevel: true,
             vocabularyLevel: true,
             readingLevel: true,
+            listeningLevel: true,
             writingLevel: true,
             overallLevel: true,
             assessedAt: true,
@@ -146,18 +152,21 @@ const getCachedStudentGrades = (studentId: string) =>
         GRAMMAR: domainAvgOf(sessions, 'GRAMMAR'),
         VOCABULARY: domainAvgOf(sessions, 'VOCABULARY'),
         READING: domainAvgOf(sessions, 'READING'),
+        LISTENING: domainAvgOf(sessions, 'LISTENING'),
         WRITING: domainAvgOf(sessions, 'WRITING'),
       }
       const thisMonthDomainAvg: Record<DomainKey, number | null> = {
         GRAMMAR: domainAvgOf(thisMonthSessions, 'GRAMMAR'),
         VOCABULARY: domainAvgOf(thisMonthSessions, 'VOCABULARY'),
         READING: domainAvgOf(thisMonthSessions, 'READING'),
+        LISTENING: domainAvgOf(thisMonthSessions, 'LISTENING'),
         WRITING: domainAvgOf(thisMonthSessions, 'WRITING'),
       }
       const lastMonthDomainAvg: Record<DomainKey, number | null> = {
         GRAMMAR: domainAvgOf(lastMonthSessions, 'GRAMMAR'),
         VOCABULARY: domainAvgOf(lastMonthSessions, 'VOCABULARY'),
         READING: domainAvgOf(lastMonthSessions, 'READING'),
+        LISTENING: domainAvgOf(lastMonthSessions, 'LISTENING'),
         WRITING: domainAvgOf(lastMonthSessions, 'WRITING'),
       }
 
@@ -189,6 +198,7 @@ const getCachedStudentGrades = (studentId: string) =>
           grammarScore: s.grammarScore,
           vocabularyScore: s.vocabularyScore,
           readingScore: s.readingScore,
+          listeningScore: s.listeningScore,
           writingScore: s.writingScore,
         }))
 
@@ -202,6 +212,7 @@ const getCachedStudentGrades = (studentId: string) =>
         grammarScore: s.grammarScore,
         vocabularyScore: s.vocabularyScore,
         readingScore: s.readingScore,
+        listeningScore: s.listeningScore,
         writingScore: s.writingScore,
         durationMin:
           s.completedAt && s.startedAt
@@ -227,6 +238,7 @@ const getCachedStudentGrades = (studentId: string) =>
         GRAMMAR: new Map(),
         VOCABULARY: new Map(),
         READING: new Map(),
+        LISTENING: new Map(),
         WRITING: new Map(),
       }
 
@@ -248,6 +260,7 @@ const getCachedStudentGrades = (studentId: string) =>
         GRAMMAR: [],
         VOCABULARY: [],
         READING: [],
+        LISTENING: [],
         WRITING: [],
       }
       for (const domain of DOMAINS) {
@@ -293,6 +306,7 @@ const getCachedStudentGrades = (studentId: string) =>
         grammarLevel: la.grammarLevel,
         vocabularyLevel: la.vocabularyLevel,
         readingLevel: la.readingLevel,
+        listeningLevel: la.listeningLevel,
         writingLevel: la.writingLevel,
         overallLevel: la.overallLevel,
         assessedBy: la.assessedBy,
@@ -430,8 +444,8 @@ export default async function GradesPage() {
         </div>
       </div>
 
-      {/* ── 영역별 점수 카드 (grid-cols-4 / grid-cols-2) ── */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      {/* ── 영역별 점수 카드 (grid-cols-5 / grid-cols-2 혹은 3) ── */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {DOMAINS.map((domain) => {
           const curr = allDomainAvg[domain]
           const thisM = thisMonthDomainAvg[domain]

@@ -41,6 +41,7 @@ type SessionData = {
   grammarScore: number | null
   vocabularyScore: number | null
   readingScore: number | null
+  listeningScore: number | null
   writingScore: number | null
   completedAt: string | null
   testTitle: string
@@ -84,6 +85,7 @@ type LevelAssessmentData = {
   grammarLevel: number
   vocabularyLevel: number
   readingLevel: number
+  listeningLevel: number | null
   writingLevel: number
   overallLevel: number
   assessedAt: string
@@ -98,6 +100,7 @@ const DOMAIN_COLORS = {
   GRAMMAR: '#1865F2',
   VOCABULARY: '#7854F7',
   READING: '#0FBFAD',
+  LISTENING: '#E91E8A',
   WRITING: '#E35C20',
 }
 
@@ -125,6 +128,7 @@ const DOMAIN_LABEL: Record<string, string> = {
   GRAMMAR: '문법',
   VOCABULARY: '어휘',
   READING: '읽기',
+  LISTENING: '듣기',
   WRITING: '쓰기',
 }
 
@@ -141,10 +145,12 @@ function ScoreTab({
 }) {
   const latest = sessions[0]
 
+  const hasListening = sessions.some((s) => s.listeningScore != null)
   const radarData = [
     { subject: '문법', score: latest?.grammarScore ?? 0, fullMark: 100 },
     { subject: '어휘', score: latest?.vocabularyScore ?? 0, fullMark: 100 },
     { subject: '읽기', score: latest?.readingScore ?? 0, fullMark: 100 },
+    ...(hasListening ? [{ subject: '듣기', score: latest?.listeningScore ?? 0, fullMark: 100 }] : []),
     { subject: '쓰기', score: latest?.writingScore ?? 0, fullMark: 100 },
   ]
 
@@ -154,6 +160,7 @@ function ScoreTab({
     문법: s.grammarScore,
     어휘: s.vocabularyScore,
     읽기: s.readingScore,
+    ...(hasListening ? { 듣기: s.listeningScore } : {}),
     쓰기: s.writingScore,
   }))
 
@@ -274,6 +281,7 @@ function ScoreTab({
               <Line type="monotone" dataKey="문법" stroke={DOMAIN_COLORS.GRAMMAR} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
               <Line type="monotone" dataKey="어휘" stroke={DOMAIN_COLORS.VOCABULARY} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
               <Line type="monotone" dataKey="읽기" stroke={DOMAIN_COLORS.READING} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
+              {hasListening && <Line type="monotone" dataKey="듣기" stroke={DOMAIN_COLORS.LISTENING} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />}
               <Line type="monotone" dataKey="쓰기" stroke={DOMAIN_COLORS.WRITING} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
             </LineChart>
           </ResponsiveContainer>
@@ -874,6 +882,7 @@ const DOMAIN_SHORT_KO: Record<string, string> = {
   GRAMMAR: '문법',
   VOCABULARY: '어휘',
   READING: '읽기',
+  LISTENING: '듣기',
   WRITING: '쓰기',
 }
 
@@ -959,7 +968,7 @@ function LevelTab({
           </p>
         )}
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
           <div className="text-center">
             <p className="text-xs text-gray-400">공식 레벨</p>
             <p className="mt-1 text-2xl font-black text-[#1865F2]">Lv.{currentLevel}</p>
@@ -972,18 +981,26 @@ function LevelTab({
                   { key: 'VOCABULARY', val: currentAssessment.vocabularyLevel },
                   { key: 'READING', val: currentAssessment.readingLevel },
                   { key: 'WRITING', val: currentAssessment.writingLevel },
-                ] as const
+                ] as Array<{ key: keyof typeof DOMAIN_COLORS; val: number }>
               ).map(({ key, val }) => (
                 <div key={key} className="text-center">
                   <p className="text-xs text-gray-400">{DOMAIN_SHORT_KO[key]}</p>
                   <p
                     className="mt-1 text-2xl font-black"
-                    style={{ color: DOMAIN_COLORS[key as keyof typeof DOMAIN_COLORS] }}
+                    style={{ color: DOMAIN_COLORS[key] }}
                   >
                     Lv.{val}
                   </p>
                 </div>
               ))}
+              {currentAssessment.listeningLevel != null && (
+                <div className="text-center">
+                  <p className="text-xs text-gray-400">{DOMAIN_SHORT_KO.LISTENING}</p>
+                  <p className="mt-1 text-2xl font-black" style={{ color: DOMAIN_COLORS.LISTENING }}>
+                    Lv.{currentAssessment.listeningLevel}
+                  </p>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -1047,7 +1064,7 @@ function LevelTab({
             <table className="w-full min-w-[600px] text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
-                  {['날짜', '유형', '문법', '어휘', '읽기', '쓰기', '종합'].map((h) => (
+                  {['날짜', '유형', '문법', '어휘', '읽기', '듣기', '쓰기', '종합'].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
@@ -1084,6 +1101,9 @@ function LevelTab({
                       </td>
                       <td className="px-4 py-3 text-sm font-semibold" style={{ color: DOMAIN_COLORS.READING }}>
                         Lv{la.readingLevel}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold" style={{ color: DOMAIN_COLORS.LISTENING }}>
+                        {la.listeningLevel != null ? `Lv${la.listeningLevel}` : <span className="text-gray-300">—</span>}
                       </td>
                       <td className="px-4 py-3 text-sm font-semibold" style={{ color: DOMAIN_COLORS.WRITING }}>
                         Lv{la.writingLevel}

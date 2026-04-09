@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma/client'
 
 // ─── 타입 정의 ─────────────────────────────────────────────────────────────────
 
-export type AdaptiveDomain = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
+export type AdaptiveDomain = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'LISTENING' | 'WRITING'
 
 export type QuestionHistoryItem = {
   questionId: string
@@ -17,9 +17,10 @@ export type QuestionHistoryItem = {
 }
 
 export type AdaptiveConfig = {
-  questionsPerDomain: number   // 영역당 문제 수 (기본 8)
+  questionsPerDomain: number   // 영역당 문제 수 (기본 7)
   startLevel: number           // 시작 난이도 (기본 5)
   writingQuestions: number     // 쓰기 문제 수 (기본 2)
+  minListeningQuestions?: number  // 듣기 측정 최소 문제 수 (기본 3, 미달 시 듣기 생략)
 }
 
 export type DomainProgress = {
@@ -60,6 +61,7 @@ export type PlacementResult = {
   grammarLevel: number
   vocabularyLevel: number
   readingLevel: number
+  listeningLevel: number | null  // null: 듣기 문제 부족으로 미측정
   writingLevel: number
   overallLevel: number
   domainDetails: DomainLevelResult[]
@@ -73,12 +75,13 @@ export type PlacementResult = {
 // ─── 기본 설정 ─────────────────────────────────────────────────────────────────
 
 const DEFAULT_CONFIG: AdaptiveConfig = {
-  questionsPerDomain: 8,
+  questionsPerDomain: 7,
   startLevel: 5,
   writingQuestions: 2,
+  minListeningQuestions: 3,
 }
 
-const DOMAIN_ORDER: AdaptiveDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+const DOMAIN_ORDER: AdaptiveDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
 
 // ─── 레벨 추정 알고리즘 ────────────────────────────────────────────────────────
 
@@ -332,20 +335,29 @@ export function calculateDomainLevel(
 
 /**
  * 종합 레벨 판정 (가중 방식)
+ * 듣기가 측정된 경우: 5영역 가중 평균 (문법 25%, 어휘 25%, 읽기 20%, 듣기 15%, 쓰기 15%)
+ * 듣기가 미측정인 경우: 4영역 가중 평균 (문법 30%, 어휘 30%, 읽기 25%, 쓰기 15%)
  */
 export function calculateOverallLevel(domainResults: DomainLevelResult[]): number {
-  const getLevel = (domain: AdaptiveDomain): number => {
+  const getLevel = (domain: AdaptiveDomain): number | null => {
     const r = domainResults.find((d) => d.domain === domain)
-    return r?.level ?? 5 // 없으면 중간값
+    return r?.level ?? null
   }
 
-  const grammar = getLevel('GRAMMAR')
-  const vocabulary = getLevel('VOCABULARY')
-  const reading = getLevel('READING')
-  const writing = getLevel('WRITING')
+  const grammar = getLevel('GRAMMAR') ?? 5
+  const vocabulary = getLevel('VOCABULARY') ?? 5
+  const reading = getLevel('READING') ?? 5
+  const listening = getLevel('LISTENING')
+  const writing = getLevel('WRITING') ?? 5
 
-  // 가중 평균: 문법 30%, 어휘 30%, 읽기 25%, 쓰기 15%
-  const weighted = grammar * 0.3 + vocabulary * 0.3 + reading * 0.25 + writing * 0.15
+  let weighted: number
+  if (listening !== null) {
+    // 5영역 가중 평균
+    weighted = grammar * 0.25 + vocabulary * 0.25 + reading * 0.20 + listening * 0.15 + writing * 0.15
+  } else {
+    // 4영역 가중 평균 (듣기 미측정 시 하위 호환)
+    weighted = grammar * 0.3 + vocabulary * 0.3 + reading * 0.25 + writing * 0.15
+  }
 
   return Math.max(1, Math.min(10, Math.round(weighted)))
 }
@@ -357,28 +369,41 @@ export function buildPlacementResult(
   domainResults: DomainLevelResult[],
   previousLevel: number | null,
 ): PlacementResult {
-  const getLevel = (d: AdaptiveDomain) =>
+  const getLevel = (d: AdaptiveDomain): number =>
     domainResults.find((r) => r.domain === d)?.level ?? 5
+  const getLevelOrNull = (d: AdaptiveDomain): number | null =>
+    domainResults.find((r) => r.domain === d)?.level ?? null
 
   const grammarLevel = getLevel('GRAMMAR')
   const vocabularyLevel = getLevel('VOCABULARY')
   const readingLevel = getLevel('READING')
+  const listeningLevel = getLevelOrNull('LISTENING')
   const writingLevel = getLevel('WRITING')
   const overallLevel = calculateOverallLevel(domainResults)
 
-  const minLevel = Math.min(grammarLevel, vocabularyLevel, readingLevel, writingLevel)
-  const maxLevel = Math.max(grammarLevel, vocabularyLevel, readingLevel, writingLevel)
+  // 측정된 도메인만 비교
+  const measuredLevels = [grammarLevel, vocabularyLevel, readingLevel, writingLevel]
+  if (listeningLevel !== null) measuredLevels.push(listeningLevel)
+  const minLevel = Math.min(...measuredLevels)
 
-  const domainLevels = { GRAMMAR: grammarLevel, VOCABULARY: vocabularyLevel, READING: readingLevel, WRITING: writingLevel }
-  const weakestDomain = (Object.entries(domainLevels) as [AdaptiveDomain, number][])
-    .sort(([, a], [, b]) => a - b)[0][0]
-  const strongestDomain = (Object.entries(domainLevels) as [AdaptiveDomain, number][])
-    .sort(([, a], [, b]) => b - a)[0][0]
+  const domainLevels: Record<AdaptiveDomain, number> = {
+    GRAMMAR: grammarLevel,
+    VOCABULARY: vocabularyLevel,
+    READING: readingLevel,
+    LISTENING: listeningLevel ?? 5,
+    WRITING: writingLevel,
+  }
+  // weakest/strongest는 측정된 도메인만 고려
+  const measuredDomains = (Object.entries(domainLevels) as [AdaptiveDomain, number][])
+    .filter(([d]) => d !== 'LISTENING' || listeningLevel !== null)
+  const weakestDomain = measuredDomains.sort(([, a], [, b]) => a - b)[0][0]
+  const strongestDomain = [...measuredDomains].sort(([, a], [, b]) => b - a)[0][0]
 
   return {
     grammarLevel,
     vocabularyLevel,
     readingLevel,
+    listeningLevel,
     writingLevel,
     overallLevel,
     domainDetails: domainResults,
@@ -420,6 +445,7 @@ export async function saveLevelAssessment(
         grammarLevel: result.grammarLevel,
         vocabularyLevel: result.vocabularyLevel,
         readingLevel: result.readingLevel,
+        listeningLevel: result.listeningLevel ?? null,
         writingLevel: result.writingLevel,
         overallLevel: result.overallLevel,
         detailJson: JSON.parse(JSON.stringify(result)),

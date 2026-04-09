@@ -24,6 +24,7 @@ type SessionSummary = {
   grammarScore: number | null
   vocabularyScore: number | null
   readingScore: number | null
+  listeningScore: number | null
   writingScore: number | null
   completedAt: string | null
 }
@@ -43,6 +44,7 @@ const DOMAIN_COLORS = {
   grammar: '#1865F2',
   vocabulary: '#7854F7',
   reading: '#0FBFAD',
+  listening: '#E91E8A',
   writing: '#E35C20',
 }
 
@@ -104,6 +106,7 @@ function StudentCard({
     { key: 'grammar', label: '문법', value: latest?.grammarScore, color: DOMAIN_COLORS.grammar },
     { key: 'vocabulary', label: '어휘', value: latest?.vocabularyScore, color: DOMAIN_COLORS.vocabulary },
     { key: 'reading', label: '읽기', value: latest?.readingScore, color: DOMAIN_COLORS.reading },
+    ...(latest?.listeningScore != null ? [{ key: 'listening', label: '듣기', value: latest.listeningScore, color: DOMAIN_COLORS.listening }] : []),
     { key: 'writing', label: '쓰기', value: latest?.writingScore, color: DOMAIN_COLORS.writing },
   ]
 

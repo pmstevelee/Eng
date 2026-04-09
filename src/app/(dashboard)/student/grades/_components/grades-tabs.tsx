@@ -5,13 +5,14 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GradesDomainLineChart } from './grades-domain-line-chart'
 
-type DomainKey = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
+type DomainKey = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'LISTENING' | 'WRITING'
 type TabKey = 'history' | 'domain' | 'level'
 
 const DOMAIN_COLOR: Record<DomainKey, string> = {
   GRAMMAR: '#1865F2',
   VOCABULARY: '#7854F7',
   READING: '#0FBFAD',
+  LISTENING: '#E91E8A',
   WRITING: '#E35C20',
 }
 
@@ -19,6 +20,7 @@ const DOMAIN_LABELS: Record<DomainKey, string> = {
   GRAMMAR: '문법',
   VOCABULARY: '어휘',
   READING: '독해',
+  LISTENING: '듣기',
   WRITING: '쓰기',
 }
 
@@ -48,6 +50,7 @@ type HistoryItem = {
   grammarScore: number | null
   vocabularyScore: number | null
   readingScore: number | null
+  listeningScore: number | null
   writingScore: number | null
   durationMin: number | null
 }
@@ -73,6 +76,7 @@ type AssessmentHistoryItem = {
   grammarLevel: number
   vocabularyLevel: number
   readingLevel: number
+  listeningLevel: number | null
   writingLevel: number
   overallLevel: number
   assessedBy: string
@@ -88,6 +92,7 @@ type SessionPoint = {
   grammarScore: number | null
   vocabularyScore: number | null
   readingScore: number | null
+  listeningScore: number | null
   writingScore: number | null
 }
 
@@ -115,7 +120,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'level', label: '레벨 히스토리' },
 ]
 
-const DOMAINS: DomainKey[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+const DOMAINS: DomainKey[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
 
 const ASSESSMENT_TYPE_LABEL: Record<string, string> = {
   PLACEMENT: '입학 배치',
@@ -135,6 +140,7 @@ const DOMAIN_SHORT: Record<string, string> = {
   GRAMMAR: '문법',
   VOCABULARY: '어휘',
   READING: '읽기',
+  LISTENING: '듣기',
   WRITING: '쓰기',
 }
 
@@ -200,6 +206,7 @@ export function GradesTabs({
                         '문법',
                         '어휘',
                         '독해',
+                        '듣기',
                         '쓰기',
                         '소요시간',
                       ].map((h) => (
@@ -254,6 +261,7 @@ export function GradesTabs({
                             'grammarScore',
                             'vocabularyScore',
                             'readingScore',
+                            'listeningScore',
                             'writingScore',
                           ] as const
                         ).map((k) => (
@@ -443,20 +451,25 @@ export function GradesTabs({
                             종합 Level {item.overallLevel} 판정
                           </p>
                           <div className="flex flex-wrap gap-2">
-                            {(
-                              [
-                                { key: 'GRAMMAR', val: item.grammarLevel },
-                                { key: 'VOCABULARY', val: item.vocabularyLevel },
-                                { key: 'READING', val: item.readingLevel },
-                                { key: 'WRITING', val: item.writingLevel },
-                              ] as const
-                            ).map(({ key, val }) => (
-                              <span
-                                key={key}
-                                className="rounded-lg bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600"
-                              >
-                                {DOMAIN_SHORT[key]} Lv{val}
-                              </span>
+                            {[
+                              { key: 'GRAMMAR', val: item.grammarLevel },
+                              { key: 'VOCABULARY', val: item.vocabularyLevel },
+                              { key: 'READING', val: item.readingLevel },
+                              { key: 'LISTENING', val: item.listeningLevel },
+                              { key: 'WRITING', val: item.writingLevel },
+                            ].map(({ key, val }) => (
+                              val !== null && val !== undefined ? (
+                                <span
+                                  key={key}
+                                  className="rounded-lg bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600"
+                                >
+                                  {DOMAIN_SHORT[key]} Lv{val}
+                                </span>
+                              ) : key === 'LISTENING' ? (
+                                <span key={key} className="rounded-lg bg-gray-50 px-2.5 py-1 text-xs text-gray-400">
+                                  듣기 미측정
+                                </span>
+                              ) : null
                             ))}
                           </div>
                           {item.assessedBy === 'TEACHER_OVERRIDE' && (
