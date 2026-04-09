@@ -9,6 +9,7 @@ import {
   TouchEvent,
   useReducer,
 } from 'react'
+import Image from 'next/image'
 import { ChevronLeft, ChevronRight, Clock, Save, AlertTriangle, Volume2 } from 'lucide-react'
 import type { QuestionForTest, SessionForTest, TestForTest, InitialAnswers } from '../page'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
@@ -436,6 +437,23 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
   )
 }
 
+// ── 문제 이미지 ───────────────────────────────────────────────────────────────
+
+function QuestionImage({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="my-3">
+      <Image
+        src={src}
+        alt={alt}
+        width={480}
+        height={300}
+        unoptimized
+        className="rounded-xl border border-gray-200 object-contain max-h-64 w-auto"
+      />
+    </div>
+  )
+}
+
 // ── 문제 렌더러 ───────────────────────────────────────────────────────────────
 
 type QuestionRendererProps = {
@@ -507,7 +525,10 @@ function MultipleChoiceQuestion({
 
   return (
     <div>
-      <p className="mb-6 text-base leading-relaxed text-gray-900">{content.question_text}</p>
+      <p className="mb-4 text-base leading-relaxed text-gray-900">{content.question_text}</p>
+      {content.question_image_url && (
+        <QuestionImage src={content.question_image_url} alt="문제 이미지" />
+      )}
       {content.question_text_ko && (
         <p className="mb-6 text-sm leading-relaxed text-gray-500">{content.question_text_ko}</p>
       )}
@@ -516,6 +537,7 @@ function MultipleChoiceQuestion({
         {options.map((opt, i) => {
           const letter = LETTERS[i] ?? String(i + 1)
           const isSelected = answer === letter
+          const optionImg = content.option_images?.[i]
           return (
             <button
               key={i}
@@ -533,7 +555,17 @@ function MultipleChoiceQuestion({
               >
                 {letter}
               </span>
-              <span className={`mt-0.5 text-sm leading-relaxed ${isSelected ? 'text-[#1865F2] font-medium' : 'text-gray-700'}`}>
+              <span className={`mt-0.5 flex-1 text-sm leading-relaxed ${isSelected ? 'text-[#1865F2] font-medium' : 'text-gray-700'}`}>
+                {optionImg && (
+                  <Image
+                    src={optionImg}
+                    alt={`선택지 ${letter} 이미지`}
+                    width={240}
+                    height={150}
+                    unoptimized
+                    className="mb-1.5 rounded-lg border border-gray-200 object-contain max-h-36 w-auto"
+                  />
+                )}
                 {opt}
               </span>
             </button>
@@ -557,7 +589,10 @@ function FillBlankQuestion({
 }) {
   return (
     <div>
-      <p className="mb-6 text-base leading-relaxed text-gray-900">{content.question_text}</p>
+      <p className="mb-4 text-base leading-relaxed text-gray-900">{content.question_text}</p>
+      {content.question_image_url && (
+        <QuestionImage src={content.question_image_url} alt="문제 이미지" />
+      )}
       {content.question_text_ko && (
         <p className="mb-4 text-sm leading-relaxed text-gray-500">{content.question_text_ko}</p>
       )}
@@ -626,6 +661,9 @@ function ReadingQuestion({
         {readingTab === 'passage' && (
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
             <p className="text-sm font-semibold text-gray-500 mb-3">지문</p>
+            {content.passage_image_url && (
+              <QuestionImage src={content.passage_image_url} alt="지문 이미지" />
+            )}
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
               {content.passage}
             </p>
@@ -643,8 +681,11 @@ function ReadingQuestion({
 
       {/* 데스크탑: 상하 분할 */}
       <div className="hidden sm:block">
-        <div className="mb-4 max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-gray-50 p-4">
+        <div className="mb-4 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-gray-50 p-4">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">지문</p>
+          {content.passage_image_url && (
+            <QuestionImage src={content.passage_image_url} alt="지문 이미지" />
+          )}
           <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
             {content.passage}
           </p>
@@ -674,6 +715,9 @@ function QuestionAndOptions({
   return (
     <div>
       <p className="mb-4 text-base leading-relaxed text-gray-900">{content.question_text}</p>
+      {content.question_image_url && (
+        <QuestionImage src={content.question_image_url} alt="문제 이미지" />
+      )}
       {content.question_text_ko && (
         <p className="mb-4 text-sm leading-relaxed text-gray-500">{content.question_text_ko}</p>
       )}
@@ -681,6 +725,7 @@ function QuestionAndOptions({
         {options.map((opt, i) => {
           const letter = LETTERS[i] ?? String(i + 1)
           const isSelected = answer === letter
+          const optionImg = content.option_images?.[i]
           return (
             <button
               key={i}
@@ -698,7 +743,17 @@ function QuestionAndOptions({
               >
                 {letter}
               </span>
-              <span className={`mt-0.5 text-sm leading-relaxed ${isSelected ? 'text-[#1865F2] font-medium' : 'text-gray-700'}`}>
+              <span className={`mt-0.5 flex-1 text-sm leading-relaxed ${isSelected ? 'text-[#1865F2] font-medium' : 'text-gray-700'}`}>
+                {optionImg && (
+                  <Image
+                    src={optionImg}
+                    alt={`선택지 ${letter} 이미지`}
+                    width={240}
+                    height={150}
+                    unoptimized
+                    className="mb-1.5 rounded-lg border border-gray-200 object-contain max-h-36 w-auto"
+                  />
+                )}
                 {opt}
               </span>
             </button>
@@ -803,6 +858,9 @@ function ListeningQuestion({
 
       {/* 문제 */}
       <p className="mb-4 text-base leading-relaxed text-gray-900">{content.question_text}</p>
+      {content.question_image_url && (
+        <QuestionImage src={content.question_image_url} alt="문제 이미지" />
+      )}
       {content.question_text_ko && (
         <p className="mb-4 text-sm leading-relaxed text-gray-500">{content.question_text_ko}</p>
       )}
@@ -813,6 +871,7 @@ function ListeningQuestion({
           {options.map((opt, i) => {
             const letter = LETTERS[i] ?? String(i + 1)
             const isSelected = answer === letter
+            const optionImg = content.option_images?.[i]
             return (
               <button
                 key={i}
@@ -835,9 +894,19 @@ function ListeningQuestion({
                   {letter}
                 </span>
                 <span
-                  className={`mt-0.5 text-sm leading-relaxed`}
+                  className={`mt-0.5 flex-1 text-sm leading-relaxed`}
                   style={isSelected ? { color: LISTENING_COLOR, fontWeight: 500 } : { color: '#3B3E48' }}
                 >
+                  {optionImg && (
+                    <Image
+                      src={optionImg}
+                      alt={`선택지 ${letter} 이미지`}
+                      width={240}
+                      height={150}
+                      unoptimized
+                      className="mb-1.5 rounded-lg border border-gray-200 object-contain max-h-36 w-auto"
+                    />
+                  )}
                   {opt}
                 </span>
               </button>
@@ -884,6 +953,9 @@ function EssayQuestion({
   return (
     <div>
       <p className="mb-2 text-base leading-relaxed text-gray-900">{content.question_text}</p>
+      {content.question_image_url && (
+        <QuestionImage src={content.question_image_url} alt="문제 이미지" />
+      )}
       {content.question_text_ko && (
         <p className="mb-4 text-sm leading-relaxed text-gray-500">{content.question_text_ko}</p>
       )}
