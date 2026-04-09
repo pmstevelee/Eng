@@ -112,6 +112,7 @@ export default async function TeacherQuestionsPage({ searchParams }: { searchPar
     GRAMMAR: academyQuestions.filter((q) => q.domain === 'GRAMMAR').length,
     VOCABULARY: academyQuestions.filter((q) => q.domain === 'VOCABULARY').length,
     READING: academyQuestions.filter((q) => q.domain === 'READING').length,
+    LISTENING: academyQuestions.filter((q) => q.domain === 'LISTENING').length,
     WRITING: academyQuestions.filter((q) => q.domain === 'WRITING').length,
   }
 
@@ -119,6 +120,7 @@ export default async function TeacherQuestionsPage({ searchParams }: { searchPar
     { label: '문법', count: domainCounts.GRAMMAR, color: '#1865F2' },
     { label: '어휘', count: domainCounts.VOCABULARY, color: '#7854F7' },
     { label: '읽기', count: domainCounts.READING, color: '#0FBFAD' },
+    { label: '듣기', count: domainCounts.LISTENING, color: '#E91E8A' },
     { label: '쓰기', count: domainCounts.WRITING, color: '#E35C20' },
   ]
 
@@ -144,7 +146,7 @@ export default async function TeacherQuestionsPage({ searchParams }: { searchPar
       </div>
 
       {/* 영역별 통계 (학원 문제 기준) */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         {statCards.map((item) => (
           <div key={item.label} className="rounded-xl border border-gray-200 p-4 bg-white">
             <div className="flex items-center gap-2 mb-2">

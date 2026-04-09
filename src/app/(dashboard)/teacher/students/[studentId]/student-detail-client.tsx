@@ -237,6 +237,7 @@ function ScoreTab({
                 { key: 'GRAMMAR', value: latest?.grammarScore },
                 { key: 'VOCABULARY', value: latest?.vocabularyScore },
                 { key: 'READING', value: latest?.readingScore },
+                ...(hasListening ? [{ key: 'LISTENING', value: latest?.listeningScore }] : []),
                 { key: 'WRITING', value: latest?.writingScore },
               ].map(({ key, value }) => (
                 <div key={key} className="flex items-center gap-3">
@@ -297,7 +298,7 @@ function ScoreTab({
           <table className="w-full text-sm">
             <thead>
               <tr>
-                {['날짜', '테스트명', '유형', '총점', '문법', '어휘', '읽기', '쓰기'].map((h) => (
+                {['날짜', '테스트명', '유형', '총점', '문법', '어휘', '읽기', ...(hasListening ? ['듣기'] : []), '쓰기'].map((h) => (
                   <th
                     key={h}
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide bg-gray-50"
@@ -331,6 +332,7 @@ function ScoreTab({
                   <td className="px-4 py-3 text-gray-600">{s.grammarScore ?? '-'}</td>
                   <td className="px-4 py-3 text-gray-600">{s.vocabularyScore ?? '-'}</td>
                   <td className="px-4 py-3 text-gray-600">{s.readingScore ?? '-'}</td>
+                  {hasListening && <td className="px-4 py-3 text-gray-600">{s.listeningScore ?? '-'}</td>}
                   <td className="px-4 py-3 text-gray-600">{s.writingScore ?? '-'}</td>
                 </tr>
               ))}
@@ -968,40 +970,30 @@ function LevelTab({
           </p>
         )}
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+        <div className={`grid grid-cols-2 gap-4 ${currentAssessment?.listeningLevel != null ? 'sm:grid-cols-6' : 'sm:grid-cols-5'}`}>
           <div className="text-center">
             <p className="text-xs text-gray-400">공식 레벨</p>
             <p className="mt-1 text-2xl font-black text-[#1865F2]">Lv.{currentLevel}</p>
           </div>
           {currentAssessment && (
-            <>
-              {(
-                [
-                  { key: 'GRAMMAR', val: currentAssessment.grammarLevel },
-                  { key: 'VOCABULARY', val: currentAssessment.vocabularyLevel },
-                  { key: 'READING', val: currentAssessment.readingLevel },
-                  { key: 'WRITING', val: currentAssessment.writingLevel },
-                ] as Array<{ key: keyof typeof DOMAIN_COLORS; val: number }>
-              ).map(({ key, val }) => (
-                <div key={key} className="text-center">
-                  <p className="text-xs text-gray-400">{DOMAIN_SHORT_KO[key]}</p>
-                  <p
-                    className="mt-1 text-2xl font-black"
-                    style={{ color: DOMAIN_COLORS[key] }}
-                  >
-                    Lv.{val}
-                  </p>
-                </div>
-              ))}
-              {currentAssessment.listeningLevel != null && (
-                <div className="text-center">
-                  <p className="text-xs text-gray-400">{DOMAIN_SHORT_KO.LISTENING}</p>
-                  <p className="mt-1 text-2xl font-black" style={{ color: DOMAIN_COLORS.LISTENING }}>
-                    Lv.{currentAssessment.listeningLevel}
-                  </p>
-                </div>
-              )}
-            </>
+            (
+              [
+                { key: 'GRAMMAR', val: currentAssessment.grammarLevel },
+                { key: 'VOCABULARY', val: currentAssessment.vocabularyLevel },
+                { key: 'READING', val: currentAssessment.readingLevel },
+                ...(currentAssessment.listeningLevel != null
+                  ? [{ key: 'LISTENING' as keyof typeof DOMAIN_COLORS, val: currentAssessment.listeningLevel }]
+                  : []),
+                { key: 'WRITING', val: currentAssessment.writingLevel },
+              ] as Array<{ key: keyof typeof DOMAIN_COLORS; val: number }>
+            ).map(({ key, val }) => (
+              <div key={key} className="text-center">
+                <p className="text-xs text-gray-400">{DOMAIN_SHORT_KO[key]}</p>
+                <p className="mt-1 text-2xl font-black" style={{ color: DOMAIN_COLORS[key] }}>
+                  Lv.{val}
+                </p>
+              </div>
+            ))
           )}
         </div>
 
