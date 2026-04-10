@@ -359,6 +359,150 @@ export async function recalculateAllStats(): Promise<{ error?: string }> {
   return {}
 }
 
+// ── AI 문제 분석 (CEFR·난이도·세부카테고리 추천) ──────────────────────────────
+
+export type AIAnalysisResult = {
+  domain: QuestionDomain
+  cefrLevel: string
+  difficulty: number
+  subCategory: string
+  rationale: string
+}
+
+export async function analyzeQuestionWithAI(
+  questionText: string,
+  currentDomain?: string,
+): Promise<{ result?: AIAnalysisResult; error?: string }> {
+  const admin = await getAuthedAdmin()
+  if (!admin) return { error: '권한이 없습니다.' }
+
+  if (!questionText.trim()) return { error: '문제 텍스트를 입력하세요.' }
+
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+
+  const domainHint = currentDomain ? `영역 힌트: ${DOMAIN_NAMES[currentDomain] ?? currentDomain}\n` : ''
+
+  const prompt = `다음 영어 학원 시험 문제를 분석하고 메타데이터를 추천해주세요.
+${domainHint}
+문제:
+${questionText}
+
+다음 JSON 형식으로 응답하세요:
+{
+  "domain": "GRAMMAR|VOCABULARY|READING|WRITING|LISTENING 중 하나",
+  "cefrLevel": "Pre-A1|A1 하|A1 상|A2 하|A2 상|B1 하|B1 상|B2 하|B2 상|C1+ 중 하나",
+  "difficulty": 1에서 10 사이의 정수,
+  "subCategory": "세부 카테고리 한국어로 (예: 시제, 관계사, 주제 파악, 유의어 등)",
+  "rationale": "분석 이유를 한국어로 2~3문장 설명"
+}
+
+CEFR 레벨과 난이도 매핑 기준:
+Pre-A1→1, A1 하→2, A1 상→3, A2 하→4, A2 상→5, B1 하→6, B1 상→7, B2 하→8, B2 상→9, C1+→10`
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      response_format: { type: 'json_object' },
+      temperature: 0.3,
+    })
+
+    const raw = response.choices[0]?.message?.content ?? '{}'
+    const parsed = JSON.parse(raw) as {
+      domain?: string
+      cefrLevel?: string
+      difficulty?: number
+      subCategory?: string
+      rationale?: string
+    }
+
+    const VALID_DOMAINS = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING', 'LISTENING']
+    const VALID_CEFR = [
+      'Pre-A1', 'A1 하', 'A1 상', 'A2 하', 'A2 상',
+      'B1 하', 'B1 상', 'B2 하', 'B2 상', 'C1+',
+    ]
+
+    const domain = VALID_DOMAINS.includes(parsed.domain ?? '')
+      ? (parsed.domain as QuestionDomain)
+      : 'GRAMMAR'
+    const cefrLevel = VALID_CEFR.includes(parsed.cefrLevel ?? '') ? parsed.cefrLevel! : 'A1 하'
+    const difficulty = Math.max(1, Math.min(10, Math.round(parsed.difficulty ?? 2)))
+
+    return {
+      result: {
+        domain,
+        cefrLevel,
+        difficulty,
+        subCategory: parsed.subCategory ?? '',
+        rationale: parsed.rationale ?? '',
+      },
+    }
+  } catch {
+    return { error: 'AI 분석에 실패했습니다.' }
+  }
+}
+
+// ── 공용 문제 직접 출제 ────────────────────────────────────────────────────────
+
+export type CreateQuestionPayload = {
+  domain: QuestionDomain
+  difficulty: number
+  cefrLevel: string
+  subCategory?: string | null
+  questionText: string
+  options: string[]
+  correctAnswer: string
+  explanation: string
+  audioUrl?: string | null
+}
+
+export async function createQuestion(
+  payload: CreateQuestionPayload,
+): Promise<{ id?: string; error?: string }> {
+  const admin = await getAuthedAdmin()
+  if (!admin) return { error: '권한이 없습니다.' }
+
+  if (!payload.questionText.trim()) return { error: '문제 텍스트를 입력하세요.' }
+  if (payload.options.length < 2) return { error: '보기는 최소 2개 이상이어야 합니다.' }
+  if (!payload.correctAnswer) return { error: '정답을 선택하세요.' }
+  if (payload.difficulty < 1 || payload.difficulty > 10)
+    return { error: '난이도는 1~10이어야 합니다.' }
+
+  try {
+    const contentJson: Record<string, unknown> = {
+      type: 'multiple_choice',
+      question_text: payload.questionText,
+      options: payload.options,
+      correct_answer: payload.correctAnswer,
+      explanation: payload.explanation,
+    }
+    if (payload.audioUrl) contentJson.audio_url = payload.audioUrl
+
+    const question = await prisma.question.create({
+      data: {
+        academyId: null,
+        domain: payload.domain,
+        difficulty: payload.difficulty,
+        cefrLevel: payload.cefrLevel,
+        subCategory: payload.subCategory ?? null,
+        source: 'SYSTEM',
+        isVerified: true,
+        isActive: true,
+        qualityScore: null,
+        createdBy: admin.id,
+        contentJson: JSON.parse(JSON.stringify(contentJson)),
+      },
+    })
+
+    await updateQuestionBankStatsForDomain(payload.domain, payload.difficulty)
+    revalidateTag('question-bank')
+
+    return { id: question.id }
+  } catch {
+    return { error: '문제 저장에 실패했습니다.' }
+  }
+}
+
 // ── 공용 문제 수정 ─────────────────────────────────────────────────────────────
 
 export type UpdateQuestionPayload = {

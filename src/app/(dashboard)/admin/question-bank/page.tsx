@@ -7,6 +7,7 @@ import { getAdminQuestions } from './actions'
 import QuestionBankHeatmap from './_components/heatmap'
 import AdminQuestionTable from './_components/admin-question-table'
 import GenerateButton from './_components/generate-button'
+import CreateQuestionButton from './_components/create-question-button'
 
 export default async function AdminQuestionBankPage() {
   const user = await getCurrentUser()
@@ -77,12 +78,15 @@ export default async function AdminQuestionBankPage() {
             <p className="text-sm text-gray-500 mt-0.5">공용 문제를 관리하고 품질을 유지하세요.</p>
           </div>
         </div>
-        <Link
-          href="/admin/question-bank/quality"
-          className="text-sm text-primary-700 font-medium hover:underline"
-        >
-          품질 관리 →
-        </Link>
+        <div className="flex items-center gap-3">
+          <CreateQuestionButton />
+          <Link
+            href="/admin/question-bank/quality"
+            className="text-sm text-primary-700 font-medium hover:underline"
+          >
+            품질 관리 →
+          </Link>
+        </div>
       </div>
 
       {/* 통계 카드 */}
