@@ -33,7 +33,12 @@ export type AdminQuestionRow = {
   difficulty: number
   questionType: string
   questionText: string
+  options: string[]
+  correctAnswer: string
+  explanation: string
+  audioUrl: string | null
   source: QuestionSource
+  originalQuestionId: string | null
   qualityScore: number | null
   usageCount: number
   isVerified: boolean
@@ -82,6 +87,7 @@ export async function getAdminQuestions(filters: {
       difficulty: true,
       contentJson: true,
       source: true,
+      originalQuestionId: true,
       qualityScore: true,
       usageCount: true,
       isVerified: true,
@@ -92,7 +98,14 @@ export async function getAdminQuestions(filters: {
   })
 
   return rows.map((q) => {
-    const content = q.contentJson as { type?: string; question_text?: string }
+    const content = q.contentJson as {
+      type?: string
+      question_text?: string
+      options?: string[]
+      correct_answer?: string
+      explanation?: string
+      audio_url?: string
+    }
     const stats = q.statsJson as { correctRate?: number } | null
     return {
       id: q.id,
@@ -101,7 +114,12 @@ export async function getAdminQuestions(filters: {
       difficulty: q.difficulty,
       questionType: content.type ?? 'multiple_choice',
       questionText: content.question_text ?? '',
+      options: content.options ?? [],
+      correctAnswer: content.correct_answer ?? '',
+      explanation: content.explanation ?? '',
+      audioUrl: content.audio_url ?? null,
       source: q.source,
+      originalQuestionId: q.originalQuestionId,
       qualityScore: q.qualityScore,
       usageCount: q.usageCount,
       isVerified: q.isVerified,
@@ -198,6 +216,7 @@ const DOMAIN_NAMES: Record<string, string> = {
   VOCABULARY: '어휘(Vocabulary)',
   READING: '읽기(Reading)',
   WRITING: '쓰기(Writing)',
+  LISTENING: '듣기(Listening)',
 }
 
 const CEFR_LEVELS = [
@@ -327,7 +346,7 @@ export async function recalculateAllStats(): Promise<{ error?: string }> {
   const admin = await getAuthedAdmin()
   if (!admin) return { error: '권한이 없습니다.' }
 
-  const domains = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+  const domains = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING', 'LISTENING']
   const difficulties = Array.from({ length: 10 }, (_, i) => i + 1)
 
   for (const domain of domains) {
@@ -338,4 +357,69 @@ export async function recalculateAllStats(): Promise<{ error?: string }> {
 
   revalidateTag('question-bank')
   return {}
+}
+
+// ── 공용 문제 수정 ─────────────────────────────────────────────────────────────
+
+export type UpdateQuestionPayload = {
+  questionText: string
+  options: string[]
+  correctAnswer: string
+  explanation: string
+  audioUrl?: string | null
+  difficulty: number
+  subCategory?: string | null
+}
+
+export async function updateQuestion(
+  id: string,
+  payload: UpdateQuestionPayload,
+): Promise<{ error?: string }> {
+  const admin = await getAuthedAdmin()
+  if (!admin) return { error: '권한이 없습니다.' }
+
+  if (payload.difficulty < 1 || payload.difficulty > 10)
+    return { error: '난이도는 1~10이어야 합니다.' }
+
+  try {
+    const q = await prisma.question.findUnique({
+      where: { id },
+      select: { academyId: true, domain: true, difficulty: true, contentJson: true },
+    })
+    if (!q || q.academyId !== null) return { error: '공용 문제만 관리할 수 있습니다.' }
+
+    const existingContent = q.contentJson as Record<string, unknown>
+    const newContent: Record<string, unknown> = {
+      ...existingContent,
+      question_text: payload.questionText,
+      options: payload.options,
+      correct_answer: payload.correctAnswer,
+      explanation: payload.explanation,
+    }
+    if (payload.audioUrl !== undefined) {
+      newContent.audio_url = payload.audioUrl
+    }
+
+    const oldDifficulty = q.difficulty
+    await prisma.question.update({
+      where: { id },
+      data: {
+        contentJson: newContent,
+        difficulty: payload.difficulty,
+        subCategory: payload.subCategory ?? undefined,
+      },
+    })
+
+    if (oldDifficulty !== payload.difficulty) {
+      await Promise.all([
+        updateQuestionBankStatsForDomain(q.domain, oldDifficulty),
+        updateQuestionBankStatsForDomain(q.domain, payload.difficulty),
+      ])
+    }
+
+    revalidateTag('question-bank')
+    return {}
+  } catch {
+    return { error: '문제 수정에 실패했습니다.' }
+  }
 }

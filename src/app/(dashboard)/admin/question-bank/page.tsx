@@ -109,13 +109,14 @@ export default async function AdminQuestionBankPage() {
       </div>
 
       {/* 영역별 요약 */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-5 gap-3">
         {(
           [
             { label: '문법', key: 'GRAMMAR', color: '#1865F2' },
             { label: '어휘', key: 'VOCABULARY', color: '#7854F7' },
             { label: '읽기', key: 'READING', color: '#0FBFAD' },
             { label: '쓰기', key: 'WRITING', color: '#E35C20' },
+            { label: '듣기', key: 'LISTENING', color: '#1FAF54' },
           ] as const
         ).map((d) => (
           <div key={d.key} className="rounded-xl border border-gray-200 bg-white p-4">

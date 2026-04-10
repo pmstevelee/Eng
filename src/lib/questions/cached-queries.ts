@@ -65,6 +65,7 @@ export const getQuestionBankOverview = unstable_cache(
       VOCABULARY: stats.filter((s) => s.domain === 'VOCABULARY').reduce((sum, s) => sum + s.totalCount, 0),
       READING: stats.filter((s) => s.domain === 'READING').reduce((sum, s) => sum + s.totalCount, 0),
       WRITING: stats.filter((s) => s.domain === 'WRITING').reduce((sum, s) => sum + s.totalCount, 0),
+      LISTENING: stats.filter((s) => s.domain === 'LISTENING').reduce((sum, s) => sum + s.totalCount, 0),
     }
     const byDifficulty = Object.fromEntries(
       Array.from({ length: 10 }, (_, i) => [

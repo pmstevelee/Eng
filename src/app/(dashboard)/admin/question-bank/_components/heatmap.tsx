@@ -15,9 +15,10 @@ const DOMAIN_LABELS: Record<string, string> = {
   VOCABULARY: '어휘',
   READING: '읽기',
   WRITING: '쓰기',
+  LISTENING: '듣기',
 }
 
-const DOMAINS = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
+const DOMAINS = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING', 'LISTENING']
 
 function getCellStyle(count: number): { bg: string; text: string; label: string } {
   if (count >= 15) return { bg: '#1FAF54', text: '#fff', label: '충분' }
