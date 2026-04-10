@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import {
   ChevronRight,
   CheckCircle2,
@@ -12,6 +12,9 @@ import {
   TrendingUp,
   AlertCircle,
   BookOpen,
+  Volume2,
+  Play,
+  Pause,
 } from 'lucide-react'
 import {
   gradeAnswer,
@@ -466,74 +469,105 @@ export function DomainClient({
             </div>
           )}
 
+          {/* DB 문제 전용: 오디오 플레이어 (듣기 영역) */}
+          {!isChainQuestion && questions[currentIdx]?.content.audio_url && (
+            <AudioPlayer
+              audioUrl={questions[currentIdx].content.audio_url!}
+              playCount={questions[currentIdx].content.play_count ?? 2}
+            />
+          )}
+
+          {/* DB 문제 전용: 지문 (독해 영역) */}
+          {!isChainQuestion && questions[currentIdx]?.content.passage && (
+            <PassageBlock passage={questions[currentIdx].content.passage!} />
+          )}
+
           {/* 문제 텍스트 */}
           <p className="mb-5 text-base leading-relaxed text-gray-900">
             {isChainQuestion ? currentAiQ?.questionText : questions[currentIdx]?.content.question_text}
           </p>
 
-          {/* 객관식 선택지 */}
-          <div className="space-y-2.5">
-            {(isChainQuestion ? currentAiQ?.options : questions[currentIdx]?.content.options)?.map(
-              (opt, i) => {
-                const letter = LETTERS[i] ?? String(i + 1)
-                const isSelected = selectedAnswer === letter
-                const correctAns = isChainQuestion
-                  ? currentAiQ?.correctAnswer
-                  : gradeResult?.correctAnswer
-                const isCorrectOpt = subPhase === 'feedback' && correctAns === letter
-                const isWrongSelected =
-                  subPhase === 'feedback' && isSelected && !gradeResult?.isCorrect
+          {/* 객관식 선택지 (AI 문제 포함) */}
+          {(isChainQuestion
+            ? (currentAiQ?.options ?? []).length > 0
+            : (questions[currentIdx]?.content.options ?? []).length > 0
+          ) && (
+            <div className="space-y-2.5">
+              {(isChainQuestion ? currentAiQ?.options : questions[currentIdx]?.content.options)?.map(
+                (opt, i) => {
+                  const letter = LETTERS[i] ?? String(i + 1)
+                  const isSelected = selectedAnswer === letter
+                  const correctAns = isChainQuestion
+                    ? currentAiQ?.correctAnswer
+                    : gradeResult?.correctAnswer
+                  const isCorrectOpt = subPhase === 'feedback' && correctAns === letter
+                  const isWrongSelected =
+                    subPhase === 'feedback' && isSelected && !gradeResult?.isCorrect
 
-                let cls =
-                  'flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition-all'
-                if (isCorrectOpt) cls += ' border-[#1FAF54] bg-[#F0FDF4]'
-                else if (isWrongSelected) cls += ' border-[#D92916] bg-[#FFF5F5]'
-                else if (isSelected) cls += ' border-[#1865F2] bg-[#EEF4FF]'
-                else {
-                  cls += ' border-gray-200 bg-white'
-                  if (subPhase === 'answering') cls += ' hover:border-gray-300 hover:bg-gray-50'
-                }
+                  let cls =
+                    'flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition-all'
+                  if (isCorrectOpt) cls += ' border-[#1FAF54] bg-[#F0FDF4]'
+                  else if (isWrongSelected) cls += ' border-[#D92916] bg-[#FFF5F5]'
+                  else if (isSelected) cls += ' border-[#1865F2] bg-[#EEF4FF]'
+                  else {
+                    cls += ' border-gray-200 bg-white'
+                    if (subPhase === 'answering') cls += ' hover:border-gray-300 hover:bg-gray-50'
+                  }
 
-                return (
-                  <button
-                    key={i}
-                    onClick={() => subPhase === 'answering' && setSelectedAnswer(letter)}
-                    disabled={subPhase === 'feedback'}
-                    className={cls}
-                  >
-                    <span
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold"
-                      style={
-                        isCorrectOpt
-                          ? { backgroundColor: '#1FAF54', color: 'white' }
-                          : isWrongSelected
-                            ? { backgroundColor: '#D92916', color: 'white' }
-                            : isSelected
-                              ? { backgroundColor: '#1865F2', color: 'white' }
-                              : { backgroundColor: '#F3F4F6', color: '#4B5563' }
-                      }
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => subPhase === 'answering' && setSelectedAnswer(letter)}
+                      disabled={subPhase === 'feedback'}
+                      className={cls}
                     >
-                      {letter}
-                    </span>
-                    <span
-                      className="mt-0.5 text-sm leading-relaxed"
-                      style={
-                        isCorrectOpt
-                          ? { color: '#15803D', fontWeight: 500 }
-                          : isWrongSelected
-                            ? { color: '#D92916', fontWeight: 500 }
-                            : isSelected
-                              ? { color: '#1865F2', fontWeight: 500 }
-                              : { color: '#374151' }
-                      }
-                    >
-                      {opt}
-                    </span>
-                  </button>
-                )
-              },
+                      <span
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+                        style={
+                          isCorrectOpt
+                            ? { backgroundColor: '#1FAF54', color: 'white' }
+                            : isWrongSelected
+                              ? { backgroundColor: '#D92916', color: 'white' }
+                              : isSelected
+                                ? { backgroundColor: '#1865F2', color: 'white' }
+                                : { backgroundColor: '#F3F4F6', color: '#4B5563' }
+                        }
+                      >
+                        {letter}
+                      </span>
+                      <span
+                        className="mt-0.5 text-sm leading-relaxed"
+                        style={
+                          isCorrectOpt
+                            ? { color: '#15803D', fontWeight: 500 }
+                            : isWrongSelected
+                              ? { color: '#D92916', fontWeight: 500 }
+                              : isSelected
+                                ? { color: '#1865F2', fontWeight: 500 }
+                                : { color: '#374151' }
+                        }
+                      >
+                        {opt}
+                      </span>
+                    </button>
+                  )
+                },
+              )}
+            </div>
+          )}
+
+          {/* 단답형 / 빈칸 채우기 입력창 (DB 문제) */}
+          {!isChainQuestion &&
+            (questions[currentIdx]?.content.type === 'short_answer' ||
+              questions[currentIdx]?.content.type === 'fill_blank') && (
+              <ShortAnswerInput
+                value={selectedAnswer}
+                onChange={setSelectedAnswer}
+                disabled={subPhase === 'feedback'}
+                isCorrect={subPhase === 'feedback' ? gradeResult?.isCorrect ?? null : null}
+                correctAnswer={subPhase === 'feedback' ? gradeResult?.correctAnswer ?? null : null}
+              />
             )}
-          </div>
 
           {/* 피드백 패널 */}
           {subPhase === 'feedback' && gradeResult && (
@@ -1223,6 +1257,141 @@ function CompleteScreen({
           )}
         </button>
       </div>
+    </div>
+  )
+}
+
+// ── 지문 블록 ─────────────────────────────────────────────────────────────────
+
+function PassageBlock({ passage }: { passage: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const isLong = passage.length > 300
+
+  return (
+    <div className="mb-4 rounded-xl border border-[#0FBFAD]/30 bg-[#EFFAF9]">
+      <div className="flex items-center justify-between border-b border-[#0FBFAD]/20 px-4 py-2.5">
+        <div className="flex items-center gap-1.5">
+          <BookOpen className="h-3.5 w-3.5 text-[#0FBFAD]" />
+          <span className="text-xs font-semibold text-[#0FBFAD]">지문</span>
+        </div>
+        {isLong && (
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="text-xs text-[#0FBFAD] hover:underline"
+          >
+            {expanded ? '접기' : '전체 보기'}
+          </button>
+        )}
+      </div>
+      <div
+        className={`overflow-hidden px-4 py-3 transition-all ${
+          isLong && !expanded ? 'max-h-32' : 'max-h-[600px]'
+        }`}
+      >
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">{passage}</p>
+      </div>
+      {isLong && !expanded && (
+        <div className="flex justify-center pb-2">
+          <button
+            onClick={() => setExpanded(true)}
+            className="text-xs text-[#0FBFAD] hover:underline"
+          >
+            더 보기 ↓
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── 오디오 플레이어 ───────────────────────────────────────────────────────────
+
+function AudioPlayer({ audioUrl, playCount }: { audioUrl: string; playCount: number }) {
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const [playedCount, setPlayedCount] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  const remaining = Math.max(0, playCount - playedCount)
+  const canPlay = remaining > 0
+
+  function handlePlay() {
+    if (!canPlay || !audioRef.current) return
+    if (isPlaying) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+      setIsPlaying(false)
+    } else {
+      setPlayedCount((c) => c + 1)
+      setIsPlaying(true)
+      audioRef.current.play().catch(() => setIsPlaying(false))
+    }
+  }
+
+  return (
+    <div className="mb-4 rounded-xl border border-[#0EA5E9]/30 bg-[#E0F2FE] px-4 py-3">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5">
+          <Volume2 className="h-4 w-4 text-[#0EA5E9]" />
+          <span className="text-xs font-semibold text-[#0EA5E9]">듣기</span>
+        </div>
+        <button
+          onClick={handlePlay}
+          disabled={!canPlay}
+          className="flex h-9 items-center gap-2 rounded-xl border border-[#0EA5E9] bg-white px-4 text-sm font-medium text-[#0EA5E9] transition-colors hover:bg-[#0EA5E9] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+          {isPlaying ? '정지' : '재생'}
+        </button>
+        <span className="ml-auto text-xs text-gray-500">
+          {canPlay ? `재생 가능 ${remaining}회` : '재생 횟수 초과'}
+        </span>
+      </div>
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        onEnded={() => setIsPlaying(false)}
+        className="hidden"
+      />
+    </div>
+  )
+}
+
+// ── 단답형 입력창 ─────────────────────────────────────────────────────────────
+
+function ShortAnswerInput({
+  value,
+  onChange,
+  disabled,
+  isCorrect,
+  correctAnswer,
+}: {
+  value: string
+  onChange: (v: string) => void
+  disabled: boolean
+  isCorrect: boolean | null
+  correctAnswer: string | null
+}) {
+  return (
+    <div className="mt-1">
+      <label className="mb-1.5 block text-sm font-medium text-gray-700">답변 입력</label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        placeholder="답을 입력하세요"
+        className="h-11 w-full rounded-xl border px-4 text-sm text-gray-900 outline-none transition-all focus:ring-2 disabled:bg-gray-50"
+        style={{
+          borderColor:
+            isCorrect === null ? '#E5E7EB' : isCorrect ? '#1FAF54' : '#D92916',
+        }}
+      />
+      {disabled && correctAnswer && isCorrect === false && (
+        <p className="mt-1.5 text-xs text-gray-500">
+          정답:{' '}
+          <span className="font-semibold text-[#1FAF54]">{correctAnswer}</span>
+        </p>
+      )}
     </div>
   )
 }

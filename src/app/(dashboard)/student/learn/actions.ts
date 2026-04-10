@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma/client'
 import { getStudentProfile } from '@/lib/ai/student-analyzer'
 import { updateQuestionQuality } from '@/lib/questions/quality-updater'
 import { selectAdaptiveQuestions, selectSmartDomainQuestions } from '@/lib/ai/question-selector'
+import { LEVEL_TO_CEFR } from '@/lib/constants/levels'
 import type {
   QuestionContentJson,
   QuestionDomainType,
@@ -25,6 +26,8 @@ export type PracticeContent = {
   options?: string[]
   passage?: string
   word_limit?: number
+  audio_url?: string
+  play_count?: number
 }
 
 export type PracticeQuestion = {
@@ -153,6 +156,8 @@ function sanitizeQuestion(q: {
       ...(content.options ? { options: content.options } : {}),
       ...(content.passage ? { passage: content.passage } : {}),
       ...(content.word_limit ? { word_limit: content.word_limit } : {}),
+      ...(content.audio_url ? { audio_url: content.audio_url } : {}),
+      ...(content.play_count ? { play_count: content.play_count } : {}),
     },
   }
 }
@@ -246,6 +251,8 @@ export async function getSmartAdaptiveData(count = 7): Promise<{
         ...(content.options ? { options: content.options } : {}),
         ...(content.passage ? { passage: content.passage } : {}),
         ...(content.word_limit ? { word_limit: content.word_limit } : {}),
+        ...(content.audio_url ? { audio_url: content.audio_url } : {}),
+        ...(content.play_count ? { play_count: content.play_count } : {}),
       },
     }
   })
@@ -401,14 +408,7 @@ export async function getDomainProfileData(domain: string): Promise<DomainProfil
   ])
 
   const currentLevel = student?.currentLevel ?? 1
-  const CEFR_MAP: Record<number, string> = {
-    1: 'Pre-A1',
-    2: 'A1-A2',
-    3: 'B1',
-    4: 'B2',
-    5: 'C1-C2',
-  }
-  const cefrLevel = CEFR_MAP[currentLevel] ?? 'A1-A2'
+  const cefrLevel = LEVEL_TO_CEFR[currentLevel] ?? 'Pre-A1'
   const domainScore = skillAssessment?.score ?? null
 
   // 카테고리별 집계
@@ -485,6 +485,8 @@ export async function getSmartDomainQuestions(
         ...(content.options ? { options: content.options } : {}),
         ...(content.passage ? { passage: content.passage } : {}),
         ...(content.word_limit ? { word_limit: content.word_limit } : {}),
+        ...(content.audio_url ? { audio_url: content.audio_url } : {}),
+        ...(content.play_count ? { play_count: content.play_count } : {}),
       },
     }
   })
@@ -512,6 +514,7 @@ export async function generateSessionAdvice(params: {
     VOCABULARY: '어휘',
     READING: '독해',
     WRITING: '쓰기',
+    LISTENING: '듣기',
   }
 
   const MODE_LABEL: Record<string, string> = {

@@ -37,6 +37,14 @@ const DOMAIN_CARDS = [
     border: '#FDBA74',
     href: '/student/learn/domain/writing',
   },
+  {
+    key: 'LISTENING',
+    label: '듣기',
+    color: '#0EA5E9',
+    bg: '#E0F2FE',
+    border: '#BAE6FD',
+    href: '/student/learn/domain/listening',
+  },
 ] as const
 
 export default async function LearnPage() {

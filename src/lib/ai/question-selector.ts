@@ -28,6 +28,7 @@ const DOMAIN_UPPER: Record<string, string> = {
   vocabulary: 'VOCABULARY',
   reading: 'READING',
   writing: 'WRITING',
+  listening: 'LISTENING',
 }
 
 const DOMAIN_LABEL_KO: Record<string, string> = {
@@ -35,6 +36,7 @@ const DOMAIN_LABEL_KO: Record<string, string> = {
   vocabulary: '어휘',
   reading: '독해',
   writing: '쓰기',
+  listening: '듣기',
 }
 
 const CEFR_LEVELS = ['Pre-A1', 'A1 하', 'A1 상', 'A2 하', 'A2 상', 'B1 하', 'B1 상', 'B2 하', 'B2 상', 'C1+']
