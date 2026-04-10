@@ -516,7 +516,7 @@ export default function AdminQuestionTable({ initialQuestions }: Props) {
                         {DOMAIN_LABEL[q.domain]}
                       </span>
                       {q.domain === 'LISTENING' && q.audioUrl && (
-                        <Volume2 size={12} className="text-green-500" title="오디오 있음" />
+                        <span title="오디오 있음"><Volume2 size={12} className="text-green-500" /></span>
                       )}
                     </div>
                   </td>
