@@ -404,7 +404,7 @@ export async function updateQuestion(
     await prisma.question.update({
       where: { id },
       data: {
-        contentJson: newContent,
+        contentJson: JSON.parse(JSON.stringify(newContent)),
         difficulty: payload.difficulty,
         subCategory: payload.subCategory ?? undefined,
       },
