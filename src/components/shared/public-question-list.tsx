@@ -27,6 +27,7 @@ const DOMAIN_LABEL: Record<string, string> = {
   VOCABULARY: '어휘',
   READING: '읽기',
   WRITING: '쓰기',
+  LISTENING: '듣기',
 }
 
 const DOMAIN_COLOR: Record<string, string> = {
@@ -34,6 +35,7 @@ const DOMAIN_COLOR: Record<string, string> = {
   VOCABULARY: '#7854F7',
   READING: '#0FBFAD',
   WRITING: '#E35C20',
+  LISTENING: '#E91E8A',
 }
 
 const SOURCE_LABEL: Record<string, string> = {

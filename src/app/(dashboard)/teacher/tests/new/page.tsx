@@ -21,9 +21,12 @@ export default async function NewTestPage() {
     select: { id: true, name: true },
   })
 
-  // 문제 뱅크 전체
+  // 문제 뱅크 전체 (학원 문제 + 공용 문제)
   const rawQuestions = await prisma.question.findMany({
-    where: { academyId: user.academyId },
+    where: {
+      OR: [{ academyId: user.academyId }, { academyId: null }],
+      isActive: true,
+    },
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,

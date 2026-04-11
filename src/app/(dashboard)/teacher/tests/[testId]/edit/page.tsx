@@ -31,7 +31,10 @@ export default async function EditTestPage({
   })
 
   const rawQuestions = await prisma.question.findMany({
-    where: { academyId: user.academyId },
+    where: {
+      OR: [{ academyId: user.academyId }, { academyId: null }],
+      isActive: true,
+    },
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,

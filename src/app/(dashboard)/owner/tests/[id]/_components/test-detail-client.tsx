@@ -102,18 +102,21 @@ const DOMAIN_LABEL: Record<string, string> = {
   VOCABULARY: '어휘',
   READING: '읽기',
   WRITING: '쓰기',
+  LISTENING: '듣기',
 }
 const DOMAIN_COLOR: Record<string, string> = {
   GRAMMAR: '#1865F2',
   VOCABULARY: '#7854F7',
   READING: '#0FBFAD',
   WRITING: '#E35C20',
+  LISTENING: '#E91E8A',
 }
 const DOMAIN_BG: Record<string, string> = {
   GRAMMAR: 'bg-blue-50 text-blue-700',
   VOCABULARY: 'bg-purple-50 text-purple-700',
   READING: 'bg-teal-50 text-teal-700',
   WRITING: 'bg-orange-50 text-orange-700',
+  LISTENING: 'bg-pink-50 text-pink-700',
 }
 
 const CustomTooltipStyle = {
