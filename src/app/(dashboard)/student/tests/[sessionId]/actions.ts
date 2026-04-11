@@ -148,12 +148,13 @@ export async function submitTest(
   const answerMap = new Map(allAnswers.map((r) => [r.questionId, r.answer]))
 
   // 도메인별 채점 통계
-  type DomainKey = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING'
+  type DomainKey = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
   const domainStats: Record<DomainKey, { correct: number; total: number }> = {
     GRAMMAR: { correct: 0, total: 0 },
     VOCABULARY: { correct: 0, total: 0 },
     READING: { correct: 0, total: 0 },
     WRITING: { correct: 0, total: 0 },
+    LISTENING: { correct: 0, total: 0 },
   }
 
   let hasEssay = false
@@ -203,11 +204,11 @@ export async function submitTest(
     const vocabularyScore = calcDomainScore('VOCABULARY')
     const readingScore = calcDomainScore('READING')
 
-    const totalObjective = (['GRAMMAR', 'VOCABULARY', 'READING'] as DomainKey[]).reduce(
+    const totalObjective = (['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING'] as DomainKey[]).reduce(
       (sum, k) => sum + domainStats[k].total,
       0,
     )
-    const totalCorrect = (['GRAMMAR', 'VOCABULARY', 'READING'] as DomainKey[]).reduce(
+    const totalCorrect = (['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING'] as DomainKey[]).reduce(
       (sum, k) => sum + domainStats[k].correct,
       0,
     )
