@@ -53,8 +53,8 @@ function shiftCefr(cefrLevel: string, delta: number): string {
 async function fetchCandidates(params: {
   domain: string
   subCategory?: string
-  minDifficulty: number
-  maxDifficulty: number
+  minDifficulty?: number
+  maxDifficulty?: number
   studentId: string
   excludeIds: string[]
   take: number
@@ -74,11 +74,16 @@ async function fetchCandidates(params: {
   const rows = await prisma.question.findMany({
     where: {
       domain: domainEnum,
+      isActive: true,
       ...(params.subCategory ? { subCategory: params.subCategory } : {}),
-      difficulty: {
-        gte: params.minDifficulty,
-        lte: params.maxDifficulty,
-      },
+      ...(params.minDifficulty !== undefined || params.maxDifficulty !== undefined
+        ? {
+            difficulty: {
+              ...(params.minDifficulty !== undefined ? { gte: params.minDifficulty } : {}),
+              ...(params.maxDifficulty !== undefined ? { lte: params.maxDifficulty } : {}),
+            },
+          }
+        : {}),
       // 최근 30일 내 이 학생이 이미 푼 문제 제외
       NOT: {
         responses: {
@@ -500,6 +505,24 @@ export async function selectSmartDomainQuestions(
           tag: { type: 'challenge', label: `도전 문제: Level ${profile.currentLevel}` },
         })
       }
+    }
+  }
+
+  // 최후 fallback: 난이도 제한 없이 영역 전체에서 채우기
+  if (result.length < count) {
+    const anyDifficulty = await fetchCandidates({
+      domain,
+      studentId: profile.studentId,
+      excludeIds: usedIds,
+      take: count - result.length,
+    })
+    for (const q of anyDifficulty) {
+      if (result.length >= count) break
+      usedIds.push(q.id)
+      result.push({
+        ...q,
+        tag: { type: 'maintain', label: `${DOMAIN_LABEL_KO[domain] ?? domain} 연습` },
+      })
     }
   }
 

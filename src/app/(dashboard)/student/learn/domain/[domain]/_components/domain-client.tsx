@@ -412,6 +412,27 @@ export function DomainClient({
 
   // ── 풀이 화면 ───────────────────────────────────────────────────────────────
 
+  // 문제 없음 상태
+  if (questions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-gray-200 bg-white px-6 py-16 text-center">
+        <BookOpen className="h-12 w-12 text-gray-300" />
+        <div>
+          <p className="font-semibold text-gray-700">풀 수 있는 문제가 없습니다</p>
+          <p className="mt-1 text-sm text-gray-400">
+            현재 레벨에 맞는 {domainLabel} 문제가 준비되어 있지 않습니다.
+          </p>
+        </div>
+        <button
+          onClick={() => setPhase('mode-select')}
+          className="mt-2 rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50"
+        >
+          돌아가기
+        </button>
+      </div>
+    )
+  }
+
   const isChainQuestion = chain.active && chain.currentAiQuestion !== null
   const currentAiQ = chain.currentAiQuestion
 
