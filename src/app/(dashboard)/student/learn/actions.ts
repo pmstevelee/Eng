@@ -25,6 +25,8 @@ export type PracticeContent = {
   question_text_ko?: string
   options?: string[]
   passage?: string
+  passage_image_url?: string
+  question_image_url?: string
   word_limit?: number
   audio_url?: string
   play_count?: number
@@ -155,6 +157,8 @@ function sanitizeQuestion(q: {
       ...(content.question_text_ko ? { question_text_ko: content.question_text_ko } : {}),
       ...(content.options ? { options: content.options } : {}),
       ...(content.passage ? { passage: content.passage } : {}),
+      ...(content.passage_image_url ? { passage_image_url: content.passage_image_url } : {}),
+      ...(content.question_image_url ? { question_image_url: content.question_image_url } : {}),
       ...(content.word_limit ? { word_limit: content.word_limit } : {}),
       ...(content.audio_url ? { audio_url: content.audio_url } : {}),
       ...(content.play_count ? { play_count: content.play_count } : {}),
@@ -250,6 +254,8 @@ export async function getSmartAdaptiveData(count = 7): Promise<{
         ...(content.question_text_ko ? { question_text_ko: content.question_text_ko } : {}),
         ...(content.options ? { options: content.options } : {}),
         ...(content.passage ? { passage: content.passage } : {}),
+        ...(content.passage_image_url ? { passage_image_url: content.passage_image_url } : {}),
+        ...(content.question_image_url ? { question_image_url: content.question_image_url } : {}),
         ...(content.word_limit ? { word_limit: content.word_limit } : {}),
         ...(content.audio_url ? { audio_url: content.audio_url } : {}),
         ...(content.play_count ? { play_count: content.play_count } : {}),
@@ -484,6 +490,8 @@ export async function getSmartDomainQuestions(
         ...(content.question_text_ko ? { question_text_ko: content.question_text_ko } : {}),
         ...(content.options ? { options: content.options } : {}),
         ...(content.passage ? { passage: content.passage } : {}),
+        ...(content.passage_image_url ? { passage_image_url: content.passage_image_url } : {}),
+        ...(content.question_image_url ? { question_image_url: content.question_image_url } : {}),
         ...(content.word_limit ? { word_limit: content.word_limit } : {}),
         ...(content.audio_url ? { audio_url: content.audio_url } : {}),
         ...(content.play_count ? { play_count: content.play_count } : {}),

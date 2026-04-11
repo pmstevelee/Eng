@@ -503,10 +503,28 @@ export function DomainClient({
             <PassageBlock passage={questions[currentIdx].content.passage!} />
           )}
 
+          {/* DB 문제 전용: 지문 이미지 */}
+          {!isChainQuestion && questions[currentIdx]?.content.passage_image_url && (
+            <img
+              src={questions[currentIdx].content.passage_image_url}
+              alt="지문 이미지"
+              className="mb-4 w-full rounded-xl border border-gray-200 object-contain"
+            />
+          )}
+
           {/* 문제 텍스트 */}
           <p className="mb-5 text-base leading-relaxed text-gray-900">
             {isChainQuestion ? currentAiQ?.questionText : questions[currentIdx]?.content.question_text}
           </p>
+
+          {/* DB 문제 전용: 문제 이미지 */}
+          {!isChainQuestion && questions[currentIdx]?.content.question_image_url && (
+            <img
+              src={questions[currentIdx].content.question_image_url}
+              alt="문제 이미지"
+              className="mb-4 w-full rounded-xl border border-gray-200 object-contain"
+            />
+          )}
 
           {/* 객관식 선택지 (AI 문제 포함) */}
           {(isChainQuestion
