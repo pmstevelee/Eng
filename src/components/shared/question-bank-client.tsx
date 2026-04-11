@@ -64,6 +64,7 @@ type CreateInput = {
   difficulty: number
   cefrLevel?: string
   contentJson: QuestionContentJson
+  source?: 'AI_GENERATED' | 'TEACHER_CREATED'
 }
 
 type UpdateInput = CreateInput & { id: string }
@@ -970,6 +971,7 @@ function SimilarQuestionsModal({
         difficulty: q.difficulty,
         cefrLevel: q.cefrLevel,
         contentJson: q.contentJson,
+        source: 'AI_GENERATED',
       })
       if (!result.error) count++
     }

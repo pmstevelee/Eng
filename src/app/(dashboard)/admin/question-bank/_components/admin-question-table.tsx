@@ -81,7 +81,9 @@ function EditModal({ question, onClose, onSaved }: EditModalProps) {
   const [mode, setMode] = useState<'view' | 'edit'>('view')
   const [questionText, setQuestionText] = useState(question.questionText)
   const [options, setOptions] = useState<string[]>(
-    question.options.length > 0 ? [...question.options] : ['', '', '', ''],
+    question.questionType === 'multiple_choice'
+      ? (question.options.length > 0 ? [...question.options] : ['', '', '', ''])
+      : [],
   )
   const [correctAnswer, setCorrectAnswer] = useState(question.correctAnswer)
   const [explanation, setExplanation] = useState(question.explanation)
@@ -89,6 +91,9 @@ function EditModal({ question, onClose, onSaved }: EditModalProps) {
   const [audioUrl, setAudioUrl] = useState(question.audioUrl ?? '')
   const [saving, startSave] = useTransition()
   const [saveError, setSaveError] = useState('')
+
+  const isMultipleChoice = question.questionType === 'multiple_choice'
+  const isEssay = question.questionType === 'essay'
 
   function handleOptionChange(idx: number, value: string) {
     setOptions((prev) => prev.map((o, i) => (i === idx ? value : o)))
@@ -98,8 +103,8 @@ function EditModal({ question, onClose, onSaved }: EditModalProps) {
     setSaveError('')
     const payload: UpdateQuestionPayload = {
       questionText,
-      options,
-      correctAnswer,
+      options: isMultipleChoice ? options : [],
+      correctAnswer: isEssay ? '' : correctAnswer,
       explanation,
       difficulty,
       audioUrl: audioUrl || null,
@@ -113,8 +118,8 @@ function EditModal({ question, onClose, onSaved }: EditModalProps) {
       onSaved({
         ...question,
         questionText,
-        options,
-        correctAnswer,
+        options: isMultipleChoice ? options : [],
+        correctAnswer: isEssay ? '' : correctAnswer,
         explanation,
         difficulty,
         audioUrl: audioUrl || null,
@@ -145,6 +150,9 @@ function EditModal({ question, onClose, onSaved }: EditModalProps) {
               {DOMAIN_LABEL[question.domain]}
             </span>
             <span className="text-xs text-gray-500">Lv{question.difficulty}</span>
+            <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+              {{ multiple_choice: '객관식', fill_blank: '빈칸', short_answer: '단답형', essay: '서술형' }[question.questionType] ?? question.questionType}
+            </span>
             <SourceBadge source={question.source} />
             {question.source === 'AI_SHARED' && question.originalQuestionId && (
               <span className="text-xs text-gray-400">
@@ -211,8 +219,8 @@ function EditModal({ question, onClose, onSaved }: EditModalProps) {
             </div>
           )}
 
-          {/* 보기 */}
-          {options.length > 0 && (
+          {/* 보기 (객관식만) */}
+          {isMultipleChoice && (
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">보기</label>
               <div className="mt-2 space-y-2">
@@ -248,23 +256,34 @@ function EditModal({ question, onClose, onSaved }: EditModalProps) {
 
           {/* 정답 + 난이도 */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">정답</label>
-              {mode === 'edit' ? (
-                <select
-                  value={correctAnswer}
-                  onChange={(e) => setCorrectAnswer(e.target.value)}
-                  className="mt-1 w-full h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 bg-white"
-                >
-                  {answerLetters.slice(0, options.length || 4).map((l) => (
-                    <option key={l} value={l}>{l}</option>
-                  ))}
-                </select>
-              ) : (
-                <p className="mt-1 text-sm font-bold text-green-700">{correctAnswer}</p>
-              )}
-            </div>
-            <div>
+            {!isEssay && (
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">정답</label>
+                {mode === 'edit' ? (
+                  isMultipleChoice ? (
+                    <select
+                      value={correctAnswer}
+                      onChange={(e) => setCorrectAnswer(e.target.value)}
+                      className="mt-1 w-full h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 bg-white"
+                    >
+                      {answerLetters.slice(0, options.length || 4).map((l) => (
+                        <option key={l} value={l}>{l}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      value={correctAnswer}
+                      onChange={(e) => setCorrectAnswer(e.target.value)}
+                      placeholder="정답 입력..."
+                      className="mt-1 w-full h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                    />
+                  )
+                ) : (
+                  <p className="mt-1 text-sm font-bold text-green-700">{correctAnswer || '-'}</p>
+                )}
+              </div>
+            )}
+            <div className={isEssay ? 'col-span-2' : ''}>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">난이도</label>
               {mode === 'edit' ? (
                 <select

@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
+import { shareQuestionToPublicPool } from '@/lib/questions/share-to-pool'
 
 type QuestionDomain = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
 
@@ -28,6 +29,7 @@ type CreateQuestionInput = {
   difficulty: number
   cefrLevel?: string
   contentJson: QuestionContentJson
+  source?: 'AI_GENERATED' | 'TEACHER_CREATED'
 }
 
 type UpdateQuestionInput = CreateQuestionInput & { id: string }
@@ -63,8 +65,22 @@ export async function createQuestion(
         cefrLevel: input.cefrLevel || null,
         contentJson: input.contentJson as object,
         createdBy: user.id,
+        source: input.source === 'AI_GENERATED' ? 'AI_GENERATED' : 'TEACHER_CREATED',
       },
     })
+
+    // AI 유사문제는 공용 풀에 비동기 공유
+    if (input.source === 'AI_GENERATED') {
+      shareQuestionToPublicPool({
+        id: question.id,
+        domain: question.domain,
+        subCategory: question.subCategory,
+        difficulty: question.difficulty,
+        cefrLevel: question.cefrLevel,
+        contentJson: input.contentJson as Record<string, unknown> & { question_text: string },
+      }).catch(console.error)
+    }
+
     revalidateTag(`academy-${user.academyId}-questions`)
     revalidatePath('/owner/tests/questions')
     return { id: question.id }
