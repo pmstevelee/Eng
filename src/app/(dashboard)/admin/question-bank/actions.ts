@@ -507,6 +507,7 @@ export async function createQuestion(
 // ── 공용 문제 수정 ─────────────────────────────────────────────────────────────
 
 export type UpdateQuestionPayload = {
+  questionType: string
   questionText: string
   options: string[]
   correctAnswer: string
@@ -534,16 +535,25 @@ export async function updateQuestion(
     if (!q || q.academyId !== null) return { error: '공용 문제만 관리할 수 있습니다.' }
 
     const existingContent = q.contentJson as Record<string, unknown>
+
+    // 문제 유형 변경 시 불필요한 필드 정리
+    const isMultipleChoice = payload.questionType === 'multiple_choice'
+    const isEssay = payload.questionType === 'essay'
+
     const newContent: Record<string, unknown> = {
       ...existingContent,
+      type: payload.questionType,
       question_text: payload.questionText,
-      options: payload.options,
-      correct_answer: payload.correctAnswer,
+      options: isMultipleChoice ? payload.options : [],
+      correct_answer: isEssay ? undefined : payload.correctAnswer,
       explanation: payload.explanation,
     }
     if (payload.audioUrl !== undefined) {
       newContent.audio_url = payload.audioUrl
     }
+    // 유형 변경 시 불필요 필드 제거
+    if (!isMultipleChoice) delete newContent.options
+    if (isEssay) delete newContent.correct_answer
 
     const oldDifficulty = q.difficulty
     await prisma.question.update({

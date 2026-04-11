@@ -77,8 +77,16 @@ type EditModalProps = {
   onSaved: (updated: AdminQuestionRow) => void
 }
 
+const QUESTION_TYPE_LABEL: Record<string, string> = {
+  multiple_choice: '객관식',
+  fill_blank: '빈칸 채우기',
+  short_answer: '단답형',
+  essay: '서술형',
+}
+
 function EditModal({ question, onClose, onSaved }: EditModalProps) {
   const [mode, setMode] = useState<'view' | 'edit'>('view')
+  const [questionType, setQuestionType] = useState(question.questionType)
   const [questionText, setQuestionText] = useState(question.questionText)
   const [options, setOptions] = useState<string[]>(
     question.questionType === 'multiple_choice'
@@ -92,8 +100,26 @@ function EditModal({ question, onClose, onSaved }: EditModalProps) {
   const [saving, startSave] = useTransition()
   const [saveError, setSaveError] = useState('')
 
-  const isMultipleChoice = question.questionType === 'multiple_choice'
-  const isEssay = question.questionType === 'essay'
+  const isMultipleChoice = questionType === 'multiple_choice'
+  const isEssay = questionType === 'essay'
+
+  // 문제 유형 변경 시 관련 state 초기화
+  function handleTypeChange(newType: string) {
+    setQuestionType(newType)
+    if (newType === 'multiple_choice') {
+      setOptions(question.options.length > 0 ? [...question.options] : ['', '', '', ''])
+      setCorrectAnswer(question.correctAnswer || 'A')
+    } else {
+      setOptions([])
+      if (newType === 'essay') {
+        setCorrectAnswer('')
+      } else {
+        // fill_blank / short_answer: 기존 정답이 A~E 단일문자면 초기화
+        const isLetterOnly = /^[A-E]$/.test(correctAnswer)
+        setCorrectAnswer(isLetterOnly ? '' : correctAnswer)
+      }
+    }
+  }
 
   function handleOptionChange(idx: number, value: string) {
     setOptions((prev) => prev.map((o, i) => (i === idx ? value : o)))
@@ -102,6 +128,7 @@ function EditModal({ question, onClose, onSaved }: EditModalProps) {
   function handleSave() {
     setSaveError('')
     const payload: UpdateQuestionPayload = {
+      questionType,
       questionText,
       options: isMultipleChoice ? options : [],
       correctAnswer: isEssay ? '' : correctAnswer,
@@ -117,6 +144,7 @@ function EditModal({ question, onClose, onSaved }: EditModalProps) {
       }
       onSaved({
         ...question,
+        questionType,
         questionText,
         options: isMultipleChoice ? options : [],
         correctAnswer: isEssay ? '' : correctAnswer,
@@ -150,9 +178,21 @@ function EditModal({ question, onClose, onSaved }: EditModalProps) {
               {DOMAIN_LABEL[question.domain]}
             </span>
             <span className="text-xs text-gray-500">Lv{question.difficulty}</span>
-            <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-              {{ multiple_choice: '객관식', fill_blank: '빈칸', short_answer: '단답형', essay: '서술형' }[question.questionType] ?? question.questionType}
-            </span>
+            {mode === 'edit' ? (
+              <select
+                value={questionType}
+                onChange={(e) => handleTypeChange(e.target.value)}
+                className="h-6 text-xs rounded-full border border-gray-200 px-2 text-gray-600 bg-gray-50"
+              >
+                {Object.entries(QUESTION_TYPE_LABEL).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
+            ) : (
+              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                {QUESTION_TYPE_LABEL[questionType] ?? questionType}
+              </span>
+            )}
             <SourceBadge source={question.source} />
             {question.source === 'AI_SHARED' && question.originalQuestionId && (
               <span className="text-xs text-gray-400">
