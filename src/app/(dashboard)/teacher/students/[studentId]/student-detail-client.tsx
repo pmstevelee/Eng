@@ -145,12 +145,11 @@ function ScoreTab({
 }) {
   const latest = sessions[0]
 
-  const hasListening = sessions.some((s) => s.listeningScore != null)
   const radarData = [
     { subject: '문법', score: latest?.grammarScore ?? 0, fullMark: 100 },
     { subject: '어휘', score: latest?.vocabularyScore ?? 0, fullMark: 100 },
     { subject: '읽기', score: latest?.readingScore ?? 0, fullMark: 100 },
-    ...(hasListening ? [{ subject: '듣기', score: latest?.listeningScore ?? 0, fullMark: 100 }] : []),
+    { subject: '듣기', score: latest?.listeningScore ?? 0, fullMark: 100 },
     { subject: '쓰기', score: latest?.writingScore ?? 0, fullMark: 100 },
   ]
 
@@ -160,7 +159,7 @@ function ScoreTab({
     문법: s.grammarScore,
     어휘: s.vocabularyScore,
     읽기: s.readingScore,
-    ...(hasListening ? { 듣기: s.listeningScore } : {}),
+    듣기: s.listeningScore,
     쓰기: s.writingScore,
   }))
 
@@ -237,7 +236,7 @@ function ScoreTab({
                 { key: 'GRAMMAR', value: latest?.grammarScore },
                 { key: 'VOCABULARY', value: latest?.vocabularyScore },
                 { key: 'READING', value: latest?.readingScore },
-                ...(hasListening ? [{ key: 'LISTENING', value: latest?.listeningScore }] : []),
+                { key: 'LISTENING', value: latest?.listeningScore },
                 { key: 'WRITING', value: latest?.writingScore },
               ].map(({ key, value }) => (
                 <div key={key} className="flex items-center gap-3">
@@ -282,7 +281,7 @@ function ScoreTab({
               <Line type="monotone" dataKey="문법" stroke={DOMAIN_COLORS.GRAMMAR} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
               <Line type="monotone" dataKey="어휘" stroke={DOMAIN_COLORS.VOCABULARY} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
               <Line type="monotone" dataKey="읽기" stroke={DOMAIN_COLORS.READING} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
-              {hasListening && <Line type="monotone" dataKey="듣기" stroke={DOMAIN_COLORS.LISTENING} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />}
+              <Line type="monotone" dataKey="듣기" stroke={DOMAIN_COLORS.LISTENING} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
               <Line type="monotone" dataKey="쓰기" stroke={DOMAIN_COLORS.WRITING} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
             </LineChart>
           </ResponsiveContainer>
