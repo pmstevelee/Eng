@@ -298,7 +298,7 @@ function ScoreTab({
           <table className="w-full text-sm">
             <thead>
               <tr>
-                {['날짜', '테스트명', '유형', '총점', '문법', '어휘', '읽기', ...(hasListening ? ['듣기'] : []), '쓰기'].map((h) => (
+                {['날짜', '테스트명', '유형', '총점', '문법', '어휘', '읽기', '듣기', '쓰기'].map((h) => (
                   <th
                     key={h}
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide bg-gray-50"
@@ -332,7 +332,7 @@ function ScoreTab({
                   <td className="px-4 py-3 text-gray-600">{s.grammarScore ?? '-'}</td>
                   <td className="px-4 py-3 text-gray-600">{s.vocabularyScore ?? '-'}</td>
                   <td className="px-4 py-3 text-gray-600">{s.readingScore ?? '-'}</td>
-                  {hasListening && <td className="px-4 py-3 text-gray-600">{s.listeningScore ?? '-'}</td>}
+                  <td className="px-4 py-3 text-gray-600">{s.listeningScore ?? '-'}</td>
                   <td className="px-4 py-3 text-gray-600">{s.writingScore ?? '-'}</td>
                 </tr>
               ))}

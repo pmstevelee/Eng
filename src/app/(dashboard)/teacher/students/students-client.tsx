@@ -106,7 +106,7 @@ function StudentCard({
     { key: 'grammar', label: '문법', value: latest?.grammarScore, color: DOMAIN_COLORS.grammar },
     { key: 'vocabulary', label: '어휘', value: latest?.vocabularyScore, color: DOMAIN_COLORS.vocabulary },
     { key: 'reading', label: '읽기', value: latest?.readingScore, color: DOMAIN_COLORS.reading },
-    ...(latest?.listeningScore != null ? [{ key: 'listening', label: '듣기', value: latest.listeningScore, color: DOMAIN_COLORS.listening }] : []),
+    { key: 'listening', label: '듣기', value: latest?.listeningScore ?? null, color: DOMAIN_COLORS.listening },
     { key: 'writing', label: '쓰기', value: latest?.writingScore, color: DOMAIN_COLORS.writing },
   ]
 
@@ -195,7 +195,6 @@ function StudentsTable({
   onToggle: (id: string) => void
 }) {
   const allSelected = students.length > 0 && students.every((s) => selectedIds.has(s.id))
-  const hasListening = students.some((s) => s.testSessions[0]?.listeningScore != null)
 
   const toggleAll = () => {
     if (allSelected) {
@@ -222,7 +221,7 @@ function StudentsTable({
                 {allSelected && <CheckCheck size={9} color="white" />}
               </button>
             </th>
-            {['이름', '레벨', '최근점수', '문법', '어휘', '읽기', ...(hasListening ? ['듣기'] : []), '쓰기', '출석률', '상태', ''].map((h) => (
+            {['이름', '레벨', '최근점수', '문법', '어휘', '읽기', '듣기', '쓰기', '출석률', '상태', ''].map((h) => (
               <th
                 key={h}
                 className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide bg-gray-50 first:rounded-tl-lg last:rounded-tr-lg"
@@ -274,7 +273,7 @@ function StudentsTable({
                 <td className="px-3 py-3 text-gray-600">{latest?.grammarScore ?? '-'}</td>
                 <td className="px-3 py-3 text-gray-600">{latest?.vocabularyScore ?? '-'}</td>
                 <td className="px-3 py-3 text-gray-600">{latest?.readingScore ?? '-'}</td>
-                {hasListening && <td className="px-3 py-3 text-gray-600">{latest?.listeningScore ?? '-'}</td>}
+                <td className="px-3 py-3 text-gray-600">{latest?.listeningScore ?? '-'}</td>
                 <td className="px-3 py-3 text-gray-600">{latest?.writingScore ?? '-'}</td>
                 <td className="px-3 py-3">
                   {student.attendanceRate !== null ? (

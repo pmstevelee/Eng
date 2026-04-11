@@ -154,6 +154,8 @@ export async function regenerateLearningPath(studentId: string): Promise<{ error
     if (avg(sessions.map((s) => s.grammarScore)) < 75) weaknesses.push('Grammar')
     if (avg(sessions.map((s) => s.vocabularyScore)) < 75) weaknesses.push('Vocabulary')
     if (avg(sessions.map((s) => s.readingScore)) < 75) weaknesses.push('Reading')
+    const listeningScores = sessions.map((s) => s.listeningScore).filter((v): v is number => v !== null)
+    if (listeningScores.length > 0 && avg(listeningScores) < 75) weaknesses.push('Listening')
     if (avg(sessions.map((s) => s.writingScore)) < 75) weaknesses.push('Writing')
   }
 
@@ -174,6 +176,10 @@ export async function regenerateLearningPath(studentId: string): Promise<{ error
   if (weaknesses.includes('Reading')) {
     steps.push({ id: String(stepId++), title: '주제 파악', domain: 'READING', description: '글의 주제와 요지 파악하기' })
     steps.push({ id: String(stepId++), title: '추론 읽기', domain: 'READING', description: '문맥에서 의미 추론하기' })
+  }
+  if (weaknesses.includes('Listening')) {
+    steps.push({ id: String(stepId++), title: '듣기 기초', domain: 'LISTENING', description: '일상 대화 및 기본 표현 듣고 이해하기' })
+    steps.push({ id: String(stepId++), title: '듣기 심화', domain: 'LISTENING', description: '다양한 유형의 듣기 문제 풀기 및 세부 내용 파악' })
   }
   if (weaknesses.includes('Vocabulary')) {
     steps.push({ id: String(stepId++), title: '핵심 어휘', domain: 'VOCABULARY', description: 'A1-A2 수준 핵심 어휘 학습' })
