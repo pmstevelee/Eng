@@ -202,7 +202,7 @@ export function ReviewClient({ items }: Props) {
                 {/* 확장 영역 */}
                 {isExpanded && (
                   <div className="border-t border-gray-100 bg-gray-50 px-4 py-4">
-                    {item.content.type === 'multiple_choice' ? (
+                    {(item.content.type === 'multiple_choice' || (item.content.options && item.content.options.length > 0)) ? (
                       <MultipleChoiceReview
                         content={item.content}
                         answer={state.selectedAnswer}
@@ -321,7 +321,7 @@ function MultipleChoiceReview({
         {options.map((opt, i) => {
           const letter = LETTERS[i] ?? String(i + 1)
           const isSelected = answer === letter
-          const isCorrectOption = isSubmitted && gradeResult.correctAnswer === letter
+          const isCorrectOption = isSubmitted && gradeResult.correctAnswer?.toUpperCase() === letter
           const isWrongSelected = isSubmitted && isSelected && !gradeResult.isCorrect
 
           return (

@@ -712,10 +712,7 @@ export async function gradeAnswer(
   }
 
   const correctAnswer = content.correct_answer ?? ''
-  const isCorrect =
-    content.type === 'multiple_choice'
-      ? answer.trim() === correctAnswer.trim()
-      : answer.trim().toLowerCase() === correctAnswer.trim().toLowerCase()
+  const isCorrect = answer.trim().toLowerCase() === correctAnswer.trim().toLowerCase()
 
   // 품질 점수 비동기 갱신 (학생 응답 속도에 영향 없음)
   updateQuestionQuality(questionId).catch(console.error)
