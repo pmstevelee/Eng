@@ -297,8 +297,8 @@ export default function CreateQuestionModal({ onClose, onCreated }: Props) {
   const [audioScript, setAudioScript] = useState('')
 
   // 선택지
-  const [options, setOptions] = useState(['', '', '', ''])
-  const [optionImages, setOptionImages] = useState<(string | null)[]>([null, null, null, null])
+  const [options, setOptions] = useState(['', '', '', '', ''])
+  const [optionImages, setOptionImages] = useState<(string | null)[]>([null, null, null, null, null])
   const [correctAnswer, setCorrectAnswer] = useState('')
 
   // 서술형

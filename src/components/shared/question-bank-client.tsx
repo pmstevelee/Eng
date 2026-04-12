@@ -557,9 +557,9 @@ function QuestionFormModal({
   const [qType, setQType] = useState<QuestionType>(initial?.contentJson.type ?? 'multiple_choice')
   const [questionText, setQuestionText] = useState(initial?.contentJson.question_text ?? '')
   const [questionTextKo, setQuestionTextKo] = useState(initial?.contentJson.question_text_ko ?? '')
-  const [options, setOptions] = useState<string[]>(initial?.contentJson.options ?? ['', '', '', ''])
+  const [options, setOptions] = useState<string[]>(initial?.contentJson.options ?? ['', '', '', '', ''])
   const [optionImages, setOptionImages] = useState<(string | null)[]>(
-    initial?.contentJson.option_images ?? [null, null, null, null],
+    initial?.contentJson.option_images ?? [null, null, null, null, null],
   )
   const [correctAnswer, setCorrectAnswer] = useState(initial?.contentJson.correct_answer ?? '')
   const [explanation, setExplanation] = useState(initial?.contentJson.explanation ?? '')

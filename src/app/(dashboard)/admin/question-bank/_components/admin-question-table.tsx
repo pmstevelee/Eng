@@ -90,7 +90,7 @@ function EditModal({ question, onClose, onSaved }: EditModalProps) {
   const [questionText, setQuestionText] = useState(question.questionText)
   const [options, setOptions] = useState<string[]>(
     question.questionType === 'multiple_choice'
-      ? (question.options.length > 0 ? [...question.options] : ['', '', '', ''])
+      ? (question.options.length > 0 ? [...question.options] : ['', '', '', '', ''])
       : [],
   )
   const [correctAnswer, setCorrectAnswer] = useState(question.correctAnswer)
@@ -107,7 +107,7 @@ function EditModal({ question, onClose, onSaved }: EditModalProps) {
   function handleTypeChange(newType: string) {
     setQuestionType(newType)
     if (newType === 'multiple_choice') {
-      setOptions(question.options.length > 0 ? [...question.options] : ['', '', '', ''])
+      setOptions(question.options.length > 0 ? [...question.options] : ['', '', '', '', ''])
       setCorrectAnswer(question.correctAnswer || 'A')
     } else {
       setOptions([])
