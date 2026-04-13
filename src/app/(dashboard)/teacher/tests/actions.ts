@@ -587,3 +587,19 @@ export async function getAutoQuestions(
 
   return { questions: results }
 }
+
+// 문제 상세 내용 조회 (공용 + 학원 문제 모두)
+export async function getTestQuestionDetail(id: string): Promise<QuestionContentJson | null> {
+  const user = await getAuthedTeacher()
+  if (!user) return null
+
+  const q = await prisma.question.findFirst({
+    where: {
+      id,
+      OR: [{ academyId: null }, { academyId: user.academyId! }],
+      isActive: true,
+    },
+    select: { contentJson: true },
+  })
+  return (q?.contentJson as QuestionContentJson) ?? null
+}

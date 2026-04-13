@@ -8,6 +8,7 @@ import {
   createAndDeployTest,
   getStudentsForDeploy,
   getAutoQuestions,
+  getTestQuestionDetail,
 } from '../actions'
 
 export default async function OwnerNewTestPage() {
@@ -65,6 +66,7 @@ export default async function OwnerNewTestPage() {
       createAndDeployTestAction={createAndDeployTest}
       getStudentsForDeployAction={getStudentsForDeploy}
       getAutoQuestionsAction={getAutoQuestions}
+      getQuestionDetailAction={getTestQuestionDetail}
       successHref="/owner/tests"
     />
   )

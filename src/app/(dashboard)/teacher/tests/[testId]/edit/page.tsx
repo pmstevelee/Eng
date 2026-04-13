@@ -11,6 +11,7 @@ import {
   getStudentsForDeploy,
   getAutoQuestions,
   getTestForEdit,
+  getTestQuestionDetail,
 } from '../../actions'
 
 export default async function EditTestPage({
@@ -79,6 +80,7 @@ export default async function EditTestPage({
       initialData={test}
       updateTestAction={boundUpdateTest}
       updateDeployedStudentsAction={boundUpdateDeployedStudents}
+      getQuestionDetailAction={getTestQuestionDetail}
       successHref="/teacher/tests"
     />
   )

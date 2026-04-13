@@ -13,8 +13,11 @@ import {
   Save,
   BookOpen,
   RefreshCw,
+  Eye,
+  Volume2,
 } from 'lucide-react'
-import type { QuestionRow } from '@/components/shared/question-bank-client'
+import Image from 'next/image'
+import type { QuestionRow, QuestionContentJson } from '@/components/shared/question-bank-client'
 import type { TestFormInput, AutoConfig, QuestionRowMin } from '../../actions'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -50,6 +53,8 @@ type Props = {
     configs: AutoConfig[],
     testType?: 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE',
   ) => Promise<{ questions: QuestionRowMin[]; error?: string }>
+  /** 문제 상세 조회 액션 */
+  getQuestionDetailAction?: (id: string) => Promise<QuestionContentJson | null>
 
   /** 편집 모드: 기존 데이터 */
   initialData?: InitialData
@@ -110,6 +115,215 @@ function DifficultyStars({ n }: { n: number }) {
   )
 }
 
+// ─── Question Preview Modal ────────────────────────────────────────────────────
+
+function QuestionPreviewModal({
+  question,
+  content,
+  onClose,
+}: {
+  question: QuestionRow
+  content: QuestionContentJson
+  onClose: () => void
+}) {
+  const [selected, setSelected] = useState<string | null>(null)
+  const [showScript, setShowScript] = useState(false)
+  const domainColor = DOMAIN_COLOR[question.domain]?.text ?? '#1865F2'
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-sm">
+        {/* 헤더 */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 sticky top-0 bg-white rounded-t-2xl z-10">
+          <div className="flex items-center gap-2">
+            <Eye size={18} className="text-gray-500" />
+            <span className="font-semibold text-gray-900">문제 미리보기</span>
+            <DomainBadge domain={question.domain} />
+            <span className="text-xs text-gray-400">{question.cefrLevel ?? '–'}</span>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* 메타 정보 */}
+        <div className="px-6 pt-4 pb-0 flex flex-wrap gap-3 text-xs text-gray-500">
+          <span>유형: <strong className="text-gray-700">{QUESTION_TYPE_LABEL[question.questionType] ?? question.questionType}</strong></span>
+          <span>난이도: <strong className="text-gray-700">{question.difficulty}</strong></span>
+          {question.subCategory && <span>세부 유형: <strong className="text-gray-700">{question.subCategory}</strong></span>}
+          {question.creator && <span>출제자: <strong className="text-gray-700">{question.creator.name}</strong></span>}
+        </div>
+
+        <div className="p-6">
+          <div className="rounded-xl border border-gray-200 p-6 relative overflow-hidden">
+            <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style={{ backgroundColor: domainColor }} />
+
+            {/* 듣기: 오디오 */}
+            {question.domain === 'LISTENING' && content.audio_url && (
+              <div className="mb-5">
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-2 tracking-wide">음성 파일</p>
+                <div className="flex items-center gap-3 p-3 rounded-xl border border-pink-200 bg-pink-50">
+                  <div className="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center shrink-0">
+                    <Volume2 size={15} className="text-white" />
+                  </div>
+                  <audio controls className="flex-1 h-8">
+                    <source src={content.audio_url} />
+                  </audio>
+                </div>
+                {content.audio_script && (
+                  <div className="mt-2">
+                    <button
+                      onClick={() => setShowScript(!showScript)}
+                      className="text-xs text-pink-600 hover:underline"
+                    >
+                      {showScript ? '스크립트 숨기기' : '스크립트 보기'}
+                    </button>
+                    {showScript && (
+                      <div className="mt-2 p-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {content.audio_script}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 읽기: 지문 */}
+            {content.passage && (
+              <div className="mb-5 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-2 tracking-wide">지문</p>
+                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{content.passage}</p>
+                {content.passage_image_url && (
+                  <Image
+                    src={content.passage_image_url}
+                    alt="지문 이미지"
+                    width={480}
+                    height={300}
+                    className="mt-3 rounded-xl border border-gray-200 object-contain max-h-64 w-auto"
+                    unoptimized
+                  />
+                )}
+              </div>
+            )}
+
+            {/* 문제 본문 */}
+            <p className="text-base font-medium text-gray-900 leading-relaxed mb-1">
+              {content.question_text || '문제 본문이 없습니다.'}
+            </p>
+            {content.question_text_ko && (
+              <p className="text-sm text-gray-500 mb-3">{content.question_text_ko}</p>
+            )}
+            {content.question_image_url && (
+              <Image
+                src={content.question_image_url}
+                alt="문제 이미지"
+                width={480}
+                height={300}
+                className="mt-2 mb-4 rounded-xl border border-gray-200 object-contain max-h-64 w-auto"
+                unoptimized
+              />
+            )}
+
+            {/* 객관식 선택지 */}
+            {content.type === 'multiple_choice' && content.options && (
+              <div className="mt-4 space-y-2">
+                {content.options.filter(Boolean).map((opt, i) => {
+                  const label = String.fromCharCode(65 + i)
+                  const isSelected = selected === label
+                  const isCorrect = content.correct_answer === label
+                  const optImage = content.option_images?.[i]
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setSelected(label)}
+                      className={`w-full text-left rounded-lg border-2 p-3 transition-all ${
+                        isSelected
+                          ? 'border-primary-700 bg-primary-50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="font-semibold mr-2" style={{ color: domainColor }}>{label}.</span>
+                      <span className="text-sm text-gray-900">{opt}</span>
+                      {selected && isCorrect && (
+                        <span className="ml-2 text-xs text-green-600 font-semibold">✓ 정답</span>
+                      )}
+                      {optImage && (
+                        <div className="mt-2">
+                          <Image
+                            src={optImage}
+                            alt={`선택지 ${label} 이미지`}
+                            width={240}
+                            height={150}
+                            className="rounded-lg border border-gray-200 object-contain max-h-36 w-auto"
+                            unoptimized
+                          />
+                        </div>
+                      )}
+                    </button>
+                  )
+                })}
+                {selected && (
+                  <p className="text-xs text-gray-400 mt-1">선택지를 클릭하면 정답이 표시됩니다.</p>
+                )}
+              </div>
+            )}
+
+            {/* 빈칸 */}
+            {content.type === 'fill_blank' && (
+              <div className="mt-4 space-y-2">
+                <input
+                  type="text"
+                  placeholder="정답을 입력하세요"
+                  className="h-11 rounded-xl border-2 border-gray-200 px-4 text-sm w-full max-w-xs focus:border-primary-700 focus:outline-none"
+                />
+                {content.correct_answer && (
+                  <p className="text-xs text-gray-400">정답: <span className="font-medium text-gray-700">{content.correct_answer}</span></p>
+                )}
+              </div>
+            )}
+
+            {/* 단답형 */}
+            {content.type === 'short_answer' && (
+              <div className="mt-4 space-y-2">
+                <textarea
+                  placeholder="답변을 입력하세요"
+                  rows={2}
+                  className="w-full rounded-xl border-2 border-gray-200 px-4 py-2.5 text-sm resize-none focus:border-primary-700 focus:outline-none"
+                />
+                {content.correct_answer && (
+                  <p className="text-xs text-gray-400">예시 정답: <span className="font-medium text-gray-700">{content.correct_answer}</span></p>
+                )}
+              </div>
+            )}
+
+            {/* 서술형 */}
+            {content.type === 'essay' && (
+              <div className="mt-4">
+                <textarea
+                  placeholder="서술형 답변을 작성하세요"
+                  rows={4}
+                  className="w-full rounded-xl border-2 border-gray-200 px-4 py-2.5 text-sm resize-none focus:border-primary-700 focus:outline-none"
+                />
+                {content.word_limit && (
+                  <p className="text-xs text-gray-400 mt-1">단어 수 제한: {content.word_limit}단어</p>
+                )}
+              </div>
+            )}
+
+            {/* 해설 */}
+            {content.explanation && (
+              <div className="mt-5 p-3 rounded-xl bg-amber-50 border border-amber-200">
+                <p className="text-xs font-semibold text-amber-700 mb-1">해설</p>
+                <p className="text-sm text-amber-900 leading-relaxed">{content.explanation}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function TestFormClient({
@@ -119,6 +333,7 @@ export default function TestFormClient({
   createAndDeployTestAction,
   getStudentsForDeployAction,
   getAutoQuestionsAction,
+  getQuestionDetailAction,
   initialData,
   updateTestAction,
   updateDeployedStudentsAction,
@@ -181,6 +396,22 @@ export default function TestFormClient({
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([])
   const [deployLoading, setDeployLoading] = useState(false)
   const [deployError, setDeployError] = useState('')
+
+  // ── Question preview ─────────────────────────────────────────────────────────
+  const [previewQuestion, setPreviewQuestion] = useState<QuestionRow | null>(null)
+  const [previewContent, setPreviewContent] = useState<QuestionContentJson | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+
+  async function openPreview(q: QuestionRow, e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!getQuestionDetailAction) return
+    setPreviewQuestion(q)
+    setPreviewLoading(true)
+    setPreviewContent(null)
+    const content = await getQuestionDetailAction(q.id)
+    setPreviewContent(content)
+    setPreviewLoading(false)
+  }
 
   // ── Saving ──────────────────────────────────────────────────────────────────
   const [saving, setSaving] = useState(false)
@@ -758,7 +989,7 @@ export default function TestFormClient({
               </div>
             ) : (
               <div className="border border-gray-200 rounded-xl overflow-hidden">
-                <div className="max-h-72 overflow-y-auto">
+                <div className="max-h-[520px] overflow-y-auto">
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 bg-gray-50 border-b border-gray-200">
                       <tr>
@@ -778,6 +1009,9 @@ export default function TestFormClient({
                         <th className="text-left p-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden sm:table-cell">
                           난이도
                         </th>
+                        {getQuestionDetailAction && (
+                          <th className="w-10 p-3" />
+                        )}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -809,7 +1043,7 @@ export default function TestFormClient({
                               </span>
                             </td>
                             <td className="p-3 max-w-xs">
-                              <span className="line-clamp-1 text-gray-800">
+                              <span className="line-clamp-2 text-gray-800">
                                 {q.questionText}
                               </span>
                             </td>
@@ -821,12 +1055,23 @@ export default function TestFormClient({
                             <td className="p-3 hidden sm:table-cell">
                               <DifficultyStars n={q.difficulty} />
                             </td>
+                            {getQuestionDetailAction && (
+                              <td className="p-3">
+                                <button
+                                  onClick={(e) => openPreview(q, e)}
+                                  title="상세보기"
+                                  className="p-1.5 rounded-lg text-gray-400 hover:text-primary-700 hover:bg-primary-50 transition-colors"
+                                >
+                                  <Eye size={15} />
+                                </button>
+                              </td>
+                            )}
                           </tr>
                         )
                       })}
                       {filteredQuestions.length === 0 && (
                         <tr>
-                          <td colSpan={6} className="p-8 text-center text-sm text-gray-400">
+                          <td colSpan={getQuestionDetailAction ? 7 : 6} className="p-8 text-center text-sm text-gray-400">
                             조건에 맞는 문제가 없습니다.
                           </td>
                         </tr>
@@ -930,7 +1175,7 @@ export default function TestFormClient({
                 순서를 변경할 수 있습니다.
               </span>
             </h3>
-            <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
               {selectedQuestions.map((q, idx) => (
                 <div
                   key={q.id}
@@ -943,10 +1188,19 @@ export default function TestFormClient({
                   <span className="text-xs text-gray-400 shrink-0">
                     {q.cefrLevel ?? '–'}
                   </span>
-                  <span className="flex-1 text-sm text-gray-800 truncate">
+                  <span className="flex-1 text-sm text-gray-800 line-clamp-2">
                     {q.questionText}
                   </span>
                   <div className="flex items-center gap-1 shrink-0">
+                    {getQuestionDetailAction && (
+                      <button
+                        onClick={(e) => openPreview(q, e)}
+                        title="상세보기"
+                        className="p-1 text-gray-400 hover:text-primary-700 transition-colors"
+                      >
+                        <Eye size={14} />
+                      </button>
+                    )}
                     {selectionMode === 'auto' && (
                       <button
                         onClick={() => replaceAutoQuestion(idx)}
@@ -1166,6 +1420,24 @@ export default function TestFormClient({
             </div>
           </div>
         </div>
+      )}
+
+      {/* ─── 문제 미리보기 모달 ──────────────────────────────────────────────── */}
+      {previewQuestion && (
+        previewLoading ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-2xl p-8 flex items-center gap-3 shadow-sm">
+              <div className="w-5 h-5 border-2 border-primary-700 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm text-gray-700">문제 불러오는 중...</span>
+            </div>
+          </div>
+        ) : previewContent ? (
+          <QuestionPreviewModal
+            question={previewQuestion}
+            content={previewContent}
+            onClose={() => { setPreviewQuestion(null); setPreviewContent(null) }}
+          />
+        ) : null
       )}
     </div>
   )

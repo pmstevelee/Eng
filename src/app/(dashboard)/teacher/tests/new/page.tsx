@@ -8,6 +8,7 @@ import {
   createAndDeployTest,
   getStudentsForDeploy,
   getAutoQuestions,
+  getTestQuestionDetail,
 } from '../actions'
 
 export default async function NewTestPage() {
@@ -65,6 +66,7 @@ export default async function NewTestPage() {
       createAndDeployTestAction={createAndDeployTest}
       getStudentsForDeployAction={getStudentsForDeploy}
       getAutoQuestionsAction={getAutoQuestions}
+      getQuestionDetailAction={getTestQuestionDetail}
     />
   )
 }
