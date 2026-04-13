@@ -5,6 +5,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { randomBytes } from 'crypto'
+import { headers } from 'next/headers'
 
 export async function withdrawAcademy(
   formData: FormData,
@@ -194,6 +195,26 @@ export async function updateNotificationSettings(settings: {
   })
 
   revalidatePath('/owner/settings/notifications')
+  return { success: true }
+}
+
+export async function sendPasswordResetEmail(): Promise<{ error?: string; success?: boolean }> {
+  const supabase = await createClient()
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser()
+  if (!authUser) return { error: '인증이 필요합니다.' }
+
+  const headersList = await headers()
+  const host = headersList.get('x-forwarded-host') ?? headersList.get('host') ?? 'localhost:3000'
+  const protocol = headersList.get('x-forwarded-proto') ?? 'http'
+  const redirectTo = `${protocol}://${host}/auth/reset-password`
+
+  const { error } = await supabase.auth.resetPasswordForEmail(authUser.email!, {
+    redirectTo,
+  })
+  if (error) return { error: '이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.' }
+
   return { success: true }
 }
 

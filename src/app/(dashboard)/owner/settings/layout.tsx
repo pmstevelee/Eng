@@ -8,6 +8,7 @@ const navItems = [
   { label: '초대 코드', href: '/owner/settings/invite' },
   { label: '알림 설정', href: '/owner/settings/notifications' },
   { label: '구독 관리', href: '/owner/settings/subscription' },
+  { label: '계정 정보', href: '/owner/settings/account' },
   { label: '계정 탈퇴', href: '/owner/settings/withdraw' },
 ]
 
