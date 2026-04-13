@@ -369,31 +369,56 @@ export type AIAnalysisResult = {
   rationale: string
 }
 
+export type AnalyzeQuestionInput = {
+  questionText: string
+  passage?: string        // 읽기 지문
+  audioScript?: string   // 듣기 스크립트
+  options?: string[]     // 객관식 선택지
+  currentDomain?: string
+}
+
 export async function analyzeQuestionWithAI(
-  questionText: string,
-  currentDomain?: string,
+  input: AnalyzeQuestionInput,
 ): Promise<{ result?: AIAnalysisResult; error?: string }> {
   const admin = await getAuthedAdmin()
   if (!admin) return { error: '권한이 없습니다.' }
 
-  if (!questionText.trim()) return { error: '문제 텍스트를 입력하세요.' }
+  if (!input.questionText.trim()) return { error: '문제 텍스트를 입력하세요.' }
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-  const domainHint = currentDomain ? `영역 힌트: ${DOMAIN_NAMES[currentDomain] ?? currentDomain}\n` : ''
+  const domainHint = input.currentDomain
+    ? `영역 힌트: ${DOMAIN_NAMES[input.currentDomain] ?? input.currentDomain}\n`
+    : ''
+
+  // 분석에 활용할 추가 컨텍스트 조립
+  const contextParts: string[] = []
+  if (input.passage?.trim()) {
+    contextParts.push(`[지문]\n${input.passage.trim()}`)
+  }
+  if (input.audioScript?.trim()) {
+    contextParts.push(`[오디오 스크립트]\n${input.audioScript.trim()}`)
+  }
+  if (input.options && input.options.some((o) => o.trim())) {
+    const filled = input.options.filter((o) => o.trim())
+    contextParts.push(`[선택지]\n${filled.map((o, i) => `${String.fromCharCode(65 + i)}) ${o}`).join('\n')}`)
+  }
+  const contextBlock = contextParts.length
+    ? `\n\n${contextParts.join('\n\n')}`
+    : ''
 
   const prompt = `다음 영어 학원 시험 문제를 분석하고 메타데이터를 추천해주세요.
 ${domainHint}
-문제:
-${questionText}
+[문제 본문]
+${input.questionText.trim()}${contextBlock}
 
-다음 JSON 형식으로 응답하세요:
+위의 문제 본문과 제공된 지문·스크립트·선택지를 종합적으로 분석하여 다음 JSON 형식으로 응답하세요:
 {
   "domain": "GRAMMAR|VOCABULARY|READING|WRITING|LISTENING 중 하나",
   "cefrLevel": "Pre-A1|A1 하|A1 상|A2 하|A2 상|B1 하|B1 상|B2 하|B2 상|C1+ 중 하나",
   "difficulty": 1에서 10 사이의 정수,
-  "subCategory": "세부 카테고리 한국어로 (예: 시제, 관계사, 주제 파악, 유의어 등)",
-  "rationale": "분석 이유를 한국어로 2~3문장 설명"
+  "subCategory": "세부 카테고리 한국어로 (예: 시제, 관계사, 주제 파악, 유의어, 대화 이해 등)",
+  "rationale": "문제 본문·지문·선택지를 근거로 분석 이유를 한국어로 2~3문장 설명"
 }
 
 CEFR 레벨과 난이도 매핑 기준:

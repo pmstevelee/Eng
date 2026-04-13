@@ -14,7 +14,7 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { createQuestion, analyzeQuestionWithAI } from '../actions'
-import type { CreateQuestionPayload, QuestionContentJson, AIAnalysisResult } from '../actions'
+import type { CreateQuestionPayload, QuestionContentJson, AIAnalysisResult, AnalyzeQuestionInput } from '../actions'
 import type { QuestionDomain } from '@/generated/prisma'
 
 // ── 타입 ──────────────────────────────────────────────────────────────────────
@@ -322,12 +322,20 @@ export default function CreateQuestionModal({ onClose, onCreated }: Props) {
   const handleAnalyze = useCallback(() => {
     setAiError('')
     setAiResult(null)
+    const filledOptions = options.filter((o) => o.trim())
+    const input: AnalyzeQuestionInput = {
+      questionText,
+      passage: passage.trim() || undefined,
+      audioScript: audioScript.trim() || undefined,
+      options: filledOptions.length > 0 ? filledOptions : undefined,
+      currentDomain: domain,
+    }
     startAnalysis(async () => {
-      const res = await analyzeQuestionWithAI(questionText, domain)
+      const res = await analyzeQuestionWithAI(input)
       if (res.error) { setAiError(res.error); return }
       if (res.result) setAiResult(res.result)
     })
-  }, [questionText, domain])
+  }, [questionText, passage, audioScript, options, domain])
 
   function handleApplyAI() {
     if (!aiResult) return
