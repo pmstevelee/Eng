@@ -33,6 +33,7 @@ type StudentData = {
     vocabularyScore: number | null
     readingScore: number | null
     writingScore: number | null
+    listeningScore: number | null
     status: string
     startedAt: string
     completedAt: string | null
@@ -44,6 +45,7 @@ type StudentData = {
     vocabularyScore: number | null
     readingScore: number | null
     writingScore: number | null
+    listeningScore: number | null
   } | null
 }
 
@@ -146,6 +148,7 @@ export default function StudentDetailClient({ student, classes }: Props) {
         { subject: '어휘', score: student.radarData.vocabularyScore ?? 0, fullMark: 100 },
         { subject: '독해', score: student.radarData.readingScore ?? 0, fullMark: 100 },
         { subject: '쓰기', score: student.radarData.writingScore ?? 0, fullMark: 100 },
+        { subject: '듣기', score: student.radarData.listeningScore ?? 0, fullMark: 100 },
       ]
     : null
 
@@ -379,6 +382,7 @@ export default function StudentDetailClient({ student, classes }: Props) {
                     { label: '어휘', value: student.radarData!.vocabularyScore, color: '#7854F7' },
                     { label: '독해', value: student.radarData!.readingScore, color: '#0FBFAD' },
                     { label: '쓰기', value: student.radarData!.writingScore, color: '#E35C20' },
+                    { label: '듣기', value: student.radarData!.listeningScore, color: '#F59E0B' },
                   ].map((domain) => (
                     <div key={domain.label} className="bg-gray-50 rounded-lg px-3 py-2">
                       <div className="flex items-center gap-1.5 mb-0.5">

@@ -30,6 +30,7 @@ const getStudentDetail = (academyId: string, studentId: string) =>
                 vocabularyScore: true,
                 readingScore: true,
                 writingScore: true,
+                listeningScore: true,
                 status: true,
                 startedAt: true,
                 completedAt: true,
@@ -116,6 +117,7 @@ export default async function StudentDetailPage({
       vocabularyScore: s.vocabularyScore,
       readingScore: s.readingScore,
       writingScore: s.writingScore,
+      listeningScore: s.listeningScore,
       status: s.status,
       startedAt: s.startedAt,
       completedAt: s.completedAt,
@@ -128,6 +130,7 @@ export default async function StudentDetailPage({
           vocabularyScore: latestGradedSession.vocabularyScore,
           readingScore: latestGradedSession.readingScore,
           writingScore: latestGradedSession.writingScore,
+          listeningScore: latestGradedSession.listeningScore,
         }
       : null,
   }
