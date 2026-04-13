@@ -16,6 +16,7 @@ import {
   Mic,
   CheckSquare,
   Square,
+  CheckCircle2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -574,6 +575,57 @@ function QuestionFormModal({
   const [audioUrl, setAudioUrl] = useState<string | null>(initial?.contentJson.audio_url ?? null)
   const [audioScript, setAudioScript] = useState(initial?.contentJson.audio_script ?? '')
 
+  // ── AI 분석 상태 ────────────────────────────────────────────────────────────
+  type AIAnalysisResult = {
+    domain: string
+    cefrLevel: string
+    difficulty: number
+    subCategory: string
+    rationale: string
+  }
+  const [aiResult, setAiResult] = useState<AIAnalysisResult | null>(null)
+  const [aiError, setAiError] = useState('')
+  const [analyzing, setAnalyzing] = useState(false)
+
+  const handleAnalyze = async () => {
+    if (!questionText.trim()) return
+    setAiError('')
+    setAiResult(null)
+    setAnalyzing(true)
+    try {
+      const filledOptions = options.filter((o) => o.trim())
+      const res = await fetch('/api/ai/analyze-question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questionText,
+          passage: passage.trim() || undefined,
+          audioScript: audioScript.trim() || undefined,
+          options: filledOptions.length > 0 ? filledOptions : undefined,
+          currentDomain: domain,
+        }),
+      })
+      const data = await res.json() as { success?: boolean; result?: AIAnalysisResult; error?: string }
+      if (!res.ok || !data.success) {
+        setAiError(data.error ?? 'AI 분석에 실패했습니다.')
+        return
+      }
+      if (data.result) setAiResult(data.result)
+    } catch {
+      setAiError('네트워크 오류가 발생했습니다.')
+    } finally {
+      setAnalyzing(false)
+    }
+  }
+
+  const handleApplyAI = () => {
+    if (!aiResult) return
+    setDomain(aiResult.domain as QuestionDomainType)
+    setCefrLevel(aiResult.cefrLevel)
+    setDifficulty(aiResult.difficulty)
+    if (aiResult.subCategory) setSubCategory(aiResult.subCategory)
+  }
+
   const TABS: { key: QuestionType; label: string }[] = [
     { key: 'multiple_choice', label: '객관식' },
     { key: 'fill_blank', label: '빈칸' },
@@ -745,6 +797,60 @@ function QuestionFormModal({
             )}
             <StyledTextarea value={questionText} onChange={setQuestionText} placeholder="문제를 입력하세요..." rows={3} />
             <ImageUploadField imageUrl={questionImageUrl} onChange={setQuestionImageUrl} label="문제 이미지 추가" />
+
+            {/* AI 분석 버튼 */}
+            <button
+              type="button"
+              onClick={handleAnalyze}
+              disabled={questionText.trim().length < 5 || analyzing}
+              className="mt-3 flex items-center gap-1.5 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 rounded-lg border border-purple-200 transition-colors"
+            >
+              {analyzing
+                ? <><Loader2 size={12} className="animate-spin" />AI 분석 중...</>
+                : <><Sparkles size={12} />AI 분석 및 추천 (CEFR · 난이도 · 카테고리)</>
+              }
+            </button>
+
+            {/* AI 추천 결과 */}
+            {aiError && <p className="mt-2 text-xs text-[#D92916]">{aiError}</p>}
+            {aiResult && (
+              <div className="mt-3 rounded-xl border border-purple-200 bg-purple-50 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-purple-600" />
+                    <span className="text-xs font-semibold text-purple-700">AI 추천 결과</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleApplyAI}
+                    className="flex items-center gap-1 text-xs font-medium text-purple-700 bg-white border border-purple-300 hover:bg-purple-100 px-2.5 py-1 rounded-lg transition-colors"
+                  >
+                    <CheckCircle2 size={11} />
+                    전체 적용
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <span
+                    className="text-xs font-semibold px-2.5 py-1 rounded-full text-white"
+                    style={{ background: DOMAIN_COLOR[aiResult.domain as QuestionDomainType] ?? '#999' }}
+                  >
+                    {DOMAIN_LABEL[aiResult.domain as QuestionDomainType] ?? aiResult.domain}
+                  </span>
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-white border border-purple-200 text-purple-700">
+                    CEFR: {aiResult.cefrLevel}
+                  </span>
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-white border border-purple-200 text-purple-700">
+                    난이도 Lv{aiResult.difficulty}
+                  </span>
+                  {aiResult.subCategory && (
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-white border border-purple-200 text-purple-700">
+                      {aiResult.subCategory}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-purple-600 leading-relaxed">{aiResult.rationale}</p>
+              </div>
+            )}
           </div>
 
           {/* 한국어 번역 */}
