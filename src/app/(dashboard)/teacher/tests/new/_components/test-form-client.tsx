@@ -91,6 +91,8 @@ const QUESTION_TYPE_LABEL: Record<string, string> = {
   fill_blank: '빈칸',
   short_answer: '단답형',
   essay: '서술형',
+  word_bank: '단어박스형',
+  question_set: '복합 문제',
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -158,8 +160,8 @@ function QuestionPreviewModal({
           <div className="rounded-xl border border-gray-200 p-6 relative overflow-hidden">
             <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style={{ backgroundColor: domainColor }} />
 
-            {/* 듣기: 오디오 */}
-            {question.domain === 'LISTENING' && content.audio_url && (
+            {/* 듣기: 오디오 (단일 문제용 — 복합 문제는 아래에서 별도 처리) */}
+            {content.type !== 'question_set' && question.domain === 'LISTENING' && content.audio_url && (
               <div className="mb-5">
                 <p className="text-xs font-semibold text-gray-500 uppercase mb-2 tracking-wide">음성 파일</p>
                 <div className="flex items-center gap-3 p-3 rounded-xl border border-pink-200 bg-pink-50">
@@ -307,6 +309,150 @@ function QuestionPreviewModal({
                 {content.word_limit && (
                   <p className="text-xs text-gray-400 mt-1">단어 수 제한: {content.word_limit}단어</p>
                 )}
+              </div>
+            )}
+
+            {/* 단어박스형 */}
+            {content.type === 'word_bank' && (
+              <div className="mt-4 space-y-4">
+                {content.word_bank && content.word_bank.length > 0 && (
+                  <div className="rounded-xl border-2 border-gray-200 p-4">
+                    <div className="flex flex-wrap gap-3 justify-center">
+                      {content.word_bank.map((word, i) => (
+                        <span key={i} className="px-3 py-1 text-sm font-semibold text-gray-700 border-b-2 border-gray-400">
+                          {word}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {content.sentences && (
+                  <div className="space-y-4">
+                    {content.sentences.map((s) => {
+                      const parts = s.text.split('____')
+                      return (
+                        <div key={s.label} className="space-y-2">
+                          {s.image_url && (
+                            <div className="pl-5">
+                              <Image
+                                src={s.image_url}
+                                alt={`${s.label}번 힌트 이미지`}
+                                width={280}
+                                height={160}
+                                unoptimized
+                                className="rounded-xl border border-gray-200 object-contain max-h-40 w-auto"
+                              />
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-bold text-gray-700 shrink-0">{s.label}.</span>
+                            <span className="text-sm text-gray-900">{parts[0]}</span>
+                            <span className="inline-block h-8 min-w-[100px] rounded-lg border-b-2 border-gray-300 bg-gray-50 px-2 text-center text-sm font-medium text-[#1865F2]">
+                              {s.correct_answer}
+                            </span>
+                            {parts[1] && <span className="text-sm text-gray-900">{parts[1]}</span>}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 복합 문제 */}
+            {content.type === 'question_set' && (
+              <div className="mt-4 space-y-5">
+                {/* 오디오 (도메인 무관하게 audio_url 있으면 표시) */}
+                {content.audio_url && (
+                  <div className="mb-2">
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2 tracking-wide">음성 파일</p>
+                    <div className="flex items-center gap-3 p-3 rounded-xl border border-pink-200 bg-pink-50">
+                      <div className="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center shrink-0">
+                        <Volume2 size={15} className="text-white" />
+                      </div>
+                      <audio controls className="flex-1 h-8">
+                        <source src={content.audio_url} />
+                      </audio>
+                    </div>
+                    {content.audio_script && (
+                      <div className="mt-2">
+                        <button
+                          onClick={() => setShowScript(!showScript)}
+                          className="text-xs text-pink-600 hover:underline"
+                        >
+                          {showScript ? '스크립트 숨기기' : '스크립트 보기'}
+                        </button>
+                        {showScript && (
+                          <div className="mt-2 p-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                            {content.audio_script}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* 지문 (passage가 있고 아직 위에 표시 안 된 경우) */}
+                {content.passage && !content.audio_url && (
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2 tracking-wide">지문</p>
+                    {content.passage_image_url && (
+                      <Image
+                        src={content.passage_image_url}
+                        alt="지문 이미지"
+                        width={480}
+                        height={300}
+                        unoptimized
+                        className="mb-3 rounded-xl border border-gray-200 object-contain max-h-64 w-auto"
+                      />
+                    )}
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{content.passage}</p>
+                  </div>
+                )}
+                {/* 소문제 목록 */}
+                {content.sub_questions && content.sub_questions.map((sq) => (
+                  <div key={sq.label} className="space-y-3">
+                    <p className="text-sm font-semibold text-gray-800">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2">
+                        {sq.label}
+                      </span>
+                      {sq.question_text}
+                    </p>
+                    <div className={`grid gap-3 ${sq.option_images?.some(Boolean) ? 'grid-cols-3' : 'grid-cols-1'}`}>
+                      {sq.options.map((opt, oi) => {
+                        const letter = String.fromCharCode(65 + oi)
+                        const isCorrect = sq.correct_answer === letter
+                        const optImg = sq.option_images?.[oi]
+                        return (
+                          <div
+                            key={oi}
+                            className={`flex flex-col items-center gap-2 rounded-xl border-2 p-3 ${
+                              isCorrect ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white'
+                            }`}
+                          >
+                            {optImg && (
+                              <Image
+                                src={optImg}
+                                alt={`선택지 ${letter}`}
+                                width={120}
+                                height={80}
+                                unoptimized
+                                className="rounded-lg object-contain max-h-24 w-auto"
+                              />
+                            )}
+                            <span className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${
+                              isCorrect ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {letter}
+                            </span>
+                            {opt && <span className="text-xs text-center text-gray-600">{opt}</span>}
+                            {isCorrect && <span className="text-xs text-green-600 font-semibold">✓ 정답</span>}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
