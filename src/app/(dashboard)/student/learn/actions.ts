@@ -623,6 +623,7 @@ export async function getWrongAnswersForReview() {
     where: {
       session: { studentId, status: { in: ['COMPLETED', 'GRADED'] } },
       isCorrect: false,
+      isMastered: false,
       createdAt: { gte: thirtyDaysAgo },
     },
     orderBy: { createdAt: 'desc' },
@@ -708,11 +709,30 @@ export async function gradeAnswer(
   const content = question.contentJson as QuestionContentJson
 
   if (content.type === 'essay') {
+    const studentId = await requireStudentId()
+    prisma.questionResponse.updateMany({
+      where: { questionId, isCorrect: false, isMastered: false, session: { studentId } },
+      data: { isMastered: true },
+    }).catch(console.error)
     return { isCorrect: true, correctAnswer: null, explanation: content.explanation ?? null }
   }
 
   const correctAnswer = content.correct_answer ?? ''
   const isCorrect = answer.trim().toLowerCase() === correctAnswer.trim().toLowerCase()
+
+  // 정답이면 해당 학생의 가장 최근 오답 응답을 마스터 처리 (오답복습 목록에서 제거)
+  if (isCorrect) {
+    const studentId = await requireStudentId()
+    prisma.questionResponse.updateMany({
+      where: {
+        questionId,
+        isCorrect: false,
+        isMastered: false,
+        session: { studentId },
+      },
+      data: { isMastered: true },
+    }).catch(console.error)
+  }
 
   // 품질 점수 비동기 갱신 (학생 응답 속도에 영향 없음)
   updateQuestionQuality(questionId).catch(console.error)
