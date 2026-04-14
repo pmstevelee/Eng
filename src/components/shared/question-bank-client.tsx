@@ -532,6 +532,134 @@ function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onCl
               </div>
             )}
 
+            {/* 단어박스형 */}
+            {content.type === 'word_bank' && (
+              <div className="mt-4 space-y-4">
+                {/* 단어 박스 */}
+                {content.word_bank && content.word_bank.length > 0 && (
+                  <div className="rounded-xl border-2 border-gray-200 p-4">
+                    <div className="flex flex-wrap gap-3 justify-center">
+                      {content.word_bank.map((word, i) => (
+                        <span key={i} className="px-3 py-1 text-sm font-semibold text-gray-700 border-b-2 border-gray-400">
+                          {word}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* 문장 목록 */}
+                {content.sentences && (
+                  <div className="space-y-4">
+                    {content.sentences.map((s) => {
+                      const parts = s.text.split('____')
+                      return (
+                        <div key={s.label} className="space-y-2">
+                          {s.image_url && (
+                            <div className="pl-5">
+                              <Image
+                                src={s.image_url}
+                                alt={`${s.label}번 힌트 이미지`}
+                                width={280}
+                                height={160}
+                                unoptimized
+                                className="rounded-xl border border-gray-200 object-contain max-h-40 w-auto"
+                              />
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-bold text-gray-700 shrink-0">{s.label}.</span>
+                            <span className="text-sm text-gray-900">{parts[0]}</span>
+                            <span className="inline-block h-8 min-w-[100px] rounded-lg border-b-2 border-gray-300 bg-gray-50 px-2 text-center text-sm font-medium text-[#1865F2]">
+                              {s.correct_answer}
+                            </span>
+                            {parts[1] && <span className="text-sm text-gray-900">{parts[1]}</span>}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 복합 문제 */}
+            {content.type === 'question_set' && (
+              <div className="mt-4 space-y-5">
+                {/* 복합 문제용 오디오 */}
+                {content.audio_url && (
+                  <div className="flex items-center gap-3 p-3 rounded-xl border border-[#E91E8A]/30 bg-[#FDE7F3]">
+                    <div className="w-8 h-8 rounded-full bg-[#E91E8A] flex items-center justify-center shrink-0">
+                      <Volume2 size={15} className="text-white" />
+                    </div>
+                    <audio controls className="flex-1 h-8">
+                      <source src={content.audio_url} />
+                    </audio>
+                  </div>
+                )}
+                {/* 복합 문제용 지문 */}
+                {content.passage && (
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-sm text-gray-700 leading-relaxed">
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2 tracking-wide">지문</p>
+                    {content.passage_image_url && (
+                      <Image
+                        src={content.passage_image_url}
+                        alt="지문 이미지"
+                        width={480}
+                        height={300}
+                        unoptimized
+                        className="mb-3 rounded-xl border border-gray-200 object-contain max-h-64 w-auto"
+                      />
+                    )}
+                    <p className="whitespace-pre-wrap">{content.passage}</p>
+                  </div>
+                )}
+                {/* 소문제 목록 */}
+                {content.sub_questions && content.sub_questions.map((sq) => (
+                  <div key={sq.label} className="space-y-3">
+                    <p className="text-sm font-semibold text-gray-800">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#EEF4FF] text-[#1865F2] text-xs font-bold mr-2">
+                        {sq.label}
+                      </span>
+                      {sq.question_text}
+                    </p>
+                    <div className={`grid gap-3 ${sq.option_images?.some(Boolean) ? 'grid-cols-3' : 'grid-cols-1'}`}>
+                      {sq.options.map((opt, oi) => {
+                        const letter = String.fromCharCode(65 + oi)
+                        const isCorrect = sq.correct_answer === letter
+                        const optImg = sq.option_images?.[oi]
+                        return (
+                          <div
+                            key={oi}
+                            className={`flex flex-col items-center gap-2 rounded-xl border-2 p-3 ${
+                              isCorrect ? 'border-[#1FAF54] bg-[#E6F7ED]' : 'border-gray-200 bg-white'
+                            }`}
+                          >
+                            {optImg && (
+                              <Image
+                                src={optImg}
+                                alt={`선택지 ${letter}`}
+                                width={120}
+                                height={80}
+                                unoptimized
+                                className="rounded-lg object-contain max-h-24 w-auto"
+                              />
+                            )}
+                            <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                              isCorrect ? 'bg-[#1FAF54] text-white' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {letter}
+                            </span>
+                            {opt && <span className="text-xs text-center text-gray-600">{opt}</span>}
+                            {isCorrect && <span className="text-xs text-[#1FAF54] font-semibold">✓ 정답</span>}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {selected && content.explanation && (
               <div className="mt-6 p-4 rounded-xl bg-[#E6F7ED] border border-[#1FAF54]/20">
                 <p className="text-xs font-semibold text-[#1FAF54] mb-1">해설</p>
