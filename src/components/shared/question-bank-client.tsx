@@ -661,12 +661,15 @@ function QuestionFormModal({
       if (qType === 'fill_blank' || qType === 'short_answer') return { ...result, correct_answer: correctAnswer }
       return result
     }
+    const passageFields = passage.trim()
+      ? { passage, passage_image_url: passageImageUrl || undefined }
+      : {}
     if (qType === 'multiple_choice') {
       const hasOptionImages = optionImages.some((img) => img !== null)
-      return { ...base, options, option_images: hasOptionImages ? optionImages : undefined, correct_answer: correctAnswer }
+      return { ...base, ...passageFields, options, option_images: hasOptionImages ? optionImages : undefined, correct_answer: correctAnswer }
     }
-    if (qType === 'fill_blank') return { ...base, correct_answer: correctAnswer }
-    if (qType === 'short_answer') return { ...base, correct_answer: correctAnswer }
+    if (qType === 'fill_blank') return { ...base, ...passageFields, correct_answer: correctAnswer }
+    if (qType === 'short_answer') return { ...base, ...passageFields, correct_answer: correctAnswer }
     return {
       ...base,
       passage: passage || undefined,

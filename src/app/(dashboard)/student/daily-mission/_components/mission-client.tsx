@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, ChevronRight, ChevronLeft, Zap, Target } from 'lucide-react'
+import { CheckCircle2, ChevronRight, ChevronLeft, Zap, Target, Volume2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { submitMissionAnswers } from '@/app/(dashboard)/student/_actions/gamification'
 
@@ -14,6 +14,7 @@ type ContentJson = {
   correct_answer?: string
   explanation?: string
   passage?: string
+  audio_url?: string
 }
 
 type Question = {
@@ -56,6 +57,7 @@ export function MissionClient({ mission, questions }: Props) {
   const [submitted, setSubmitted] = useState(false)
   const [result, setResult] = useState<{ score: number; newBadges: string[] } | null>(null)
   const [loading, setLoading] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const currentQ = questions[currentIdx]
   const content = currentQ?.contentJson as ContentJson
@@ -142,10 +144,30 @@ export function MissionClient({ mission, questions }: Props) {
           {DOMAIN_LABELS[currentQ.domain]}
         </span>
 
+        {/* Audio player (listening) */}
+        {content.audio_url && (
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 flex items-center gap-3">
+            <button
+              onClick={() => {
+                if (!audioRef.current) {
+                  audioRef.current = new Audio(content.audio_url)
+                }
+                audioRef.current.currentTime = 0
+                audioRef.current.play()
+              }}
+              className="w-10 h-10 rounded-full bg-[#1865F2] flex items-center justify-center flex-shrink-0 hover:bg-[#1558d6] transition-colors"
+            >
+              <Volume2 size={16} className="text-white" />
+            </button>
+            <span className="text-sm text-gray-600">음성을 듣고 답하세요</span>
+          </div>
+        )}
+
         {/* Passage (reading) */}
         {content.passage && (
-          <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 leading-relaxed border border-gray-200 max-h-48 overflow-y-auto">
-            {content.passage}
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 max-h-48 overflow-y-auto">
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-2 tracking-wide">지문</p>
+            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{content.passage}</p>
           </div>
         )}
 
@@ -183,13 +205,18 @@ export function MissionClient({ mission, questions }: Props) {
         )}
 
         {(content.type === 'fill_blank' || content.type === 'short_answer') && (
-          <input
-            type="text"
-            placeholder="답을 입력하세요..."
-            value={answers[currentQ.id] ?? ''}
-            onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
-            className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-[#1865F2] focus:outline-none text-sm transition-colors"
-          />
+          <div className="space-y-1">
+            {content.type === 'short_answer' && (
+              <p className="text-xs text-gray-500">단답형 — 짧게 영어로 답하세요</p>
+            )}
+            <input
+              type="text"
+              placeholder="답을 입력하세요..."
+              value={answers[currentQ.id] ?? ''}
+              onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
+              className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-[#1865F2] focus:outline-none text-sm transition-colors"
+            />
+          </div>
         )}
 
         {content.type === 'essay' && (
@@ -201,6 +228,20 @@ export function MissionClient({ mission, questions }: Props) {
             className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#1865F2] focus:outline-none text-sm resize-none transition-colors"
           />
         )}
+
+        {/* Fallback: unknown type — 기본 텍스트 입력 제공 */}
+        {content.type !== 'multiple_choice' &&
+          content.type !== 'fill_blank' &&
+          content.type !== 'short_answer' &&
+          content.type !== 'essay' && (
+            <input
+              type="text"
+              placeholder="답을 입력하세요..."
+              value={answers[currentQ.id] ?? ''}
+              onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
+              className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-[#1865F2] focus:outline-none text-sm transition-colors"
+            />
+          )}
       </div>
 
       {/* Navigation */}
