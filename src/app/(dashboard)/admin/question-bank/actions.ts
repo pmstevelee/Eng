@@ -473,6 +473,7 @@ export type WordBankSentence = {
   label: string
   text: string
   correct_answer: string
+  image_url?: string | null
 }
 
 export type SubQuestion = {

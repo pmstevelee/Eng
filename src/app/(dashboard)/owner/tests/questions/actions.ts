@@ -22,7 +22,7 @@ export type QuestionContentJson = {
   audio_url?: string
   audio_script?: string
   word_bank?: string[]
-  sentences?: { label: string; text: string; correct_answer: string }[]
+  sentences?: { label: string; text: string; correct_answer: string; image_url?: string | null }[]
   sub_questions?: { label: string; question_text: string; options: string[]; option_images?: (string | null)[]; correct_answer: string }[]
 }
 

@@ -27,6 +27,7 @@ type WordBankSentence = {
   label: string
   text: string
   correct_answer: string
+  image_url?: string | null
 }
 
 type SubQuestion = {
@@ -779,6 +780,7 @@ export default function CreateQuestionModal({ onClose, onCreated }: Props) {
                 <div className="space-y-3">
                   {sentences.map((s, i) => (
                     <div key={i} className="rounded-xl border border-gray-200 p-3 space-y-2">
+                      {/* 문장 텍스트 + 삭제 */}
                       <div className="flex items-center gap-2">
                         <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">
                           {s.label}
@@ -803,6 +805,7 @@ export default function CreateQuestionModal({ onClose, onCreated }: Props) {
                           </button>
                         )}
                       </div>
+                      {/* 정답 */}
                       <div className="flex items-center gap-2 pl-8">
                         <span className="text-xs text-gray-500 shrink-0">정답:</span>
                         <Input
@@ -814,6 +817,18 @@ export default function CreateQuestionModal({ onClose, onCreated }: Props) {
                           }}
                           placeholder="올바른 형태로 입력 (예: brushing)"
                           className="flex-1 h-9 text-sm"
+                        />
+                      </div>
+                      {/* 문장별 이미지 */}
+                      <div className="pl-8">
+                        <ImageUploadField
+                          imageUrl={s.image_url ?? null}
+                          onChange={(url) => {
+                            const next = [...sentences]
+                            next[i] = { ...next[i], image_url: url }
+                            setSentences(next)
+                          }}
+                          label="힌트 이미지 추가 (선택)"
                         />
                       </div>
                     </div>

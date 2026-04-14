@@ -667,21 +667,37 @@ function WordBankQuestion({
       )}
 
       {/* 문장 목록 */}
-      <div className="space-y-4">
+      <div className="space-y-5">
         {sentences.map((s) => {
           const parts = s.text.split('____')
           return (
-            <div key={s.label} className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-bold text-gray-700 shrink-0">{s.label}.</span>
-              <span className="text-sm text-gray-900">{parts[0]}</span>
-              <input
-                type="text"
-                value={parsed[s.label] ?? ''}
-                onChange={(e) => updateAnswer(s.label, e.target.value)}
-                placeholder="____________"
-                className="h-9 min-w-[120px] w-36 rounded-lg border-b-2 border-gray-400 bg-transparent px-2 text-sm text-gray-900 outline-none transition-all focus:border-[#1865F2] text-center"
-              />
-              {parts[1] && <span className="text-sm text-gray-900">{parts[1]}</span>}
+            <div key={s.label} className="space-y-2">
+              {/* 힌트 이미지 (있는 경우) */}
+              {s.image_url && (
+                <div className="pl-5">
+                  <Image
+                    src={s.image_url}
+                    alt={`${s.label}번 힌트 이미지`}
+                    width={280}
+                    height={160}
+                    unoptimized
+                    className="rounded-xl border border-gray-200 object-contain max-h-40 w-auto"
+                  />
+                </div>
+              )}
+              {/* 문장 + 빈칸 입력 */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-bold text-gray-700 shrink-0">{s.label}.</span>
+                <span className="text-sm text-gray-900">{parts[0]}</span>
+                <input
+                  type="text"
+                  value={parsed[s.label] ?? ''}
+                  onChange={(e) => updateAnswer(s.label, e.target.value)}
+                  placeholder="____________"
+                  className="h-9 min-w-[120px] w-36 rounded-lg border-b-2 border-gray-400 bg-transparent px-2 text-sm text-gray-900 outline-none transition-all focus:border-[#1865F2] text-center"
+                />
+                {parts[1] && <span className="text-sm text-gray-900">{parts[1]}</span>}
+              </div>
             </div>
           )
         })}
