@@ -476,6 +476,38 @@ export default async function TestResultPage({
                   </div>
                 )}
 
+                {/* 복합 문제 */}
+                {content.type === 'question_set' && content.sub_questions && (
+                  <div className="space-y-3 text-sm">
+                    {(() => {
+                      let studentAnswers: Record<string, string> = {}
+                      try { studentAnswers = response?.answer ? JSON.parse(response.answer) : {} } catch { /* empty */ }
+                      return content.sub_questions.map((sq) => {
+                        const studentVal = (studentAnswers[sq.label] ?? '').toUpperCase()
+                        const correct = studentVal === sq.correct_answer.toUpperCase()
+                        return (
+                          <div key={sq.label} className="flex items-start gap-2">
+                            <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0 mt-0.5">
+                              {sq.label}
+                            </span>
+                            <div className="flex-1">
+                              <p className="text-xs text-gray-500 mb-1">{sq.question_text}</p>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className={`font-bold ${correct ? 'text-[#1FAF54]' : 'text-[#D92916] line-through'}`}>
+                                  {studentVal || '미응답'}
+                                </span>
+                                {!correct && (
+                                  <span className="text-[#1FAF54] font-bold">→ {sq.correct_answer}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })
+                    })()}
+                  </div>
+                )}
+
                 {/* 단어박스형 */}
                 {content.type === 'word_bank' && content.sentences && (
                   <div className="space-y-2 text-sm">

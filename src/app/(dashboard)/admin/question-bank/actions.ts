@@ -475,8 +475,16 @@ export type WordBankSentence = {
   correct_answer: string
 }
 
+export type SubQuestion = {
+  label: string
+  question_text: string
+  options: string[]
+  option_images?: (string | null)[]
+  correct_answer: string
+}
+
 export type QuestionContentJson = {
-  type: 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank'
+  type: 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank' | 'question_set'
   question_text: string
   question_text_ko?: string
   options?: string[]
@@ -492,6 +500,8 @@ export type QuestionContentJson = {
   // 단어박스형 전용
   word_bank?: string[]
   sentences?: WordBankSentence[]
+  // 복합 문제 전용
+  sub_questions?: SubQuestion[]
 }
 
 export type CreateQuestionPayload = {

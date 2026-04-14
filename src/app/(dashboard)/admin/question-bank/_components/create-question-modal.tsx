@@ -21,11 +21,19 @@ import type { QuestionDomain } from '@/generated/prisma'
 
 // ── 타입 ──────────────────────────────────────────────────────────────────────
 
-type QuestionType = 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank'
+type QuestionType = 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank' | 'question_set'
 
 type WordBankSentence = {
   label: string
   text: string
+  correct_answer: string
+}
+
+type SubQuestion = {
+  label: string
+  question_text: string
+  options: string[]
+  option_images: (string | null)[]
   correct_answer: string
 }
 type DomainType = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
@@ -277,6 +285,7 @@ const TABS: { key: QuestionType; label: string }[] = [
   { key: 'short_answer', label: '단답형' },
   { key: 'essay', label: '서술형' },
   { key: 'word_bank', label: '단어박스' },
+  { key: 'question_set', label: '복합 문제' },
 ]
 
 export default function CreateQuestionModal({ onClose, onCreated }: Props) {
@@ -319,6 +328,12 @@ export default function CreateQuestionModal({ onClose, onCreated }: Props) {
     { label: 'a', text: '', correct_answer: '' },
     { label: 'b', text: '', correct_answer: '' },
     { label: 'c', text: '', correct_answer: '' },
+  ])
+
+  // 복합 문제
+  const [subQuestions, setSubQuestions] = useState<SubQuestion[]>([
+    { label: '1', question_text: '', options: ['', '', ''], option_images: [null, null, null], correct_answer: '' },
+    { label: '2', question_text: '', options: ['', '', ''], option_images: [null, null, null], correct_answer: '' },
   ])
 
   // 해설
@@ -401,6 +416,24 @@ export default function CreateQuestionModal({ onClose, onCreated }: Props) {
         sentences: validSentences,
       }
     }
+    if (qType === 'question_set') {
+      return {
+        ...base,
+        audio_url: audioUrl || undefined,
+        audio_script: audioScript || undefined,
+        passage: passage || undefined,
+        passage_image_url: passageImageUrl || undefined,
+        sub_questions: subQuestions
+          .filter((sq) => sq.question_text.trim())
+          .map((sq) => ({
+            label: sq.label,
+            question_text: sq.question_text,
+            options: sq.options,
+            option_images: sq.option_images.some((img) => img !== null) ? sq.option_images : undefined,
+            correct_answer: sq.correct_answer,
+          })),
+      }
+    }
     return {
       ...base,
       passage: passage || undefined,
@@ -417,6 +450,10 @@ export default function CreateQuestionModal({ onClose, onCreated }: Props) {
       const validSentences = sentences.filter((s) => s.text.trim())
       if (validSentences.length === 0) { setError('문장을 최소 1개 이상 입력해주세요.'); return }
       if (validSentences.some((s) => !s.correct_answer.trim())) { setError('모든 문장의 정답을 입력해주세요.'); return }
+    } else if (qType === 'question_set') {
+      const validSubs = subQuestions.filter((sq) => sq.question_text.trim())
+      if (validSubs.length === 0) { setError('소문제를 최소 1개 이상 입력해주세요.'); return }
+      if (validSubs.some((sq) => !sq.correct_answer)) { setError('모든 소문제의 정답을 선택해주세요.'); return }
     } else if (qType !== 'essay' && !correctAnswer.trim()) { setError('정답을 입력해주세요.'); return }
     setError('')
     const payload: CreateQuestionPayload = {
@@ -778,6 +815,172 @@ export default function CreateQuestionModal({ onClose, onCreated }: Props) {
                           placeholder="올바른 형태로 입력 (예: brushing)"
                           className="flex-1 h-9 text-sm"
                         />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 복합 문제 - 공유 미디어 */}
+          {qType === 'question_set' && (
+            <div className="space-y-4">
+              {/* 오디오 (듣기 기반) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
+                  <Volume2 size={14} /> 음성 파일 (선택 — 듣기 기반일 때)
+                </label>
+                <AudioUploadField audioUrl={audioUrl} onChange={setAudioUrl} />
+                {audioUrl && (
+                  <div className="mt-2">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">스크립트 (선택)</label>
+                    <StyledTextarea value={audioScript} onChange={setAudioScript} placeholder="오디오 스크립트를 입력하세요 (학생에게 숨김)..." rows={3} />
+                  </div>
+                )}
+              </div>
+
+              {/* 지문 (읽기 기반) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">지문 (선택 — 읽기/문법/어휘 기반일 때)</label>
+                <StyledTextarea value={passage} onChange={setPassage} placeholder="공유 지문을 입력하세요..." rows={4} />
+                <ImageUploadField imageUrl={passageImageUrl} onChange={setPassageImageUrl} label="지문 이미지 추가" />
+              </div>
+
+              {/* 소문제 목록 */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    소문제 목록 <span className="text-[#D92916]">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setSubQuestions([
+                      ...subQuestions,
+                      { label: String(subQuestions.length + 1), question_text: '', options: ['', '', ''], option_images: [null, null, null], correct_answer: '' },
+                    ])}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-[#1865F2] hover:text-blue-700"
+                  >
+                    <Plus size={13} />소문제 추가
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {subQuestions.map((sq, qi) => (
+                    <div key={qi} className="rounded-xl border border-gray-200 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold text-gray-700">소문제 {sq.label}</span>
+                        {subQuestions.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setSubQuestions(subQuestions.filter((_, idx) => idx !== qi))}
+                            className="text-gray-300 hover:text-[#D92916] transition-colors"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* 소문제 질문 텍스트 */}
+                      <Input
+                        value={sq.question_text}
+                        onChange={(e) => {
+                          const next = [...subQuestions]
+                          next[qi] = { ...next[qi], question_text: e.target.value }
+                          setSubQuestions(next)
+                        }}
+                        placeholder={`질문을 입력하세요 (예: What does Jill want to study?)`}
+                      />
+
+                      {/* 선택지 A/B/C */}
+                      <div className="space-y-2">
+                        {sq.options.map((opt, oi) => {
+                          const letter = String.fromCharCode(65 + oi)
+                          const isCorrect = sq.correct_answer === letter
+                          return (
+                            <div key={oi} className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const next = [...subQuestions]
+                                  next[qi] = { ...next[qi], correct_answer: isCorrect ? '' : letter }
+                                  setSubQuestions(next)
+                                }}
+                                className={`w-7 h-7 rounded-full text-xs font-bold border-2 shrink-0 transition-all ${
+                                  isCorrect
+                                    ? 'border-[#1FAF54] bg-[#1FAF54] text-white'
+                                    : 'border-gray-200 text-gray-400 hover:border-[#1FAF54] hover:text-[#1FAF54]'
+                                }`}
+                                title="클릭하여 정답 선택"
+                              >
+                                {letter}
+                              </button>
+                              <Input
+                                value={opt}
+                                onChange={(e) => {
+                                  const next = [...subQuestions]
+                                  const newOpts = [...next[qi].options]
+                                  newOpts[oi] = e.target.value
+                                  next[qi] = { ...next[qi], options: newOpts }
+                                  setSubQuestions(next)
+                                }}
+                                placeholder={`선택지 ${letter} (텍스트, 또는 이미지만 사용 시 비워두세요)`}
+                                className="flex-1"
+                              />
+                              <ImageUploadField
+                                imageUrl={sq.option_images?.[oi] ?? null}
+                                onChange={(url) => {
+                                  const next = [...subQuestions]
+                                  const newImgs = [...(next[qi].option_images ?? [null, null, null])]
+                                  newImgs[oi] = url
+                                  next[qi] = { ...next[qi], option_images: newImgs }
+                                  setSubQuestions(next)
+                                }}
+                                label=""
+                              />
+                            </div>
+                          )
+                        })}
+                        {/* 선택지 추가/제거 버튼 */}
+                        <div className="flex gap-2 pt-1">
+                          {sq.options.length < 5 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const next = [...subQuestions]
+                                next[qi] = {
+                                  ...next[qi],
+                                  options: [...next[qi].options, ''],
+                                  option_images: [...(next[qi].option_images ?? []), null],
+                                }
+                                setSubQuestions(next)
+                              }}
+                              className="text-xs text-gray-400 hover:text-[#1865F2]"
+                            >
+                              + 선택지 추가
+                            </button>
+                          )}
+                          {sq.options.length > 2 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const next = [...subQuestions]
+                                next[qi] = {
+                                  ...next[qi],
+                                  options: next[qi].options.slice(0, -1),
+                                  option_images: (next[qi].option_images ?? []).slice(0, -1),
+                                }
+                                setSubQuestions(next)
+                              }}
+                              className="text-xs text-gray-400 hover:text-[#D92916]"
+                            >
+                              - 선택지 제거
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-400">
+                          {sq.correct_answer ? `정답: ${sq.correct_answer}` : '원 버튼을 클릭해 정답을 선택하세요.'}
+                        </p>
                       </div>
                     </div>
                   ))}

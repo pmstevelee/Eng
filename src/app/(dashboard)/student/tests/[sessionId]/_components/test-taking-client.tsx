@@ -506,6 +506,10 @@ function QuestionRenderer({
     return <WordBankQuestion content={content} answer={answer} onAnswer={onAnswer} />
   }
 
+  if (content.type === 'question_set') {
+    return <QuestionSetQuestion content={content} answer={answer} onAnswer={onAnswer} />
+  }
+
   if (content.type === 'fill_blank' || content.type === 'short_answer') {
     return <FillBlankQuestion content={content} answer={answer} onAnswer={onAnswer} />
   }
@@ -682,6 +686,175 @@ function WordBankQuestion({
           )
         })}
       </div>
+    </div>
+  )
+}
+
+// ── 복합 문제 (공유 오디오/지문 + 소문제들) ──────────────────────────────────
+
+function QuestionSetQuestion({
+  content,
+  answer,
+  onAnswer,
+}: {
+  content: QuestionContentJson
+  answer: string
+  onAnswer: (v: string) => void
+}) {
+  // answer는 JSON: {"1":"C","2":"A","3":"B","4":"B"}
+  const parsed: Record<string, string> = (() => {
+    try { return answer ? JSON.parse(answer) : {} } catch { return {} }
+  })()
+
+  const subQuestions = content.sub_questions ?? []
+
+  function updateAnswer(label: string, val: string) {
+    const next = { ...parsed, [label]: val }
+    onAnswer(JSON.stringify(next))
+  }
+
+  const answeredCount = subQuestions.filter((sq) => parsed[sq.label]).length
+
+  return (
+    <div className="space-y-6">
+      {/* 지시문 */}
+      <p className="text-base font-semibold leading-relaxed text-gray-900">{content.question_text}</p>
+      {content.question_text_ko && (
+        <p className="text-sm leading-relaxed text-gray-500">{content.question_text_ko}</p>
+      )}
+
+      {/* 공유 오디오 (듣기 기반) */}
+      {content.audio_url && (
+        <QuestionSetAudioPlayer audioUrl={content.audio_url} />
+      )}
+
+      {/* 공유 지문 (읽기 기반) */}
+      {content.passage && (
+        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">지문</p>
+          {content.passage_image_url && (
+            <QuestionImage src={content.passage_image_url} alt="지문 이미지" />
+          )}
+          <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">{content.passage}</p>
+        </div>
+      )}
+
+      {/* 진행 표시 */}
+      {subQuestions.length > 0 && (
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1">
+            {subQuestions.map((sq) => (
+              <span
+                key={sq.label}
+                className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-all ${
+                  parsed[sq.label]
+                    ? 'bg-[#1865F2] text-white'
+                    : 'bg-gray-100 text-gray-400'
+                }`}
+              >
+                {sq.label}
+              </span>
+            ))}
+          </div>
+          <span className="text-xs text-gray-400">{answeredCount}/{subQuestions.length} 완료</span>
+        </div>
+      )}
+
+      {/* 소문제 목록 */}
+      <div className="space-y-6">
+        {subQuestions.map((sq) => {
+          const selectedAnswer = parsed[sq.label] ?? ''
+          const letters = ['A', 'B', 'C', 'D', 'E']
+          return (
+            <div key={sq.label} className="space-y-3">
+              <p className="text-sm font-semibold text-gray-800">
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#EEF4FF] text-[#1865F2] text-xs font-bold mr-2">
+                  {sq.label}
+                </span>
+                {sq.question_text}
+              </p>
+              <div className={`grid gap-3 ${sq.option_images?.some(Boolean) ? 'grid-cols-3' : 'grid-cols-1'}`}>
+                {sq.options.map((opt, oi) => {
+                  const letter = letters[oi] ?? String(oi + 1)
+                  const isSelected = selectedAnswer === letter
+                  const optImg = sq.option_images?.[oi]
+                  return (
+                    <button
+                      key={oi}
+                      onClick={() => updateAnswer(sq.label, letter)}
+                      className={`flex flex-col items-center gap-2 rounded-xl border p-3 transition-all ${
+                        isSelected
+                          ? 'border-[#1865F2] bg-[#EEF4FF] ring-1 ring-[#1865F2]'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {optImg && (
+                        <Image
+                          src={optImg}
+                          alt={`선택지 ${letter}`}
+                          width={120}
+                          height={80}
+                          unoptimized
+                          className="rounded-lg object-contain max-h-24 w-auto"
+                        />
+                      )}
+                      <span
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                          isSelected ? 'bg-[#1865F2] text-white' : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        {letter}
+                      </span>
+                      {opt && (
+                        <span className={`text-xs text-center leading-relaxed ${isSelected ? 'text-[#1865F2] font-medium' : 'text-gray-600'}`}>
+                          {opt}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── 복합 문제 오디오 플레이어 ─────────────────────────────────────────────────
+
+function QuestionSetAudioPlayer({ audioUrl }: { audioUrl: string }) {
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const [playCount, setPlayCount] = useState(0)
+  const MAX_PLAY = 3
+
+  const handlePlay = () => {
+    if (playCount >= MAX_PLAY) return
+    audioRef.current?.play()
+    setPlayCount((c) => c + 1)
+  }
+
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-[#E91E8A]/30 bg-[#FDE7F3] p-4">
+      <div className="w-10 h-10 rounded-full bg-[#E91E8A] flex items-center justify-center shrink-0">
+        <Volume2 size={18} className="text-white" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-semibold text-[#E91E8A] mb-1">음성 듣기</p>
+        <audio ref={audioRef} src={audioUrl} className="hidden" />
+        <button
+          onClick={handlePlay}
+          disabled={playCount >= MAX_PLAY}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#E91E8A] text-white text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-pink-700 transition-colors"
+        >
+          <Volume2 size={14} />
+          {playCount >= MAX_PLAY ? '재생 불가' : '▶ 재생'}
+        </button>
+      </div>
+      <span className="text-xs text-[#E91E8A] font-medium shrink-0">
+        {Math.max(0, MAX_PLAY - playCount)}회 남음
+      </span>
     </div>
   )
 }

@@ -220,6 +220,17 @@ export async function submitAdaptiveAnswer(
       } catch {
         serverIsCorrect = false
       }
+    } else if (content.type === 'question_set' && content.sub_questions) {
+      try {
+        const studentAnswers: Record<string, string> = JSON.parse(answer)
+        serverIsCorrect = content.sub_questions.every(
+          (sq) =>
+            (studentAnswers[sq.label] ?? '').toUpperCase().trim() ===
+            sq.correct_answer.toUpperCase().trim(),
+        )
+      } catch {
+        serverIsCorrect = false
+      }
     } else if (content.correct_answer) {
       // multiple_choice, fill_blank, short_answer, reading_comprehension 등 모두 동일하게 채점
       serverIsCorrect = answer.toLowerCase().trim() === content.correct_answer.toLowerCase().trim()
