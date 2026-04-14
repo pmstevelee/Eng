@@ -585,6 +585,18 @@ function QuestionFormModal({
   const [audioUrl, setAudioUrl] = useState<string | null>(initial?.contentJson.audio_url ?? null)
   const [audioScript, setAudioScript] = useState(initial?.contentJson.audio_script ?? '')
 
+  // 단어박스형 상태
+  const [wordBankInput, setWordBankInput] = useState(
+    initial?.contentJson.word_bank?.join(', ') ?? '',
+  )
+  const [sentences, setSentences] = useState<WordBankSentence[]>(
+    initial?.contentJson.sentences ?? [
+      { label: 'a', text: '', correct_answer: '' },
+      { label: 'b', text: '', correct_answer: '' },
+      { label: 'c', text: '', correct_answer: '' },
+    ],
+  )
+
   // ── AI 분석 상태 ────────────────────────────────────────────────────────────
   type AIAnalysisResult = {
     domain: string
@@ -641,6 +653,7 @@ function QuestionFormModal({
     { key: 'fill_blank', label: '빈칸' },
     { key: 'short_answer', label: '단답형' },
     { key: 'essay', label: '서술형' },
+    { key: 'word_bank', label: '단어박스' },
   ]
 
   const updateOption = (i: number, val: string) => {
@@ -680,6 +693,17 @@ function QuestionFormModal({
     }
     if (qType === 'fill_blank') return { ...base, ...passageFields, correct_answer: correctAnswer }
     if (qType === 'short_answer') return { ...base, ...passageFields, correct_answer: correctAnswer }
+    if (qType === 'word_bank') {
+      const wordBankArr = wordBankInput
+        .split(/[,，\s]+/)
+        .map((w) => w.trim())
+        .filter(Boolean)
+      return {
+        ...base,
+        word_bank: wordBankArr,
+        sentences: sentences.filter((s) => s.text.trim()),
+      }
+    }
     return {
       ...base,
       passage: passage || undefined,
@@ -691,8 +715,14 @@ function QuestionFormModal({
   const handleSubmit = () => {
     if (!questionText.trim()) { setError('문제 본문을 입력해주세요.'); return }
     if (domain === 'LISTENING' && !audioUrl) { setError('음성 파일을 업로드해주세요.'); return }
-    if (qType !== 'essay' && domain !== 'LISTENING' && !correctAnswer.trim()) { setError('정답을 입력해주세요.'); return }
-    if (qType !== 'essay' && domain === 'LISTENING' && qType !== 'multiple_choice' && !correctAnswer.trim()) {
+    if (qType === 'word_bank') {
+      if (!wordBankInput.trim()) { setError('단어 박스에 단어를 입력해주세요.'); return }
+      const validSentences = sentences.filter((s) => s.text.trim())
+      if (validSentences.length === 0) { setError('문장을 최소 1개 이상 입력해주세요.'); return }
+      if (validSentences.some((s) => !s.correct_answer.trim())) { setError('모든 문장의 정답을 입력해주세요.'); return }
+    } else if (qType !== 'essay' && domain !== 'LISTENING' && !correctAnswer.trim()) {
+      setError('정답을 입력해주세요.'); return
+    } else if (qType !== 'essay' && domain === 'LISTENING' && qType !== 'multiple_choice' && !correctAnswer.trim()) {
       setError('정답을 입력해주세요.'); return
     }
     setError('')
@@ -917,6 +947,97 @@ function QuestionFormModal({
                 onChange={(e) => setCorrectAnswer(e.target.value)}
                 placeholder={qType === 'fill_blank' ? '정확한 정답' : '키워드 (쉼표로 구분)'}
               />
+            </div>
+          )}
+
+          {/* 단어박스형 */}
+          {qType === 'word_bank' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  단어 박스 <span className="text-[#D92916]">*</span>
+                </label>
+                <p className="text-xs text-gray-400 mb-1">단어를 쉼표 또는 띄어쓰기로 구분해 입력하세요 (예: eat, freeze, wear)</p>
+                <Input
+                  value={wordBankInput}
+                  onChange={(e) => setWordBankInput(e.target.value)}
+                  placeholder="eat, freeze, wear, brush, shop, walk"
+                />
+                {wordBankInput.trim() && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {wordBankInput.split(/[,，\s]+/).filter(Boolean).map((w, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EEF4FF] text-[#1865F2] border border-[#1865F2]/20"
+                      >
+                        {w.trim()}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    문장 목록 <span className="text-[#D92916]">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextLabel = String.fromCharCode(97 + sentences.length)
+                      setSentences([...sentences, { label: nextLabel, text: '', correct_answer: '' }])
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-[#1865F2] hover:text-blue-700"
+                  >
+                    <Plus size={13} />문장 추가
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 mb-2">빈칸은 ____로 표시하세요 (예: I was ____ my teeth.)</p>
+                <div className="space-y-3">
+                  {sentences.map((s, i) => (
+                    <div key={i} className="rounded-xl border border-gray-200 p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">
+                          {s.label}
+                        </span>
+                        <Input
+                          value={s.text}
+                          onChange={(e) => {
+                            const next = [...sentences]
+                            next[i] = { ...next[i], text: e.target.value }
+                            setSentences(next)
+                          }}
+                          placeholder="문장을 입력하세요 (예: I was ____ my teeth when my dad called.)"
+                          className="flex-1"
+                        />
+                        {sentences.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setSentences(sentences.filter((_, idx) => idx !== i))}
+                            className="text-gray-300 hover:text-[#D92916] transition-colors"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 pl-8">
+                        <span className="text-xs text-gray-500 shrink-0">정답:</span>
+                        <Input
+                          value={s.correct_answer}
+                          onChange={(e) => {
+                            const next = [...sentences]
+                            next[i] = { ...next[i], correct_answer: e.target.value }
+                            setSentences(next)
+                          }}
+                          placeholder="올바른 형태로 입력 (예: brushing)"
+                          className="flex-1 h-9 text-sm"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
