@@ -56,7 +56,8 @@ function ResetPasswordForm() {
       if (updateError) {
         setError('비밀번호 변경에 실패했습니다. 다시 시도해주세요.')
       } else {
-        router.push('/owner/settings/account?passwordChanged=1')
+        await supabase.auth.signOut()
+        router.push('/login?passwordChanged=1')
       }
     })
   }
@@ -85,11 +86,11 @@ function ResetPasswordForm() {
                 <p className="text-sm text-red-700">{error}</p>
               </div>
               <a
-                href="/owner/settings/account"
+                href="/login"
                 className="block w-full h-11 rounded-xl text-sm font-medium text-white text-center leading-[44px] transition-colors"
                 style={{ backgroundColor: '#1865F2' }}
               >
-                설정으로 돌아가기
+                로그인으로 돌아가기
               </a>
             </div>
           ) : sessionReady ? (

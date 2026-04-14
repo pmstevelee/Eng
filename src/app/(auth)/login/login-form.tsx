@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -26,7 +27,10 @@ interface LoginFormProps {
   academyInitials?: string
 }
 
-export default function LoginForm({ academyName, academyInitials }: LoginFormProps) {
+function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
+  const searchParams = useSearchParams()
+  const passwordChanged = searchParams.get('passwordChanged') === '1'
+
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -85,6 +89,12 @@ export default function LoginForm({ academyName, academyInitials }: LoginFormPro
             <h2 className="text-xl font-bold text-gray-900">로그인</h2>
             <p className="text-sm text-gray-500 mt-1">학원 계정으로 로그인하세요</p>
           </div>
+
+          {passwordChanged && (
+            <div className="mb-4 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+              비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 로그인해 주세요.
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
@@ -188,5 +198,13 @@ export default function LoginForm({ academyName, academyInitials }: LoginFormPro
         </p>
       </div>
     </div>
+  )
+}
+
+export default function LoginForm(props: LoginFormProps) {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <LoginFormInner {...props} />
+    </Suspense>
   )
 }
