@@ -209,6 +209,17 @@ export async function submitAdaptiveAnswer(
     const content = question.contentJson as QuestionContentJson
     if (content.type === 'essay') {
       serverIsCorrect = null // AI가 별도 채점
+    } else if (content.type === 'word_bank' && content.sentences) {
+      try {
+        const studentAnswers: Record<string, string> = JSON.parse(answer)
+        serverIsCorrect = content.sentences.every(
+          (s) =>
+            (studentAnswers[s.label] ?? '').toLowerCase().trim() ===
+            s.correct_answer.toLowerCase().trim(),
+        )
+      } catch {
+        serverIsCorrect = false
+      }
     } else if (content.correct_answer) {
       // multiple_choice, fill_blank, short_answer, reading_comprehension 등 모두 동일하게 채점
       serverIsCorrect = answer.toLowerCase().trim() === content.correct_answer.toLowerCase().trim()

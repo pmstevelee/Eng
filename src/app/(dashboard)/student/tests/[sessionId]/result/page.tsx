@@ -476,6 +476,31 @@ export default async function TestResultPage({
                   </div>
                 )}
 
+                {/* 단어박스형 */}
+                {content.type === 'word_bank' && content.sentences && (
+                  <div className="space-y-2 text-sm">
+                    {(() => {
+                      let studentAnswers: Record<string, string> = {}
+                      try { studentAnswers = response?.answer ? JSON.parse(response.answer) : {} } catch { /* empty */ }
+                      return content.sentences.map((s) => {
+                        const studentVal = studentAnswers[s.label] ?? ''
+                        const correct = studentVal.toLowerCase().trim() === s.correct_answer.toLowerCase().trim()
+                        return (
+                          <div key={s.label} className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-gray-600">{s.label}.</span>
+                            <span className={`font-medium ${correct ? 'text-[#1FAF54]' : 'text-[#D92916] line-through'}`}>
+                              {studentVal || '(미응답)'}
+                            </span>
+                            {!correct && (
+                              <span className="text-[#1FAF54] font-medium">→ {s.correct_answer}</span>
+                            )}
+                          </div>
+                        )
+                      })
+                    })()}
+                  </div>
+                )}
+
                 {/* 에세이 */}
                 {isEssay && (
                   <div className="space-y-3">

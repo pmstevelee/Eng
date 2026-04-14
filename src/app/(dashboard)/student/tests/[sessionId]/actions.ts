@@ -169,6 +169,22 @@ export async function submitTest(
 
       if (content.type === 'essay') {
         hasEssay = true
+      } else if (content.type === 'word_bank' && content.sentences) {
+        domainStats[domain].total++
+        if (studentAnswer) {
+          try {
+            const studentAnswers: Record<string, string> = JSON.parse(studentAnswer)
+            const allCorrect = content.sentences.every(
+              (s) =>
+                (studentAnswers[s.label] ?? '').toLowerCase().trim() ===
+                s.correct_answer.toLowerCase().trim(),
+            )
+            isCorrect = allCorrect
+            if (isCorrect) domainStats[domain].correct++
+          } catch {
+            isCorrect = false
+          }
+        }
       } else if (
         (content.type === 'multiple_choice' ||
           content.type === 'fill_blank' ||

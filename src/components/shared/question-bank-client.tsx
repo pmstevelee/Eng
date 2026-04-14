@@ -25,7 +25,13 @@ import Image from 'next/image'
 // ── 타입 정의 ─────────────────────────────────────────────────────────────────
 
 export type QuestionDomainType = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
-export type QuestionType = 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay'
+export type QuestionType = 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank'
+
+export type WordBankSentence = {
+  label: string
+  text: string
+  correct_answer: string
+}
 
 export type QuestionContentJson = {
   type: QuestionType
@@ -42,6 +48,9 @@ export type QuestionContentJson = {
   audio_url?: string
   audio_script?: string
   play_count?: number
+  // 단어박스형 전용
+  word_bank?: string[]
+  sentences?: WordBankSentence[]
 }
 
 export type QuestionRow = {
@@ -101,6 +110,7 @@ const TYPE_LABEL: Record<QuestionType, string> = {
   fill_blank: '빈칸 채우기',
   short_answer: '단답형',
   essay: '서술형',
+  word_bank: '단어박스형',
 }
 
 const CEFR_LEVELS = ['Pre-A1', 'A1 하', 'A1 상', 'A2 하', 'A2 상', 'B1 하', 'B1 상', 'B2 하', 'B2 상', 'C1+']

@@ -502,6 +502,10 @@ function QuestionRenderer({
     )
   }
 
+  if (content.type === 'word_bank') {
+    return <WordBankQuestion content={content} answer={answer} onAnswer={onAnswer} />
+  }
+
   if (content.type === 'fill_blank' || content.type === 'short_answer') {
     return <FillBlankQuestion content={content} answer={answer} onAnswer={onAnswer} />
   }
@@ -606,6 +610,77 @@ function FillBlankQuestion({
           placeholder="답을 입력하세요"
           className="h-11 w-full rounded-xl border border-gray-200 px-4 text-sm text-gray-900 outline-none transition-all focus:border-[#1865F2] focus:ring-2 focus:ring-[#1865F2]/20"
         />
+      </div>
+    </div>
+  )
+}
+
+// ── 단어박스형 문제 ────────────────────────────────────────────────────────────
+
+function WordBankQuestion({
+  content,
+  answer,
+  onAnswer,
+}: {
+  content: QuestionContentJson
+  answer: string
+  onAnswer: (v: string) => void
+}) {
+  // answer는 JSON 문자열: {"a":"brushing","b":"eating",...}
+  const parsed: Record<string, string> = (() => {
+    try { return answer ? JSON.parse(answer) : {} } catch { return {} }
+  })()
+
+  const sentences = content.sentences ?? []
+  const wordBank = content.word_bank ?? []
+
+  function updateAnswer(label: string, val: string) {
+    const next = { ...parsed, [label]: val }
+    onAnswer(JSON.stringify(next))
+  }
+
+  return (
+    <div>
+      <p className="mb-4 text-base font-semibold leading-relaxed text-gray-900">{content.question_text}</p>
+      {content.question_text_ko && (
+        <p className="mb-4 text-sm leading-relaxed text-gray-500">{content.question_text_ko}</p>
+      )}
+
+      {/* 단어 박스 */}
+      {wordBank.length > 0 && (
+        <div className="mb-6 rounded-xl border-2 border-gray-200 p-4">
+          <div className="flex flex-wrap gap-3 justify-center">
+            {wordBank.map((word, i) => (
+              <span
+                key={i}
+                className="px-3 py-1 text-sm font-semibold text-gray-700 border-b-2 border-gray-400"
+              >
+                {word}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 문장 목록 */}
+      <div className="space-y-4">
+        {sentences.map((s) => {
+          const parts = s.text.split('____')
+          return (
+            <div key={s.label} className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-bold text-gray-700 shrink-0">{s.label}.</span>
+              <span className="text-sm text-gray-900">{parts[0]}</span>
+              <input
+                type="text"
+                value={parsed[s.label] ?? ''}
+                onChange={(e) => updateAnswer(s.label, e.target.value)}
+                placeholder="____________"
+                className="h-9 min-w-[120px] w-36 rounded-lg border-b-2 border-gray-400 bg-transparent px-2 text-sm text-gray-900 outline-none transition-all focus:border-[#1865F2] text-center"
+              />
+              {parts[1] && <span className="text-sm text-gray-900">{parts[1]}</span>}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
