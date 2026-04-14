@@ -178,12 +178,15 @@ const getCachedLearnHubData = (studentId: string) =>
 
       // 3개 쿼리 병렬 실행
       const [wrongAnswerCount, skillAssessments, todayResponses] = await Promise.all([
-        prisma.questionResponse.count({
+        prisma.questionResponse.findMany({
           where: {
             session: { studentId, status: { in: ['COMPLETED', 'GRADED'] } },
             isCorrect: false,
+            isMastered: false,
             createdAt: { gte: thirtyDaysAgo },
           },
+          select: { questionId: true },
+          distinct: ['questionId'],
         }),
         prisma.skillAssessment.findMany({
           where: { studentId },
@@ -206,7 +209,7 @@ const getCachedLearnHubData = (studentId: string) =>
       }
 
       return {
-        wrongAnswerCount,
+        wrongAnswerCount: wrongAnswerCount.length,
         domainScores,
         todayQuestions: todayResponses.length,
         todayCorrect: todayResponses.filter((r) => r.isCorrect === true).length,
