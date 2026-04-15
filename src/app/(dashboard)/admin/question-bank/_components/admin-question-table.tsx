@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useTransition, useMemo } from 'react'
-import { Search, ChevronDown, Loader2, Eye, EyeOff, Pencil, Volume2 } from 'lucide-react'
+import { Search, ChevronDown, Loader2, Eye, EyeOff, Pencil, Volume2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { deactivateQuestion, activateQuestion, adjustDifficulty, updateQuestion } from '../actions'
+import { deactivateQuestion, activateQuestion, adjustDifficulty, updateQuestion, bulkDeleteQuestions } from '../actions'
 import type { AdminQuestionRow, UpdateQuestionPayload } from '../actions'
 
 // ── 상수 ─────────────────────────────────────────────────────────────────────
@@ -415,6 +415,10 @@ export default function AdminQuestionTable({ initialQuestions }: Props) {
   const [editTarget, setEditTarget] = useState<AdminQuestionRow | null>(null)
   const [pending, startTransition] = useTransition()
   const [actionId, setActionId] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkDeleting, startBulkDelete] = useTransition()
+  const [bulkError, setBulkError] = useState('')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const filtered = useMemo(() => {
     return questions.filter((q) => {
@@ -472,6 +476,48 @@ export default function AdminQuestionTable({ initialQuestions }: Props) {
 
   function handleSaved(updated: AdminQuestionRow) {
     setQuestions((prev) => prev.map((q) => (q.id === updated.id ? updated : q)))
+  }
+
+  const allFilteredSelected =
+    filtered.length > 0 && filtered.every((q) => selected.has(q.id))
+
+  function toggleSelectAll() {
+    if (allFilteredSelected) {
+      setSelected((prev) => {
+        const next = new Set(prev)
+        filtered.forEach((q) => next.delete(q.id))
+        return next
+      })
+    } else {
+      setSelected((prev) => {
+        const next = new Set(prev)
+        filtered.forEach((q) => next.add(q.id))
+        return next
+      })
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  function handleBulkDelete() {
+    setBulkError('')
+    const ids = Array.from(selected)
+    startBulkDelete(async () => {
+      const res = await bulkDeleteQuestions(ids)
+      if (res.error) {
+        setBulkError(res.error)
+      } else {
+        setQuestions((prev) => prev.filter((q) => !ids.includes(q.id)))
+        setSelected(new Set())
+      }
+      setShowDeleteConfirm(false)
+    })
   }
 
   return (
@@ -533,6 +579,28 @@ export default function AdminQuestionTable({ initialQuestions }: Props) {
         </select>
 
         <span className="text-xs text-gray-400 ml-auto">{filtered.length}개</span>
+
+        {selected.size > 0 && (
+          <div className="flex items-center gap-2 border-l border-gray-200 pl-3">
+            <span className="text-xs font-medium text-gray-700">{selected.size}개 선택됨</span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => { setBulkError(''); setShowDeleteConfirm(true) }}
+              className="h-8 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+            >
+              <Trash2 size={12} className="mr-1" />
+              일괄삭제
+            </Button>
+            <button
+              onClick={() => setSelected(new Set())}
+              className="text-xs text-gray-400 hover:text-gray-600"
+            >
+              선택 해제
+            </button>
+          </div>
+        )}
+        {bulkError && <p className="text-xs text-red-500">{bulkError}</p>}
       </div>
 
       {/* 테이블 */}
@@ -540,6 +608,14 @@ export default function AdminQuestionTable({ initialQuestions }: Props) {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
+              <th className="py-3 px-4 w-10">
+                <input
+                  type="checkbox"
+                  checked={allFilteredSelected}
+                  onChange={toggleSelectAll}
+                  className="w-4 h-4 rounded border-gray-300 accent-primary-700 cursor-pointer"
+                />
+              </th>
               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">영역</th>
               <th className="text-left py-3 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">난이도</th>
               <th className="text-left py-3 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-0 min-w-[200px]">문제</th>
@@ -554,7 +630,7 @@ export default function AdminQuestionTable({ initialQuestions }: Props) {
           <tbody>
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={9} className="py-12 text-center text-sm text-gray-400">
+                <td colSpan={10} className="py-12 text-center text-sm text-gray-400">
                   문제가 없습니다.
                 </td>
               </tr>
@@ -564,8 +640,16 @@ export default function AdminQuestionTable({ initialQuestions }: Props) {
               return (
                 <tr
                   key={q.id}
-                  className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${!q.isActive ? 'opacity-50' : ''}`}
+                  className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${!q.isActive ? 'opacity-50' : ''} ${selected.has(q.id) ? 'bg-blue-50' : ''}`}
                 >
+                  <td className="py-3 px-4 w-10">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(q.id)}
+                      onChange={() => toggleSelect(q.id)}
+                      className="w-4 h-4 rounded border-gray-300 accent-primary-700 cursor-pointer"
+                    />
+                  </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-1">
                       <span
@@ -675,6 +759,57 @@ export default function AdminQuestionTable({ initialQuestions }: Props) {
           onClose={() => setEditTarget(null)}
           onSaved={handleSaved}
         />
+      )}
+
+      {showDeleteConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.45)' }}
+          onClick={() => !bulkDeleting && setShowDeleteConfirm(false)}
+        >
+          <div
+            className="bg-white rounded-xl border border-gray-200 w-full max-w-sm p-6 shadow-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                <Trash2 size={18} className="text-red-500" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900">문제 일괄 삭제</p>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  선택한 <span className="font-medium text-red-600">{selected.size}개</span> 문제를 영구 삭제합니다.
+                </p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 bg-gray-50 rounded-lg p-3 mb-5">
+              삭제된 문제는 복구할 수 없으며, 해당 문제가 포함된 테스트 기록에는 영향을 주지 않습니다.
+            </p>
+            {bulkError && <p className="text-xs text-red-500 mb-3">{bulkError}</p>}
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={bulkDeleting}
+              >
+                취소
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {bulkDeleting ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  `${selected.size}개 삭제`
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

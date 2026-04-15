@@ -549,6 +549,49 @@ export async function createQuestion(
   }
 }
 
+// ── 공용 문제 일괄 삭제 ────────────────────────────────────────────────────────
+
+export async function bulkDeleteQuestions(
+  ids: string[],
+): Promise<{ deleted: number; error?: string }> {
+  const admin = await getAuthedAdmin()
+  if (!admin) return { deleted: 0, error: '권한이 없습니다.' }
+
+  if (!ids.length) return { deleted: 0, error: '선택된 문제가 없습니다.' }
+  if (ids.length > 200) return { deleted: 0, error: '한 번에 최대 200개까지 삭제할 수 있습니다.' }
+
+  try {
+    // 공용 문제(academyId = null)인지 검증
+    const questions = await prisma.question.findMany({
+      where: { id: { in: ids }, academyId: null },
+      select: { id: true, domain: true, difficulty: true },
+    })
+
+    if (questions.length === 0) return { deleted: 0, error: '삭제할 공용 문제를 찾을 수 없습니다.' }
+
+    const validIds = questions.map((q) => q.id)
+
+    await prisma.question.deleteMany({ where: { id: { in: validIds } } })
+
+    // 영향받은 도메인×난이도 통계 갱신
+    const affected = new Map<string, Set<number>>()
+    for (const q of questions) {
+      if (!affected.has(q.domain)) affected.set(q.domain, new Set())
+      affected.get(q.domain)!.add(q.difficulty)
+    }
+    const statsJobs: Promise<void>[] = []
+    affected.forEach((diffs, domain) => {
+      diffs.forEach((diff) => statsJobs.push(updateQuestionBankStatsForDomain(domain, diff)))
+    })
+    await Promise.all(statsJobs)
+
+    revalidateTag('question-bank')
+    return { deleted: validIds.length }
+  } catch {
+    return { deleted: 0, error: '삭제에 실패했습니다.' }
+  }
+}
+
 // ── 공용 문제 수정 ─────────────────────────────────────────────────────────────
 
 export type UpdateQuestionPayload = {
