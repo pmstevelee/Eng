@@ -187,9 +187,6 @@ export async function recordActivityAndCheckBadges(
   const weeklyGoalTarget = studentForGoal?.weeklyGoalTarget ?? 20
   if (weeklyCount >= weeklyGoalTarget && !earned.has('WEEKLY_GOAL')) toAward.push('WEEKLY_GOAL')
 
-  // Mission complete
-  if (mission && !earned.has('MISSION_COMPLETE')) toAward.push('MISSION_COMPLETE')
-
   // 4. Level up check (last 3 sessions avg)
   const recent3 = await prisma.testSession.findMany({
     where: { studentId, status: { in: ['COMPLETED', 'GRADED'] }, score: { not: null } },
