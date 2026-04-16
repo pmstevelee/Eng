@@ -533,6 +533,31 @@ export default async function TestResultPage({
                   </div>
                 )}
 
+                {/* 문장 순서 맞추기 */}
+                {content.type === 'sentence_order' && content.order_sentences && (
+                  <div className="space-y-2 text-sm">
+                    {(() => {
+                      let studentAnswers: Record<string, string> = {}
+                      try { studentAnswers = response?.answer ? JSON.parse(response.answer) : {} } catch { /* empty */ }
+                      return content.order_sentences.map((item) => {
+                        const studentVal = studentAnswers[item.label] ?? ''
+                        const correct = studentVal.trim() === item.correct_answer.trim()
+                        return (
+                          <div key={item.label} className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-gray-600">{item.label}.</span>
+                            <span className={`font-medium ${correct ? 'text-[#1FAF54]' : 'text-[#D92916] line-through'}`}>
+                              {studentVal || '(미응답)'}
+                            </span>
+                            {!correct && (
+                              <span className="text-[#1FAF54] font-medium">→ {item.correct_answer}</span>
+                            )}
+                          </div>
+                        )
+                      })
+                    })()}
+                  </div>
+                )}
+
                 {/* 에세이 */}
                 {isEssay && (
                   <div className="space-y-3">

@@ -185,6 +185,21 @@ export async function submitTest(
             isCorrect = false
           }
         }
+      } else if (content.type === 'sentence_order' && content.order_sentences) {
+        domainStats[domain].total++
+        if (studentAnswer) {
+          try {
+            const studentAnswers: Record<string, string> = JSON.parse(studentAnswer)
+            const allCorrect = content.order_sentences.every(
+              (item) =>
+                (studentAnswers[item.label] ?? '').trim() === item.correct_answer.trim(),
+            )
+            isCorrect = allCorrect
+            if (isCorrect) domainStats[domain].correct++
+          } catch {
+            isCorrect = false
+          }
+        }
       } else if (content.type === 'question_set' && content.sub_questions) {
         domainStats[domain].total++
         if (studentAnswer) {

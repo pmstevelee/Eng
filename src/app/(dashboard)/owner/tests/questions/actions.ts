@@ -8,7 +8,7 @@ import { shareQuestionToPublicPool } from '@/lib/questions/share-to-pool'
 type QuestionDomain = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
 
 export type QuestionContentJson = {
-  type: 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank' | 'question_set'
+  type: 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank' | 'question_set' | 'sentence_order'
   question_text: string
   question_text_ko?: string
   options?: string[]
@@ -24,6 +24,7 @@ export type QuestionContentJson = {
   word_bank?: string[]
   sentences?: { label: string; text: string; correct_answer: string; image_url?: string | null }[]
   sub_questions?: { label: string; question_text: string; options: string[]; option_images?: (string | null)[]; correct_answer: string }[]
+  order_sentences?: { label: string; display_text: string; words: string[]; correct_answer: string; image_url?: string | null }[]
 }
 
 type CreateQuestionInput = {

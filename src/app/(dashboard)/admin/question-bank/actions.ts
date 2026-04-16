@@ -484,8 +484,16 @@ export type SubQuestion = {
   correct_answer: string
 }
 
+export type SentenceOrderItem = {
+  label: string
+  display_text: string
+  words: string[]
+  correct_answer: string
+  image_url?: string | null
+}
+
 export type QuestionContentJson = {
-  type: 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank' | 'question_set'
+  type: 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank' | 'question_set' | 'sentence_order'
   question_text: string
   question_text_ko?: string
   options?: string[]
@@ -503,6 +511,8 @@ export type QuestionContentJson = {
   sentences?: WordBankSentence[]
   // 복합 문제 전용
   sub_questions?: SubQuestion[]
+  // 문장 순서 맞추기 전용
+  order_sentences?: SentenceOrderItem[]
 }
 
 export type CreateQuestionPayload = {

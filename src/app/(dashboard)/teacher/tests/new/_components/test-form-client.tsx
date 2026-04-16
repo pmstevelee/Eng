@@ -93,6 +93,7 @@ const QUESTION_TYPE_LABEL: Record<string, string> = {
   essay: '서술형',
   word_bank: '단어박스형',
   question_set: '복합 문제',
+  sentence_order: '순서맞추기',
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -357,6 +358,25 @@ function QuestionPreviewModal({
                     })}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* 문장 순서 맞추기 */}
+            {content.type === 'sentence_order' && content.order_sentences && (
+              <div className="mt-4 space-y-4">
+                {content.order_sentences.map((item) => (
+                  <div key={item.label} className="space-y-2">
+                    <p className="text-sm text-gray-700 leading-relaxed">{item.display_text}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {item.words.map((word, wi) => (
+                        <span key={wi} className="px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                          {word}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="text-xs text-gray-400">정답: <span className="font-medium text-[#1FAF54]">{item.correct_answer}</span></div>
+                  </div>
+                ))}
               </div>
             )}
 

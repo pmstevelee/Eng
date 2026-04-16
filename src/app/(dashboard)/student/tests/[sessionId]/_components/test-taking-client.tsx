@@ -506,6 +506,10 @@ function QuestionRenderer({
     return <WordBankQuestion content={content} answer={answer} onAnswer={onAnswer} />
   }
 
+  if (content.type === 'sentence_order') {
+    return <SentenceOrderQuestion content={content} answer={answer} onAnswer={onAnswer} />
+  }
+
   if (content.type === 'question_set') {
     return <QuestionSetQuestion content={content} answer={answer} onAnswer={onAnswer} />
   }
@@ -697,6 +701,260 @@ function WordBankQuestion({
                   className="h-9 min-w-[120px] w-36 rounded-lg border-b-2 border-gray-400 bg-transparent px-2 text-sm text-gray-900 outline-none transition-all focus:border-[#1865F2] text-center"
                 />
                 {parts[1] && <span className="text-sm text-gray-900">{parts[1]}</span>}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── 문장 순서 맞추기 (드래그 앤 드롭) ────────────────────────────────────────
+
+function SentenceOrderQuestion({
+  content,
+  answer,
+  onAnswer,
+}: {
+  content: QuestionContentJson
+  answer: string
+  onAnswer: (v: string) => void
+}) {
+  // answer: JSON {"A": "Are those melons", "B": "..."}
+  const parsed: Record<string, string> = (() => {
+    try { return answer ? JSON.parse(answer) : {} } catch { return {} }
+  })()
+
+  const items = content.order_sentences ?? []
+
+  // 각 문장별 placed 단어 목록 (슬롯에 놓인 것)
+  const [placed, setPlaced] = useState<Record<string, string[]>>(() => {
+    const init: Record<string, string[]> = {}
+    items.forEach((item) => {
+      if (parsed[item.label]) {
+        init[item.label] = parsed[item.label].split(' ').filter(Boolean)
+      } else {
+        init[item.label] = []
+      }
+    })
+    return init
+  })
+
+  // 각 문장별 bank에 남은 단어 목록
+  const [bank, setBank] = useState<Record<string, string[]>>(() => {
+    const init: Record<string, string[]> = {}
+    items.forEach((item) => {
+      const alreadyPlaced = parsed[item.label]
+        ? parsed[item.label].split(' ').filter(Boolean)
+        : []
+      const available = [...item.words]
+      alreadyPlaced.forEach((w) => {
+        const idx = available.indexOf(w)
+        if (idx !== -1) available.splice(idx, 1)
+      })
+      init[item.label] = available
+    })
+    return init
+  })
+
+  // 선택된 단어 (탭/클릭 방식 지원)
+  const [selected, setSelected] = useState<{ label: string; from: 'bank' | 'placed'; index: number } | null>(null)
+
+  // 드래그 소스
+  const dragSource = useRef<{ label: string; from: 'bank' | 'placed'; index: number } | null>(null)
+
+  function saveAnswer(newPlaced: Record<string, string[]>) {
+    const result: Record<string, string> = {}
+    items.forEach((item) => {
+      result[item.label] = (newPlaced[item.label] ?? []).join(' ')
+    })
+    onAnswer(JSON.stringify(result))
+  }
+
+  // 단어 클릭: bank → 슬롯 끝에 추가 / placed → bank로 반환
+  function handleBankWordClick(label: string, idx: number) {
+    if (selected?.label === label && selected.from === 'bank' && selected.index === idx) {
+      setSelected(null)
+      return
+    }
+    const wordCount = items.find((i) => i.label === label)?.words.length ?? 0
+    // 슬롯이 꽉 찬 경우 선택만 유지
+    if (placed[label]?.length >= wordCount) {
+      setSelected({ label, from: 'bank', index: idx })
+      return
+    }
+    const word = bank[label][idx]
+    const newBank = { ...bank, [label]: bank[label].filter((_, i) => i !== idx) }
+    const newPlaced = { ...placed, [label]: [...(placed[label] ?? []), word] }
+    setBank(newBank)
+    setPlaced(newPlaced)
+    setSelected(null)
+    saveAnswer(newPlaced)
+  }
+
+  function handleSlotClick(label: string, slotIdx: number) {
+    // selected가 bank 단어면 → 해당 슬롯에 삽입
+    if (selected?.label === label && selected.from === 'bank') {
+      const word = bank[label][selected.index]
+      const newBank = { ...bank, [label]: bank[label].filter((_, i) => i !== selected.index) }
+      const newPlaced = { ...placed }
+      const arr = [...(newPlaced[label] ?? [])]
+      arr.splice(slotIdx, 0, word)
+      newPlaced[label] = arr
+      setBank(newBank)
+      setPlaced(newPlaced)
+      setSelected(null)
+      saveAnswer(newPlaced)
+      return
+    }
+    // 슬롯에 단어가 있으면 bank로 반환
+    if (placed[label]?.[slotIdx] !== undefined) {
+      const word = placed[label][slotIdx]
+      const newPlaced = { ...placed, [label]: placed[label].filter((_, i) => i !== slotIdx) }
+      const newBank = { ...bank, [label]: [...bank[label], word] }
+      setPlaced(newPlaced)
+      setBank(newBank)
+      setSelected(null)
+      saveAnswer(newPlaced)
+    }
+  }
+
+  // HTML5 DnD
+  function handleDragStart(label: string, from: 'bank' | 'placed', index: number) {
+    dragSource.current = { label, from, index }
+  }
+
+  function handleDropOnSlot(e: React.DragEvent, label: string, slotIdx: number) {
+    e.preventDefault()
+    const src = dragSource.current
+    if (!src || src.label !== label) return
+    const newBank = { ...bank }
+    const newPlaced = { ...placed }
+
+    let word: string
+    if (src.from === 'bank') {
+      word = newBank[label][src.index]
+      newBank[label] = newBank[label].filter((_, i) => i !== src.index)
+    } else {
+      word = newPlaced[label][src.index]
+      newPlaced[label] = newPlaced[label].filter((_, i) => i !== src.index)
+    }
+    const arr = [...(newPlaced[label] ?? [])]
+    arr.splice(slotIdx, 0, word)
+    newPlaced[label] = arr
+
+    setBank(newBank)
+    setPlaced(newPlaced)
+    dragSource.current = null
+    saveAnswer(newPlaced)
+  }
+
+  function handleDropOnBank(e: React.DragEvent, label: string) {
+    e.preventDefault()
+    const src = dragSource.current
+    if (!src || src.label !== label || src.from === 'bank') return
+    const word = placed[label][src.index]
+    const newPlaced = { ...placed, [label]: placed[label].filter((_, i) => i !== src.index) }
+    const newBank = { ...bank, [label]: [...bank[label], word] }
+    setPlaced(newPlaced)
+    setBank(newBank)
+    dragSource.current = null
+    saveAnswer(newPlaced)
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault()
+  }
+
+  return (
+    <div>
+      <p className="mb-4 text-base font-semibold leading-relaxed text-gray-900">{content.question_text}</p>
+      {content.question_text_ko && (
+        <p className="mb-4 text-sm leading-relaxed text-gray-500">{content.question_text_ko}</p>
+      )}
+
+      <div className="space-y-8">
+        {items.map((item) => {
+          const wordCount = item.words.length
+          const slots = Array.from({ length: wordCount })
+
+          return (
+            <div key={item.label} className="space-y-4">
+              {/* 힌트 이미지 */}
+              {item.image_url && (
+                <Image
+                  src={item.image_url}
+                  alt={`${item.label} 힌트 이미지`}
+                  width={420}
+                  height={260}
+                  unoptimized
+                  className="rounded-xl border border-gray-200 object-contain max-h-56 w-auto"
+                />
+              )}
+
+              {/* 표시 문장 */}
+              <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-line">{item.display_text}</p>
+
+              {/* 단어 박스 (남은 단어) */}
+              <div
+                className="min-h-[56px] rounded-xl border-2 border-gray-200 bg-gray-50 p-3"
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDropOnBank(e, item.label)}
+              >
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {bank[item.label]?.length === 0 ? (
+                    <span className="text-xs text-gray-400 self-center">단어를 모두 배치했습니다</span>
+                  ) : (
+                    bank[item.label]?.map((word, wi) => {
+                      const isSelectedWord =
+                        selected?.label === item.label && selected.from === 'bank' && selected.index === wi
+                      return (
+                        <button
+                          key={wi}
+                          draggable
+                          onDragStart={() => handleDragStart(item.label, 'bank', wi)}
+                          onClick={() => handleBankWordClick(item.label, wi)}
+                          className={`px-4 py-2 rounded-lg border-2 text-sm font-semibold transition-all cursor-grab active:cursor-grabbing ${
+                            isSelectedWord
+                              ? 'border-[#1865F2] bg-[#EEF4FF] text-[#1865F2]'
+                              : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                          }`}
+                        >
+                          {word}
+                        </button>
+                      )
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* 드롭 슬롯 */}
+              <div className="rounded-xl border-2 border-dashed border-[#1865F2]/30 bg-[#F5F8FF] p-4">
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {slots.map((_, slotIdx) => {
+                    const word = placed[item.label]?.[slotIdx]
+                    return (
+                      <div
+                        key={slotIdx}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDropOnSlot(e, item.label, slotIdx)}
+                        onClick={() => handleSlotClick(item.label, slotIdx)}
+                        className={`h-11 min-w-[70px] rounded-lg border-2 flex items-center justify-center transition-all ${
+                          word
+                            ? 'border-[#1865F2] bg-white cursor-pointer hover:border-red-300'
+                            : 'border-dashed border-[#1865F2]/40 bg-transparent'
+                        }`}
+                      >
+                        {word ? (
+                          <span className="px-3 text-sm font-semibold text-[#1865F2]">{word}</span>
+                        ) : (
+                          <span className="text-xs text-[#1865F2]/30">___</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           )

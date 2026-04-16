@@ -21,7 +21,7 @@ import type { QuestionDomain } from '@/generated/prisma'
 
 // ── 타입 ──────────────────────────────────────────────────────────────────────
 
-type QuestionType = 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank' | 'question_set'
+type QuestionType = 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank' | 'question_set' | 'sentence_order'
 
 type WordBankSentence = {
   label: string
@@ -36,6 +36,14 @@ type SubQuestion = {
   options: string[]
   option_images: (string | null)[]
   correct_answer: string
+}
+
+type SentenceOrderItem = {
+  label: string
+  display_text: string
+  words: string
+  correct_answer: string
+  image_url?: string | null
 }
 type DomainType = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
 
@@ -286,6 +294,7 @@ const TABS: { key: QuestionType; label: string }[] = [
   { key: 'short_answer', label: '단답형' },
   { key: 'essay', label: '서술형' },
   { key: 'word_bank', label: '단어박스' },
+  { key: 'sentence_order', label: '순서맞추기' },
   { key: 'question_set', label: '복합 문제' },
 ]
 
@@ -335,6 +344,11 @@ export default function CreateQuestionModal({ onClose, onCreated }: Props) {
   const [subQuestions, setSubQuestions] = useState<SubQuestion[]>([
     { label: '1', question_text: '', options: ['', '', ''], option_images: [null, null, null], correct_answer: '' },
     { label: '2', question_text: '', options: ['', '', ''], option_images: [null, null, null], correct_answer: '' },
+  ])
+
+  // 문장 순서 맞추기
+  const [orderSentences, setOrderSentences] = useState<SentenceOrderItem[]>([
+    { label: 'A', display_text: '', words: '', correct_answer: '' },
   ])
 
   // 해설
@@ -417,6 +431,23 @@ export default function CreateQuestionModal({ onClose, onCreated }: Props) {
         sentences: validSentences,
       }
     }
+    if (qType === 'sentence_order') {
+      return {
+        ...base,
+        order_sentences: orderSentences
+          .filter((item) => item.display_text.trim())
+          .map((item) => ({
+            label: item.label,
+            display_text: item.display_text,
+            words: item.words
+              .split(/[,，\s]+/)
+              .map((w) => w.trim())
+              .filter(Boolean),
+            correct_answer: item.correct_answer.trim(),
+            image_url: item.image_url || undefined,
+          })),
+      }
+    }
     if (qType === 'question_set') {
       return {
         ...base,
@@ -451,6 +482,11 @@ export default function CreateQuestionModal({ onClose, onCreated }: Props) {
       const validSentences = sentences.filter((s) => s.text.trim())
       if (validSentences.length === 0) { setError('문장을 최소 1개 이상 입력해주세요.'); return }
       if (validSentences.some((s) => !s.correct_answer.trim())) { setError('모든 문장의 정답을 입력해주세요.'); return }
+    } else if (qType === 'sentence_order') {
+      const validItems = orderSentences.filter((item) => item.display_text.trim())
+      if (validItems.length === 0) { setError('문장을 최소 1개 이상 입력해주세요.'); return }
+      if (validItems.some((item) => !item.words.trim())) { setError('모든 문장에 단어를 입력해주세요.'); return }
+      if (validItems.some((item) => !item.correct_answer.trim())) { setError('모든 문장의 정답 순서를 입력해주세요.'); return }
     } else if (qType === 'question_set') {
       const validSubs = subQuestions.filter((sq) => sq.question_text.trim())
       if (validSubs.length === 0) { setError('소문제를 최소 1개 이상 입력해주세요.'); return }
@@ -834,6 +870,108 @@ export default function CreateQuestionModal({ onClose, onCreated }: Props) {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* 문장 순서 맞추기 */}
+          {qType === 'sentence_order' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-gray-700">
+                  문장 목록 <span className="text-[#D92916]">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextLabel = String.fromCharCode(65 + orderSentences.length)
+                    setOrderSentences([...orderSentences, { label: nextLabel, display_text: '', words: '', correct_answer: '' }])
+                  }}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-[#1865F2] hover:text-blue-700"
+                >
+                  <Plus size={13} />문장 추가
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 -mt-2">
+                표시 문장: 빈칸을 ___ 로 표시 (예: A: ___ ___ ___?) | 단어: 쉼표로 구분 (예: Are, those, melons) | 정답: 올바른 순서를 띄어쓰기로 구분 (예: Are those melons)
+              </p>
+              <div className="space-y-4">
+                {orderSentences.map((item, i) => (
+                  <div key={i} className="rounded-xl border border-gray-200 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600">
+                        {item.label}
+                      </span>
+                      {orderSentences.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setOrderSentences(orderSentences.filter((_, idx) => idx !== i))}
+                          className="text-gray-300 hover:text-[#D92916] transition-colors"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      )}
+                    </div>
+                    {/* 표시 문장 */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">표시 문장 (빈칸 포함)</label>
+                      <Input
+                        value={item.display_text}
+                        onChange={(e) => {
+                          const next = [...orderSentences]
+                          next[i] = { ...next[i], display_text: e.target.value }
+                          setOrderSentences(next)
+                        }}
+                        placeholder="예: A: ___ ___ ___? / B: No, they aren't."
+                      />
+                    </div>
+                    {/* 단어 박스 */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">단어 박스 (쉼표로 구분)</label>
+                      <Input
+                        value={item.words}
+                        onChange={(e) => {
+                          const next = [...orderSentences]
+                          next[i] = { ...next[i], words: e.target.value }
+                          setOrderSentences(next)
+                        }}
+                        placeholder="예: Are, those, melons"
+                      />
+                      {item.words.trim() && (
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {item.words.split(/[,，\s]+/).filter(Boolean).map((w, wi) => (
+                            <span key={wi} className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EEF4FF] text-[#1865F2] border border-[#1865F2]/20">
+                              {w.trim()}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {/* 정답 순서 */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">정답 순서 (띄어쓰기로 구분)</label>
+                      <Input
+                        value={item.correct_answer}
+                        onChange={(e) => {
+                          const next = [...orderSentences]
+                          next[i] = { ...next[i], correct_answer: e.target.value }
+                          setOrderSentences(next)
+                        }}
+                        placeholder="예: Are those melons"
+                      />
+                    </div>
+                    {/* 힌트 이미지 */}
+                    <ImageUploadField
+                      imageUrl={item.image_url ?? null}
+                      onChange={(url) => {
+                        const next = [...orderSentences]
+                        next[i] = { ...next[i], image_url: url }
+                        setOrderSentences(next)
+                      }}
+                      label="힌트 이미지 추가 (선택)"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           )}

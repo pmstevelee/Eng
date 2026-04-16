@@ -25,7 +25,7 @@ import Image from 'next/image'
 // ── 타입 정의 ─────────────────────────────────────────────────────────────────
 
 export type QuestionDomainType = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
-export type QuestionType = 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank' | 'question_set'
+export type QuestionType = 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank' | 'question_set' | 'sentence_order'
 
 export type WordBankSentence = {
   label: string
@@ -40,6 +40,14 @@ export type SubQuestion = {
   options: string[]
   option_images?: (string | null)[]
   correct_answer: string
+}
+
+export type SentenceOrderItem = {
+  label: string
+  display_text: string
+  words: string[]
+  correct_answer: string
+  image_url?: string | null
 }
 
 export type QuestionContentJson = {
@@ -62,6 +70,8 @@ export type QuestionContentJson = {
   sentences?: WordBankSentence[]
   // 복합 문제 전용
   sub_questions?: SubQuestion[]
+  // 문장 순서 맞추기 전용
+  order_sentences?: SentenceOrderItem[]
 }
 
 export type QuestionRow = {
@@ -123,6 +133,7 @@ const TYPE_LABEL: Record<QuestionType, string> = {
   essay: '서술형',
   word_bank: '단어박스형',
   question_set: '복합 문제',
+  sentence_order: '순서맞추기',
 }
 
 const CEFR_LEVELS = ['Pre-A1', 'A1 하', 'A1 상', 'A2 하', 'A2 상', 'B1 하', 'B1 상', 'B2 하', 'B2 상', 'C1+']
@@ -654,6 +665,52 @@ function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onCl
                           </div>
                         )
                       })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 문장 순서 맞추기 */}
+            {content.type === 'sentence_order' && (
+              <div className="mt-4 space-y-5">
+                {content.order_sentences?.map((item) => (
+                  <div key={item.label} className="space-y-3">
+                    {item.image_url && (
+                      <Image
+                        src={item.image_url}
+                        alt={`${item.label} 힌트 이미지`}
+                        width={480}
+                        height={280}
+                        unoptimized
+                        className="rounded-xl border border-gray-200 object-contain max-h-56 w-auto"
+                      />
+                    )}
+                    <p className="text-sm text-gray-700 leading-relaxed">{item.display_text}</p>
+                    {/* 정답 순서 표시 */}
+                    <div className="flex flex-wrap gap-2">
+                      {item.correct_answer.split(' ').map((word, wi) => (
+                        <span
+                          key={wi}
+                          className="px-3 py-1.5 rounded-lg border-2 border-[#1FAF54] bg-[#E6F7ED] text-sm font-semibold text-[#1FAF54]"
+                        >
+                          {word}
+                        </span>
+                      ))}
+                    </div>
+                    {/* 단어 박스 */}
+                    <div className="rounded-xl border-2 border-dashed border-gray-200 p-3">
+                      <p className="text-xs text-gray-400 mb-2">단어 박스 (무작위 순서)</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[...item.words].sort(() => Math.random() - 0.5).map((word, wi) => (
+                          <span
+                            key={wi}
+                            className="px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                          >
+                            {word}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ))}
