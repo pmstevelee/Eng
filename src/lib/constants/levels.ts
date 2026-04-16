@@ -76,3 +76,87 @@ export const CEFR_LEVEL_LIST = [
 export const LEVEL_TO_CEFR: Record<number, string> = Object.fromEntries(
   LEVELS.map((l) => [l.level, l.cefr]),
 )
+
+// ── 난이도 가중 점수 계산 ─────────────────────────────────────────────────────
+
+/**
+ * 문제 난이도를 고려하여 정답률을 레벨 추정 점수로 변환.
+ *
+ * 원리: 쉬운 문제(difficulty 1~3)를 100% 맞춰도 높은 레벨이 될 수 없음.
+ * - 각 문제의 난이도를 가중치로 사용하여, 어려운 문제를 맞힐수록 높은 점수를 받음.
+ * - 오답은 페널티 없이 단순히 가중치에 포함되지 않음.
+ * - 최종 점수는 0~100 범위로 정규화됨.
+ *
+ * @param questions - 각 문제의 난이도(1~10)와 정답 여부
+ * @returns 0~100 범위의 난이도 가중 점수
+ */
+export function difficultyWeightedScore(
+  questions: { difficulty: number; isCorrect: boolean }[],
+): number {
+  if (questions.length === 0) return 0
+
+  // 맞힌 문제의 난이도 합산 (난이도가 높을수록 가중치 큼)
+  let weightedCorrect = 0
+  let maxPossible = 0
+
+  for (const q of questions) {
+    // 난이도 가중치: difficulty 그대로 사용 (1~10)
+    maxPossible += q.difficulty
+    if (q.isCorrect) {
+      weightedCorrect += q.difficulty
+    }
+  }
+
+  if (maxPossible === 0) return 0
+
+  // 가중 정답률 (0~1)
+  const weightedRate = weightedCorrect / maxPossible
+
+  // 평균 난이도에 따른 천장 점수 계산
+  // 평균 난이도가 3이면 최대 30점(=Level 3), 7이면 최대 70점(=Level 7)
+  const avgDifficulty = questions.reduce((s, q) => s + q.difficulty, 0) / questions.length
+  const ceiling = avgDifficulty * 10 // difficulty 1~10 → ceiling 10~100
+
+  // 최종 점수 = 가중 정답률 × 천장 점수
+  const score = Math.round(weightedRate * ceiling)
+
+  return Math.max(0, Math.min(100, score))
+}
+
+/**
+ * 난이도 가중 점수를 기반으로 레벨을 추정.
+ * scoreToLevel()의 난이도 인식 버전.
+ */
+export function difficultyWeightedLevel(
+  questions: { difficulty: number; isCorrect: boolean }[],
+): number {
+  return scoreToLevel(difficultyWeightedScore(questions))
+}
+
+// ── 학년 기반 레벨 상한선 ─────────────────────────────────────────────────────
+
+/**
+ * 학년(grade)에 따른 기대 최대 레벨.
+ * 해당 학년에서 도달할 수 있는 현실적 상한선.
+ * 이 상한선은 "일반 테스트"에서의 레벨 추정에만 적용됨.
+ * 적응형 레벨 테스트에서는 적용하지 않음 (실력이 뛰어난 학생 허용).
+ */
+export const GRADE_LEVEL_CAPS: Record<string, number> = {
+  // 초등학교
+  '초1': 3, '초2': 3, '초3': 4, '초4': 5, '초5': 6, '초6': 6,
+  // 중학교
+  '중1': 7, '중2': 8, '중3': 8,
+  // 고등학교
+  '고1': 9, '고2': 10, '고3': 10,
+  // 성인/기타
+  '성인': 10,
+}
+
+/**
+ * 학년 문자열로부터 레벨 상한선을 반환.
+ * 매칭되지 않으면 10(제한 없음)을 반환.
+ */
+export function getGradeLevelCap(grade: string | null | undefined): number {
+  if (!grade) return 10
+  return GRADE_LEVEL_CAPS[grade] ?? 10
+}

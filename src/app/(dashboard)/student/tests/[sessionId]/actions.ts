@@ -8,6 +8,7 @@ import { recordActivityAndCheckBadges } from '@/app/(dashboard)/student/_actions
 import { recordLevelTestUsage } from '@/lib/questions/usage-tracker'
 import { updateQuestionQuality } from '@/lib/questions/quality-updater'
 import { checkPromotionStatus } from '@/lib/assessment/promotion-engine'
+import { difficultyWeightedScore, scoreToLevel, getGradeLevelCap } from '@/lib/constants/levels'
 
 async function getAuthedStudent() {
   const supabase = await createClient()
@@ -119,30 +120,36 @@ export async function submitTest(
   const auth = await getAuthedStudent()
   if (!auth) return { error: '권한이 없습니다.' }
 
-  const session = await prisma.testSession.findUnique({
-    where: { id: sessionId, studentId: auth.studentId },
-    select: {
-      id: true,
-      testId: true,
-      status: true,
-      studentId: true,
-      test: {
-        select: {
-          questionOrder: true,
-          title: true,
-          type: true,
-          createdBy: true,
-          academyId: true,
+  const [session, studentInfo] = await Promise.all([
+    prisma.testSession.findUnique({
+      where: { id: sessionId, studentId: auth.studentId },
+      select: {
+        id: true,
+        testId: true,
+        status: true,
+        studentId: true,
+        test: {
+          select: {
+            questionOrder: true,
+            title: true,
+            type: true,
+            createdBy: true,
+            academyId: true,
+          },
         },
       },
-    },
-  })
+    }),
+    prisma.student.findUnique({
+      where: { id: auth.studentId },
+      select: { grade: true },
+    }),
+  ])
   if (!session || session.status !== 'IN_PROGRESS') return { error: '유효하지 않은 세션입니다.' }
 
   const questionIds = (session.test.questionOrder as string[]) || []
   const questions = await prisma.question.findMany({
     where: { id: { in: questionIds } },
-    select: { id: true, contentJson: true, domain: true },
+    select: { id: true, contentJson: true, domain: true, difficulty: true },
   })
 
   const answerMap = new Map(allAnswers.map((r) => [r.questionId, r.answer]))
@@ -155,6 +162,10 @@ export async function submitTest(
     READING: { correct: 0, total: 0 },
     WRITING: { correct: 0, total: 0 },
     LISTENING: { correct: 0, total: 0 },
+  }
+  // 도메인별 문제 난이도+정답 이력 (난이도 가중 점수 계산용)
+  const domainQuestionDetails: Record<DomainKey, { difficulty: number; isCorrect: boolean }[]> = {
+    GRAMMAR: [], VOCABULARY: [], READING: [], WRITING: [], LISTENING: [],
   }
 
   let hasEssay = false
@@ -230,6 +241,14 @@ export async function submitTest(
         }
       }
 
+      // 난이도 가중 점수 계산을 위해 문제별 이력 기록 (에세이 제외)
+      if (isCorrect !== null) {
+        domainQuestionDetails[domain].push({
+          difficulty: q.difficulty,
+          isCorrect: isCorrect === true,
+        })
+      }
+
       return { q, studentAnswer, isCorrect }
     })
 
@@ -293,20 +312,25 @@ export async function submitTest(
           readingScore,
         },
       }),
-      // SkillAssessment 병렬 생성
+      // SkillAssessment 병렬 생성 (난이도 가중 점수 적용)
       ...Object.entries(domainStats)
         .filter(([, stats]) => stats.total > 0)
-        .map(([domain, stats]) =>
-          prisma.skillAssessment.create({
+        .map(([domain]) => {
+          const details = domainQuestionDetails[domain as DomainKey]
+          const weightedScore = difficultyWeightedScore(details)
+          const gradeCap = getGradeLevelCap(studentInfo?.grade)
+          const rawLevel = scoreToLevel(weightedScore)
+          const cappedLevel = Math.min(rawLevel, gradeCap)
+          return prisma.skillAssessment.create({
             data: {
               studentId: auth.studentId,
               domain: domain as DomainKey,
-              level: 1,
-              score: Math.round((stats.correct / stats.total) * 100),
-              notes: `자동 채점 - ${session.test.title}`,
+              level: cappedLevel,
+              score: weightedScore,
+              notes: `자동 채점 (난이도 가중) - ${session.test.title}`,
             },
-          }),
-        ),
+          })
+        }),
       // 교사 알림 (쓰기 문제가 있는 경우)
       hasEssay
         ? prisma.notification.create({
