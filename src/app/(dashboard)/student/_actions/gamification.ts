@@ -127,17 +127,6 @@ export async function recordActivityAndCheckBadges(
   // [LEGACY] 기존 인라인 스트릭 업데이트 코드는 streak-manager.ts로 통합됨
   const streakResult = await updateStreak(studentId)
 
-  // 2. Mark today's mission complete if exists
-  const mission = await prisma.dailyMission.findFirst({
-    where: { studentId, missionDate: { gte: todayStart }, isCompleted: false },
-  })
-  if (mission) {
-    await prisma.dailyMission.update({
-      where: { id: mission.id },
-      data: { isCompleted: true, completedAt: new Date() },
-    })
-  }
-
   // 3. Collect already-earned badge codes
   const existingEarnings = await prisma.badgeEarning.findMany({
     where: { studentId },
