@@ -82,6 +82,9 @@ const QUESTION_TYPE_LABEL: Record<string, string> = {
   fill_blank: '빈칸 채우기',
   short_answer: '단답형',
   essay: '서술형',
+  word_bank: '단어 배열',
+  question_set: '복합 문제',
+  sentence_order: '순서맞추기',
 }
 
 function EditModal({ question, onClose, onSaved }: EditModalProps) {

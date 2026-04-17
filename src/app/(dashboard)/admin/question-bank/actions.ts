@@ -105,17 +105,49 @@ export async function getAdminQuestions(filters: {
       correct_answer?: string
       explanation?: string
       audio_url?: string
+      // 듣기 시드 문제 전용 필드
+      instruction?: string
+      script?: string[]
+      correctAnswer?: number
+      questionNumber?: number
     }
     const stats = q.statsJson as { correctRate?: number } | null
+
+    // 듣기 시드 문제(listening_*) 호환: instruction + script → questionText
+    const isListeningType = content.type?.startsWith('listening_') ?? false
+    let questionText = content.question_text ?? ''
+    if (!questionText && isListeningType) {
+      const parts: string[] = []
+      if (content.instruction) parts.push(content.instruction)
+      if (content.script && content.script.length > 0) parts.push(content.script.join('\n'))
+      questionText = parts.join('\n\n')
+    }
+
+    // 듣기 시드: 보기에서 번호 접두사(①②③④⑤) 제거
+    let options = content.options ?? []
+    if (isListeningType && options.length > 0) {
+      options = options.map((o) => o.replace(/^[①②③④⑤]\s*/, ''))
+    }
+
+    // 듣기 시드: correctAnswer(숫자 1~5) → 문자(A~E)로 변환
+    let correctAnswer = content.correct_answer ?? ''
+    if (!correctAnswer && isListeningType && typeof content.correctAnswer === 'number') {
+      const letters = ['A', 'B', 'C', 'D', 'E']
+      correctAnswer = letters[content.correctAnswer - 1] ?? ''
+    }
+
+    // 듣기 시드 타입(listening_*)은 실질적으로 객관식
+    const questionType = isListeningType ? 'multiple_choice' : (content.type ?? 'multiple_choice')
+
     return {
       id: q.id,
       domain: q.domain,
       subCategory: q.subCategory,
       difficulty: q.difficulty,
-      questionType: content.type ?? 'multiple_choice',
-      questionText: content.question_text ?? '',
-      options: content.options ?? [],
-      correctAnswer: content.correct_answer ?? '',
+      questionType,
+      questionText,
+      options,
+      correctAnswer,
       explanation: content.explanation ?? '',
       audioUrl: content.audio_url ?? null,
       source: q.source,
@@ -652,6 +684,11 @@ export async function updateQuestion(
     // 유형 변경 시 불필요 필드 제거
     if (!isMultipleChoice) delete newContent.options
     if (isEssay) delete newContent.correct_answer
+    // 듣기 시드 전용 필드 정리 (표준 필드로 통합됨)
+    delete newContent.instruction
+    delete newContent.script
+    delete newContent.correctAnswer
+    delete newContent.questionNumber
 
     const oldDifficulty = q.difficulty
     await prisma.question.update({
