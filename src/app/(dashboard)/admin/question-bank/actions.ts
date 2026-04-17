@@ -30,13 +30,25 @@ export type AdminQuestionRow = {
   id: string
   domain: QuestionDomain
   subCategory: string | null
+  cefrLevel: string | null
   difficulty: number
   questionType: string
   questionText: string
+  questionTextKo: string | null
+  questionImageUrl: string | null
   options: string[]
+  optionImages: (string | null)[]
   correctAnswer: string
   explanation: string
   audioUrl: string | null
+  audioScript: string | null
+  passage: string | null
+  passageImageUrl: string | null
+  wordBank: string[]
+  sentences: WordBankSentence[]
+  subQuestions: SubQuestion[]
+  orderSentences: SentenceOrderItem[]
+  wordLimit: number | null
   source: QuestionSource
   originalQuestionId: string | null
   qualityScore: number | null
@@ -84,6 +96,7 @@ export async function getAdminQuestions(filters: {
       id: true,
       domain: true,
       subCategory: true,
+      cefrLevel: true,
       difficulty: true,
       contentJson: true,
       source: true,
@@ -101,10 +114,21 @@ export async function getAdminQuestions(filters: {
     const content = q.contentJson as {
       type?: string
       question_text?: string
+      question_text_ko?: string
+      question_image_url?: string
       options?: string[]
+      option_images?: (string | null)[]
       correct_answer?: string
       explanation?: string
       audio_url?: string
+      audio_script?: string
+      passage?: string
+      passage_image_url?: string
+      word_limit?: number
+      word_bank?: string[]
+      sentences?: WordBankSentence[]
+      sub_questions?: SubQuestion[]
+      order_sentences?: SentenceOrderItem[]
       // 듣기 시드 문제 전용 필드
       instruction?: string
       script?: string[]
@@ -143,13 +167,25 @@ export async function getAdminQuestions(filters: {
       id: q.id,
       domain: q.domain,
       subCategory: q.subCategory,
+      cefrLevel: q.cefrLevel,
       difficulty: q.difficulty,
       questionType,
       questionText,
+      questionTextKo: content.question_text_ko ?? null,
+      questionImageUrl: content.question_image_url ?? null,
       options,
+      optionImages: content.option_images ?? options.map(() => null),
       correctAnswer,
       explanation: content.explanation ?? '',
       audioUrl: content.audio_url ?? null,
+      audioScript: content.audio_script ?? null,
+      passage: content.passage ?? null,
+      passageImageUrl: content.passage_image_url ?? null,
+      wordBank: content.word_bank ?? [],
+      sentences: content.sentences ?? [],
+      subQuestions: content.sub_questions ?? [],
+      orderSentences: content.order_sentences ?? [],
+      wordLimit: content.word_limit ?? null,
       source: q.source,
       originalQuestionId: q.originalQuestionId,
       qualityScore: q.qualityScore,
@@ -637,14 +673,11 @@ export async function bulkDeleteQuestions(
 // ── 공용 문제 수정 ─────────────────────────────────────────────────────────────
 
 export type UpdateQuestionPayload = {
-  questionType: string
-  questionText: string
-  options: string[]
-  correctAnswer: string
-  explanation: string
-  audioUrl?: string | null
+  domain: QuestionDomain
   difficulty: number
+  cefrLevel: string
   subCategory?: string | null
+  contentJson: QuestionContentJson
 }
 
 export async function updateQuestion(
@@ -660,52 +693,31 @@ export async function updateQuestion(
   try {
     const q = await prisma.question.findUnique({
       where: { id },
-      select: { academyId: true, domain: true, difficulty: true, contentJson: true },
+      select: { academyId: true, domain: true, difficulty: true },
     })
     if (!q || q.academyId !== null) return { error: '공용 문제만 관리할 수 있습니다.' }
 
-    const existingContent = q.contentJson as Record<string, unknown>
-
-    // 문제 유형 변경 시 불필요한 필드 정리
-    const isMultipleChoice = payload.questionType === 'multiple_choice'
-    const isEssay = payload.questionType === 'essay'
-
-    const newContent: Record<string, unknown> = {
-      ...existingContent,
-      type: payload.questionType,
-      question_text: payload.questionText,
-      options: isMultipleChoice ? payload.options : [],
-      correct_answer: isEssay ? undefined : payload.correctAnswer,
-      explanation: payload.explanation,
-    }
-    if (payload.audioUrl !== undefined) {
-      newContent.audio_url = payload.audioUrl
-    }
-    // 유형 변경 시 불필요 필드 제거
-    if (!isMultipleChoice) delete newContent.options
-    if (isEssay) delete newContent.correct_answer
-    // 듣기 시드 전용 필드 정리 (표준 필드로 통합됨)
-    delete newContent.instruction
-    delete newContent.script
-    delete newContent.correctAnswer
-    delete newContent.questionNumber
-
     const oldDifficulty = q.difficulty
+    const oldDomain = q.domain
+
     await prisma.question.update({
       where: { id },
       data: {
-        contentJson: JSON.parse(JSON.stringify(newContent)),
+        domain: payload.domain,
         difficulty: payload.difficulty,
-        subCategory: payload.subCategory ?? undefined,
+        cefrLevel: payload.cefrLevel,
+        subCategory: payload.subCategory ?? null,
+        contentJson: JSON.parse(JSON.stringify(payload.contentJson)),
       },
     })
 
-    if (oldDifficulty !== payload.difficulty) {
-      await Promise.all([
-        updateQuestionBankStatsForDomain(q.domain, oldDifficulty),
-        updateQuestionBankStatsForDomain(q.domain, payload.difficulty),
-      ])
+    // 도메인이나 난이도가 변경된 경우 통계 갱신
+    const statsUpdates: Promise<void>[] = []
+    if (oldDomain !== payload.domain || oldDifficulty !== payload.difficulty) {
+      statsUpdates.push(updateQuestionBankStatsForDomain(oldDomain, oldDifficulty))
     }
+    statsUpdates.push(updateQuestionBankStatsForDomain(payload.domain, payload.difficulty))
+    await Promise.all(statsUpdates)
 
     revalidateTag('question-bank')
     return {}
