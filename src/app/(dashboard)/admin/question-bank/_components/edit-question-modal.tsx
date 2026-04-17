@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useRef } from 'react'
+import { useState, useTransition, useRef, useCallback } from 'react'
 import {
   X,
   ImagePlus,
@@ -9,12 +9,14 @@ import {
   Mic,
   Plus,
   Trash2,
+  Sparkles,
+  CheckCircle2,
 } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { updateQuestion } from '../actions'
-import type { AdminQuestionRow, UpdateQuestionPayload, QuestionContentJson, WordBankSentence, SentenceOrderItem, SubQuestion } from '../actions'
+import { updateQuestion, analyzeQuestionWithAI } from '../actions'
+import type { AdminQuestionRow, UpdateQuestionPayload, QuestionContentJson, WordBankSentence, SentenceOrderItem, SubQuestion, AIAnalysisResult, AnalyzeQuestionInput } from '../actions'
 import type { QuestionDomain } from '@/generated/prisma'
 
 // ── 타입 ──────────────────────────────────────────────────────────────────────
@@ -365,6 +367,37 @@ export default function EditQuestionModal({ question, onClose, onSaved }: Props)
   // 해설
   const [explanation, setExplanation] = useState(question.explanation)
 
+  // AI 분석
+  const [aiResult, setAiResult] = useState<AIAnalysisResult | null>(null)
+  const [aiError, setAiError] = useState('')
+  const [analyzing, startAnalysis] = useTransition()
+
+  const handleAnalyze = useCallback(() => {
+    setAiError('')
+    setAiResult(null)
+    const filledOptions = options.filter((o) => o.trim())
+    const input: AnalyzeQuestionInput = {
+      questionText,
+      passage: passage.trim() || undefined,
+      audioScript: audioScript.trim() || undefined,
+      options: filledOptions.length > 0 ? filledOptions : undefined,
+      currentDomain: domain,
+    }
+    startAnalysis(async () => {
+      const res = await analyzeQuestionWithAI(input)
+      if (res.error) { setAiError(res.error); return }
+      if (res.result) setAiResult(res.result)
+    })
+  }, [questionText, passage, audioScript, options, domain])
+
+  function handleApplyAI() {
+    if (!aiResult) return
+    setDomain(aiResult.domain as DomainType)
+    setCefrLevel(aiResult.cefrLevel)
+    setDifficulty(aiResult.difficulty)
+    if (aiResult.subCategory) setSubCategory(aiResult.subCategory)
+  }
+
   const updateOption = (i: number, val: string) => {
     const next = [...options]; next[i] = val; setOptions(next)
   }
@@ -649,6 +682,58 @@ export default function EditQuestionModal({ question, onClose, onSaved }: Props)
               rows={3}
             />
             <ImageUploadField imageUrl={questionImageUrl} onChange={setQuestionImageUrl} label="문제 이미지 추가" />
+
+            {/* AI 분석 버튼 */}
+            <button
+              type="button"
+              onClick={handleAnalyze}
+              disabled={questionText.trim().length < 10 || analyzing}
+              className="mt-3 flex items-center gap-1.5 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 rounded-lg border border-purple-200 transition-colors"
+            >
+              {analyzing ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+              {analyzing ? 'AI 분석 중...' : 'AI 분석 및 추천 (CEFR · 난이도 · 카테고리)'}
+            </button>
+
+            {/* AI 추천 결과 */}
+            {aiError && <p className="mt-2 text-xs text-[#D92916]">{aiError}</p>}
+            {aiResult && (
+              <div className="mt-3 rounded-xl border border-purple-200 bg-purple-50 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-purple-600" />
+                    <span className="text-xs font-semibold text-purple-700">AI 추천 결과</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleApplyAI}
+                    className="flex items-center gap-1 text-xs font-medium text-purple-700 bg-white border border-purple-300 hover:bg-purple-100 px-2.5 py-1 rounded-lg transition-colors"
+                  >
+                    <CheckCircle2 size={11} />
+                    전체 적용
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <span
+                    className="text-xs font-semibold px-2.5 py-1 rounded-full text-white"
+                    style={{ background: DOMAIN_COLOR[aiResult.domain as DomainType] ?? '#999' }}
+                  >
+                    {aiResult.domain}
+                  </span>
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-white border border-purple-200 text-purple-700">
+                    CEFR: {aiResult.cefrLevel}
+                  </span>
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-white border border-purple-200 text-purple-700">
+                    난이도 Lv{aiResult.difficulty}
+                  </span>
+                  {aiResult.subCategory && (
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-white border border-purple-200 text-purple-700">
+                      {aiResult.subCategory}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-purple-600 leading-relaxed">{aiResult.rationale}</p>
+              </div>
+            )}
           </div>
 
           {/* 한국어 번역 */}
