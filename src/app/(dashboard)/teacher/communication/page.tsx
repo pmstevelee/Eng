@@ -1,8 +1,12 @@
+import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { MessageSquare, Users, GraduationCap, Trash2, Clock } from 'lucide-react'
-import { getAnnouncements, getMyClasses, deleteAnnouncement } from './actions'
+import { getCurrentUser } from '@/lib/auth'
+import { prisma } from '@/lib/prisma/client'
+import { deleteAnnouncement } from './actions'
 import { AnnouncementForm } from './_components/announcement-form'
 
-function formatDate(date: Date) {
+function formatDate(date: string | Date) {
   return new Date(date).toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',
@@ -12,12 +16,55 @@ function formatDate(date: Date) {
   })
 }
 
+const getCommunicationData = (teacherId: string, academyId: string) =>
+  unstable_cache(
+    async () => {
+      const [announcements, classes] = await Promise.all([
+        prisma.announcement.findMany({
+          where: { academyId },
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            content: true,
+            target: true,
+            classId: true,
+            createdAt: true,
+            author: { select: { name: true } },
+            class: { select: { name: true } },
+          },
+        }),
+        prisma.class.findMany({
+          where: { teacherId, isActive: true },
+          select: { id: true, name: true },
+          orderBy: { name: 'asc' },
+        }),
+      ])
+      return {
+        announcements: announcements.map((a) => ({
+          id: a.id,
+          title: a.title,
+          content: a.content,
+          target: a.target as 'ALL_STUDENTS' | 'CLASS',
+          classId: a.classId,
+          className: a.class?.name ?? null,
+          authorName: a.author.name,
+          createdAt: a.createdAt.toISOString(),
+        })),
+        classes,
+      }
+    },
+    [`communication-${teacherId}`, academyId],
+    { revalidate: 30, tags: [`teacher-${teacherId}-communication`] },
+  )()
+
 export default async function CommunicationPage() {
   const pageStart = performance.now()
 
-  const dataStart = performance.now()
-  const [announcements, classes] = await Promise.all([getAnnouncements(), getMyClasses()])
-  console.log(`  [쿼리1] getAnnouncements + getMyClasses: ${(performance.now() - dataStart).toFixed(0)}ms`)
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
+
+  const { announcements, classes } = await getCommunicationData(user.id, user.academyId)
 
   const totalTime = performance.now() - pageStart
   console.log(`📊 [CommunicationPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
@@ -25,7 +72,6 @@ export default async function CommunicationPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* 페이지 헤더 */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">커뮤니케이션</h1>
         <p className="text-sm text-gray-500 mt-1">학생들에게 공지사항을 발송합니다</p>

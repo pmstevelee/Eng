@@ -1,10 +1,93 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, BookOpen } from 'lucide-react'
+import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { StudentDetailClient } from './student-detail-client'
 import { getPromotionProgress } from '@/lib/assessment/promotion-engine'
+
+const getStudentDetailData = (studentId: string, teacherId: string) =>
+  unstable_cache(
+    async () => {
+      const now = new Date()
+      const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+
+      const [testSessions, learningPath, teacherComments, attendanceRecords, levelAssessments, promotionProgress] =
+        await Promise.all([
+          prisma.testSession.findMany({
+            where: { studentId, status: { in: ['COMPLETED', 'GRADED'] } },
+            orderBy: { completedAt: 'desc' },
+            take: 10,
+            select: {
+              id: true, score: true, grammarScore: true, vocabularyScore: true,
+              readingScore: true, listeningScore: true, writingScore: true, completedAt: true,
+              test: { select: { title: true, type: true } },
+            },
+          }),
+          prisma.learningPath.findFirst({
+            where: { studentId, isActive: true },
+            orderBy: { createdAt: 'desc' },
+          }),
+          prisma.teacherComment.findMany({
+            where: { studentId },
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true, content: true, type: true, createdAt: true,
+              teacher: { select: { name: true } },
+            },
+          }),
+          prisma.attendance.findMany({
+            where: { studentId, date: { gte: threeMonthsAgo } },
+            orderBy: { date: 'asc' },
+            select: { id: true, date: true, status: true, classId: true },
+          }),
+          prisma.levelAssessment.findMany({
+            where: { studentId },
+            orderBy: { assessedAt: 'desc' },
+            take: 20,
+            select: {
+              id: true, assessmentType: true, grammarLevel: true, vocabularyLevel: true,
+              readingLevel: true, listeningLevel: true, writingLevel: true, overallLevel: true,
+              assessedAt: true, assessedBy: true, isCurrent: true, detailJson: true,
+            },
+          }),
+          getPromotionProgress(studentId),
+        ])
+
+      return {
+        testSessions: testSessions.map((s) => ({
+          id: s.id, score: s.score, grammarScore: s.grammarScore, vocabularyScore: s.vocabularyScore,
+          readingScore: s.readingScore, listeningScore: s.listeningScore ?? null, writingScore: s.writingScore,
+          completedAt: s.completedAt?.toISOString() ?? null,
+          testTitle: s.test.title, testType: s.test.type,
+        })),
+        learningPath: learningPath ? {
+          id: learningPath.id, title: learningPath.title, description: learningPath.description,
+          goalsJson: learningPath.goalsJson, progressJson: learningPath.progressJson,
+          createdAt: learningPath.createdAt.toISOString(),
+        } : null,
+        teacherComments: teacherComments.map((c) => ({
+          id: c.id, content: c.content, month: c.type ?? '',
+          teacherName: c.teacher.name, createdAt: c.createdAt.toISOString(),
+        })),
+        attendanceRecords: attendanceRecords.map((a) => ({
+          id: a.id, date: a.date.toISOString(),
+          status: a.status as 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED', classId: a.classId,
+        })),
+        levelAssessments: levelAssessments.map((la) => ({
+          id: la.id, assessmentType: la.assessmentType, grammarLevel: la.grammarLevel,
+          vocabularyLevel: la.vocabularyLevel, readingLevel: la.readingLevel,
+          listeningLevel: la.listeningLevel ?? null, writingLevel: la.writingLevel,
+          overallLevel: la.overallLevel, assessedAt: la.assessedAt.toISOString(),
+          assessedBy: la.assessedBy, isCurrent: la.isCurrent, detailJson: la.detailJson,
+        })),
+        promotionProgress,
+      }
+    },
+    [`student-detail-${studentId}`, teacherId],
+    { revalidate: 30, tags: [`student-${studentId}-detail`, `teacher-${teacherId}-students`] },
+  )()
 
 export default async function StudentDetailPage({
   params,
@@ -28,128 +111,15 @@ export default async function StudentDetailPage({
 
   if (!student) notFound()
 
-  const now = new Date()
-  const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+  const {
+    testSessions: serializedSessions,
+    learningPath: serializedLearningPath,
+    teacherComments: serializedComments,
+    attendanceRecords: serializedAttendance,
+    levelAssessments: serializedLevelAssessments,
+    promotionProgress,
+  } = await getStudentDetailData(student.id, user.id)
 
-  const [testSessions, learningPath, teacherComments, attendanceRecords, levelAssessments, promotionProgress] = await Promise.all([
-    prisma.testSession.findMany({
-      where: {
-        studentId: student.id,
-        status: { in: ['COMPLETED', 'GRADED'] },
-      },
-      orderBy: { completedAt: 'desc' },
-      take: 10,
-      select: {
-        id: true,
-        score: true,
-        grammarScore: true,
-        vocabularyScore: true,
-        readingScore: true,
-        listeningScore: true,
-        writingScore: true,
-        completedAt: true,
-        test: { select: { title: true, type: true } },
-      },
-    }),
-    prisma.learningPath.findFirst({
-      where: { studentId: student.id, isActive: true },
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.teacherComment.findMany({
-      where: { studentId: student.id },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        content: true,
-        type: true,
-        createdAt: true,
-        teacher: { select: { name: true } },
-      },
-    }),
-    prisma.attendance.findMany({
-      where: {
-        studentId: student.id,
-        date: { gte: threeMonthsAgo },
-      },
-      orderBy: { date: 'asc' },
-      select: { id: true, date: true, status: true, classId: true },
-    }),
-    prisma.levelAssessment.findMany({
-      where: { studentId: student.id },
-      orderBy: { assessedAt: 'desc' },
-      take: 20,
-      select: {
-        id: true,
-        assessmentType: true,
-        grammarLevel: true,
-        vocabularyLevel: true,
-        readingLevel: true,
-        listeningLevel: true,
-        writingLevel: true,
-        overallLevel: true,
-        assessedAt: true,
-        assessedBy: true,
-        isCurrent: true,
-        detailJson: true,
-      },
-    }),
-    getPromotionProgress(student.id),
-  ])
-
-  // Serialize all Date objects
-  const serializedSessions = testSessions.map((s) => ({
-    id: s.id,
-    score: s.score,
-    grammarScore: s.grammarScore,
-    vocabularyScore: s.vocabularyScore,
-    readingScore: s.readingScore,
-    listeningScore: s.listeningScore ?? null,
-    writingScore: s.writingScore,
-    completedAt: s.completedAt?.toISOString() ?? null,
-    testTitle: s.test.title,
-    testType: s.test.type,
-  }))
-
-  const serializedLearningPath = learningPath
-    ? {
-        id: learningPath.id,
-        title: learningPath.title,
-        description: learningPath.description,
-        goalsJson: learningPath.goalsJson,
-        progressJson: learningPath.progressJson,
-        createdAt: learningPath.createdAt.toISOString(),
-      }
-    : null
-
-  const serializedComments = teacherComments.map((c) => ({
-    id: c.id,
-    content: c.content,
-    month: c.type ?? '',
-    teacherName: c.teacher.name,
-    createdAt: c.createdAt.toISOString(),
-  }))
-
-  const serializedAttendance = attendanceRecords.map((a) => ({
-    id: a.id,
-    date: a.date.toISOString(),
-    status: a.status as 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED',
-    classId: a.classId,
-  }))
-
-  const serializedLevelAssessments = levelAssessments.map((la) => ({
-    id: la.id,
-    assessmentType: la.assessmentType,
-    grammarLevel: la.grammarLevel,
-    vocabularyLevel: la.vocabularyLevel,
-    readingLevel: la.readingLevel,
-    listeningLevel: la.listeningLevel ?? null,
-    writingLevel: la.writingLevel,
-    overallLevel: la.overallLevel,
-    assessedAt: la.assessedAt.toISOString(),
-    assessedBy: la.assessedBy,
-    isCurrent: la.isCurrent,
-    detailJson: la.detailJson,
-  }))
 
   return (
     <div className="space-y-6">

@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 export type AnnouncementWithAuthor = {
   id: string
@@ -132,6 +132,7 @@ export async function createAnnouncement(formData: FormData) {
   }
 
   revalidatePath('/teacher/communication')
+  revalidateTag(`teacher-${user.id}-communication`)
   return { success: true, announcementId: announcement.id }
 }
 
@@ -147,5 +148,6 @@ export async function deleteAnnouncement(announcementId: string) {
   })
 
   revalidatePath('/teacher/communication')
+  revalidateTag(`teacher-${user.id}-communication`)
   return { success: true }
 }

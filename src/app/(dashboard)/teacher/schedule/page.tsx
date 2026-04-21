@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { ScheduleClient } from './_components/schedule-client'
@@ -55,6 +56,13 @@ async function getScheduleData(userId: string, academyId: string) {
   }
 }
 
+const getCachedScheduleData = (userId: string, academyId: string) =>
+  unstable_cache(
+    () => getScheduleData(userId, academyId),
+    [`teacher-schedule-${userId}`, academyId],
+    { revalidate: 60, tags: [`teacher-${userId}-schedule`] },
+  )()
+
 // ─── 페이지 ───────────────────────────────────────────────────────────────────
 export default async function SchedulePage() {
   const pageStart = performance.now()
@@ -65,8 +73,8 @@ export default async function SchedulePage() {
   if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
 
   const dataStart = performance.now()
-  const { classes, tests, pendingCount } = await getScheduleData(user.id, user.academyId)
-  console.log(`  [쿼리2] getScheduleData: ${(performance.now() - dataStart).toFixed(0)}ms`)
+  const { classes, tests, pendingCount } = await getCachedScheduleData(user.id, user.academyId)
+  console.log(`  [쿼리2] getCachedScheduleData: ${(performance.now() - dataStart).toFixed(0)}ms`)
 
   const totalTime = performance.now() - pageStart
   console.log(`📊 [SchedulePage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)

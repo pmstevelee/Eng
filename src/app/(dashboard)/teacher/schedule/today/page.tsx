@@ -9,6 +9,7 @@ import {
   CalendarDays,
   AlertCircle,
 } from 'lucide-react'
+import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -128,13 +129,20 @@ function formatToday() {
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${days[d.getDay()]})`
 }
 
+const getCachedTodayData = (userId: string, academyId: string) =>
+  unstable_cache(
+    () => getTodayData(userId, academyId),
+    [`teacher-today-${userId}`],
+    { revalidate: 60, tags: [`teacher-${userId}-schedule`] },
+  )()
+
 // ─── 페이지 ───────────────────────────────────────────────────────────────────
 export default async function TodayPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
 
   const { todayClasses, publishedTests, pendingGrading, pendingCount } =
-    await getTodayData(user.id, user.academyId)
+    await getCachedTodayData(user.id, user.academyId)
 
   return (
     <div className="space-y-5">

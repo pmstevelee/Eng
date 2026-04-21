@@ -1,21 +1,30 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { WithdrawModal } from './_components/withdraw-modal'
+
+const getTeacherSettingsData = (userId: string) =>
+  unstable_cache(
+    () =>
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          name: true,
+          email: true,
+          phone: true,
+          academy: { select: { name: true, businessName: true } },
+        },
+      }),
+    [`teacher-settings-${userId}`],
+    { revalidate: 60, tags: [`user-${userId}`] },
+  )()
 
 export default async function TeacherSettingsPage() {
   const currentUser = await getCurrentUser()
   if (!currentUser || currentUser.role !== 'TEACHER') redirect('/login')
 
-  const user = await prisma.user.findUnique({
-    where: { id: currentUser.id },
-    select: {
-      name: true,
-      email: true,
-      phone: true,
-      academy: { select: { name: true, businessName: true } },
-    },
-  })
+  const user = await getTeacherSettingsData(currentUser.id)
   if (!user) redirect('/login')
 
   const academyName = user.academy?.businessName ?? user.academy?.name ?? '-'
