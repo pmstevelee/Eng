@@ -654,7 +654,7 @@ async function main() {
         subCategory: q.subCategory,
         difficulty: q.difficulty,
         cefrLevel: q.cefrLevel,
-        contentJson: q.contentJson,
+        contentJson: q.contentJson as never,
         source: QuestionSource.SYSTEM,
         isVerified: true,
         isActive: true,
