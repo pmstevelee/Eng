@@ -15,9 +15,9 @@ const AUTH_TTL_MS = 60_000
 
 function pruneAuthCache(now: number) {
   if (authUserCache.size < 128) return
-  for (const [k, v] of authUserCache) {
+  authUserCache.forEach((v, k) => {
     if (v.expiresAt <= now) authUserCache.delete(k)
-  }
+  })
 }
 
 /**
