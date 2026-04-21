@@ -53,18 +53,54 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
 
-  // ── Parallel fetch (3개 배치로 분리 — connection_limit=3 대응) ──────────────
-  // Batch 1: 핵심 성적/레벨 데이터
-  const [gradedSessions, levelDistRaw, levelUpBadges] = await Promise.all([
-    // 1. All graded sessions in period (for score analysis)
+  // ── Phase 1: 학원의 활성 학생/반/교사 기본 목록 (다른 쿼리들의 기반) ─────
+  const [allClasses, allTeachers, activeStudents] = await Promise.all([
+    prisma.class.findMany({
+      where: { academyId, isActive: true },
+      select: { id: true, name: true, teacherId: true },
+    }),
+    prisma.user.findMany({
+      where: { academyId, role: 'TEACHER', isActive: true, isDeleted: false },
+      select: { id: true, name: true },
+    }),
+    prisma.student.findMany({
+      where: { user: { academyId, isActive: true }, status: 'ACTIVE' },
+      select: { id: true, classId: true, currentLevel: true, userId: true },
+    }),
+  ])
+
+  const classIds = allClasses.map((c) => c.id)
+  const studentIds = activeStudents.map((s) => s.id)
+  const teacherIds = allTeachers.map((t) => t.id)
+  const classNameById: Record<string, string> = {}
+  allClasses.forEach((c) => (classNameById[c.id] = c.name))
+  const studentById: Record<string, { classId: string | null; currentLevel: number }> = {}
+  activeStudents.forEach((s) => (studentById[s.id] = { classId: s.classId, currentLevel: s.currentLevel }))
+  const userIdToStudentId: Record<string, string> = {}
+  activeStudents.forEach((s) => (userIdToStudentId[s.userId] = s.id))
+
+  // ── Phase 2: 세션·출석·배지 데이터를 병렬 로드 (전부 평탄한 쿼리) ──────
+  const [
+    gradedSessions,
+    monthlySessions,
+    levelUpBadges,
+    attendanceRaw,
+    newStudentsRaw,
+    withdrawnRaw,
+    nearPromotionStudents,
+    testCountsByTeacher,
+    commentCountsByTeacher,
+  ] = await Promise.all([
+    // 기간내 GRADED 세션 — 학생의 반/레벨은 studentId로 메모리 조인
     prisma.testSession.findMany({
       where: {
-        student: { user: { academyId } },
+        studentId: { in: studentIds },
         status: 'GRADED',
         score: { not: null },
         completedAt: { gte: fromDate, lte: toDate },
       },
       select: {
+        studentId: true,
         score: true,
         grammarScore: true,
         vocabularyScore: true,
@@ -72,154 +108,49 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
         listeningScore: true,
         writingScore: true,
         completedAt: true,
-        student: {
-          select: {
-            currentLevel: true,
-            class: { select: { name: true } },
-          },
-        },
       },
     }),
 
-    // 2. Level distribution (active students)
-    prisma.student.groupBy({
-      by: ['currentLevel'],
-      where: { user: { academyId, isActive: true }, status: 'ACTIVE' },
-      _count: { id: true },
-      orderBy: { currentLevel: 'asc' },
+    // 최근 6개월 월별 트렌드용 — 필드 최소화
+    prisma.testSession.findMany({
+      where: {
+        studentId: { in: studentIds },
+        status: 'GRADED',
+        score: { not: null },
+        completedAt: { gte: sixMonthsAgo },
+      },
+      select: { studentId: true, score: true, completedAt: true },
     }),
 
-    // 3. Level-up badge earners this month
+    // 이번 달 레벨업 배지 (소량)
     prisma.badgeEarning.findMany({
       where: {
-        student: { user: { academyId } },
+        studentId: { in: studentIds },
         badge: { code: 'LEVEL_UP' },
         earnedAt: { gte: startOfMonth },
       },
       select: {
+        studentId: true,
         student: {
           select: {
             currentLevel: true,
             user: { select: { name: true } },
-            class: { select: { name: true } },
           },
         },
       },
       take: 20,
     }),
-  ])
 
-  // Batch 2: 트렌드/반/교사 데이터
-  const [monthlySessionsRaw, classesWithData, teachersRaw] = await Promise.all([
-    // 4. Monthly sessions (last 6 months, for trend charts)
-    prisma.testSession.findMany({
-      where: {
-        student: { user: { academyId } },
-        status: 'GRADED',
-        score: { not: null },
-        completedAt: { gte: sixMonthsAgo },
-      },
-      select: {
-        score: true,
-        completedAt: true,
-        student: { select: { class: { select: { name: true } } } },
-      },
-    }),
-
-    // 5. Classes with students, test sessions & attendance
-    prisma.class.findMany({
-      where: { academyId, isActive: true },
-      select: {
-        id: true,
-        name: true,
-        students: {
-          where: { status: 'ACTIVE' },
-          select: {
-            testSessions: {
-              where: {
-                status: 'GRADED',
-                score: { not: null },
-                completedAt: { gte: fromDate, lte: toDate },
-              },
-              select: {
-                score: true,
-                grammarScore: true,
-                vocabularyScore: true,
-                readingScore: true,
-                listeningScore: true,
-                writingScore: true,
-                completedAt: true,
-              },
-              orderBy: { completedAt: 'asc' },
-            },
-            attendance: {
-              where: { date: { gte: fromDate, lte: toDate } },
-              select: { status: true },
-            },
-          },
-        },
-      },
-    }),
-
-    // 6. Teachers with their classes & activity
-    prisma.user.findMany({
-      where: { academyId, role: 'TEACHER', isActive: true, isDeleted: false },
-      select: {
-        id: true,
-        name: true,
-        taughtClasses: {
-          where: { isActive: true },
-          select: {
-            students: {
-              where: { status: 'ACTIVE' },
-              select: {
-                testSessions: {
-                  where: {
-                    status: 'GRADED',
-                    score: { not: null },
-                    completedAt: { gte: fromDate, lte: toDate },
-                  },
-                  select: { score: true, completedAt: true },
-                  orderBy: { completedAt: 'asc' },
-                },
-              },
-            },
-          },
-        },
-        createdTests: {
-          where: { createdAt: { gte: fromDate, lte: toDate } },
-          select: { id: true },
-        },
-        writtenComments: {
-          where: { createdAt: { gte: fromDate, lte: toDate } },
-          select: { id: true },
-        },
-      },
-    }),
-  ])
-
-  // Batch 3: 출석/학생 현황 데이터 + 카운트 + 승급 대기
-  const [attendanceRaw, newStudentsRaw, withdrawnRaw, totalActiveStudents, nearPromotionStudents] = await Promise.all([
-    // 7. Attendance raw (for heatmap + weekday)
+    // 출석 원본 — nested join 제거 (studentId로 메모리 매칭)
     prisma.attendance.findMany({
       where: {
-        student: { user: { academyId } },
+        studentId: { in: studentIds },
         date: { gte: fromDate, lte: toDate },
       },
-      select: {
-        date: true,
-        status: true,
-        studentId: true,
-        student: {
-          select: {
-            user: { select: { name: true } },
-            class: { select: { name: true } },
-          },
-        },
-      },
+      select: { date: true, status: true, studentId: true },
     }),
 
-    // 8. New students (last 6 months)
+    // 신규 학생 (최근 6개월)
     prisma.user.findMany({
       where: {
         academyId,
@@ -230,7 +161,7 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
       select: { createdAt: true },
     }),
 
-    // 9. Withdrawn students (last 6 months)
+    // 탈퇴 학생 (최근 6개월)
     prisma.student.findMany({
       where: {
         user: { academyId },
@@ -240,15 +171,10 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
       select: { updatedAt: true },
     }),
 
-    // 10. Active student count
-    prisma.student.count({
-      where: { user: { academyId, isActive: true }, status: 'ACTIVE' },
-    }),
-
-    // 11. 승급 대기 학생 (조건1 또는 조건3은 충족, 조건2만 미충족으로 근접)
+    // 승급 대기
     prisma.levelPromotionStatus.findMany({
       where: {
-        student: { user: { academyId, isActive: true }, status: 'ACTIVE' },
+        studentId: { in: studentIds },
         allConditionsMet: false,
         condition1Met: true,
         condition3Met: true,
@@ -257,16 +183,48 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
         currentLevel: true,
         targetLevel: true,
         condition2Detail: true,
+        studentId: true,
         student: {
           select: {
             user: { select: { name: true } },
-            class: { select: { name: true } },
+            classId: true,
           },
         },
       },
       take: 10,
     }),
+
+    // 교사별 작성 테스트 수 (기간내) — DB-level groupBy
+    prisma.test.groupBy({
+      by: ['createdBy'],
+      where: { createdBy: { in: teacherIds }, createdAt: { gte: fromDate, lte: toDate } },
+      _count: { id: true },
+    }),
+
+    // 교사별 코멘트 수 (기간내) — DB-level groupBy
+    prisma.teacherComment.groupBy({
+      by: ['teacherId'],
+      where: { teacherId: { in: teacherIds }, createdAt: { gte: fromDate, lte: toDate } },
+      _count: { id: true },
+    }),
   ])
+
+  // 학생별 학생정보 가져와 메모리 매칭 (nearPromotion + absentTop10 용)
+  // nearPromotion과 absent 학생의 이름을 얻기 위해 studentId 모음 → 이름 한 번에 조회
+  const nearPromoStudentIds = nearPromotionStudents.map((p) => p.studentId)
+  const attendanceStudentIds = Array.from(new Set(attendanceRaw.map((a) => a.studentId)))
+  const nameFetchIds = Array.from(new Set([...nearPromoStudentIds, ...attendanceStudentIds]))
+
+  const studentsWithName = nameFetchIds.length
+    ? await prisma.student.findMany({
+        where: { id: { in: nameFetchIds } },
+        select: { id: true, classId: true, user: { select: { name: true } } },
+      })
+    : []
+  const studentNameById: Record<string, { name: string; classId: string | null }> = {}
+  studentsWithName.forEach(
+    (s) => (studentNameById[s.id] = { name: s.user.name, classId: s.classId }),
+  )
 
   // ── TAB 1: Score Analysis ──────────────────────────────────────────────────
 
@@ -286,34 +244,40 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     total: allScores.length,
   }
 
-  // Level distribution
-  const levelDistribution = levelDistRaw.map((l) => ({
-    level: `레벨 ${l.currentLevel}`,
-    count: l._count.id,
-  }))
+  // Level distribution (activeStudents 기반 — 이미 로드됨)
+  const levelCountMap: Record<number, number> = {}
+  activeStudents.forEach((s) => {
+    levelCountMap[s.currentLevel] = (levelCountMap[s.currentLevel] ?? 0) + 1
+  })
+  const levelDistribution = Object.entries(levelCountMap)
+    .map(([lvl, cnt]) => ({ level: `레벨 ${lvl}`, count: cnt }))
+    .sort((a, b) => parseInt(a.level.split(' ')[1]) - parseInt(b.level.split(' ')[1]))
 
-  // Level avg scores (from graded sessions)
+  // Level avg scores
   const levelScoreMap: Record<number, number[]> = {}
   gradedSessions.forEach((s) => {
-    const lvl = s.student.currentLevel
+    const info = studentById[s.studentId]
+    if (!info) return
+    const lvl = info.currentLevel
     if (!levelScoreMap[lvl]) levelScoreMap[lvl] = []
     levelScoreMap[lvl].push(s.score as number)
   })
   const levelAvgScores = Object.entries(levelScoreMap)
-    .map(([lvl, scores]) => ({
-      level: `레벨 ${lvl}`,
-      avgScore: avg(scores) ?? 0,
-    }))
+    .map(([lvl, scores]) => ({ level: `레벨 ${lvl}`, avgScore: avg(scores) ?? 0 }))
     .sort((a, b) => parseInt(a.level.split(' ')[1]) - parseInt(b.level.split(' ')[1]))
 
   // Level-up students
-  const levelUpStudents = levelUpBadges.map((b) => ({
-    name: b.student.user.name,
-    className: b.student.class?.name ?? '반 미배정',
-    level: b.student.currentLevel,
-  }))
+  const levelUpStudents = levelUpBadges.map((b) => {
+    const info = studentById[b.studentId]
+    const classId = info?.classId ?? null
+    return {
+      name: b.student.user.name,
+      className: classId ? classNameById[classId] ?? '반 미배정' : '반 미배정',
+      level: b.student.currentLevel,
+    }
+  })
 
-  // Domain averages (5영역)
+  // Domain averages
   const domainScores = {
     Grammar: gradedSessions.map((s) => s.grammarScore).filter((v): v is number => v !== null),
     Vocabulary: gradedSessions.map((s) => s.vocabularyScore).filter((v): v is number => v !== null),
@@ -325,19 +289,18 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     domain,
     avg: avg(scores) ?? 0,
   }))
-  const weakestDomain =
-    domainAvgs.some((d) => d.avg > 0)
-      ? domainAvgs.reduce((a, b) => (a.avg <= b.avg ? a : b)).domain
-      : null
+  const weakestDomain = domainAvgs.some((d) => d.avg > 0)
+    ? domainAvgs.reduce((a, b) => (a.avg <= b.avg ? a : b)).domain
+    : null
 
-  // Monthly trend (last 6 months)
+  // Monthly trend
   const monthKeys: string[] = []
   for (let i = 5; i >= 0; i--) {
     monthKeys.push(monthKey(new Date(now.getFullYear(), now.getMonth() - i, 1)))
   }
   const monthScoreMap: Record<string, number[]> = {}
   monthKeys.forEach((k) => (monthScoreMap[k] = []))
-  monthlySessionsRaw.forEach((s) => {
+  monthlySessions.forEach((s) => {
     if (!s.completedAt) return
     const k = monthKey(s.completedAt)
     if (k in monthScoreMap) monthScoreMap[k].push(s.score as number)
@@ -347,19 +310,21 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     avg: avg(monthScoreMap[k]),
   }))
 
-  // Class monthly trend (last 6 months)
-  const classNames = classesWithData.map((c) => c.name)
+  // Class monthly trend
+  const classNames = allClasses.map((c) => c.name)
   const classByMonth: Record<string, Record<string, number[]>> = {}
   monthKeys.forEach((k) => {
     classByMonth[k] = {}
     classNames.forEach((cn) => (classByMonth[k][cn] = []))
   })
-  monthlySessionsRaw.forEach((s) => {
-    if (!s.completedAt || !s.student.class) return
+  monthlySessions.forEach((s) => {
+    if (!s.completedAt) return
+    const info = studentById[s.studentId]
+    if (!info?.classId) return
+    const cn = classNameById[info.classId]
+    if (!cn) return
     const k = monthKey(s.completedAt)
-    if (k in classByMonth && s.student.class.name in classByMonth[k]) {
-      classByMonth[k][s.student.class.name].push(s.score as number)
-    }
+    if (k in classByMonth && cn in classByMonth[k]) classByMonth[k][cn].push(s.score as number)
   })
   const classTrendData: ClassTrendItem[] = monthKeys.map((k) => {
     const row: ClassTrendItem = { month: `${parseInt(k.split('-')[1])}월` }
@@ -372,18 +337,54 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
 
   // ── TAB 2: Class Comparison ───────────────────────────────────────────────
 
-  const classComparison = classesWithData.map((cls) => {
-    const allSessions = cls.students.flatMap((s) => s.testSessions)
-    const scores = allSessions.map((s) => s.score as number)
+  // 반별 세션/점수 집계 (gradedSessions를 한 번 순회)
+  type ClassAgg = {
+    sessions: Array<{ score: number; completedAt: Date | null; g: number | null; v: number | null; r: number | null; w: number | null }>
+    studentIds: Set<string>
+    attendancePresent: number
+    attendanceTotal: number
+  }
+  const classAggMap: Record<string, ClassAgg> = {}
+  classIds.forEach((id) => {
+    classAggMap[id] = { sessions: [], studentIds: new Set(), attendancePresent: 0, attendanceTotal: 0 }
+  })
+  activeStudents.forEach((s) => {
+    if (s.classId && classAggMap[s.classId]) classAggMap[s.classId].studentIds.add(s.id)
+  })
+  gradedSessions.forEach((s) => {
+    const info = studentById[s.studentId]
+    if (!info?.classId) return
+    const agg = classAggMap[info.classId]
+    if (!agg) return
+    agg.sessions.push({
+      score: s.score as number,
+      completedAt: s.completedAt,
+      g: s.grammarScore,
+      v: s.vocabularyScore,
+      r: s.readingScore,
+      w: s.writingScore,
+    })
+  })
+  attendanceRaw.forEach((a) => {
+    const info = studentById[a.studentId]
+    if (!info?.classId) return
+    const agg = classAggMap[info.classId]
+    if (!agg) return
+    agg.attendanceTotal++
+    if (a.status === 'PRESENT') agg.attendancePresent++
+  })
+
+  const classComparison = allClasses.map((cls) => {
+    const agg = classAggMap[cls.id]
+    const scores = agg.sessions.map((s) => s.score)
     const avgScore = avg(scores)
 
-    // Growth rate: compare first half vs second half
-    const sorted = [...allSessions].sort((a, b) =>
-      (a.completedAt?.getTime() ?? 0) - (b.completedAt?.getTime() ?? 0),
+    const sorted = [...agg.sessions].sort(
+      (a, b) => (a.completedAt?.getTime() ?? 0) - (b.completedAt?.getTime() ?? 0),
     )
     const half = Math.floor(sorted.length / 2)
-    const firstHalfScores = sorted.slice(0, half).map((s) => s.score as number)
-    const secondHalfScores = sorted.slice(half).map((s) => s.score as number)
+    const firstHalfScores = sorted.slice(0, half).map((s) => s.score)
+    const secondHalfScores = sorted.slice(half).map((s) => s.score)
     const firstAvg = avg(firstHalfScores)
     const secondAvg = avg(secondHalfScores)
     const growthRate =
@@ -391,29 +392,26 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
         ? secondAvg - firstAvg
         : null
 
-    // Attendance rate
-    const allAttendance = cls.students.flatMap((s) => s.attendance)
-    const presentCount = allAttendance.filter((a) => a.status === 'PRESENT').length
-    const attendanceRate = allAttendance.length > 0
-      ? Math.round((presentCount / allAttendance.length) * 100)
+    const attendanceRate = agg.attendanceTotal > 0
+      ? Math.round((agg.attendancePresent / agg.attendanceTotal) * 100)
       : null
 
     return {
       id: cls.id,
       name: cls.name,
-      studentCount: cls.students.length,
+      studentCount: agg.studentIds.size,
       avgScore,
       growthRate,
       attendanceRate,
     }
   })
 
-  const classDomainData = classesWithData.map((cls) => {
-    const sessions = cls.students.flatMap((s) => s.testSessions)
-    const g = sessions.map((s) => s.grammarScore).filter((v): v is number => v !== null)
-    const v = sessions.map((s) => s.vocabularyScore).filter((v2): v2 is number => v2 !== null)
-    const r = sessions.map((s) => s.readingScore).filter((v3): v3 is number => v3 !== null)
-    const w = sessions.map((s) => s.writingScore).filter((v4): v4 is number => v4 !== null)
+  const classDomainData = allClasses.map((cls) => {
+    const sessions = classAggMap[cls.id].sessions
+    const g = sessions.map((s) => s.g).filter((v): v is number => v !== null)
+    const v = sessions.map((s) => s.v).filter((x): x is number => x !== null)
+    const r = sessions.map((s) => s.r).filter((x): x is number => x !== null)
+    const w = sessions.map((s) => s.w).filter((x): x is number => x !== null)
     return {
       name: cls.name,
       Grammar: avg(g) ?? 0,
@@ -425,50 +423,82 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
 
   // ── TAB 3: Teacher Performance ────────────────────────────────────────────
 
-  const teacherPerformance = teachersRaw.map((teacher) => {
-    const allStudentSessions = teacher.taughtClasses.flatMap((cls) =>
-      cls.students.flatMap((s) => s.testSessions),
-    )
-    const scores = allStudentSessions.map((s) => s.score as number)
-    const avgScore = avg(scores)
-    const studentCount = teacher.taughtClasses.flatMap((cls) => cls.students).length
+  // 교사별 집계: 담당 반의 학생들의 세션
+  // 반 → 교사 매핑
+  const classToTeacher: Record<string, string | null> = {}
+  allClasses.forEach((c) => (classToTeacher[c.id] = c.teacherId))
+  const studentToTeacher: Record<string, string | null> = {}
+  activeStudents.forEach((s) => {
+    studentToTeacher[s.id] = s.classId ? classToTeacher[s.classId] ?? null : null
+  })
 
-    // Improvement rate: first vs last score per student (across all students)
-    const improvements: number[] = []
-    teacher.taughtClasses.forEach((cls) => {
-      cls.students.forEach((student) => {
-        const sorted = [...student.testSessions].sort(
-          (a, b) => (a.completedAt?.getTime() ?? 0) - (b.completedAt?.getTime() ?? 0),
-        )
-        if (sorted.length >= 2) {
-          const first = sorted[0].score as number
-          const last = sorted[sorted.length - 1].score as number
-          improvements.push(last - first)
-        }
-      })
+  type TeacherAgg = {
+    studentIds: Set<string>
+    scores: number[]
+    studentSessionMap: Record<string, Array<{ score: number; completedAt: Date | null }>>
+  }
+  const teacherAggMap: Record<string, TeacherAgg> = {}
+  teacherIds.forEach((id) => {
+    teacherAggMap[id] = { studentIds: new Set(), scores: [], studentSessionMap: {} }
+  })
+  activeStudents.forEach((s) => {
+    const t = studentToTeacher[s.id]
+    if (t && teacherAggMap[t]) teacherAggMap[t].studentIds.add(s.id)
+  })
+  gradedSessions.forEach((s) => {
+    const t = studentToTeacher[s.studentId]
+    if (!t || !teacherAggMap[t]) return
+    teacherAggMap[t].scores.push(s.score as number)
+    if (!teacherAggMap[t].studentSessionMap[s.studentId]) {
+      teacherAggMap[t].studentSessionMap[s.studentId] = []
+    }
+    teacherAggMap[t].studentSessionMap[s.studentId].push({
+      score: s.score as number,
+      completedAt: s.completedAt,
     })
-    const improvementRate = avg(improvements)
+  })
+
+  const testCountMap: Record<string, number> = {}
+  testCountsByTeacher.forEach((r) => {
+    if (r.createdBy) testCountMap[r.createdBy] = r._count.id
+  })
+  const commentCountMap: Record<string, number> = {}
+  commentCountsByTeacher.forEach((r) => (commentCountMap[r.teacherId] = r._count.id))
+
+  const teacherPerformance = allTeachers.map((teacher) => {
+    const agg = teacherAggMap[teacher.id]
+    const avgScore = avg(agg.scores)
+
+    // Improvement rate: 학생별 첫 세션 vs 마지막 세션 차
+    const improvements: number[] = []
+    Object.values(agg.studentSessionMap).forEach((sessions) => {
+      const sorted = [...sessions].sort(
+        (a, b) => (a.completedAt?.getTime() ?? 0) - (b.completedAt?.getTime() ?? 0),
+      )
+      if (sorted.length >= 2) {
+        improvements.push(sorted[sorted.length - 1].score - sorted[0].score)
+      }
+    })
 
     return {
       id: teacher.id,
       name: teacher.name,
-      studentCount,
+      studentCount: agg.studentIds.size,
       avgScore,
-      testCount: teacher.createdTests.length,
-      commentCount: teacher.writtenComments.length,
-      improvementRate,
+      testCount: testCountMap[teacher.id] ?? 0,
+      commentCount: commentCountMap[teacher.id] ?? 0,
+      improvementRate: avg(improvements),
     }
   })
 
-  const teacherActivityData = teachersRaw.map((t) => ({
+  const teacherActivityData = allTeachers.map((t) => ({
     name: t.name,
-    tests: t.createdTests.length,
-    comments: t.writtenComments.length,
+    tests: testCountMap[t.id] ?? 0,
+    comments: commentCountMap[t.id] ?? 0,
   }))
 
   // ── TAB 4: Attendance Analysis ────────────────────────────────────────────
 
-  // Daily attendance rates
   const dailyMap: Record<string, { present: number; total: number }> = {}
   attendanceRaw.forEach((a) => {
     const dateStr = a.date.toISOString().split('T')[0]
@@ -485,7 +515,6 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     }))
     .sort((a, b) => a.date.localeCompare(b.date))
 
-  // Weekday averages (0=Sun ... 6=Sat)
   const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
   const weekdayMap: Record<number, number[]> = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }
   attendanceRaw.forEach((a) => {
@@ -497,7 +526,7 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     const vals = weekdayMap[i]
     const rate = vals.length > 0 ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) : 0
     return { day, avg: rate }
-  }).filter((d) => d.avg > 0 || weekdayMap[WEEKDAY_LABELS.indexOf(d.day)].length > 0)
+  }).filter((d, i) => weekdayMap[i].length > 0)
 
   // Absent top 10
   type StudentAttendanceSummary = { name: string; className: string; absentCount: number; total: number }
@@ -505,9 +534,11 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
   attendanceRaw.forEach((a) => {
     const id = a.studentId
     if (!studentAttMap[id]) {
+      const meta = studentNameById[id]
+      const classId = meta?.classId ?? null
       studentAttMap[id] = {
-        name: a.student.user.name,
-        className: a.student.class?.name ?? '반 미배정',
+        name: meta?.name ?? '학생',
+        className: classId ? classNameById[classId] ?? '반 미배정' : '반 미배정',
         absentCount: 0,
         total: 0,
       }
@@ -545,22 +576,24 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     withdrawn: monthlyEnrollmentMap[k].withdrawn,
   }))
 
-  // 승급 대기 학생 처리
-  const nearPromotion = nearPromotionStudents.map((ps) => {
-    const c2 = (ps.condition2Detail ?? {}) as Record<string, unknown>
-    const completionRate = typeof c2.completionRate === 'number' ? c2.completionRate : 0
-    const remaining = typeof c2.totalTests === 'number' && typeof c2.completedTests === 'number'
-      ? Math.ceil((c2.totalTests as number) * 0.7) - (c2.completedTests as number)
-      : null
-    return {
-      name: ps.student.user.name,
-      className: ps.student.class?.name ?? '반 미배정',
-      currentLevel: ps.currentLevel,
-      targetLevel: ps.targetLevel,
-      completionRate,
-      remaining,
-    }
-  }).sort((a, b) => b.completionRate - a.completionRate)
+  const nearPromotion = nearPromotionStudents
+    .map((ps) => {
+      const c2 = (ps.condition2Detail ?? {}) as Record<string, unknown>
+      const completionRate = typeof c2.completionRate === 'number' ? c2.completionRate : 0
+      const remaining = typeof c2.totalTests === 'number' && typeof c2.completedTests === 'number'
+        ? Math.ceil((c2.totalTests as number) * 0.7) - (c2.completedTests as number)
+        : null
+      const classId = ps.student.classId
+      return {
+        name: ps.student.user.name,
+        className: classId ? classNameById[classId] ?? '반 미배정' : '반 미배정',
+        currentLevel: ps.currentLevel,
+        targetLevel: ps.targetLevel,
+        completionRate,
+        remaining,
+      }
+    })
+    .sort((a, b) => b.completionRate - a.completionRate)
 
   return {
     scoreHistogram,
@@ -581,19 +614,19 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     weekdayAvgs,
     absentTop10,
     monthlyEnrollments,
-    totalActiveStudents,
+    totalActiveStudents: activeStudents.length,
     nearPromotion,
   }
 }
 
-// ─── Cached Wrapper (period별 독립 캐시, 60초 TTL) ────────────────────────────
+// ─── Cached Wrapper (period별 독립 캐시, 5분 TTL) ────────────────────────────
 
 function getCachedAnalyticsData(academyId: string, period: string) {
   const { from, to } = getPeriodDates(period)
   return unstable_cache(
     () => getAnalyticsData(academyId, from, to),
     ['owner-analytics', academyId, period],
-    { revalidate: 60 },
+    { revalidate: 300, tags: [`academy-${academyId}-analytics`] },
   )()
 }
 
@@ -607,29 +640,13 @@ interface PageProps {
 }
 
 export default async function AnalyticsPage({ searchParams }: PageProps) {
-  const pageStart = performance.now()
-
-  const authStart = performance.now()
   const user = await getCurrentUser()
-  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
   const period = searchParams.period ?? '3-months'
   const activeTab = searchParams.tab ?? 'scores'
 
-  const dataStart = performance.now()
   const data = await getCachedAnalyticsData(user.academyId, period)
-  console.log(`  [쿼리2] getCachedAnalyticsData (period=${period}): ${(performance.now() - dataStart).toFixed(0)}ms`)
 
-  const totalTime = performance.now() - pageStart
-  console.log(`📊 [AnalyticsPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
-  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
-
-  return (
-    <AnalyticsClient
-      data={data}
-      period={period}
-      activeTab={activeTab}
-    />
-  )
+  return <AnalyticsClient data={data} period={period} activeTab={activeTab} />
 }

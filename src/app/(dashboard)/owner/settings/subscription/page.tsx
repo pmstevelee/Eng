@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { SubscriptionClient } from './_components/subscription-client'
@@ -45,41 +46,70 @@ const PERIOD_LABEL: Record<string, string> = {
   YEARLY: '연간',
 }
 
+const getSubscriptionPageData = (academyId: string) =>
+  unstable_cache(
+    async () => {
+      const [academy, teacherCount, studentCount, subscriptions, pendingSubscription] = await Promise.all([
+        prisma.academy.findUnique({
+          where: { id: academyId },
+          select: {
+            name: true,
+            businessName: true,
+            subscriptionStatus: true,
+            subscriptionPlan: true,
+            subscriptionExpiresAt: true,
+            trialEndsAt: true,
+            maxStudents: true,
+            maxTeachers: true,
+          },
+        }),
+        prisma.user.count({ where: { academyId, role: 'TEACHER', isDeleted: false } }),
+        prisma.student.count({ where: { user: { academyId }, status: 'ACTIVE' } }),
+        prisma.subscription.findMany({
+          where: { academyId },
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+        }),
+        prisma.subscription.findFirst({
+          where: { academyId, status: 'PENDING' },
+          orderBy: { createdAt: 'desc' },
+          select: { plan: true, period: true, amount: true, createdAt: true },
+        }),
+      ])
+      return {
+        academy,
+        teacherCount,
+        studentCount,
+        subscriptions: subscriptions.map((s) => ({
+          id: s.id,
+          plan: s.plan,
+          period: s.period,
+          amount: s.amount,
+          status: s.status,
+          createdAt: s.createdAt.toISOString(),
+        })),
+        pendingSubscription: pendingSubscription
+          ? {
+              plan: pendingSubscription.plan,
+              period: pendingSubscription.period,
+              amount: pendingSubscription.amount,
+              createdAt: pendingSubscription.createdAt.toISOString(),
+            }
+          : null,
+      }
+    },
+    ['owner-subscription', academyId],
+    { revalidate: 60, tags: [`academy-${academyId}-subscription`] },
+  )()
+
 export default async function SubscriptionPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
   const academyId = user.academyId
-
-  const academy = await prisma.academy.findUnique({
-    where: { id: academyId },
-    select: {
-      name: true,
-      businessName: true,
-      subscriptionStatus: true,
-      subscriptionPlan: true,
-      subscriptionExpiresAt: true,
-      trialEndsAt: true,
-      maxStudents: true,
-      maxTeachers: true,
-    },
-  })
+  const { academy, teacherCount, studentCount, subscriptions, pendingSubscription } =
+    await getSubscriptionPageData(academyId)
   if (!academy) redirect('/login')
-
-  const [teacherCount, studentCount, subscriptions, pendingSubscription] = await Promise.all([
-    prisma.user.count({ where: { academyId, role: 'TEACHER', isDeleted: false } }),
-    prisma.student.count({ where: { user: { academyId }, status: 'ACTIVE' } }),
-    prisma.subscription.findMany({
-      where: { academyId },
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-    }),
-    prisma.subscription.findFirst({
-      where: { academyId, status: 'PENDING' },
-      orderBy: { createdAt: 'desc' },
-      select: { plan: true, period: true, amount: true, createdAt: true },
-    }),
-  ])
 
   const isTrialing = academy.subscriptionStatus === 'TRIAL'
   const isExpired = academy.subscriptionStatus === 'EXPIRED'
@@ -93,14 +123,7 @@ export default async function SubscriptionPage() {
   const currentPlan = academy.subscriptionPlan as 'BASIC' | 'STANDARD' | 'PREMIUM'
   const academyName = academy.businessName ?? academy.name
 
-  const pendingSubForClient = pendingSubscription
-    ? {
-        plan: pendingSubscription.plan,
-        period: pendingSubscription.period,
-        amount: pendingSubscription.amount,
-        createdAt: pendingSubscription.createdAt.toISOString(),
-      }
-    : undefined
+  const pendingSubForClient = pendingSubscription ?? undefined
 
   return (
     <div className="space-y-8 max-w-5xl">
@@ -303,7 +326,7 @@ export default async function SubscriptionPage() {
                 {subscriptions.map((sub) => (
                   <tr key={sub.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">
-                      {sub.createdAt.toLocaleDateString('ko-KR')}
+                      {new Date(sub.createdAt).toLocaleDateString('ko-KR')}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                       {PLAN_LABEL[sub.plan] ?? sub.plan}
