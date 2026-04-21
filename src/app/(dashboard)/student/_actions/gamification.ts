@@ -279,28 +279,72 @@ export async function generateOrGetDailyMission() {
   // })
 }
 
-// ─── Get mission questions detail ────────────────────────────────────────────
+// ─── Get mission questions detail (with 30s cache) ───────────────────────────
+
+const getCachedMissionWithQuestions = (studentId: string) =>
+  unstable_cache(
+    async () => {
+      const todayStart = new Date()
+      todayStart.setHours(0, 0, 0, 0)
+
+      // 오늘 미션 조회 (없으면 생성)
+      let mission = await prisma.dailyMission.findFirst({
+        where: { studentId, missionDate: { gte: todayStart } },
+      })
+      if (!mission) {
+        try {
+          mission = await buildDailyMissions(studentId)
+        } catch {
+          mission = await prisma.dailyMission.findFirst({
+            where: { studentId, missionDate: { gte: todayStart } },
+          })
+        }
+      }
+      if (!mission) return null
+
+      const questionIds = mission.questionIds as string[]
+      const questions = await prisma.question.findMany({
+        where: { id: { in: questionIds } },
+        select: { id: true, domain: true, difficulty: true, cefrLevel: true, contentJson: true },
+      })
+
+      const ordered = questionIds
+        .map((id) => questions.find((q) => q.id === id))
+        .filter(Boolean) as typeof questions
+
+      return {
+        mission: {
+          ...mission,
+          missionDate: mission.missionDate.toISOString(),
+          completedAt: mission.completedAt?.toISOString() ?? null,
+          createdAt: mission.createdAt.toISOString(),
+        },
+        questions: ordered,
+        studentId,
+      }
+    },
+    ['student-mission-questions', studentId],
+    { revalidate: 120, tags: [`student-${studentId}-dashboard`] },
+  )()
 
 export async function getDailyMissionWithQuestions() {
   const auth = await getAuthedStudent()
   if (!auth) return null
   const { studentId } = auth
 
-  const mission = await generateOrGetDailyMission()
-  if (!mission) return null
+  const cached = await getCachedMissionWithQuestions(studentId)
+  if (!cached) return null
 
-  const questionIds = mission.questionIds as string[]
-  const questions = await prisma.question.findMany({
-    where: { id: { in: questionIds } },
-    select: { id: true, domain: true, difficulty: true, cefrLevel: true, contentJson: true },
-  })
-
-  // preserve order
-  const ordered = questionIds
-    .map((id) => questions.find((q) => q.id === id))
-    .filter(Boolean) as typeof questions
-
-  return { mission, questions: ordered, studentId }
+  return {
+    mission: {
+      ...cached.mission,
+      missionDate: new Date(cached.mission.missionDate),
+      completedAt: cached.mission.completedAt ? new Date(cached.mission.completedAt) : null,
+      createdAt: new Date(cached.mission.createdAt),
+    },
+    questions: cached.questions,
+    studentId: cached.studentId,
+  }
 }
 
 // ─── Submit mission answers ───────────────────────────────────────────────────

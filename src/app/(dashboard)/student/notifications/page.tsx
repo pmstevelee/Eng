@@ -1,7 +1,7 @@
 import { Bell, CheckCheck, Info, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react'
-import { getCurrentUser } from '@/lib/auth'
+import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
-import { redirect } from 'next/navigation'
+import { requireStudent } from '@/lib/auth-student'
 import { markAllNotificationsRead } from '@/lib/actions/notification-actions'
 
 const TYPE_CONFIG = {
@@ -35,7 +35,7 @@ const TYPE_CONFIG = {
   },
 }
 
-function formatDate(date: Date) {
+function formatDate(date: Date | string) {
   const d = new Date(date)
   const now = new Date()
   const diff = Math.floor((now.getTime() - d.getTime()) / 1000)
@@ -45,16 +45,43 @@ function formatDate(date: Date) {
   return d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
+type CachedNotification = {
+  id: string
+  type: string
+  title: string
+  message: string
+  isRead: boolean
+  createdAt: string
+}
+
+const getCachedNotifications = (userId: string) =>
+  unstable_cache(
+    async () => {
+      const rows = await prisma.notification.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+        select: {
+          id: true,
+          type: true,
+          title: true,
+          message: true,
+          isRead: true,
+          createdAt: true,
+        },
+      })
+      return rows.map((n): CachedNotification => ({
+        ...n,
+        createdAt: n.createdAt.toISOString(),
+      }))
+    },
+    ['student-notifications', userId],
+    { revalidate: 120, tags: [`notifications-${userId}`] },
+  )()
+
 export default async function StudentNotificationsPage() {
-  const user = await getCurrentUser()
-  if (!user) redirect('/login')
-
-  const notifications = await prisma.notification.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
-    take: 50,
-  })
-
+  const { userId } = await requireStudent()
+  const notifications = await getCachedNotifications(userId)
   const unreadCount = notifications.filter((n) => !n.isRead).length
 
   return (

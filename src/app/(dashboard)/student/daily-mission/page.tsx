@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { Target, Sparkles } from 'lucide-react'
+import { requireStudent } from '@/lib/auth-student'
 import { getDailyMissionWithQuestions } from '@/app/(dashboard)/student/_actions/gamification'
 import { MissionClient } from './_components/mission-client'
 
@@ -11,6 +12,7 @@ const DOMAIN_LABELS: Record<string, string> = {
 }
 
 export default async function DailyMissionPage() {
+  await requireStudent()
   const data = await getDailyMissionWithQuestions()
 
   if (!data) redirect('/student')

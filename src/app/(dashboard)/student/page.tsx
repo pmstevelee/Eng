@@ -11,27 +11,15 @@ import {
   Circle,
   AlertCircle,
 } from 'lucide-react'
-import { getCurrentUser } from '@/lib/auth'
+import { requireStudent } from '@/lib/auth-student'
 import { getStudentDashboardData } from './_actions/gamification'
 import { getLevelInfo } from '@/lib/constants/levels'
 import { DailyMissionCard } from '@/components/student/daily-mission-card'
 
 export default async function StudentDashboardPage() {
-  const pageStart = performance.now()
-
-  const authStart = performance.now()
-  const user = await getCurrentUser()
-  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
-  if (!user || user.role !== 'STUDENT') redirect('/login')
-
-  const dataStart = performance.now()
+  const { user } = await requireStudent()
   const data = await getStudentDashboardData()
-  console.log(`  [쿼리2] getStudentDashboardData: ${(performance.now() - dataStart).toFixed(0)}ms`)
   if (!data) redirect('/login')
-
-  const totalTime = performance.now() - pageStart
-  console.log(`📊 [StudentDashboardPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
-  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   const {
     mission,

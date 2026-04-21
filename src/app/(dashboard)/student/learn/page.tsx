@@ -1,7 +1,6 @@
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Brain, BookOpen, RotateCcw, PenLine, ChevronRight } from 'lucide-react'
-import { getCurrentUser } from '@/lib/auth'
+import { requireStudent } from '@/lib/auth-student'
 import { getLearnHubData } from './actions'
 
 const DOMAIN_CARDS = [
@@ -48,21 +47,9 @@ const DOMAIN_CARDS = [
 ] as const
 
 export default async function LearnPage() {
-  const pageStart = performance.now()
-
-  const authStart = performance.now()
-  const user = await getCurrentUser()
-  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
-  if (!user || user.role !== 'STUDENT') redirect('/login')
-
-  const dataStart = performance.now()
+  await requireStudent()
   const { wrongAnswerCount, domainScores, todayQuestions, todayCorrect } =
     await getLearnHubData()
-  console.log(`  [쿼리2] getLearnHubData: ${(performance.now() - dataStart).toFixed(0)}ms`)
-
-  const totalTime = performance.now() - pageStart
-  console.log(`📊 [LearnPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
-  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   const todayAccuracy =
     todayQuestions > 0 ? Math.round((todayCorrect / todayQuestions) * 100) : null

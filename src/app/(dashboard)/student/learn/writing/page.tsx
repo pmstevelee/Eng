@@ -1,7 +1,6 @@
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, PenLine, History } from 'lucide-react'
-import { getCurrentUser } from '@/lib/auth'
+import { requireStudent } from '@/lib/auth-student'
 import { prisma } from '@/lib/prisma/client'
 import { calculateDomainLevels } from '@/lib/ai/domain-level-calculator'
 import { getLevelInfo } from '@/lib/constants/levels'
@@ -9,20 +8,13 @@ import { WritingClient } from './_components/writing-client'
 import type { StudentProfileForWriting } from './_components/writing-client'
 
 export default async function WritingPage() {
-  const user = await getCurrentUser()
-  if (!user || user.role !== 'STUDENT') redirect('/login')
+  const { studentId } = await requireStudent()
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id, isDeleted: false },
-    select: {
-      student: {
-        select: { id: true, currentLevel: true },
-      },
-    },
+  const studentData = await prisma.student.findUnique({
+    where: { id: studentId },
+    select: { currentLevel: true },
   })
-
-  if (!dbUser?.student) redirect('/login')
-  const { id: studentId, currentLevel } = dbUser.student
+  const currentLevel = studentData?.currentLevel ?? 1
 
   // 최근 스킬 평가 점수 조회 (최근 쓰기 점수 추이용)
   const recentWriting = await prisma.skillAssessment.findMany({

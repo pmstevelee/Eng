@@ -1,8 +1,7 @@
-import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
-import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { requireStudent } from '@/lib/auth-student'
 import {
   BookOpen,
   BarChart2,
@@ -183,14 +182,7 @@ const getCachedStudentLearning = (studentId: string) =>
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function LearningPage() {
-  const user = await getCurrentUser()
-  if (!user || user.role !== 'STUDENT') redirect('/login')
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { student: { select: { id: true } } },
-  })
-  if (!dbUser?.student) redirect('/login')
+  const { studentId: dbStudentId } = await requireStudent()
 
   const {
     latestSkills,
@@ -200,7 +192,7 @@ export default async function LearningPage() {
     recentSessionId,
     recentSessionTitle,
     teacherComments,
-  } = await getCachedStudentLearning(dbUser.student.id)
+  } = await getCachedStudentLearning(dbStudentId)
 
   return (
     <div className="space-y-6">

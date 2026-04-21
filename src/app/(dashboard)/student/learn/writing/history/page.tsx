@@ -1,7 +1,6 @@
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, PenLine, ChevronDown, ChevronUp } from 'lucide-react'
-import { getCurrentUser } from '@/lib/auth'
+import { requireStudent } from '@/lib/auth-student'
 import { prisma } from '@/lib/prisma/client'
 import { WritingHistoryAccordion } from './_components/writing-history-accordion'
 
@@ -75,17 +74,10 @@ function formatDate(date: Date) {
 }
 
 export default async function WritingHistoryPage() {
-  const user = await getCurrentUser()
-  if (!user || user.role !== 'STUDENT') redirect('/login')
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id, isDeleted: false },
-    select: { student: { select: { id: true } } },
-  })
-  if (!dbUser?.student) redirect('/login')
+  const { studentId } = await requireStudent()
 
   const reports = await prisma.report.findMany({
-    where: { studentId: dbUser.student.id, type: 'WRITING_PRACTICE' },
+    where: { studentId, type: 'WRITING_PRACTICE' },
     orderBy: { createdAt: 'desc' },
     take: 50,
     select: { id: true, createdAt: true, dataJson: true },

@@ -1,23 +1,29 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth'
+import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
+import { requireStudent } from '@/lib/auth-student'
 import { WithdrawModal } from './_components/withdraw-modal'
 
-export default async function StudentSettingsPage() {
-  const currentUser = await getCurrentUser()
-  if (!currentUser || currentUser.role !== 'STUDENT') redirect('/login')
+const getCachedSettingsUser = (userId: string) =>
+  unstable_cache(
+    () =>
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          name: true,
+          email: true,
+          phone: true,
+          academy: { select: { name: true, businessName: true } },
+          student: { select: { grade: true, currentLevel: true } },
+        },
+      }),
+    ['student-settings-user', userId],
+    { revalidate: 300, tags: [`user-${userId}`] },
+  )()
 
-  const user = await prisma.user.findUnique({
-    where: { id: currentUser.id },
-    select: {
-      name: true,
-      email: true,
-      phone: true,
-      academy: { select: { name: true, businessName: true } },
-      student: { select: { grade: true, currentLevel: true } },
-    },
-  })
-  if (!user) redirect('/login')
+export default async function StudentSettingsPage() {
+  const { userId } = await requireStudent()
+  const user = await getCachedSettingsUser(userId)
+  if (!user) return null
 
   const academyName = user.academy?.businessName ?? user.academy?.name ?? '-'
 

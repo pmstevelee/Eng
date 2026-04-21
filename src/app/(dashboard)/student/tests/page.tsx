@@ -1,7 +1,6 @@
-import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
-import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { requireStudent } from '@/lib/auth-student'
 import Link from 'next/link'
 import { FileText, Clock, CheckCircle, BarChart2, ChevronRight, PlayCircle } from 'lucide-react'
 
@@ -76,39 +75,12 @@ const getCachedStudentSessions = (studentId: string) =>
       }))
     },
     ['student-sessions', studentId],
-    { revalidate: 30, tags: [`student-${studentId}-tests`] },
+    { revalidate: 120, tags: [`student-${studentId}-tests`] },
   )()
 
 export default async function StudentTestsPage() {
-  const pageStart = performance.now()
-
-  const authStart = performance.now()
-  const user = await getCurrentUser()
-  console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
-  if (!user || user.role !== 'STUDENT') redirect('/login')
-
-  // Student 레코드 조회 (없으면 자동 생성)
-  const studentLookupStart = performance.now()
-  let student = await prisma.student.findUnique({
-    where: { userId: user.id },
-    select: { id: true },
-  })
-  if (!student) {
-    student = await prisma.student.create({
-      data: { userId: user.id },
-      select: { id: true },
-    })
-  }
-  console.log(`  [쿼리2] prisma.student.findUnique: ${(performance.now() - studentLookupStart).toFixed(0)}ms`)
-  const studentId = student.id
-
-  const dataStart = performance.now()
+  const { studentId } = await requireStudent()
   const sessions = await getCachedStudentSessions(studentId)
-  console.log(`  [쿼리3] getCachedStudentSessions: ${(performance.now() - dataStart).toFixed(0)}ms`)
-
-  const totalTime = performance.now() - pageStart
-  console.log(`📊 [StudentTestsPage] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)
-  if (totalTime > 200) console.log(`⚠️ SLOW PAGE: ${totalTime.toFixed(0)}ms`)
 
   const notStarted = sessions.filter((s) => s.status === 'NOT_STARTED')
   const inProgress = sessions.filter((s) => s.status === 'IN_PROGRESS')

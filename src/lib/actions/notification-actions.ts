@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 export type NotificationItem = {
   id: string
@@ -56,6 +56,7 @@ export async function markNotificationRead(notificationId: string) {
     where: { id: notificationId, userId: user.id },
     data: { isRead: true },
   })
+  revalidateTag(`notifications-${user.id}`)
   revalidatePath('/', 'layout')
 }
 
@@ -70,5 +71,6 @@ export async function markAllNotificationsRead() {
     where: { userId: user.id, isRead: false },
     data: { isRead: true },
   })
+  revalidateTag(`notifications-${user.id}`)
   revalidatePath('/', 'layout')
 }

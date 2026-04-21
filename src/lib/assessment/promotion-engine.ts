@@ -12,6 +12,7 @@
  *   - 오늘의 미션 전체 완료 시
  */
 
+import { unstable_cache, revalidateTag } from 'next/cache'
 import { Prisma } from '@/generated/prisma'
 import { prisma } from '@/lib/prisma/client'
 
@@ -315,6 +316,9 @@ export async function checkPromotionStatus(studentId: string): Promise<Promotion
     },
   })
 
+  revalidateTag(`student-${studentId}-promotion`)
+  revalidateTag(`student-${studentId}-dashboard`)
+
   return {
     promoted,
     currentLevel: promoted ? targetLevel : currentLevel,
@@ -341,7 +345,14 @@ const DOMAIN_LABEL_KO: Record<string, string> = {
  * DB에 저장된 promotion_status를 읽어 포맷팅.
  * 없으면 기본 진행 상태 반환.
  */
-export async function getPromotionProgress(studentId: string): Promise<PromotionProgress> {
+export const getPromotionProgress = (studentId: string): Promise<PromotionProgress> =>
+  unstable_cache(
+    () => _getPromotionProgress(studentId),
+    ['promotion-progress', studentId],
+    { revalidate: 60, tags: [`student-${studentId}-promotion`] },
+  )()
+
+async function _getPromotionProgress(studentId: string): Promise<PromotionProgress> {
   const [student, status] = await Promise.all([
     prisma.student.findUnique({
       where: { id: studentId },

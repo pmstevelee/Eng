@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { requireStudent } from '@/lib/auth-student'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 import { TestStartScreen } from './_components/test-start-screen'
 import { TestTakingClient } from './_components/test-taking-client'
@@ -40,23 +40,7 @@ export default async function TestSessionPage({
 }) {
   const { sessionId } = params
 
-  const user = await getCurrentUser()
-  if (!user || user.role !== 'STUDENT') redirect('/login')
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { student: { select: { id: true } } },
-  })
-
-  // Student 레코드가 없으면 자동 생성
-  let studentId = dbUser?.student?.id
-  if (!studentId) {
-    const newStudent = await prisma.student.create({
-      data: { userId: user.id },
-      select: { id: true },
-    })
-    studentId = newStudent.id
-  }
+  const { user, studentId } = await requireStudent()
 
   const session = await prisma.testSession.findUnique({
     where: { id: sessionId, studentId },
@@ -89,15 +73,10 @@ export default async function TestSessionPage({
 
   // ── 적응형 레벨 테스트 분기 ────────────────────────────────────────────────
   if (session.test.isAdaptive) {
-    // 학생 이름 조회
-    const dbUserForName = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { name: true },
-    })
     return (
       <AdaptiveTestClient
         sessionId={sessionId}
-        studentName={dbUserForName?.name ?? '학생'}
+        studentName={user.name ?? '학생'}
         testTitle={session.test.title}
       />
     )
