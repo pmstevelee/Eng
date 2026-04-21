@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { NotificationsClient } from './_components/notifications-client'
@@ -11,14 +12,22 @@ const DEFAULT_SETTINGS = {
   levelTestPeriod: 'monthly' as string,
 }
 
+const getNotificationsData = (academyId: string) =>
+  unstable_cache(
+    () =>
+      prisma.academy.findUnique({
+        where: { id: academyId },
+        select: { settingsJson: true },
+      }),
+    [`notifications-settings-${academyId}`],
+    { revalidate: 60, tags: [`academy-${academyId}`] },
+  )()
+
 export default async function NotificationsSettingsPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
-  const academy = await prisma.academy.findUnique({
-    where: { id: user.academyId },
-    select: { settingsJson: true },
-  })
+  const academy = await getNotificationsData(user.academyId)
 
   const json =
     academy?.settingsJson &&

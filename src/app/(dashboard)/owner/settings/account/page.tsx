@@ -1,7 +1,8 @@
-import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { Suspense } from 'react'
+import { getCurrentUser } from '@/lib/auth'
+import { prisma } from '@/lib/prisma/client'
 import { PasswordResetSection } from './_components/password-reset-section'
 import { PasswordChangedToast } from './_components/password-changed-toast'
 
@@ -26,47 +27,65 @@ function AgreeBadge({ agreed }: { agreed: boolean }) {
   )
 }
 
-export default async function AccountPage() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      createdAt: true,
-      agreedTerms: true,
-      agreedPrivacy: true,
-      agreedMarketing: true,
-      academy: {
+const getAccountData = (userId: string) =>
+  unstable_cache(
+    async () => {
+      const user = await prisma.user.findUnique({
+        where: { id: userId, isDeleted: false },
         select: {
-          businessName: true,
+          id: true,
           name: true,
-          address: true,
+          email: true,
           phone: true,
-          planType: true,
-          subscriptionPlan: true,
-          trialEndsAt: true,
+          role: true,
           createdAt: true,
+          agreedTerms: true,
+          agreedPrivacy: true,
+          agreedMarketing: true,
+          academy: {
+            select: {
+              businessName: true,
+              name: true,
+              address: true,
+              phone: true,
+              planType: true,
+              subscriptionPlan: true,
+              trialEndsAt: true,
+              createdAt: true,
+            },
+          },
         },
-      },
+      })
+      if (!user) return null
+      return {
+        ...user,
+        createdAt: user.createdAt.toISOString(),
+        academy: user.academy
+          ? {
+              ...user.academy,
+              createdAt: user.academy.createdAt.toISOString(),
+              trialEndsAt: user.academy.trialEndsAt?.toISOString() ?? null,
+            }
+          : null,
+      }
     },
-  })
-  if (!user || user.role !== 'ACADEMY_OWNER') redirect('/login')
+    [`account-page-${userId}`],
+    { revalidate: 60, tags: [`user-${userId}`] },
+  )()
 
-  const formatDate = (date: Date) =>
+export default async function AccountPage() {
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.role !== 'ACADEMY_OWNER') redirect('/login')
+
+  const user = await getAccountData(currentUser.id)
+  if (!user) redirect('/login')
+
+  const formatDate = (date: string) =>
     new Intl.DateTimeFormat('ko-KR', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    }).format(date)
+    }).format(new Date(date))
 
   const planLabel: Record<string, string> = {
     BASIC: 'Basic',
@@ -79,7 +98,7 @@ export default async function AccountPage() {
       <Suspense fallback={null}>
         <PasswordChangedToast />
       </Suspense>
-      {/* 계정 기본 정보 */}
+
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-base font-semibold text-gray-900 mb-4">계정 정보</h2>
         <div>
@@ -90,7 +109,6 @@ export default async function AccountPage() {
         </div>
       </div>
 
-      {/* 학원 가입 정보 */}
       {user.academy && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-base font-semibold text-gray-900 mb-4">학원 가입 정보</h2>
@@ -109,14 +127,13 @@ export default async function AccountPage() {
             />
             <InfoRow
               label="가입 요금제"
-              value={planLabel[user.academy.subscriptionPlan] ?? user.academy.subscriptionPlan}
+              value={planLabel[user.academy.subscriptionPlan as string] ?? user.academy.subscriptionPlan}
             />
             <InfoRow label="학원 등록일" value={formatDate(user.academy.createdAt)} />
           </div>
         </div>
       )}
 
-      {/* 약관 동의 현황 */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-base font-semibold text-gray-900 mb-4">약관 동의 현황</h2>
         <div>
@@ -132,7 +149,6 @@ export default async function AccountPage() {
         </div>
       </div>
 
-      {/* 비밀번호 변경 */}
       <PasswordResetSection email={user.email} />
     </div>
   )
