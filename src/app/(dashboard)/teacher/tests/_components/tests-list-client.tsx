@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Clock, BookOpen, ChevronDown, ChevronUp, Send, Pencil, Trash2 } from 'lucide-react'
+import { Clock, BookOpen, ChevronDown, ChevronUp, Send, Pencil, Trash2, Eye } from 'lucide-react'
 import { deployExistingTest, getStudentsForDeploy, deleteTest } from '../actions'
+import TestPreviewModal from './test-preview-modal'
 
 type SessionInfo = { status: string; studentName: string }
 
@@ -62,6 +63,9 @@ export default function TestsListClient({ tests: initialTests }: { tests: TestIt
   const [tests, setTests] = useState(initialTests)
   const [activeTab, setActiveTab] = useState<'ALL' | 'DRAFT' | 'PUBLISHED' | 'GRADED'>('ALL')
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  // Preview state
+  const [previewTest, setPreviewTest] = useState<{ id: string; title: string } | null>(null)
 
   // Delete state
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
@@ -153,6 +157,15 @@ export default function TestsListClient({ tests: initialTests }: { tests: TestIt
 
   return (
     <>
+      {/* 미리보기 모달 */}
+      {previewTest && (
+        <TestPreviewModal
+          testId={previewTest.id}
+          testTitle={previewTest.title}
+          onClose={() => setPreviewTest(null)}
+        />
+      )}
+
       {/* 탭 */}
       <div className="flex gap-1 border-b border-gray-200">
         {tabs.map((tab) => (
@@ -225,6 +238,13 @@ export default function TestsListClient({ tests: initialTests }: { tests: TestIt
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => setPreviewTest({ id: test.id, title: test.title })}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-primary-700 hover:bg-primary-50 transition-colors"
+                        title="미리보기"
+                      >
+                        <Eye size={15} />
+                      </button>
                       {test.status === 'DRAFT' && (
                         <button
                           onClick={() => openDeployModal(test.id)}

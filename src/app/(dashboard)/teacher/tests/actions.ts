@@ -588,6 +588,116 @@ export async function getAutoQuestions(
   return { questions: results }
 }
 
+// 테스트 미리보기용 전체 문제 조회
+export type TestPreviewData = {
+  id: string
+  title: string
+  type: 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE'
+  timeLimitMin: number | null
+  instructions: string | null
+  academyName: string
+  creatorName: string
+  createdAt: string
+  questions: Array<{
+    id: string
+    no: number
+    domain: string
+    cefrLevel: string | null
+    difficulty: number
+    subCategory: string | null
+    contentJson: QuestionContentJson
+  }>
+}
+
+export async function getTestForPreview(testId: string): Promise<{ data?: TestPreviewData; error?: string }> {
+  const user = await getAuthedTeacher()
+  if (!user) return { error: '권한이 없습니다.' }
+
+  const test = await prisma.test.findUnique({
+    where: { id: testId },
+    select: {
+      id: true,
+      title: true,
+      type: true,
+      timeLimitMin: true,
+      instructions: true,
+      questionOrder: true,
+      createdBy: true,
+      academyId: true,
+      createdAt: true,
+      creator: { select: { name: true } },
+      academy: { select: { businessName: true } },
+    },
+  })
+
+  if (!test || test.createdBy !== user.id || test.academyId !== user.academyId) {
+    return { error: '테스트를 찾을 수 없습니다.' }
+  }
+
+  const questionIds = test.questionOrder as string[]
+  if (questionIds.length === 0) {
+    return {
+      data: {
+        id: test.id,
+        title: test.title,
+        type: test.type as 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE',
+        timeLimitMin: test.timeLimitMin,
+        instructions: test.instructions,
+        academyName: test.academy.businessName ?? '',
+        creatorName: test.creator.name ?? '',
+        createdAt: test.createdAt.toISOString(),
+        questions: [],
+      },
+    }
+  }
+
+  const rawQuestions = await prisma.question.findMany({
+    where: {
+      id: { in: questionIds },
+      OR: [{ academyId: null }, { academyId: user.academyId! }],
+    },
+    select: {
+      id: true,
+      domain: true,
+      cefrLevel: true,
+      difficulty: true,
+      subCategory: true,
+      contentJson: true,
+    },
+  })
+
+  const qMap = new Map(rawQuestions.map((q) => [q.id, q]))
+  const ordered = questionIds
+    .map((id, idx) => {
+      const q = qMap.get(id)
+      if (!q) return null
+      return {
+        id: q.id,
+        no: idx + 1,
+        domain: q.domain,
+        cefrLevel: q.cefrLevel,
+        difficulty: q.difficulty,
+        subCategory: q.subCategory,
+        contentJson: q.contentJson as QuestionContentJson,
+      }
+    })
+    .filter((q): q is NonNullable<typeof q> => q !== null)
+
+  return {
+    data: {
+      id: test.id,
+      title: test.title,
+      type: test.type as 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE',
+      timeLimitMin: test.timeLimitMin,
+      instructions: test.instructions,
+      academyName: test.academy.businessName ?? '',
+      creatorName: test.creator.name ?? '',
+      createdAt: test.createdAt.toISOString(),
+      questions: ordered,
+    },
+  }
+}
+
 // 문제 상세 내용 조회 (공용 + 학원 문제 모두)
 export async function getTestQuestionDetail(id: string): Promise<QuestionContentJson | null> {
   const user = await getAuthedTeacher()
