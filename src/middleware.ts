@@ -11,9 +11,23 @@ const ROLE_REDIRECT: Record<Role, string> = {
 
 const PROTECTED_PREFIXES = ['/admin', '/owner', '/teacher', '/student']
 
+// 랜딩 도메인 목록 (마케팅 사이트)
+const LANDING_HOSTS = ['wegoupenglish.com', 'www.wegoupenglish.com']
+
+// 앱 도메인 목록 (LMS 로그인/대시보드)
+const APP_HOSTS = ['login.wegoupenglish.com']
+
+function getHostType(host: string): 'landing' | 'app' | 'dev' {
+  if (LANDING_HOSTS.includes(host)) return 'landing'
+  if (APP_HOSTS.includes(host)) return 'app'
+  return 'dev' // localhost, vercel preview 등
+}
+
 export async function middleware(request: NextRequest) {
   const startTime = performance.now()
   const { pathname } = request.nextUrl
+  const host = request.headers.get('host') ?? ''
+  const hostType = getHostType(host)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function logAndReturn(response: any): any {
@@ -29,6 +43,34 @@ export async function middleware(request: NextRequest) {
   }
 
   const { supabaseResponse, user } = await updateSession(request)
+
+  // ── 랜딩 도메인 (wegoupenglish.com) ──────────────────────────────────────
+  // 로그인된 사용자는 앱 도메인으로 이동, 나머지는 랜딩 페이지 그대로 제공
+  if (hostType === 'landing') {
+    if (user) {
+      const role = request.cookies.get('user-role')?.value as Role | undefined
+      const dest = (role && ROLE_REDIRECT[role]) ? ROLE_REDIRECT[role] : '/login'
+      return logAndReturn(
+        NextResponse.redirect(new URL(`https://login.wegoupenglish.com${dest}`, request.url)),
+      )
+    }
+    // 비로그인 → 랜딩 페이지 그대로 서빙
+    return logAndReturn(supabaseResponse)
+  }
+
+  // ── 앱 도메인 또는 개발 환경 (login.wegoupenglish.com / localhost) ────────
+
+  // 루트(/) 접속 시 처리
+  if (pathname === '/') {
+    if (user) {
+      const role = request.cookies.get('user-role')?.value as Role | undefined
+      if (role && ROLE_REDIRECT[role]) {
+        return logAndReturn(NextResponse.redirect(new URL(ROLE_REDIRECT[role], request.url)))
+      }
+    }
+    // 비로그인 → 로그인 페이지로
+    return logAndReturn(NextResponse.redirect(new URL('/login', request.url)))
+  }
 
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
 

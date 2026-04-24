@@ -88,6 +88,9 @@ function MockupPlaceholder({ label }: { label: string }) {
 }
 
 export default async function Home() {
+  // 미들웨어에서 도메인별 분기 처리됨:
+  // - wegoupenglish.com → 이 페이지(랜딩) 렌더링
+  // - login.wegoupenglish.com / localhost → /login 으로 리다이렉트
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -97,12 +100,9 @@ export default async function Home() {
       select: { role: true },
     })
     if (profile) redirect(ROLE_REDIRECT[profile.role as Role])
+    redirect('/login')
   }
 
-  // 비인증 사용자는 로그인 페이지로
-  redirect('/login')
-
-  // 아래는 랜딩 페이지 콘텐츠 (현재 비활성화)
   return (
     <>
       <LandingNav />
