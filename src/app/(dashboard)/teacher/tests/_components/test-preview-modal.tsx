@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { X, Printer, Clock, FileText } from 'lucide-react'
 import type { TestPreviewData } from '../actions'
 import { getTestForPreview } from '../actions'
@@ -210,19 +210,23 @@ type Props = {
 export default function TestPreviewModal({ testId, testTitle, onClose }: Props) {
   const [data, setData] = useState<TestPreviewData | null>(null)
   const [error, setError] = useState('')
-  const [loading, startLoading] = useTransition()
+  const [loading, setLoading] = useState(true)
   const [showAnswer, setShowAnswer] = useState(false)
   const printRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    startLoading(async () => {
-      const result = await getTestForPreview(testId)
-      if (result.error) {
-        setError(result.error)
-      } else if (result.data) {
-        setData(result.data)
-      }
-    })
+    setLoading(true)
+    setError('')
+    getTestForPreview(testId)
+      .then((result) => {
+        if (result.error) {
+          setError(result.error)
+        } else if (result.data) {
+          setData(result.data)
+        }
+      })
+      .catch(() => setError('미리보기를 불러오는 데 실패했습니다.'))
+      .finally(() => setLoading(false))
   }, [testId])
 
   function handlePrint() {
