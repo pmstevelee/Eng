@@ -88,7 +88,6 @@ function MockupPlaceholder({ label }: { label: string }) {
 }
 
 export default async function Home() {
-  // 인증 사용자는 역할별 대시보드로 리다이렉트
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -98,10 +97,12 @@ export default async function Home() {
       select: { role: true },
     })
     if (profile) redirect(ROLE_REDIRECT[profile.role as Role])
-    redirect('/login')
   }
 
-  // 비인증 사용자에게 랜딩 페이지 표시
+  // 비인증 사용자는 로그인 페이지로
+  redirect('/login')
+
+  // 아래는 랜딩 페이지 콘텐츠 (현재 비활성화)
   return (
     <>
       <LandingNav />
