@@ -57,6 +57,7 @@ const DOMAIN_NAMES: Record<string, string> = {
   VOCABULARY: '어휘(Vocabulary)',
   READING: '읽기(Reading)',
   WRITING: '쓰기(Writing)',
+  LISTENING: '듣기(Listening)',
 }
 
 const LEVEL_GUIDANCE: Record<number, string> = {

@@ -82,7 +82,7 @@ export default async function WritingPage() {
         <div>
           <p className="text-sm font-semibold text-gray-900">AI 10단계 쓰기 레벨 평가</p>
           <p className="text-xs text-gray-500">
-            에세이 실력을 독립적으로 판정하고, 4영역 간 레벨 격차를 분석해 드립니다
+            에세이 실력을 독립적으로 판정하고, 5영역 간 레벨 격차를 분석해 드립니다
           </p>
         </div>
       </div>

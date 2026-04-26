@@ -800,7 +800,7 @@ function FeedbackDisplay({
           <div className="mb-3 flex items-center gap-2">
             <BarChart2 className="h-4 w-4 text-gray-500" />
             <h3 className="text-sm font-semibold text-gray-700">
-              {domainLevels.listening ? '5영역' : '4영역'} 레벨 비교 (10단계)
+              5영역 레벨 비교 (10단계)
             </h3>
           </div>
           <div className="space-y-2.5">

@@ -12,12 +12,12 @@ import RoleTabs from '@/components/landing/role-tabs'
 import ReviewsCarousel from '@/components/landing/reviews-carousel'
 
 export const metadata: Metadata = {
-  title: '위고업잉글리시 — AI 영어학원 학습관리 시스템',
+  title: '위고업잉글리시 — 영어학원의 새로운 기준',
   description:
-    '적응형 레벨 테스트, AI 맞춤 학습, 자동 성적 분석까지. 선생님은 교육에 집중하고 나머지는 위고업잉글리시가 합니다. 14일 무료 체험.',
+    'AI가 학생 데이터를 정밀 분석하고, 선생님이 직접 문제를 만들어 교육합니다. 데이터 기반으로 학생 실력을 효율적으로 향상시키는 영어학원 학습관리 시스템. 14일 무료 체험.',
   openGraph: {
-    title: '위고업잉글리시 — AI 영어학원 학습관리 시스템',
-    description: '적응형 레벨 테스트, AI 맞춤 학습, 자동 성적 분석. 14일 무료 체험.',
+    title: '위고업잉글리시 — 영어학원의 새로운 기준',
+    description: 'AI 정밀 분석 + 교사 주도 교육. 데이터로 학생 실력을 향상시킵니다. 14일 무료 체험.',
     siteName: '위고업잉글리시',
     locale: 'ko_KR',
     type: 'website',
@@ -34,63 +34,77 @@ const ROLE_REDIRECT: Record<Role, string> = {
 const FEATURES = [
   {
     num: '01',
+    color: '#1865F2',
     title: '적응형 10단계 레벨 테스트',
     subtitle: '맞추면 어려운 문제, 틀리면 쉬운 문제',
-    desc: '영역별(문법·어휘·읽기·쓰기) 독립 레벨 측정으로 학생의 정확한 실력을 파악합니다. CEFR 기준 Pre-A1 ~ C1+ 10단계로 정밀하게 배치합니다.',
-    mockup: '적응형 레벨 테스트 결과 화면',
+    desc: '영역별(문법·어휘·읽기·쓰기·듣기) 독립 레벨 측정으로 학생의 정확한 실력을 파악합니다. CEFR 기준 Pre-A1 ~ C1+ 10단계로 정밀하게 배치합니다.',
+    mockupBg: '#EEF4FF',
+    mockupLabel: '적응형 레벨 테스트 결과',
     flip: false,
   },
   {
     num: '02',
-    title: 'AI 쓰기 평가 + 레벨업 전략',
-    subtitle: '에세이의 실제 레벨을 독립 판정',
-    desc: '다른 영역과 쓰기 레벨을 비교 분석하여 구체적인 레벨업 로드맵을 제시합니다. GPT-4o 기반으로 30초 내에 피드백이 완성됩니다.',
-    mockup: 'AI 쓰기 평가 피드백 화면',
+    color: '#7854F7',
+    title: 'AI 데이터 분석 + 약점 반복 제시',
+    subtitle: '부족한 부분을 AI가 정확히 찾아 반복 학습',
+    desc: 'AI가 학생의 오답 패턴과 영역별 점수를 정밀 분석합니다. 취약한 유형을 자동으로 감지하고 해당 문제를 반복 제시하여 실질적인 실력 향상을 이끕니다.',
+    mockupBg: '#F3F0FF',
+    mockupLabel: 'AI 약점 분석 리포트',
     flip: true,
   },
   {
     num: '03',
-    title: '오늘의 미션 + 게이미피케이션',
-    subtitle: '매일 AI가 설계하는 맞춤 퀘스트',
-    desc: 'XP, 스트릭, 배지로 학생의 학습 동기를 자연스럽게 유지합니다. 미션 완료가 곧 레벨업 조건 달성으로 이어집니다.',
-    mockup: '학생 홈 미션 카드',
+    color: '#0FBFAD',
+    title: '교사 직접 문제 출제',
+    subtitle: '선생님이 교육의 방향을 직접 설계합니다',
+    desc: '교사가 직접 문제를 만들고 학습 방향을 설정합니다. AI는 보조 도구로서 문제 생성을 지원하고, 교사는 학원 특성에 맞게 커리큘럼을 자유롭게 구성합니다.',
+    mockupBg: '#E8FAF8',
+    mockupLabel: '교사 문제 출제 화면',
     flip: false,
   },
   {
     num: '04',
-    title: '실시간 분석 대시보드',
-    subtitle: '데이터 기반 학원 운영',
-    desc: '반별 비교, 영역별 분석, 성장률 추이, 교사 성과까지 한눈에 파악합니다. 1클릭 PDF 리포트로 학부모 상담을 준비하세요.',
-    mockup: '분석 대시보드 화면',
+    color: '#E35C20',
+    title: '데이터 기반 실시간 성장 추적',
+    subtitle: '숫자로 보이는 학생의 실력 향상',
+    desc: '반별 비교, 영역별 분석, 성장률 추이를 한눈에 파악합니다. 선생님이 데이터에 근거해 효율적으로 지도하고, 1클릭 PDF 리포트로 학부모 상담을 준비합니다.',
+    mockupBg: '#FEF3EC',
+    mockupLabel: '실시간 성장 대시보드',
     flip: true,
   },
 ]
 
-function MockupPlaceholder({ label }: { label: string }) {
+function MockupPlaceholder({ label, bg }: { label: string; bg: string }) {
   return (
     <div
-      className="bg-white rounded-2xl border border-gray-200 p-2 shadow-sm"
-      style={{ transform: 'perspective(1200px) rotateY(-2deg) rotateX(1deg)' }}
+      className="rounded-2xl border border-gray-200 p-2 shadow-sm overflow-hidden"
+      style={{ background: '#fff', transform: 'perspective(1200px) rotateY(-2deg) rotateX(1deg)' }}
     >
-      <div className="bg-gray-100 rounded-xl aspect-[16/10] flex items-center justify-center">
-        <div className="text-center text-gray-400 p-6">
-          <div className="w-10 h-10 bg-gray-200 rounded-xl mx-auto mb-2 flex items-center justify-center">
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <div className="text-xs">스크린샷 영역</div>
-          <div className="text-xs text-gray-400 mt-0.5">{label}</div>
+      <div
+        className="rounded-xl aspect-[16/10] flex flex-col items-center justify-center gap-3 border border-gray-100"
+        style={{ background: bg }}
+      >
+        <div className="flex gap-2">
+          {['#1865F2', '#7854F7', '#0FBFAD'].map((c) => (
+            <div key={c} className="w-2 h-2 rounded-full" style={{ background: c }} />
+          ))}
         </div>
+        <div className="grid grid-cols-3 gap-2 w-48">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-md h-10 animate-pulse"
+              style={{ background: 'rgba(0,0,0,0.08)', animationDelay: `${i * 0.12}s` }}
+            />
+          ))}
+        </div>
+        <div className="text-xs text-gray-400 mt-1">{label}</div>
       </div>
     </div>
   )
 }
 
 export default async function Home() {
-  // 미들웨어에서 도메인별 분기 처리됨:
-  // - wegoupenglish.com → 이 페이지(랜딩) 렌더링
-  // - login.wegoupenglish.com / localhost → /login 으로 리다이렉트
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -108,21 +122,41 @@ export default async function Home() {
       <LandingNav />
       <main>
         {/* ── Section 1: Hero ─────────────────────────────── */}
-        <section className="bg-gradient-to-b from-primary-50 to-white min-h-[90vh] flex flex-col items-center justify-center text-center px-6 pt-16 pb-12">
+        <section className="bg-white min-h-[90vh] flex flex-col items-center justify-center text-center px-6 pt-16 pb-12 border-b border-gray-100">
           <ScrollReveal>
-            <div className="inline-flex items-center gap-2 bg-primary-100 text-primary-700 text-xs font-semibold px-4 py-2 rounded-full mb-8">
-              🚀 지금 무료 체험 중
+            <div className="inline-flex items-center gap-2 border border-primary-200 text-primary-700 text-xs font-semibold px-4 py-2 rounded-full mb-8 bg-primary-50">
+              14일 무료 체험 진행 중
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-primary-900 leading-tight mb-6">
-              AI가 가르치는
-              <br />
-              영어학원의 새로운 기준
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-6">
+              영어학원의{' '}
+              <span style={{ color: '#1865F2' }}>새로운 기준</span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-10">
-              적응형 레벨 테스트, AI 맞춤 학습, 자동 성적 분석까지.
-              <br />
-              선생님은 교육에 집중하고, 나머지는 위고업잉글리시가 합니다.
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-4 leading-relaxed">
+              AI가 학생 데이터를 정밀 분석하고,{' '}
+              <strong className="text-gray-800">선생님이 올바른 교육 방향을 제시합니다.</strong>
             </p>
+            <p className="text-base text-gray-500 max-w-xl mx-auto mb-6 leading-relaxed">
+              부족한 부분은 AI가 반복 제시하고, 선생님이 직접 문제를 만들어 학습시킵니다.
+              <br />
+              데이터에 근거한 효율적인 교육으로 학생 실력을 실질적으로 향상시킵니다.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 mb-8">
+              {[
+                { label: '문법', color: '#1865F2' },
+                { label: '어휘', color: '#7854F7' },
+                { label: '읽기', color: '#0FBFAD' },
+                { label: '쓰기', color: '#E35C20' },
+                { label: '듣기', color: '#E91E8A' },
+              ].map((d) => (
+                <span
+                  key={d.label}
+                  className="text-xs font-bold px-3 py-1 rounded-full"
+                  style={{ background: d.color + '18', color: d.color }}
+                >
+                  {d.label}
+                </span>
+              ))}
+            </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
               <Link
                 href="/register/owner"
@@ -142,32 +176,109 @@ export default async function Home() {
             </p>
           </ScrollReveal>
 
-          {/* Hero mockup */}
+          {/* Hero 색상 강조 블록 */}
           <ScrollReveal className="w-full max-w-4xl mt-16" delay={200}>
             <div
               className="bg-white rounded-2xl border border-gray-200 p-3 shadow-sm"
               style={{ transform: 'perspective(1600px) rotateX(4deg)' }}
             >
-              <div className="bg-gray-50 rounded-xl aspect-[16/9] flex items-center justify-center border border-gray-100">
-                <div className="text-center text-gray-400 p-8">
-                  <div className="flex gap-2 justify-center mb-4">
-                    {['bg-accent-red', 'bg-accent-gold', 'bg-accent-green'].map((c) => (
-                      <div key={c} className={`w-3 h-3 rounded-full ${c}`} />
+              <div className="bg-gray-50 rounded-xl aspect-[16/9] flex items-center justify-center border border-gray-100 overflow-hidden">
+                <div className="w-full h-full p-6 flex flex-col gap-4">
+                  <div className="flex gap-1.5">
+                    {['#1865F2', '#7854F7', '#0FBFAD', '#E35C20', '#E91E8A'].map((c) => (
+                      <div key={c} className="w-2.5 h-2.5 rounded-full" style={{ background: c }} />
+                    ))}
+                    <span className="text-xs text-gray-400 ml-2">위고업잉글리시 LMS</span>
+                  </div>
+                  <div className="grid grid-cols-5 gap-2 flex-1">
+                    {[
+                      { label: '문법', color: '#1865F2', pct: 78 },
+                      { label: '어휘', color: '#7854F7', pct: 62 },
+                      { label: '읽기', color: '#0FBFAD', pct: 85 },
+                      { label: '쓰기', color: '#E35C20', pct: 54 },
+                      { label: '듣기', color: '#E91E8A', pct: 70 },
+                    ].map((d) => (
+                      <div key={d.label} className="bg-white rounded-xl border border-gray-200 p-3 flex flex-col gap-2">
+                        <div className="text-xs font-semibold" style={{ color: d.color }}>{d.label}</div>
+                        <div className="flex-1 flex items-end">
+                          <div className="w-full rounded-full bg-gray-100 h-2">
+                            <div
+                              className="h-2 rounded-full"
+                              style={{ width: `${d.pct}%`, background: d.color }}
+                            />
+                          </div>
+                        </div>
+                        <div className="text-sm font-bold text-gray-700">{d.pct}점</div>
+                      </div>
                     ))}
                   </div>
-                  <div className="grid grid-cols-3 gap-3 w-80">
+                  <div className="grid grid-cols-3 gap-3">
                     {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="bg-gray-200 rounded-lg h-16 animate-pulse" style={{ animationDelay: `${i * 0.15}s` }} />
+                      <div key={i} className="bg-gray-200 rounded-lg h-8 animate-pulse" style={{ animationDelay: `${i * 0.15}s` }} />
                     ))}
                   </div>
-                  <div className="mt-3 text-xs text-gray-400">LMS 대시보드 스크린샷 영역</div>
                 </div>
               </div>
             </div>
           </ScrollReveal>
         </section>
 
-        {/* ── Section 2: 핵심 가치 ─────────────────────────── */}
+        {/* ── Section 2: AI 철학 강조 ──────────────────────── */}
+        <section className="py-20 px-6" style={{ background: '#0C2340' }}>
+          <div className="max-w-4xl mx-auto text-center">
+            <ScrollReveal>
+              <p className="text-sm font-semibold mb-4" style={{ color: '#0FBFAD' }}>
+                AI가 보조하고, 선생님이 가르칩니다
+              </p>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 leading-tight">
+                모든 것을 AI에 맡기지 않습니다.{' '}
+                <br />
+                <span style={{ color: '#FFB100' }}>AI는 분석하고, 선생님은 가르칩니다.</span>
+              </h2>
+              <p className="text-gray-300 text-lg max-w-2xl mx-auto leading-relaxed">
+                생성된 학습 데이터를 AI가 정밀하게 분석하여 학생의 부족한 부분을 반복 제시합니다.
+                선생님은 데이터를 바탕으로 올바른 교육 방향을 제시하고 직접 문제를 만들어 학습시킵니다.
+              </p>
+            </ScrollReveal>
+            <ScrollReveal delay={150}>
+              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-px bg-white/10 rounded-2xl overflow-hidden">
+                {[
+                  {
+                    step: '1단계',
+                    color: '#7854F7',
+                    title: 'AI 정밀 분석',
+                    desc: '학생의 오답 패턴과 영역별 데이터를 AI가 정밀하게 분석합니다',
+                  },
+                  {
+                    step: '2단계',
+                    color: '#1865F2',
+                    title: '교사 방향 설정',
+                    desc: '분석 결과를 바탕으로 선생님이 올바른 교육 방향과 문제를 직접 설계합니다',
+                  },
+                  {
+                    step: '3단계',
+                    color: '#0FBFAD',
+                    title: 'AI 반복 학습',
+                    desc: '부족한 영역을 AI가 반복 제시하며 학생 실력을 체계적으로 향상시킵니다',
+                  },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white/5 p-8 text-left">
+                    <div
+                      className="text-xs font-bold px-3 py-1 rounded-full inline-block mb-4"
+                      style={{ background: item.color + '33', color: item.color }}
+                    >
+                      {item.step}
+                    </div>
+                    <h3 className="text-white font-bold text-lg mb-2">{item.title}</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+
+        {/* ── Section 3: 핵심 가치 ─────────────────────────── */}
         <section className="bg-white py-24 px-6">
           <div className="max-w-6xl mx-auto">
             <ScrollReveal>
@@ -178,36 +289,49 @@ export default async function Home() {
                 영어학원이 진짜 필요한 것에만 집중했습니다.
               </p>
             </ScrollReveal>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
                 {
-                  emoji: '🎯',
-                  bg: 'bg-primary-100',
-                  color: 'text-primary-700',
-                  title: '정밀한 레벨 측정',
-                  desc: '적응형 배치 시험으로 10단계 CEFR 레벨을 정확하게 측정합니다. 맞추면 어려운 문제, 틀리면 쉬운 문제가 자동 출제됩니다.',
+                  color: '#1865F2',
+                  bg: '#EEF4FF',
+                  label: 'Grammar · 정밀 측정',
+                  title: '10단계 레벨 정밀 측정',
+                  desc: '적응형 배치 시험으로 문법·어휘·읽기·쓰기·듣기 5영역을 독립 측정합니다. CEFR 기준 Pre-A1 ~ C1+ 10단계로 학생의 정확한 실력을 파악합니다.',
                 },
                 {
-                  emoji: '🤖',
-                  bg: 'bg-purple-100',
-                  color: 'text-purple-600',
-                  title: 'AI 맞춤형 학습',
-                  desc: '학생의 약점을 AI가 분석하여 매일 맞춤 문제를 추천합니다. 쓰기 평가도 AI가 즉시 피드백합니다.',
+                  color: '#7854F7',
+                  bg: '#F3F0FF',
+                  label: 'AI · 데이터 분석',
+                  title: 'AI 약점 분석 및 반복 제시',
+                  desc: '학생의 오답 패턴을 AI가 분석하여 취약한 유형을 자동 감지합니다. 부족한 영역의 문제를 반복적으로 제시해 실질적인 실력 향상을 이끕니다.',
                 },
                 {
-                  emoji: '📊',
-                  bg: 'bg-green-100',
-                  color: 'text-green-700',
-                  title: '자동화된 학원 운영',
-                  desc: '성적 분석, 리포트 생성, 출석 관리까지. 선생님의 행정 업무를 60% 줄여드립니다.',
+                  color: '#0FBFAD',
+                  bg: '#E8FAF8',
+                  label: 'Teacher · 교사 주도',
+                  title: '선생님이 직접 출제하는 커리큘럼',
+                  desc: '교사가 직접 문제를 만들고 학원 특성에 맞게 학습 방향을 설계합니다. AI는 문제 생성을 보조하고, 교육의 주도권은 항상 선생님에게 있습니다.',
+                },
+                {
+                  color: '#E35C20',
+                  bg: '#FEF3EC',
+                  label: 'Data · 성장 추적',
+                  title: '데이터로 보이는 학생 성장',
+                  desc: '성적 분석, 성장률 추이, 반별 비교를 한눈에 파악합니다. 데이터에 근거한 효율적인 교육으로 선생님의 행정 업무를 60% 줄입니다.',
                 },
               ].map((card, i) => (
-                <ScrollReveal key={card.title} delay={i * 100}>
-                  <div className="border border-gray-200 rounded-xl p-8 hover:border-primary-200 hover:shadow-sm transition-all text-center">
-                    <div className={`w-16 h-16 rounded-2xl ${card.bg} flex items-center justify-center text-3xl mx-auto mb-5`}>
-                      {card.emoji}
+                <ScrollReveal key={card.title} delay={i * 80}>
+                  <div
+                    className="rounded-2xl p-8 border border-transparent hover:border-gray-200 transition-all"
+                    style={{ background: card.bg }}
+                  >
+                    <div
+                      className="text-xs font-bold px-3 py-1 rounded-full inline-block mb-5"
+                      style={{ background: card.color + '22', color: card.color }}
+                    >
+                      {card.label}
                     </div>
-                    <h3 className={`text-lg font-bold mb-3 ${card.color}`}>{card.title}</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-3">{card.title}</h3>
                     <p className="text-sm text-gray-600 leading-relaxed">{card.desc}</p>
                   </div>
                 </ScrollReveal>
@@ -216,7 +340,7 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* ── Section 3: 역할별 혜택 ───────────────────────── */}
+        {/* ── Section 4: 역할별 혜택 ───────────────────────── */}
         <section className="bg-gray-50 py-24 px-6">
           <div className="max-w-6xl mx-auto">
             <ScrollReveal>
@@ -231,7 +355,7 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* ── Section 4: 기능 쇼케이스 ────────────────────── */}
+        {/* ── Section 5: 기능 쇼케이스 ────────────────────── */}
         <section className="bg-white py-24 px-6">
           <div className="max-w-6xl mx-auto">
             <ScrollReveal>
@@ -247,15 +371,20 @@ export default async function Home() {
                 <ScrollReveal key={f.num}>
                   <div className={`grid grid-cols-1 md:grid-cols-2 gap-12 items-center ${f.flip ? 'md:[&>*:first-child]:order-2' : ''}`}>
                     <div>
-                      <div className="text-5xl font-bold text-primary-100 mb-2 leading-none">{f.num}</div>
+                      <div
+                        className="text-5xl font-bold mb-2 leading-none"
+                        style={{ color: f.color + '33' }}
+                      >
+                        {f.num}
+                      </div>
                       <h3 className="text-2xl font-bold text-gray-900 mb-2">{f.title}</h3>
-                      <p className="text-primary-700 font-semibold text-sm mb-4">{f.subtitle}</p>
+                      <p className="font-semibold text-sm mb-4" style={{ color: f.color }}>{f.subtitle}</p>
                       <p className="text-gray-600 leading-relaxed">{f.desc}</p>
-                      <Link href="/features" className="inline-flex items-center gap-1 text-sm text-primary-700 font-semibold mt-5 hover:underline">
+                      <Link href="/features" className="inline-flex items-center gap-1 text-sm font-semibold mt-5 hover:underline" style={{ color: f.color }}>
                         자세히 보기 →
                       </Link>
                     </div>
-                    <MockupPlaceholder label={f.mockup} />
+                    <MockupPlaceholder label={f.mockupLabel} bg={f.mockupBg} />
                   </div>
                 </ScrollReveal>
               ))}
@@ -263,17 +392,17 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* ── Section 5: 숫자로 보는 ───────────────────────── */}
-        <section className="bg-primary-900 text-white py-20 px-6">
+        {/* ── Section 6: 숫자로 보는 ───────────────────────── */}
+        <section className="py-20 px-6" style={{ background: '#0C2340' }}>
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { target: 450, suffix: '+', label: '공용 문제 뱅크', unit: '' },
-              { target: 10, suffix: '단계', label: 'CEFR 기반 레벨 체계', unit: '' },
-              { target: 4, suffix: '영역', label: '문법·어휘·읽기·쓰기', unit: '' },
-              { target: 60, suffix: '%', label: '교사 행정 업무 절감', unit: '' },
+              { target: 450, suffix: '+', label: '공용 문제 뱅크', color: '#1865F2' },
+              { target: 10, suffix: '단계', label: 'CEFR 기반 레벨 체계', color: '#7854F7' },
+              { target: 5, suffix: '영역', label: '문법·어휘·읽기·쓰기·듣기', color: '#0FBFAD' },
+              { target: 60, suffix: '%', label: '교사 행정 업무 절감', color: '#FFB100' },
             ].map((stat) => (
               <div key={stat.label}>
-                <div className="text-4xl md:text-5xl font-bold mb-2">
+                <div className="text-4xl md:text-5xl font-bold mb-2" style={{ color: stat.color }}>
                   <Counter target={stat.target} suffix={stat.suffix} />
                 </div>
                 <div className="text-sm text-white/60">{stat.label}</div>
@@ -282,7 +411,7 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* ── Section 6: 요금제 미리보기 ───────────────────── */}
+        {/* ── Section 7: 요금제 미리보기 ───────────────────── */}
         <section className="bg-white py-24 px-6">
           <div className="max-w-5xl mx-auto">
             <ScrollReveal>
@@ -341,9 +470,9 @@ export default async function Home() {
                     <ul className="space-y-2.5 flex-1 mb-6">
                       {plan.features.map((f) => (
                         <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
-                          <svg className="w-4 h-4 text-accent-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
+                          <span className="w-4 h-4 rounded-full bg-accent-green flex-shrink-0 flex items-center justify-center text-white text-[10px] font-bold">
+                            ✓
+                          </span>
                           {f}
                         </li>
                       ))}
@@ -373,7 +502,7 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* ── Section 7: 후기 ──────────────────────────────── */}
+        {/* ── Section 8: 후기 ──────────────────────────────── */}
         <section className="bg-gray-50 py-24 px-6">
           <div className="max-w-5xl mx-auto">
             <ScrollReveal>
@@ -395,11 +524,18 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* ── Section 8: 최종 CTA ──────────────────────────── */}
-        <section className="bg-gradient-to-b from-white to-primary-50 py-24 px-6 text-center">
+        {/* ── Section 9: 최종 CTA ──────────────────────────── */}
+        <section className="bg-white py-24 px-6 text-center border-t border-gray-100">
           <ScrollReveal>
-            <h2 className="text-4xl font-bold text-primary-900 mb-4">지금 바로 시작하세요</h2>
-            <p className="text-lg text-gray-600 mb-10">
+            <div className="flex justify-center gap-2 mb-8">
+              {['#1865F2', '#7854F7', '#0FBFAD', '#E35C20', '#E91E8A'].map((c) => (
+                <div key={c} className="w-3 h-3 rounded-full" style={{ background: c }} />
+              ))}
+            </div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              지금 바로 <span style={{ color: '#1865F2' }}>시작</span>하세요
+            </h2>
+            <p className="text-lg text-gray-600 mb-10 max-w-lg mx-auto">
               카드 등록 없이 14일 무료 체험. 모든 기능을 사용해보세요.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
