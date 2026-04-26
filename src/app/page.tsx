@@ -52,7 +52,7 @@ const FEATURES = [
     mockupBg: '#F3F0FF',
     mockupLabel: 'AI 약점 분석 리포트',
     flip: true,
-    detailHref: '/features',
+    detailHref: '/features/ai-analysis',
   },
   {
     num: '03',
