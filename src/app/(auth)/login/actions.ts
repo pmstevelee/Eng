@@ -19,16 +19,21 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
 
   const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-
-  if (error || !data.user) {
-    return { error: '이메일 또는 비밀번호가 올바르지 않습니다.' }
+  let authUserId: string
+  try {
+    const res = await supabase.auth.signInWithPassword({ email, password })
+    if (res.error || !res.data.user) {
+      return { error: '이메일 또는 비밀번호가 올바르지 않습니다.' }
+    }
+    authUserId = res.data.user.id
+  } catch {
+    return { error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
   }
 
   let role: Role | null = null
   try {
     const user = await prisma.user.findUnique({
-      where: { id: data.user.id },
+      where: { id: authUserId },
       select: { role: true },
     })
 

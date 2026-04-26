@@ -108,7 +108,12 @@ export function TestTakingClient({
     }))
     setIsSubmitting(true)
     startTransition(async () => {
-      await onSubmit(session.id, allAnswers)
+      try {
+        await onSubmit(session.id, allAnswers)
+      } catch (err) {
+        console.error('[handleAutoSubmit] 제출 오류:', err)
+        setIsSubmitting(false)
+      }
     })
   }, [onSubmit, session.id])
 
@@ -170,10 +175,15 @@ export function TestTakingClient({
     }))
     pendingAnswersRef.current.clear()
     setSaveStatus('saving')
-    const result = await onSaveResponses(session.id, batch, saveIdxRef.current)
-    setSaveStatus(result.error ? 'error' : 'saved')
-    if (!result.error) {
-      setTimeout(() => setSaveStatus('idle'), 3000)
+    try {
+      const result = await onSaveResponses(session.id, batch, saveIdxRef.current)
+      setSaveStatus(result.error ? 'error' : 'saved')
+      if (!result.error) {
+        setTimeout(() => setSaveStatus('idle'), 3000)
+      }
+    } catch (err) {
+      console.error('[flushSave] 자동저장 오류:', err)
+      setSaveStatus('error')
     }
   }, [onSaveResponses, session.id])
 
@@ -253,7 +263,12 @@ export function TestTakingClient({
       answer,
     }))
     startTransition(async () => {
-      await onSubmit(session.id, allAnswers)
+      try {
+        await onSubmit(session.id, allAnswers)
+      } catch (err) {
+        console.error('[handleConfirmSubmit] 제출 오류:', err)
+        setIsSubmitting(false)
+      }
     })
   }
 
