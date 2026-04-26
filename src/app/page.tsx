@@ -41,6 +41,7 @@ const FEATURES = [
     mockupBg: '#EEF4FF',
     mockupLabel: '적응형 레벨 테스트 결과',
     flip: false,
+    detailHref: '/features/adaptive-test',
   },
   {
     num: '02',
@@ -51,6 +52,7 @@ const FEATURES = [
     mockupBg: '#F3F0FF',
     mockupLabel: 'AI 약점 분석 리포트',
     flip: true,
+    detailHref: '/features',
   },
   {
     num: '03',
@@ -61,6 +63,7 @@ const FEATURES = [
     mockupBg: '#E8FAF8',
     mockupLabel: '교사 문제 출제 화면',
     flip: false,
+    detailHref: '/features',
   },
   {
     num: '04',
@@ -71,6 +74,7 @@ const FEATURES = [
     mockupBg: '#FEF3EC',
     mockupLabel: '실시간 성장 대시보드',
     flip: true,
+    detailHref: '/features',
   },
 ]
 
@@ -380,7 +384,7 @@ export default async function Home() {
                       <h3 className="text-2xl font-bold text-gray-900 mb-2">{f.title}</h3>
                       <p className="font-semibold text-sm mb-4" style={{ color: f.color }}>{f.subtitle}</p>
                       <p className="text-gray-600 leading-relaxed">{f.desc}</p>
-                      <Link href="/features" className="inline-flex items-center gap-1 text-sm font-semibold mt-5 hover:underline" style={{ color: f.color }}>
+                      <Link href={f.detailHref} className="inline-flex items-center gap-1 text-sm font-semibold mt-5 hover:underline" style={{ color: f.color }}>
                         자세히 보기 →
                       </Link>
                     </div>
