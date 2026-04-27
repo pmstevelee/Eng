@@ -1,0 +1,318 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000">
+  <defs>
+    <clipPath id="screen-clip">
+      <rect x="0" y="0" width="1600" height="1000" rx="0"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1600" height="1000" fill="#F7F8F9"/>
+
+  <!-- ── Sidebar ── -->
+  <rect x="0" y="0" width="220" height="1000" fill="#0C2340"/>
+  <!-- Logo area -->
+  <rect x="0" y="0" width="220" height="64" fill="#0A1E35"/>
+  <text x="24" y="38" font-family="sans-serif" font-size="16" font-weight="700" fill="white">위고업잉글리시</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="10" fill="#8BA7C7">선생님 포털</text>
+
+  <!-- Sidebar nav items -->
+  <!-- Dashboard -->
+  <rect x="12" y="80" width="196" height="40" rx="8" fill="transparent"/>
+  <text x="44" y="105" font-family="sans-serif" font-size="13" fill="#8BA7C7">대시보드</text>
+  <rect x="18" y="91" width="18" height="18" rx="4" fill="#8BA7C7" opacity="0.3"/>
+
+  <!-- Questions - active -->
+  <rect x="12" y="128" width="196" height="40" rx="8" fill="#1865F2"/>
+  <rect x="18" y="139" width="18" height="18" rx="4" fill="white" opacity="0.9"/>
+  <text x="44" y="153" font-family="sans-serif" font-size="13" font-weight="600" fill="white">문제 출제</text>
+
+  <!-- Students -->
+  <rect x="12" y="176" width="196" height="40" rx="8" fill="transparent"/>
+  <text x="44" y="201" font-family="sans-serif" font-size="13" fill="#8BA7C7">학생 관리</text>
+  <rect x="18" y="187" width="18" height="18" rx="4" fill="#8BA7C7" opacity="0.3"/>
+
+  <!-- Tests -->
+  <rect x="12" y="224" width="196" height="40" rx="8" fill="transparent"/>
+  <text x="44" y="249" font-family="sans-serif" font-size="13" fill="#8BA7C7">테스트 관리</text>
+  <rect x="18" y="235" width="18" height="18" rx="4" fill="#8BA7C7" opacity="0.3"/>
+
+  <!-- Schedule -->
+  <rect x="12" y="272" width="196" height="40" rx="8" fill="transparent"/>
+  <text x="44" y="297" font-family="sans-serif" font-size="13" fill="#8BA7C7">수업 일정</text>
+  <rect x="18" y="283" width="18" height="18" rx="4" fill="#8BA7C7" opacity="0.3"/>
+
+  <!-- Divider -->
+  <line x1="24" y1="330" x2="196" y2="330" stroke="#1E3A5F" stroke-width="1"/>
+
+  <!-- Question Bank -->
+  <rect x="12" y="342" width="196" height="40" rx="8" fill="transparent"/>
+  <text x="44" y="367" font-family="sans-serif" font-size="13" fill="#8BA7C7">문제 뱅크</text>
+  <rect x="18" y="353" width="18" height="18" rx="4" fill="#8BA7C7" opacity="0.3"/>
+
+  <!-- Analytics -->
+  <rect x="12" y="390" width="196" height="40" rx="8" fill="transparent"/>
+  <text x="44" y="415" font-family="sans-serif" font-size="13" fill="#8BA7C7">성적 분석</text>
+  <rect x="18" y="401" width="18" height="18" rx="4" fill="#8BA7C7" opacity="0.3"/>
+
+  <!-- AI badge in sidebar -->
+  <rect x="16" y="920" width="188" height="52" rx="10" fill="#1E3A5F"/>
+  <rect x="26" y="930" width="28" height="28" rx="6" fill="#7854F7" opacity="0.8"/>
+  <text x="64" y="943" font-family="sans-serif" font-size="11" font-weight="700" fill="white">AI 문제 생성</text>
+  <text x="64" y="958" font-family="sans-serif" font-size="10" fill="#8BA7C7">이번 달 47문항 생성됨</text>
+
+  <!-- ── Top Header ── -->
+  <rect x="220" y="0" width="1380" height="60" fill="white" opacity="1"/>
+  <line x1="220" y1="60" x2="1600" y2="60" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="244" y="26" font-family="sans-serif" font-size="11" fill="#9CA3AF">문제 출제</text>
+  <text x="244" y="44" font-family="sans-serif" font-size="17" font-weight="700" fill="#21242C">새 문제 만들기</text>
+
+  <!-- Header right: save button -->
+  <rect x="1380" y="14" width="80" height="34" rx="8" fill="#E5E7EB"/>
+  <text x="1396" y="36" font-family="sans-serif" font-size="13" fill="#374151">임시저장</text>
+  <rect x="1470" y="14" width="110" height="34" rx="8" fill="#0FBFAD"/>
+  <text x="1484" y="36" font-family="sans-serif" font-size="13" font-weight="700" fill="white">저장 &amp; 출제</text>
+
+  <!-- ── Main content area ── -->
+  <!-- Left: Form panel -->
+  <rect x="236" y="76" width="720" height="912" rx="12" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+
+  <!-- Form header -->
+  <rect x="236" y="76" width="720" height="52" rx="12" fill="#F9FAFB"/>
+  <rect x="236" y="104" width="720" height="24" fill="#F9FAFB"/>
+  <line x1="236" y1="128" x2="956" y2="128" stroke="#E5E7EB" stroke-width="1"/>
+
+  <!-- Step tabs -->
+  <text x="268" y="108" font-family="sans-serif" font-size="13" font-weight="700" fill="#0FBFAD">① 영역·레벨 설정</text>
+  <text x="408" y="108" font-family="sans-serif" font-size="13" fill="#9CA3AF">② 문제 작성</text>
+  <text x="518" y="108" font-family="sans-serif" font-size="13" fill="#9CA3AF">③ 정답·해설</text>
+  <text x="638" y="108" font-family="sans-serif" font-size="13" fill="#9CA3AF">④ 검토·저장</text>
+  <!-- Active indicator -->
+  <rect x="256" y="125" width="130" height="3" rx="1.5" fill="#0FBFAD"/>
+
+  <!-- Section: 영역 선택 -->
+  <text x="268" y="160" font-family="sans-serif" font-size="12" font-weight="700" fill="#6B7280">출제 영역</text>
+
+  <!-- Domain chips -->
+  <!-- Grammar -->
+  <rect x="268" y="172" width="100" height="36" rx="8" fill="#1865F2"/>
+  <text x="312" y="195" font-family="sans-serif" font-size="13" font-weight="700" fill="white" text-anchor="middle">문법</text>
+
+  <!-- Vocabulary -->
+  <rect x="376" y="172" width="100" height="36" rx="8" fill="#F3F4F6" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="426" y="195" font-family="sans-serif" font-size="13" fill="#374151" text-anchor="middle">어휘</text>
+
+  <!-- Reading -->
+  <rect x="484" y="172" width="100" height="36" rx="8" fill="#F3F4F6" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="534" y="195" font-family="sans-serif" font-size="13" fill="#374151" text-anchor="middle">읽기</text>
+
+  <!-- Writing -->
+  <rect x="592" y="172" width="100" height="36" rx="8" fill="#F3F4F6" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="642" y="195" font-family="sans-serif" font-size="13" fill="#374151" text-anchor="middle">쓰기</text>
+
+  <!-- Listening -->
+  <rect x="700" y="172" width="100" height="36" rx="8" fill="#F3F4F6" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="750" y="195" font-family="sans-serif" font-size="13" fill="#374151" text-anchor="middle">듣기</text>
+
+  <!-- Section: 레벨 & 난이도 -->
+  <text x="268" y="240" font-family="sans-serif" font-size="12" font-weight="700" fill="#6B7280">레벨 설정</text>
+
+  <!-- Level dropdown -->
+  <rect x="268" y="252" width="200" height="40" rx="8" fill="white" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="284" y="277" font-family="sans-serif" font-size="13" fill="#21242C">Level 5 (B1 하)</text>
+  <text x="448" y="277" font-family="sans-serif" font-size="11" fill="#9CA3AF">▼</text>
+
+  <!-- Difficulty -->
+  <text x="490" y="240" font-family="sans-serif" font-size="12" font-weight="700" fill="#6B7280">난이도</text>
+  <!-- Easy -->
+  <rect x="490" y="252" width="72" height="40" rx="8" fill="#F3F4F6" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="526" y="277" font-family="sans-serif" font-size="12" fill="#6B7280" text-anchor="middle">쉬움</text>
+  <!-- Medium - selected -->
+  <rect x="570" y="252" width="72" height="40" rx="8" fill="#0FBFAD"/>
+  <text x="606" y="277" font-family="sans-serif" font-size="12" font-weight="700" fill="white" text-anchor="middle">보통</text>
+  <!-- Hard -->
+  <rect x="650" y="252" width="72" height="40" rx="8" fill="#F3F4F6" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="686" y="277" font-family="sans-serif" font-size="12" fill="#6B7280" text-anchor="middle">어려움</text>
+
+  <!-- Divider -->
+  <line x1="268" y1="310" x2="940" y2="310" stroke="#F3F4F6" stroke-width="1"/>
+
+  <!-- Section: 문제 유형 -->
+  <text x="268" y="338" font-family="sans-serif" font-size="12" font-weight="700" fill="#6B7280">문제 유형</text>
+
+  <!-- Type radio options -->
+  <!-- 객관식 - selected -->
+  <rect x="268" y="350" width="136" height="44" rx="8" fill="#EEF4FF" stroke="#1865F2" stroke-width="1.5"/>
+  <circle cx="290" cy="372" r="6" fill="white" stroke="#1865F2" stroke-width="1.5"/>
+  <circle cx="290" cy="372" r="3" fill="#1865F2"/>
+  <text x="302" y="377" font-family="sans-serif" font-size="13" font-weight="600" fill="#1865F2">객관식</text>
+
+  <!-- 주관식 -->
+  <rect x="412" y="350" width="136" height="44" rx="8" fill="#F9FAFB" stroke="#E5E7EB" stroke-width="1"/>
+  <circle cx="434" cy="372" r="6" fill="white" stroke="#D1D5DB" stroke-width="1.5"/>
+  <text x="446" y="377" font-family="sans-serif" font-size="13" fill="#6B7280">주관식</text>
+
+  <!-- 서술형 -->
+  <rect x="556" y="350" width="136" height="44" rx="8" fill="#F9FAFB" stroke="#E5E7EB" stroke-width="1"/>
+  <circle cx="578" cy="372" r="6" fill="white" stroke="#D1D5DB" stroke-width="1.5"/>
+  <text x="590" y="377" font-family="sans-serif" font-size="13" fill="#6B7280">서술형</text>
+
+  <!-- Divider -->
+  <line x1="268" y1="412" x2="940" y2="412" stroke="#F3F4F6" stroke-width="1"/>
+
+  <!-- Section: 문제 본문 -->
+  <text x="268" y="438" font-family="sans-serif" font-size="12" font-weight="700" fill="#6B7280">문제 본문</text>
+
+  <!-- AI assist button -->
+  <rect x="784" y="422" width="148" height="30" rx="6" fill="#7854F7" opacity="0.12"/>
+  <text x="854" y="441" font-family="sans-serif" font-size="11" font-weight="700" fill="#7854F7" text-anchor="middle">✦ AI 문제 생성</text>
+
+  <!-- Question text area -->
+  <rect x="268" y="450" width="664" height="120" rx="8" fill="#FAFAFA" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="286" y="474" font-family="sans-serif" font-size="14" fill="#21242C">Choose the grammatically correct sentence.</text>
+  <line x1="284" y1="480" x2="490" y2="480" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="286" y="502" font-family="sans-serif" font-size="13" fill="#9CA3AF">She _____ to the market every Saturday morning.</text>
+
+  <!-- Char count -->
+  <text x="916" y="578" font-family="sans-serif" font-size="11" fill="#9CA3AF" text-anchor="end">48 / 500자</text>
+
+  <!-- Divider -->
+  <line x1="268" y1="592" x2="940" y2="592" stroke="#F3F4F6" stroke-width="1"/>
+
+  <!-- Section: 보기 -->
+  <text x="268" y="618" font-family="sans-serif" font-size="12" font-weight="700" fill="#6B7280">보기 (객관식)</text>
+  <rect x="894" y="604" width="42" height="24" rx="5" fill="#F3F4F6"/>
+  <text x="915" y="620" font-family="sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">+ 추가</text>
+
+  <!-- Option 1 - correct -->
+  <rect x="268" y="628" width="664" height="44" rx="8" fill="#ECFDF5" stroke="#1FAF54" stroke-width="1.5"/>
+  <circle cx="296" cy="650" r="10" fill="#1FAF54"/>
+  <text x="296" y="655" font-family="sans-serif" font-size="10" font-weight="700" fill="white" text-anchor="middle">①</text>
+  <text x="316" y="654" font-family="sans-serif" font-size="13" fill="#21242C">goes</text>
+  <rect x="878" y="636" width="44" height="24" rx="5" fill="#D1FAE5"/>
+  <text x="900" y="652" font-family="sans-serif" font-size="10" font-weight="700" fill="#065F46" text-anchor="middle">정답</text>
+
+  <!-- Option 2 -->
+  <rect x="268" y="680" width="664" height="44" rx="8" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <circle cx="296" cy="702" r="10" fill="#E5E7EB"/>
+  <text x="296" y="707" font-family="sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">②</text>
+  <text x="316" y="706" font-family="sans-serif" font-size="13" fill="#21242C">go</text>
+
+  <!-- Option 3 -->
+  <rect x="268" y="732" width="664" height="44" rx="8" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <circle cx="296" cy="754" r="10" fill="#E5E7EB"/>
+  <text x="296" y="759" font-family="sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">③</text>
+  <text x="316" y="758" font-family="sans-serif" font-size="13" fill="#21242C">is going</text>
+
+  <!-- Option 4 -->
+  <rect x="268" y="784" width="664" height="44" rx="8" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <circle cx="296" cy="806" r="10" fill="#E5E7EB"/>
+  <text x="296" y="811" font-family="sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">④</text>
+  <text x="316" y="810" font-family="sans-serif" font-size="13" fill="#21242C">went</text>
+
+  <!-- Divider -->
+  <line x1="268" y1="844" x2="940" y2="844" stroke="#F3F4F6" stroke-width="1"/>
+
+  <!-- 해설 section -->
+  <text x="268" y="868" font-family="sans-serif" font-size="12" font-weight="700" fill="#6B7280">해설 (선택)</text>
+  <rect x="268" y="878" width="664" height="72" rx="8" fill="#FAFAFA" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="286" y="900" font-family="sans-serif" font-size="13" fill="#9CA3AF">주어가 3인칭 단수(She)이고 현재 습관적 행동을 나타낼 때 동사에 -(e)s를 붙입니다.</text>
+  <text x="286" y="920" font-family="sans-serif" font-size="13" fill="#9CA3AF">따라서 go → goes 가 올바릅니다.</text>
+
+  <!-- ── Right: Preview Panel ── -->
+  <rect x="976" y="76" width="600" height="912" rx="12" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+
+  <!-- Preview header -->
+  <rect x="976" y="76" width="600" height="52" rx="12" fill="#F9FAFB"/>
+  <rect x="976" y="104" width="600" height="24" fill="#F9FAFB"/>
+  <line x1="976" y1="128" x2="1576" y2="128" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="1000" y="108" font-family="sans-serif" font-size="13" font-weight="700" fill="#21242C">미리보기</text>
+  <!-- Badge -->
+  <rect x="1100" y="90" width="96" height="24" rx="5" fill="#E8FAF8"/>
+  <text x="1148" y="106" font-family="sans-serif" font-size="10" font-weight="700" fill="#0FBFAD" text-anchor="middle">학생 화면 기준</text>
+
+  <!-- Preview phone-style frame -->
+  <rect x="1020" y="148" width="512" height="720" rx="16" fill="#F7F8F9" stroke="#E5E7EB" stroke-width="1"/>
+
+  <!-- Question card in preview -->
+  <rect x="1044" y="170" width="464" height="56" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <!-- Level badge -->
+  <rect x="1060" y="182" width="72" height="22" rx="4" fill="#EEF4FF"/>
+  <text x="1096" y="197" font-family="sans-serif" font-size="10" font-weight="700" fill="#1865F2" text-anchor="middle">Level 5</text>
+  <!-- Domain badge -->
+  <rect x="1140" y="182" width="48" height="22" rx="4" fill="#EEF4FF"/>
+  <text x="1164" y="197" font-family="sans-serif" font-size="10" font-weight="700" fill="#1865F2" text-anchor="middle">문법</text>
+  <!-- Difficulty badge -->
+  <rect x="1196" y="182" width="48" height="22" rx="4" fill="#F0FDF4"/>
+  <text x="1220" y="197" font-family="sans-serif" font-size="10" font-weight="700" fill="#15803D" text-anchor="middle">보통</text>
+  <text x="1260" y="197" font-family="sans-serif" font-size="10" fill="#9CA3AF">문항 1 / 10</text>
+
+  <!-- Question text in preview -->
+  <rect x="1044" y="238" width="464" height="88" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="1064" y="264" font-family="sans-serif" font-size="13" font-weight="700" fill="#21242C">다음 빈칸에 알맞은 말을 고르시오.</text>
+  <text x="1064" y="294" font-family="sans-serif" font-size="13" fill="#374151">She _____ to the market every Saturday morning.</text>
+  <line x1="1170" y1="300" x2="1300" y2="300" stroke="#0FBFAD" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Answer options in preview -->
+  <!-- Option 1 -->
+  <rect x="1044" y="340" width="464" height="50" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <circle cx="1076" cy="365" r="12" fill="#F3F4F6"/>
+  <text x="1076" y="370" font-family="sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">①</text>
+  <text x="1100" y="369" font-family="sans-serif" font-size="14" fill="#21242C">goes</text>
+
+  <!-- Option 2 -->
+  <rect x="1044" y="398" width="464" height="50" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <circle cx="1076" cy="423" r="12" fill="#F3F4F6"/>
+  <text x="1076" y="428" font-family="sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">②</text>
+  <text x="1100" y="427" font-family="sans-serif" font-size="14" fill="#21242C">go</text>
+
+  <!-- Option 3 -->
+  <rect x="1044" y="456" width="464" height="50" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <circle cx="1076" cy="481" r="12" fill="#F3F4F6"/>
+  <text x="1076" y="486" font-family="sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">③</text>
+  <text x="1100" y="485" font-family="sans-serif" font-size="14" fill="#21242C">is going</text>
+
+  <!-- Option 4 -->
+  <rect x="1044" y="514" width="464" height="50" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <circle cx="1076" cy="539" r="12" fill="#F3F4F6"/>
+  <text x="1076" y="544" font-family="sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">④</text>
+  <text x="1100" y="543" font-family="sans-serif" font-size="14" fill="#21242C">went</text>
+
+  <!-- Progress bar in preview -->
+  <rect x="1044" y="580" width="464" height="6" rx="3" fill="#E5E7EB"/>
+  <rect x="1044" y="580" width="46" height="6" rx="3" fill="#0FBFAD"/>
+
+  <!-- AI suggestion box in preview -->
+  <rect x="1044" y="606" width="464" height="88" rx="10" fill="#F5F0FF" stroke="#DDD6FE" stroke-width="1"/>
+  <rect x="1060" y="618" width="28" height="28" rx="6" fill="#7854F7"/>
+  <text x="1074" y="636" font-family="sans-serif" font-size="10" font-weight="700" fill="white" text-anchor="middle">AI</text>
+  <text x="1098" y="631" font-family="sans-serif" font-size="12" font-weight="700" fill="#5B21B6">AI 출제 제안</text>
+  <text x="1060" y="656" font-family="sans-serif" font-size="11" fill="#6B7280">유사한 3인칭 단수 현재시제 문제 3개를 더 생성할까요?</text>
+  <rect x="1060" y="672" width="100" height="22" rx="5" fill="#7854F7"/>
+  <text x="1110" y="686" font-family="sans-serif" font-size="10" font-weight="700" fill="white" text-anchor="middle">생성하기</text>
+  <rect x="1168" y="672" width="72" height="22" rx="5" fill="white" stroke="#DDD6FE" stroke-width="1"/>
+  <text x="1204" y="686" font-family="sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">건너뛰기</text>
+
+  <!-- Stats row in right panel -->
+  <rect x="1000" y="820" width="152" height="76" rx="10" fill="#F9FAFB" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="1076" y="845" font-family="sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">이번 달 출제</text>
+  <text x="1076" y="875" font-family="sans-serif" font-size="28" font-weight="700" fill="#0FBFAD" text-anchor="middle">38</text>
+  <text x="1076" y="893" font-family="sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">문항</text>
+
+  <rect x="1162" y="820" width="152" height="76" rx="10" fill="#F9FAFB" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="1238" y="845" font-family="sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">AI 생성 비율</text>
+  <text x="1238" y="875" font-family="sans-serif" font-size="28" font-weight="700" fill="#7854F7" text-anchor="middle">42%</text>
+  <text x="1238" y="893" font-family="sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">AI 보조 활용</text>
+
+  <rect x="1324" y="820" width="152" height="76" rx="10" fill="#F9FAFB" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="1400" y="845" font-family="sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">평균 정답률</text>
+  <text x="1400" y="875" font-family="sans-serif" font-size="28" font-weight="700" fill="#1865F2" text-anchor="middle">68%</text>
+  <text x="1400" y="893" font-family="sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">전체 학생 기준</text>
+
+  <!-- Bottom: Recent questions list -->
+  <rect x="1000" y="908" width="552" height="64" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="1016" y="928" font-family="sans-serif" font-size="12" font-weight="700" fill="#21242C">최근 출제한 문제</text>
+  <text x="1016" y="950" font-family="sans-serif" font-size="11" fill="#6B7280">현재완료 진행형 — 문법 · Level 6 · 어려움</text>
+  <rect x="1460" y="916" width="72" height="24" rx="5" fill="#E8FAF8"/>
+  <text x="1496" y="932" font-family="sans-serif" font-size="10" font-weight="700" fill="#0FBFAD" text-anchor="middle">사용 중</text>
+  <text x="1016" y="964" font-family="sans-serif" font-size="10" fill="#9CA3AF">2일 전 · 정답률 72%</text>
+</svg>

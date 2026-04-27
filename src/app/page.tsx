@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import type { Role } from '@/types'
@@ -63,7 +64,7 @@ const FEATURES = [
     mockupBg: '#E8FAF8',
     mockupLabel: '교사 문제 출제 화면',
     flip: false,
-    detailHref: '/features',
+    detailHref: '/features/teacher-questions',
   },
   {
     num: '04',
@@ -388,7 +389,24 @@ export default async function Home() {
                         자세히 보기 →
                       </Link>
                     </div>
-                    <MockupPlaceholder label={f.mockupLabel} bg={f.mockupBg} />
+                    {f.num === '03' ? (
+                      <div
+                        className="rounded-2xl border border-gray-200 p-2 shadow-sm overflow-hidden"
+                        style={{ background: '#fff', transform: 'perspective(1200px) rotateY(-2deg) rotateX(1deg)' }}
+                      >
+                        <div className="rounded-xl overflow-hidden aspect-[16/10] relative border border-gray-100">
+                          <Image
+                            src="/images/teacher-questions-mockup.svg"
+                            alt="교사 문제 출제 화면"
+                            fill
+                            className="object-cover object-left-top"
+                            sizes="(max-width: 768px) 100vw, 50vw"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <MockupPlaceholder label={f.mockupLabel} bg={f.mockupBg} />
+                    )}
                   </div>
                 </ScrollReveal>
               ))}
