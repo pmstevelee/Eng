@@ -75,7 +75,7 @@ const FEATURES = [
     mockupBg: '#FEF3EC',
     mockupLabel: '실시간 성장 대시보드',
     flip: true,
-    detailHref: '/features',
+    detailHref: '/features/growth-tracking',
   },
 ]
 

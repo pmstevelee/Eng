@@ -1,0 +1,261 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" font-family="'Apple SD Gothic Neo','Malgun Gothic',sans-serif">
+
+  <!-- Page background -->
+  <rect width="1600" height="1000" fill="#F7F8F9"/>
+
+  <!-- ── Sidebar ──────────────────────────────────────── -->
+  <rect width="220" height="1000" fill="#0C2340"/>
+
+  <!-- Logo area -->
+  <text x="22" y="34" fill="white" font-size="14" font-weight="700">아이비랭귀지스쿨</text>
+  <text x="22" y="50" fill="white" fill-opacity="0.4" font-size="10">위고업잉글리시</text>
+
+  <!-- Divider -->
+  <line x1="16" y1="62" x2="204" y2="62" stroke="white" stroke-opacity="0.1" stroke-width="1"/>
+
+  <!-- Nav: 대시보드 -->
+  <g transform="translate(8,70)">
+    <rect width="204" height="38" rx="6" fill="transparent"/>
+    <rect x="10" y="11" width="17" height="17" rx="3" fill="white" fill-opacity="0.1"/>
+    <text x="36" y="25" fill="white" fill-opacity="0.5" font-size="13" font-weight="500">대시보드</text>
+  </g>
+  <!-- Nav: 학생관리 -->
+  <g transform="translate(8,112)">
+    <rect width="204" height="38" rx="6" fill="transparent"/>
+    <rect x="10" y="11" width="17" height="17" rx="3" fill="white" fill-opacity="0.1"/>
+    <text x="36" y="25" fill="white" fill-opacity="0.5" font-size="13" font-weight="500">학생관리</text>
+  </g>
+  <!-- Nav: 교사관리 -->
+  <g transform="translate(8,154)">
+    <rect width="204" height="38" rx="6" fill="transparent"/>
+    <rect x="10" y="11" width="17" height="17" rx="3" fill="white" fill-opacity="0.1"/>
+    <text x="36" y="25" fill="white" fill-opacity="0.5" font-size="13" font-weight="500">교사관리</text>
+  </g>
+  <!-- Nav: 반관리 -->
+  <g transform="translate(8,196)">
+    <rect width="204" height="38" rx="6" fill="transparent"/>
+    <rect x="10" y="11" width="17" height="17" rx="3" fill="white" fill-opacity="0.1"/>
+    <text x="36" y="25" fill="white" fill-opacity="0.5" font-size="13" font-weight="500">반관리</text>
+  </g>
+  <!-- Nav: 테스트관리 -->
+  <g transform="translate(8,238)">
+    <rect width="204" height="38" rx="6" fill="transparent"/>
+    <rect x="10" y="11" width="17" height="17" rx="3" fill="white" fill-opacity="0.1"/>
+    <text x="36" y="25" fill="white" fill-opacity="0.5" font-size="13" font-weight="500">테스트관리</text>
+  </g>
+  <!-- Nav: 문제 뱅크 -->
+  <g transform="translate(8,280)">
+    <rect width="204" height="38" rx="6" fill="transparent"/>
+    <rect x="10" y="11" width="17" height="17" rx="3" fill="white" fill-opacity="0.1"/>
+    <text x="36" y="25" fill="white" fill-opacity="0.5" font-size="13" font-weight="500">문제 뱅크</text>
+  </g>
+  <!-- Nav: 분석통계 (ACTIVE) -->
+  <g transform="translate(8,322)">
+    <rect width="204" height="38" rx="6" fill="#1865F2"/>
+    <!-- BarChart icon -->
+    <line x1="14" y1="29" x2="14" y2="22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="20" y1="29" x2="20" y2="18" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="26" y1="29" x2="26" y2="24" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="36" y="25" fill="white" font-size="13" font-weight="600">분석통계</text>
+  </g>
+  <!-- Nav: 설정 -->
+  <g transform="translate(8,368)">
+    <rect width="204" height="38" rx="6" fill="transparent"/>
+    <rect x="10" y="11" width="17" height="17" rx="3" fill="white" fill-opacity="0.1"/>
+    <text x="36" y="25" fill="white" fill-opacity="0.5" font-size="13" font-weight="500">설정</text>
+  </g>
+
+  <!-- User info bottom -->
+  <rect x="10" y="944" width="200" height="44" rx="8" fill="white" fill-opacity="0.08"/>
+  <circle cx="32" cy="966" r="12" fill="#1865F2"/>
+  <text x="32" y="970" text-anchor="middle" fill="white" font-size="10" font-weight="700">홍</text>
+  <text x="52" y="961" fill="white" font-size="12" font-weight="600">홍길동</text>
+  <text x="52" y="976" fill="white" fill-opacity="0.5" font-size="11">학원장</text>
+  <text x="196" y="966" text-anchor="end" fill="white" fill-opacity="0.4" font-size="11">로그아웃</text>
+
+  <!-- ── Top Header ──────────────────────────────── -->
+  <rect x="220" y="0" width="1380" height="52" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="244" y="31" fill="#9CA3AF" font-size="13">아이비랭귀지스쿨</text>
+  <!-- Bell icon area -->
+  <circle cx="1530" cy="26" r="14" fill="#F3F4F6"/>
+  <text x="1530" y="32" text-anchor="middle" font-size="16">🔔</text>
+  <!-- Avatar -->
+  <circle cx="1564" cy="26" r="14" fill="#1865F2"/>
+  <text x="1564" y="31" text-anchor="middle" fill="white" font-size="11" font-weight="700">홍</text>
+  <text x="1584" y="23" fill="#21242C" font-size="12" font-weight="600">홍길동</text>
+  <text x="1584" y="36" fill="#9CA3AF" font-size="11">학원장</text>
+
+  <!-- ── Page Title Area ─────────────────────────── -->
+  <rect x="220" y="52" width="1380" height="72" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="244" y="86" fill="#21242C" font-size="22" font-weight="700">분석 &amp; 통계</text>
+  <text x="244" y="106" fill="#9CA3AF" font-size="13">학원 전체 데이터 심층 분석</text>
+  <!-- Period selector -->
+  <rect x="1260" y="72" width="130" height="34" rx="8" fill="#F3F4F6" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="1320" y="94" text-anchor="middle" fill="#374151" font-size="13">최근 3개월 ▾</text>
+  <!-- PDF button -->
+  <rect x="1400" y="72" width="116" height="34" rx="8" fill="#0C2340"/>
+  <text x="1458" y="94" text-anchor="middle" fill="white" font-size="12" font-weight="600">↓ PDF 저장</text>
+
+  <!-- ── Tab Navigation ─────────────────────────── -->
+  <rect x="220" y="124" width="1380" height="44" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <!-- Active tab: 학생 성적 분석 -->
+  <text x="284" y="151" text-anchor="middle" fill="#1865F2" font-size="14" font-weight="600">학생 성적 분석</text>
+  <line x1="230" y1="168" x2="340" y2="168" stroke="#1865F2" stroke-width="2.5"/>
+  <!-- Other tabs -->
+  <text x="410" y="151" text-anchor="middle" fill="#6B7280" font-size="13">반별 비교</text>
+  <text x="506" y="151" text-anchor="middle" fill="#6B7280" font-size="13">교사 성과</text>
+  <text x="604" y="151" text-anchor="middle" fill="#6B7280" font-size="13">출석 분석</text>
+  <text x="704" y="151" text-anchor="middle" fill="#6B7280" font-size="13">수익 분석</text>
+
+  <!-- ── 4 Stat Cards ──────────────────────────── -->
+  <!-- Card 1: 평균 점수 -->
+  <rect x="236" y="184" width="308" height="88" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="258" y="210" fill="#6B7280" font-size="12">평균 점수</text>
+  <text x="258" y="248" fill="#1865F2" font-size="34" font-weight="700">72</text>
+  <text x="302" y="248" fill="#6B7280" font-size="17"> 점</text>
+
+  <!-- Card 2: 중앙값 -->
+  <rect x="556" y="184" width="308" height="88" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="578" y="210" fill="#6B7280" font-size="12">중앙값</text>
+  <text x="578" y="248" fill="#7854F7" font-size="34" font-weight="700">71</text>
+  <text x="622" y="248" fill="#6B7280" font-size="17"> 점</text>
+
+  <!-- Card 3: 최고 점수 -->
+  <rect x="876" y="184" width="308" height="88" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="898" y="210" fill="#6B7280" font-size="12">최고 점수</text>
+  <text x="898" y="248" fill="#1FAF54" font-size="34" font-weight="700">100</text>
+  <text x="962" y="248" fill="#6B7280" font-size="17"> 점</text>
+  <text x="898" y="264" fill="#9CA3AF" font-size="11">전체 29건</text>
+
+  <!-- Card 4: 최저 점수 -->
+  <rect x="1196" y="184" width="308" height="88" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="1218" y="210" fill="#6B7280" font-size="12">최저 점수</text>
+  <text x="1218" y="248" fill="#D92916" font-size="34" font-weight="700">30</text>
+  <text x="1264" y="248" fill="#6B7280" font-size="17"> 점</text>
+
+  <!-- ── Score Histogram Card ──────────────────── -->
+  <rect x="236" y="288" width="1268" height="240" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <circle cx="260" cy="314" r="6" fill="#1865F2"/>
+  <text x="274" y="319" fill="#21242C" font-size="14" font-weight="600">점수 구간별 학생 분포</text>
+
+  <!-- Chart area -->
+  <!-- Y axis labels -->
+  <text x="290" y="504" text-anchor="end" fill="#D1D5DB" font-size="10">0</text>
+  <text x="290" y="470" text-anchor="end" fill="#D1D5DB" font-size="10">3</text>
+  <text x="290" y="437" text-anchor="end" fill="#D1D5DB" font-size="10">6</text>
+  <text x="290" y="403" text-anchor="end" fill="#D1D5DB" font-size="10">9</text>
+  <text x="290" y="370" text-anchor="end" fill="#D1D5DB" font-size="10">12</text>
+
+  <!-- Grid lines -->
+  <line x1="296" y1="500" x2="1460" y2="500" stroke="#F3F4F6" stroke-width="1"/>
+  <line x1="296" y1="466" x2="1460" y2="466" stroke="#F3F4F6" stroke-width="1"/>
+  <line x1="296" y1="433" x2="1460" y2="433" stroke="#F3F4F6" stroke-width="1"/>
+  <line x1="296" y1="399" x2="1460" y2="399" stroke="#F3F4F6" stroke-width="1"/>
+  <line x1="296" y1="366" x2="1460" y2="366" stroke="#F3F4F6" stroke-width="1"/>
+
+  <!-- Bars (approx matching actual: 0~20≈0, 21~40 gold small, 41~60 blue medium, 61~80 blue tall, 81~100 green) -->
+  <!-- 0~20: ~0 -->
+  <text x="420" y="518" text-anchor="middle" fill="#9CA3AF" font-size="12">0~20</text>
+
+  <!-- 21~40: ~2명, gold/amber -->
+  <rect x="620" y="489" width="120" height="11" rx="3" fill="#FFB100"/>
+  <text x="680" y="518" text-anchor="middle" fill="#9CA3AF" font-size="12">21~40</text>
+
+  <!-- 41~60: ~5명, blue medium -->
+  <rect x="820" y="455" width="120" height="45" rx="3" fill="#3B82F6"/>
+  <text x="880" y="518" text-anchor="middle" fill="#9CA3AF" font-size="12">41~60</text>
+
+  <!-- 61~80: ~12명, blue tall -->
+  <rect x="1020" y="366" width="120" height="134" rx="3" fill="#2563EB"/>
+  <text x="1080" y="518" text-anchor="middle" fill="#9CA3AF" font-size="12">61~80</text>
+
+  <!-- 81~100: ~9명, green -->
+  <rect x="1220" y="400" width="120" height="100" rx="3" fill="#22C55E"/>
+  <text x="1280" y="518" text-anchor="middle" fill="#9CA3AF" font-size="12">81~100</text>
+
+  <!-- ── Bottom Row: Level Dist + Level Avg ──── -->
+  <!-- Level Distribution Card -->
+  <rect x="236" y="544" width="620" height="440" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <circle cx="260" cy="570" r="6" fill="#1865F2"/>
+  <text x="274" y="575" fill="#21242C" font-size="14" font-weight="600">레벨별 학생 분포</text>
+
+  <!-- Donut chart (matching actual blue-shade palette) -->
+  <!-- Outer ring segments using stroke-dasharray trick -->
+  <circle cx="420" cy="700" r="110" fill="none" stroke="#F3F4F6" stroke-width="2"/>
+  <!-- Large segments: Lv8=11명, Lv6=7명, Lv10=3명, Lv1=1명 -->
+  <!-- Total=22, circumference≈691 -->
+  <!-- Lv8 (11/22=50%): 346 -->
+  <circle cx="420" cy="700" r="90" fill="none" stroke="#1865F2" stroke-width="38"
+    stroke-dasharray="283 283" stroke-dashoffset="71"
+    transform="rotate(-90 420 700)"/>
+  <!-- Lv6 (7/22=32%): 220 -->
+  <circle cx="420" cy="700" r="90" fill="none" stroke="#60A5FA" stroke-width="38"
+    stroke-dasharray="180 386" stroke-dashoffset="-212"
+    transform="rotate(-90 420 700)"/>
+  <!-- Lv10 (3/22=14%): 77 -->
+  <circle cx="420" cy="700" r="90" fill="none" stroke="#93C5FD" stroke-width="38"
+    stroke-dasharray="77 489" stroke-dashoffset="-392"
+    transform="rotate(-90 420 700)"/>
+  <!-- Lv1 (1/22=4%): 26 -->
+  <circle cx="420" cy="700" r="90" fill="none" stroke="#BFDBFE" stroke-width="38"
+    stroke-dasharray="26 540" stroke-dashoffset="-469"
+    transform="rotate(-90 420 700)"/>
+
+  <!-- Center label -->
+  <circle cx="420" cy="700" r="56" fill="white"/>
+  <text x="420" y="695" text-anchor="middle" fill="#21242C" font-size="18" font-weight="700">22명</text>
+  <text x="420" y="714" text-anchor="middle" fill="#9CA3AF" font-size="11">전체 학생</text>
+
+  <!-- Legend -->
+  <circle cx="558" cy="642" r="6" fill="#1865F2"/>
+  <text x="570" y="647" fill="#6B7280" font-size="12">레벨 8</text>
+  <text x="730" y="647" fill="#374151" font-size="12" font-weight="600">11명</text>
+
+  <circle cx="558" cy="672" r="6" fill="#60A5FA"/>
+  <text x="570" y="677" fill="#6B7280" font-size="12">레벨 6</text>
+  <text x="730" y="677" fill="#374151" font-size="12" font-weight="600">7명</text>
+
+  <circle cx="558" cy="702" r="6" fill="#93C5FD"/>
+  <text x="570" y="707" fill="#6B7280" font-size="12">레벨 10</text>
+  <text x="730" y="707" fill="#374151" font-size="12" font-weight="600">3명</text>
+
+  <circle cx="558" cy="732" r="6" fill="#BFDBFE"/>
+  <text x="570" y="737" fill="#6B7280" font-size="12">레벨 1</text>
+  <text x="730" y="737" fill="#374151" font-size="12" font-weight="600">1명</text>
+
+  <!-- Level Avg Card -->
+  <rect x="876" y="544" width="628" height="440" rx="10" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <circle cx="900" cy="570" r="6" fill="#7854F7"/>
+  <text x="914" y="575" fill="#21242C" font-size="14" font-weight="600">레벨별 평균 점수</text>
+
+  <!-- Bar chart Y axis -->
+  <text x="926" y="608" fill="#D1D5DB" font-size="10" text-anchor="middle">100</text>
+  <text x="926" y="654" fill="#D1D5DB" font-size="10" text-anchor="middle">75</text>
+  <text x="926" y="700" fill="#D1D5DB" font-size="10" text-anchor="middle">50</text>
+  <text x="926" y="746" fill="#D1D5DB" font-size="10" text-anchor="middle">25</text>
+  <text x="926" y="792" fill="#D1D5DB" font-size="10" text-anchor="middle">0</text>
+
+  <!-- Grid lines -->
+  <line x1="940" y1="602" x2="1472" y2="602" stroke="#F3F4F6" stroke-width="1"/>
+  <line x1="940" y1="648" x2="1472" y2="648" stroke="#F3F4F6" stroke-width="1"/>
+  <line x1="940" y1="694" x2="1472" y2="694" stroke="#F3F4F6" stroke-width="1"/>
+  <line x1="940" y1="740" x2="1472" y2="740" stroke="#F3F4F6" stroke-width="1"/>
+  <line x1="940" y1="786" x2="1472" y2="786" stroke="#F3F4F6" stroke-width="1"/>
+
+  <!-- Bars: 레벨6~60점, 레벨8~75점, 레벨10~90점 -->
+  <!-- 레벨6: ~60점 → height=113 (60/100*188) -->
+  <rect x="1020" y="673" width="100" height="113" rx="4" fill="#7854F7"/>
+  <text x="1070" y="808" text-anchor="middle" fill="#9CA3AF" font-size="12">레벨 6</text>
+
+  <!-- 레벨8: ~75점 → height=141 -->
+  <rect x="1176" y="645" width="100" height="141" rx="4" fill="#7854F7"/>
+  <text x="1226" y="808" text-anchor="middle" fill="#9CA3AF" font-size="12">레벨 8</text>
+
+  <!-- 레벨10: ~90점 → height=170 -->
+  <rect x="1332" y="617" width="100" height="169" rx="4" fill="#7854F7"/>
+  <text x="1382" y="808" text-anchor="middle" fill="#9CA3AF" font-size="12">레벨 10</text>
+
+  <!-- X axis line -->
+  <line x1="940" y1="786" x2="1472" y2="786" stroke="#E5E7EB" stroke-width="1"/>
+
+</svg>
