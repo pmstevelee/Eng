@@ -167,6 +167,23 @@ async function main() {
     await navigate(`${BASE_URL}/owner/analytics`, 5000)
     await capture('screenshot-analytics.png')
 
+    // Role Tab 01: 학원장 대시보드
+    console.log('\n5️⃣  학원장 대시보드 (탭용)...')
+    await navigate(`${BASE_URL}/owner`, 5000)
+    await capture('screenshot-role-owner.png')
+
+    // Role Tab 02: 교사 학생 관리
+    console.log('\n6️⃣  교사 학생 관리 (탭용)...')
+    await login('teacher1@happy-english.com', 'password123')
+    await navigate(`${BASE_URL}/teacher/students`, 4000)
+    await capture('screenshot-role-teacher.png')
+
+    // Role Tab 03: 학생 홈
+    console.log('\n7️⃣  학생 홈 (탭용)...')
+    await login('student30@happy-english.com', 'password123')
+    await navigate(`${BASE_URL}/student`, 4000)
+    await capture('screenshot-role-student.png')
+
     console.log('\n✅ 모든 스크린샷 완료!')
   } finally {
     cdp.close()

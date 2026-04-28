@@ -16,8 +16,8 @@ const TABS = [
       'PDF 리포트 1클릭 생성',
       '정기 레벨 테스트 자동 스케줄링',
     ],
-    mockupLabel: '학원장 분석 대시보드',
-    image: '/images/dashboard-owner.png',
+    mockupLabel: '학원장 대시보드',
+    image: '/images/screenshot-role-owner.png',
   },
   {
     id: 'teacher',
@@ -32,7 +32,7 @@ const TABS = [
       '레벨 조정 및 이력 관리',
     ],
     mockupLabel: '교사 학생 관리 화면',
-    image: null,
+    image: '/images/screenshot-role-teacher.png',
   },
   {
     id: 'student',
@@ -47,7 +47,7 @@ const TABS = [
       '쓰기 AI 즉시 피드백',
     ],
     mockupLabel: '학생 홈 미션 카드',
-    image: null,
+    image: '/images/screenshot-role-student.png',
   },
 ]
 
