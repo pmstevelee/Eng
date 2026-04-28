@@ -39,8 +39,8 @@ const FEATURES = [
     title: '적응형 10단계 레벨 테스트',
     subtitle: '맞추면 어려운 문제, 틀리면 쉬운 문제',
     desc: '영역별(문법·어휘·읽기·쓰기·듣기) 독립 레벨 측정으로 학생의 정확한 실력을 파악합니다. CEFR 기준 Pre-A1 ~ C1+ 10단계로 정밀하게 배치합니다.',
-    mockupBg: '#EEF4FF',
-    mockupLabel: '적응형 레벨 테스트 결과',
+    imageSrc: '/images/screenshot-level-test.png',
+    imageAlt: '적응형 레벨 테스트 결과 화면',
     flip: false,
     detailHref: '/features/adaptive-test',
   },
@@ -49,9 +49,9 @@ const FEATURES = [
     color: '#7854F7',
     title: 'AI 데이터 분석 + 약점 반복 제시',
     subtitle: '부족한 부분을 AI가 정확히 찾아 반복 학습',
-    desc: 'AI가 학생의 오답 패턴과 영역별 점수를 정밀 분석합니다. 취약한 유형을 자동으로 감지하고 해당 문제를 반복 제시하여 실질적인 실력 향상을 이끕니다.',
-    mockupBg: '#F3F0FF',
-    mockupLabel: 'AI 약점 분석 리포트',
+    desc: 'AI가 학생의 오답 패턴과 영역별 점수를 정밀 분석합니다. 취약한 유형을 자동으로 감지하고 해당 문제를 반복 제시하여 실질적인 실력 향상을 이끌어줍니다.',
+    imageSrc: '/images/screenshot-ai-analysis.png',
+    imageAlt: 'AI 약점 분석 및 맞춤 학습 화면',
     flip: true,
     detailHref: '/features/ai-analysis',
   },
@@ -60,9 +60,9 @@ const FEATURES = [
     color: '#0FBFAD',
     title: '교사 직접 문제 출제',
     subtitle: '선생님이 교육의 방향을 직접 설계합니다',
-    desc: '교사가 직접 문제를 만들고 학습 방향을 설정합니다. AI는 보조 도구로서 문제 생성을 지원하고, 교사는 학원 특성에 맞게 커리큘럼을 자유롭게 구성합니다.',
-    mockupBg: '#E8FAF8',
-    mockupLabel: '교사 문제 출제 화면',
+    desc: '교사가 직접 문제를 만들고 학습 방향을 설정합니다. AI는 보조 도구로서 문제 생성을 지원하고, 교사는 학원 특성에 맞게 문제를 자유롭게 구성할 수 있습니다.',
+    imageSrc: '/images/screenshot-teacher-questions.png',
+    imageAlt: '교사 문제 출제 화면',
     flip: false,
     detailHref: '/features/teacher-questions',
   },
@@ -71,43 +71,14 @@ const FEATURES = [
     color: '#E35C20',
     title: '데이터 기반 실시간 성장 추적',
     subtitle: '숫자로 보이는 학생의 실력 향상',
-    desc: '반별 비교, 영역별 분석, 성장률 추이를 한눈에 파악합니다. 선생님이 데이터에 근거해 효율적으로 지도하고, 1클릭 PDF 리포트로 학부모 상담을 준비합니다.',
-    mockupBg: '#FEF3EC',
-    mockupLabel: '실시간 성장 대시보드',
+    desc: '반별 비교, 영역별 분석, 성장률 추이를 한눈에 파악합니다. 선생님이 데이터에 근거해 효율적으로 지도하고, 원클릭 PDF 리포트로 학부모 상담을 준비합니다.',
+    imageSrc: '/images/screenshot-analytics.png',
+    imageAlt: '실시간 성장 분석 대시보드',
     flip: true,
     detailHref: '/features/growth-tracking',
   },
 ]
 
-function MockupPlaceholder({ label, bg }: { label: string; bg: string }) {
-  return (
-    <div
-      className="rounded-2xl border border-gray-200 p-2 shadow-sm overflow-hidden"
-      style={{ background: '#fff', transform: 'perspective(1200px) rotateY(-2deg) rotateX(1deg)' }}
-    >
-      <div
-        className="rounded-xl aspect-[16/10] flex flex-col items-center justify-center gap-3 border border-gray-100"
-        style={{ background: bg }}
-      >
-        <div className="flex gap-2">
-          {['#1865F2', '#7854F7', '#0FBFAD'].map((c) => (
-            <div key={c} className="w-2 h-2 rounded-full" style={{ background: c }} />
-          ))}
-        </div>
-        <div className="grid grid-cols-3 gap-2 w-48">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-md h-10 animate-pulse"
-              style={{ background: 'rgba(0,0,0,0.08)', animationDelay: `${i * 0.12}s` }}
-            />
-          ))}
-        </div>
-        <div className="text-xs text-gray-400 mt-1">{label}</div>
-      </div>
-    </div>
-  )
-}
 
 export default async function Home() {
   const supabase = await createClient()
@@ -233,12 +204,12 @@ export default async function Home() {
           <div className="max-w-4xl mx-auto text-center">
             <ScrollReveal>
               <p className="text-sm font-semibold mb-4" style={{ color: '#0FBFAD' }}>
-                AI가 보조하고, 선생님이 가르칩니다
+                AI가 보조하고, 선생님은 교육에만 집중할 수 있습니다.
               </p>
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 leading-tight">
                 모든 것을 AI에 맡기지 않습니다.{' '}
                 <br />
-                <span style={{ color: '#FFB100' }}>AI는 분석하고, 선생님은 가르칩니다.</span>
+                <span style={{ color: '#FFB100' }}>AI가 분석하고, 선생님은 교육에만 집중하세요.</span>
               </h2>
               <p className="text-gray-300 text-lg max-w-2xl mx-auto leading-relaxed">
                 생성된 학습 데이터를 AI가 정밀하게 분석하여 학생의 부족한 부분을 반복 제시합니다.
@@ -389,24 +360,20 @@ export default async function Home() {
                         자세히 보기 →
                       </Link>
                     </div>
-                    {f.num === '03' ? (
-                      <div
-                        className="rounded-2xl border border-gray-200 p-2 shadow-sm overflow-hidden"
-                        style={{ background: '#fff', transform: 'perspective(1200px) rotateY(-2deg) rotateX(1deg)' }}
-                      >
-                        <div className="rounded-xl overflow-hidden aspect-[16/10] relative border border-gray-100">
-                          <Image
-                            src="/images/teacher-questions-mockup.svg"
-                            alt="교사 문제 출제 화면"
-                            fill
-                            className="object-cover object-left-top"
-                            sizes="(max-width: 768px) 100vw, 50vw"
-                          />
-                        </div>
+                    <div
+                      className="rounded-2xl border border-gray-200 p-2 shadow-sm overflow-hidden"
+                      style={{ background: '#fff', transform: 'perspective(1200px) rotateY(-2deg) rotateX(1deg)' }}
+                    >
+                      <div className="rounded-xl overflow-hidden aspect-[16/10] relative border border-gray-100">
+                        <Image
+                          src={f.imageSrc}
+                          alt={f.imageAlt}
+                          fill
+                          className="object-cover object-left-top"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                        />
                       </div>
-                    ) : (
-                      <MockupPlaceholder label={f.mockupLabel} bg={f.mockupBg} />
-                    )}
+                    </div>
                   </div>
                 </ScrollReveal>
               ))}

@@ -68,7 +68,11 @@ export async function middleware(request: NextRequest) {
         return logAndReturn(NextResponse.redirect(new URL(ROLE_REDIRECT[role], request.url)))
       }
     }
-    // 비로그인 → 로그인 페이지로
+    // dev 환경 비로그인 → 랜딩 페이지 그대로 서빙
+    if (hostType === 'dev') {
+      return logAndReturn(supabaseResponse)
+    }
+    // 앱 도메인 비로그인 → 로그인 페이지로
     return logAndReturn(NextResponse.redirect(new URL('/login', request.url)))
   }
 
