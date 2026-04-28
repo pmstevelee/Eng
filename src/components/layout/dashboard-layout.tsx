@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { useState, useCallback, useSyncExternalStore } from 'react'
 import { Sidebar } from './sidebar'
 import { Header } from './header'
 import { NAV_ITEMS } from './nav-items'
@@ -18,6 +17,18 @@ interface DashboardLayoutProps {
   businessName?: string | null
 }
 
+// localStorage 동기 구독: SSR/첫 렌더는 false, 클라이언트는 즉시 저장값 사용 → 깜빡임 최소화
+function subscribeStorage(cb: () => void) {
+  window.addEventListener('storage', cb)
+  return () => window.removeEventListener('storage', cb)
+}
+function getCollapsedSnapshot() {
+  return localStorage.getItem('sidebar-collapsed') === 'true'
+}
+function getCollapsedServerSnapshot() {
+  return false
+}
+
 export function DashboardLayout({
   children,
   role,
@@ -29,21 +40,26 @@ export function DashboardLayout({
   businessName,
 }: DashboardLayoutProps) {
   const navItems = NAV_ITEMS[role]
-  const pathname = usePathname()
 
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  // 외부 저장소(localStorage)를 동기 구독하여 hydration mismatch 없이 즉시 올바른 값 사용
+  const storedCollapsed = useSyncExternalStore(
+    subscribeStorage,
+    getCollapsedSnapshot,
+    getCollapsedServerSnapshot,
+  )
+  const [overrideCollapsed, setOverrideCollapsed] = useState<boolean | null>(null)
+  const isCollapsed = overrideCollapsed ?? storedCollapsed
+
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
-  useEffect(() => {
-    const stored = localStorage.getItem('sidebar-collapsed')
-    if (stored !== null) setIsCollapsed(stored === 'true')
-  }, [])
-
-  const handleToggleCollapse = () => {
+  const handleToggleCollapse = useCallback(() => {
     const next = !isCollapsed
-    setIsCollapsed(next)
-    localStorage.setItem('sidebar-collapsed', String(next))
-  }
+    setOverrideCollapsed(next)
+    try { localStorage.setItem('sidebar-collapsed', String(next)) } catch {}
+  }, [isCollapsed])
+
+  const handleCloseMobile = useCallback(() => setIsMobileOpen(false), [])
+  const handleOpenMobile = useCallback(() => setIsMobileOpen(true), [])
 
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-gray-50">
@@ -56,7 +72,7 @@ export function DashboardLayout({
         academyName={academyName}
         businessName={businessName}
         onToggleCollapse={handleToggleCollapse}
-        onCloseMobile={() => setIsMobileOpen(false)}
+        onCloseMobile={handleCloseMobile}
       />
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
@@ -66,9 +82,9 @@ export function DashboardLayout({
           userEmail={userEmail}
           userRole={userRole}
           userId={userId}
-          onOpenMobileSidebar={() => setIsMobileOpen(true)}
+          onOpenMobileSidebar={handleOpenMobile}
         />
-        <main key={pathname} className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 bg-gray-50 page-enter">{children}</main>
+        <main className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 bg-gray-50">{children}</main>
       </div>
     </div>
   )

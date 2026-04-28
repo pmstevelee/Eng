@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ChevronLeft, ChevronRight, LogOut, X } from 'lucide-react'
+import { memo } from 'react'
+import { ChevronLeft, LogOut, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { signOut } from '@/app/(auth)/login/actions'
 import type { NavItem } from './nav-items'
@@ -17,6 +18,47 @@ interface SidebarProps {
   businessName?: string | null
   onToggleCollapse: () => void
   onCloseMobile: () => void
+}
+
+const ROOT_HREFS = new Set(['/owner', '/teacher', '/student', '/admin'])
+
+// 개별 NavLink를 memoize하여 pathname이 바뀌어도 활성/비활성 변화가 없는 링크는 리렌더 스킵
+const NavLink = memo(function NavLink({
+  item,
+  collapsed,
+  isActive,
+  onClick,
+}: {
+  item: NavItem
+  collapsed: boolean
+  isActive: boolean
+  onClick?: () => void
+}) {
+  const Icon = item.icon
+  return (
+    <Link
+      href={item.href}
+      prefetch
+      onClick={onClick}
+      title={collapsed ? item.label : undefined}
+      className={cn(
+        'flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+        collapsed ? 'justify-center' : '',
+        isActive
+          ? 'bg-primary-700 text-white'
+          : 'text-blue-200 hover:bg-primary-800 hover:text-white',
+      )}
+    >
+      <Icon size={18} className="shrink-0" />
+      {!collapsed && <span className="truncate">{item.label}</span>}
+    </Link>
+  )
+})
+
+function isPathActive(pathname: string, href: string) {
+  if (pathname === href) return true
+  if (ROOT_HREFS.has(href)) return false
+  return pathname.startsWith(href + '/')
 }
 
 export function Sidebar({
@@ -35,43 +77,6 @@ export function Sidebar({
   // 로고에 표시할 이름: businessName > academyName > '위고업잉글리시'
   const displayName = businessName || academyName || '위고업잉글리시'
   const isSuperAdmin = !academyName && !businessName
-
-  const NavLink = ({
-    item,
-    collapsed,
-    onClick,
-  }: {
-    item: NavItem
-    collapsed: boolean
-    onClick?: () => void
-  }) => {
-    const Icon = item.icon
-    const isActive =
-      pathname === item.href ||
-      (item.href !== '/owner' &&
-        item.href !== '/teacher' &&
-        item.href !== '/student' &&
-        item.href !== '/admin' &&
-        pathname.startsWith(item.href + '/'))
-
-    return (
-      <Link
-        href={item.href}
-        onClick={onClick}
-        title={collapsed ? item.label : undefined}
-        className={cn(
-          'flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-          collapsed ? 'justify-center' : '',
-          isActive
-            ? 'bg-primary-700 text-white'
-            : 'text-blue-200 hover:bg-primary-800 hover:text-white'
-        )}
-      >
-        <Icon size={18} className="shrink-0" />
-        {!collapsed && <span className="truncate">{item.label}</span>}
-      </Link>
-    )
-  }
 
   const LogoutBtn = ({
     collapsed,
@@ -149,7 +154,12 @@ export function Sidebar({
         {/* 내비게이션 */}
         <nav className="flex-1 py-3 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => (
-            <NavLink key={item.href} item={item} collapsed={isCollapsed} />
+            <NavLink
+              key={item.href}
+              item={item}
+              collapsed={isCollapsed}
+              isActive={isPathActive(pathname, item.href)}
+            />
           ))}
         </nav>
 
@@ -213,7 +223,13 @@ export function Sidebar({
         {/* 내비게이션 */}
         <nav className="flex-1 py-3 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => (
-            <NavLink key={item.href} item={item} collapsed={false} onClick={onCloseMobile} />
+            <NavLink
+              key={item.href}
+              item={item}
+              collapsed={false}
+              isActive={isPathActive(pathname, item.href)}
+              onClick={onCloseMobile}
+            />
           ))}
         </nav>
 
