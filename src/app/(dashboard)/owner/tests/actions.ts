@@ -27,6 +27,15 @@ export type TestFormInput = {
   timeLimitMin?: number
   instructions?: string
   questionIds: string[]
+  isAdaptive?: boolean
+  adaptiveConfig?: {
+    questionsPerDomain: number
+    startLevel: number
+    writingQuestions: number
+  }
+  targetLevel?: number
+  unitName?: string
+  learningObjectives?: string
 }
 
 export type QuestionRowMin = {
@@ -66,6 +75,11 @@ export async function saveTestDraft(
         totalScore: input.questionIds.length || 0,
         createdBy: user.id,
         isActive: true,
+        isAdaptive: input.isAdaptive ?? false,
+        adaptiveConfig: input.adaptiveConfig ?? undefined,
+        targetLevel: input.targetLevel ?? null,
+        unitName: input.unitName || null,
+        learningObjectives: input.learningObjectives || null,
       },
     })
     revalidateTag(`academy-${user.academyId}-tests`)
@@ -109,6 +123,11 @@ export async function createAndDeployTest(
           totalScore: input.questionIds.length || 0,
           createdBy: user.id,
           isActive: true,
+          isAdaptive: input.isAdaptive ?? false,
+          adaptiveConfig: input.adaptiveConfig ?? undefined,
+          targetLevel: input.targetLevel ?? null,
+          unitName: input.unitName || null,
+          learningObjectives: input.learningObjectives || null,
         },
       })
 
