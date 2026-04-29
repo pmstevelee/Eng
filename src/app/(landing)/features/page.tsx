@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import ScrollReveal from '@/components/landing/scroll-reveal'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: '기능소개',
@@ -13,8 +14,8 @@ const FEATURES = [
     color: 'bg-primary-100 text-primary-700',
     title: '적응형 10단계 레벨 테스트',
     subtitle: '맞추면 어려운 문제, 틀리면 쉬운 문제',
-    desc: '문법·어휘·읽기·쓰기 4개 영역을 독립적으로 측정하는 CEFR 기반 10단계 배치 시험입니다. AI가 학생의 답변에 따라 실시간으로 난이도를 조절하여 최적의 레벨을 빠르게 측정합니다.',
-    details: ['Pre-A1 ~ C1+ 10단계 정밀 측정', '영역별 독립 레벨 산출', '평균 25문항으로 정확한 배치', '1년 이내 동일 문제 재출제 방지'],
+    desc: '문법·어휘·읽기·쓰기·듣기 5개 영역을 독립적으로 측정하는 CEFR 기반 10단계 배치 시험입니다. AI가 학생의 답변에 따라 실시간으로 난이도를 조절하여 최적의 레벨을 빠르게 측정합니다.',
+    details: ['Pre-A1 ~ C1+ 10단계 정밀 측정', '5영역 독립 레벨 산출', '평균 25문항으로 정확한 배치', '1년 이내 동일 문제 재출제 방지'],
   },
   {
     icon: '🤖',
@@ -58,21 +59,6 @@ const FEATURES = [
   },
 ]
 
-function MockupPlaceholder({ label }: { label: string }) {
-  return (
-    <div className="bg-gray-100 rounded-2xl aspect-[16/10] flex items-center justify-center border border-gray-200">
-      <div className="text-center text-gray-400 p-8">
-        <div className="w-10 h-10 bg-gray-200 rounded-xl mx-auto mb-2 flex items-center justify-center">
-          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <div className="text-sm">스크린샷 영역</div>
-        <div className="text-xs mt-1 text-gray-400">{label}</div>
-      </div>
-    </div>
-  )
-}
 
 export default function FeaturesPage() {
   return (
@@ -138,18 +124,33 @@ export default function FeaturesPage() {
                     전통적인 획일적 시험 대신, AI가 학생의 답변에 따라 실시간으로 문제 난이도를 조절합니다.
                     25문항으로 Pre-A1부터 C1+까지 정밀하게 배치합니다.
                   </p>
-                  <div className="grid grid-cols-2 gap-4">
-                    {['문법', '어휘', '읽기', '쓰기'].map((area, i) => {
-                      const colors = ['bg-grammar/10 text-grammar', 'bg-vocabulary/10 text-vocabulary', 'bg-reading/10 text-reading', 'bg-writing/10 text-writing']
-                      return (
-                        <div key={area} className={`${colors[i]} rounded-xl p-3 text-center text-sm font-semibold`}>
-                          {area}
-                        </div>
-                      )
-                    })}
+                  <div className="grid grid-cols-5 gap-3">
+                    {[
+                      { label: '문법', color: '#1865F2', bg: '#EEF4FF' },
+                      { label: '어휘', color: '#7854F7', bg: '#F3F0FF' },
+                      { label: '읽기', color: '#0FBFAD', bg: '#E8FAF8' },
+                      { label: '쓰기', color: '#E35C20', bg: '#FEF3EC' },
+                      { label: '듣기', color: '#E91E8A', bg: '#FDE9F4' },
+                    ].map(({ label, color, bg }) => (
+                      <div
+                        key={label}
+                        className="rounded-xl p-3 text-center text-sm font-semibold"
+                        style={{ background: bg, color }}
+                      >
+                        {label}
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <MockupPlaceholder label="적응형 레벨 테스트 결과 화면" />
+                <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+                  <Image
+                    src="/images/level_test.png"
+                    alt="적응형 레벨 테스트 결과 화면"
+                    width={1200}
+                    height={750}
+                    className="w-full h-auto"
+                  />
+                </div>
               </div>
             </ScrollReveal>
 
@@ -157,7 +158,15 @@ export default function FeaturesPage() {
             <ScrollReveal>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div className="order-2 md:order-1">
-                  <MockupPlaceholder label="AI 쓰기 평가 피드백 화면" />
+                  <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+                    <Image
+                      src="/images/writing_result.png"
+                      alt="AI 쓰기 평가 피드백 화면"
+                      width={1200}
+                      height={750}
+                      className="w-full h-auto"
+                    />
+                  </div>
                 </div>
                 <div className="order-1 md:order-2">
                   <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
