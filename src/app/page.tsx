@@ -152,51 +152,6 @@ export default async function Home() {
             </p>
           </ScrollReveal>
 
-          {/* Hero 색상 강조 블록 */}
-          <ScrollReveal className="w-full max-w-4xl mt-16" delay={200}>
-            <div
-              className="bg-white rounded-2xl border border-gray-200 p-3 shadow-sm"
-              style={{ transform: 'perspective(1600px) rotateX(4deg)' }}
-            >
-              <div className="bg-gray-50 rounded-xl aspect-[16/9] flex items-center justify-center border border-gray-100 overflow-hidden">
-                <div className="w-full h-full p-6 flex flex-col gap-4">
-                  <div className="flex gap-1.5">
-                    {['#1865F2', '#7854F7', '#0FBFAD', '#E35C20', '#E91E8A'].map((c) => (
-                      <div key={c} className="w-2.5 h-2.5 rounded-full" style={{ background: c }} />
-                    ))}
-                    <span className="text-xs text-gray-400 ml-2">위고업잉글리시 LMS</span>
-                  </div>
-                  <div className="grid grid-cols-5 gap-2 flex-1">
-                    {[
-                      { label: '문법', color: '#1865F2', pct: 78 },
-                      { label: '어휘', color: '#7854F7', pct: 62 },
-                      { label: '읽기', color: '#0FBFAD', pct: 85 },
-                      { label: '쓰기', color: '#E35C20', pct: 54 },
-                      { label: '듣기', color: '#E91E8A', pct: 70 },
-                    ].map((d) => (
-                      <div key={d.label} className="bg-white rounded-xl border border-gray-200 p-3 flex flex-col gap-2">
-                        <div className="text-xs font-semibold" style={{ color: d.color }}>{d.label}</div>
-                        <div className="flex-1 flex items-end">
-                          <div className="w-full rounded-full bg-gray-100 h-2">
-                            <div
-                              className="h-2 rounded-full"
-                              style={{ width: `${d.pct}%`, background: d.color }}
-                            />
-                          </div>
-                        </div>
-                        <div className="text-sm font-bold text-gray-700">{d.pct}점</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="bg-gray-200 rounded-lg h-8 animate-pulse" style={{ animationDelay: `${i * 0.15}s` }} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ScrollReveal>
         </section>
 
         {/* ── Section 2: AI 철학 강조 ──────────────────────── */}
