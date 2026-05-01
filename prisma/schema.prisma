@@ -24,6 +24,8 @@ enum SubscriptionStatus {
   ACTIVE
   EXPIRED
   CANCELLED
+  PAST_DUE
+  CANCELED
 }
 
 enum SubscriptionPeriod {
@@ -37,6 +39,43 @@ enum PaymentStatus {
   EXPIRED
   REFUNDED
   CANCELLED
+  FAILED
+  CANCELED
+  PARTIAL_CANCELED
+}
+
+enum Plan {
+  FREE
+  STARTER
+  STANDARD
+  PREMIUM
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+enum PaymentType {
+  SUBSCRIPTION
+  OVERAGE_AI_WRITING
+  OVERAGE_AI_QUESTION
+  CREDIT_PACKAGE
+  ANNUAL
+  STUDENT_OVERAGE
+  STORAGE_OVERAGE
+}
+
+enum CreditType {
+  WRITING
+  QUESTION
+}
+
+enum ScheduleStatus {
+  PENDING
+  EXECUTED
+  FAILED
+  CANCELED
 }
 
 enum Role {
@@ -156,7 +195,8 @@ model Academy {
   notifications Notification[]
   badges        Badge[]
   enrollments   Enrollment[]
-  subscriptions Subscription[]
+  subscription          Subscription?
+  subscriptionHistory   SubscriptionHistory[]
   announcements Announcement[]
   questionUsageLogs QuestionUsageLog[]
 
@@ -633,8 +673,8 @@ model Enrollment {
   @@map("enrollments")
 }
 
-/// 17. 구독 이력
-model Subscription {
+/// 17. 구독 이력 (레거시 - 구결제 기록용)
+model SubscriptionHistory {
   id            String             @id @default(uuid())
   academyId     String             @map("academy_id")
   plan          PlanType
@@ -649,7 +689,129 @@ model Subscription {
 
   academy Academy @relation(fields: [academyId], references: [id])
 
+  @@index([academyId])
+  @@map("subscription_histories")
+}
+
+/// 25. 구독 (포트원 기반 SaaS 구독)
+model Subscription {
+  id                 String             @id @default(uuid())
+  academyId          String             @unique @map("academy_id")
+  plan               Plan               @default(FREE)
+  billingCycle       BillingCycle       @default(MONTHLY) @map("billing_cycle")
+  status             SubscriptionStatus @default(TRIAL)
+  currentPeriodStart DateTime           @map("current_period_start")
+  currentPeriodEnd   DateTime           @map("current_period_end")
+  cancelAtPeriodEnd  Boolean            @default(false) @map("cancel_at_period_end")
+  trialEndsAt        DateTime?          @map("trial_ends_at")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  academy        Academy          @relation(fields: [academyId], references: [id])
+  billingKey     BillingKey?
+  payments       Payment[]
+  usageRecords   UsageRecord[]
+  schedules      PaymentSchedule[]
+
+  @@index([status])
+  @@index([currentPeriodEnd])
   @@map("subscriptions")
+}
+
+/// 26. 포트원 빌링키
+model BillingKey {
+  id                  String   @id @default(uuid())
+  subscriptionId      String   @unique @map("subscription_id")
+  portoneBillingKey   String   @unique @map("portone_billing_key")
+  cardCompany         String?  @map("card_company")
+  cardNumberMasked    String?  @map("card_number_masked")
+  issuedAt            DateTime @map("issued_at")
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@map("billing_keys")
+}
+
+/// 27. 결제 내역
+model Payment {
+  id             String        @id @default(uuid())
+  subscriptionId String        @map("subscription_id")
+  academyId      String        @map("academy_id")
+  paymentId      String        @unique @map("payment_id") // 포트원 paymentId
+  type           PaymentType
+  amount         Int
+  status         PaymentStatus @default(PENDING)
+  pgProvider     String?       @map("pg_provider")
+  pgTxId         String?       @map("pg_tx_id")
+  receiptUrl     String?       @map("receipt_url")
+  failureReason  String?       @map("failure_reason")
+  paidAt         DateTime?     @map("paid_at")
+  canceledAt     DateTime?     @map("canceled_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@index([subscriptionId])
+  @@index([academyId])
+  @@index([status])
+  @@index([type])
+  @@index([paidAt])
+  @@map("payments")
+}
+
+/// 28. 사용량 기록
+model UsageRecord {
+  id               String   @id @default(uuid())
+  subscriptionId   String   @map("subscription_id")
+  academyId        String   @map("academy_id")
+  periodStart      DateTime @map("period_start")
+  periodEnd        DateTime @map("period_end")
+  aiWritingCount   Int      @default(0) @map("ai_writing_count")
+  aiQuestionCount  Int      @default(0) @map("ai_question_count")
+  storageUsedMb    Int      @default(0) @map("storage_used_mb")
+  studentCount     Int      @default(0) @map("student_count")
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@unique([subscriptionId, periodStart])
+  @@index([academyId])
+  @@index([periodStart])
+  @@map("usage_records")
+}
+
+/// 29. AI 크레딧
+model AiCredit {
+  id         String     @id @default(uuid())
+  academyId  String     @map("academy_id")
+  type       CreditType
+  amount     Int
+  expiresAt  DateTime?  @map("expires_at")
+  paymentId  String?    @map("payment_id")
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  @@index([academyId])
+  @@index([type])
+  @@index([expiresAt])
+  @@map("ai_credits")
+}
+
+/// 30. 결제 예약
+model PaymentSchedule {
+  id             String         @id @default(uuid())
+  subscriptionId String         @map("subscription_id")
+  scheduledAt    DateTime       @map("scheduled_at")
+  type           PaymentType
+  amount         Int
+  status         ScheduleStatus @default(PENDING)
+  retryCount     Int            @default(0) @map("retry_count")
+  metadata       Json?
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("payment_schedules")
 }
 
 /// 20. 학습공간 연습 로그
