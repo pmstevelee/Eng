@@ -65,12 +65,12 @@ const getSubscriptionPageData = (academyId: string) =>
         }),
         prisma.user.count({ where: { academyId, role: 'TEACHER', isDeleted: false } }),
         prisma.student.count({ where: { user: { academyId }, status: 'ACTIVE' } }),
-        prisma.subscription.findMany({
+        prisma.subscriptionHistory.findMany({
           where: { academyId },
           orderBy: { createdAt: 'desc' },
           take: 20,
         }),
-        prisma.subscription.findFirst({
+        prisma.subscriptionHistory.findFirst({
           where: { academyId, status: 'PENDING' },
           orderBy: { createdAt: 'desc' },
           select: { plan: true, period: true, amount: true, createdAt: true },

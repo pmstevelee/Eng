@@ -41,7 +41,7 @@ export async function createPendingSubscription(
   const prices = PLAN_PRICES[plan]
   if (!prices) return { error: '유효하지 않은 플랜입니다.' }
 
-  const existing = await prisma.subscription.findFirst({
+  const existing = await prisma.subscriptionHistory.findFirst({
     where: { academyId: user.academyId, status: 'PENDING' },
   })
   if (existing) return { error: '이미 처리 중인 구독 신청이 있습니다. 관리자 확인을 기다려 주세요.' }
@@ -67,7 +67,7 @@ export async function createPendingSubscription(
   })
 
   await prisma.$transaction([
-    prisma.subscription.create({
+    prisma.subscriptionHistory.create({
       data: {
         academyId: user.academyId,
         plan,

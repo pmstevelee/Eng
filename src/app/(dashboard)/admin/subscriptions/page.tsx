@@ -9,6 +9,9 @@ const PAYMENT_LABEL: Record<PaymentStatus, string> = {
   EXPIRED: '만료',
   REFUNDED: '환불',
   CANCELLED: '취소',
+  CANCELED: '취소',
+  FAILED: '실패',
+  PARTIAL_CANCELED: '부분 취소',
 }
 const PAYMENT_CLASS: Record<PaymentStatus, string> = {
   PENDING: 'bg-accent-gold-light text-accent-gold',
@@ -16,6 +19,9 @@ const PAYMENT_CLASS: Record<PaymentStatus, string> = {
   EXPIRED: 'bg-gray-100 text-gray-500',
   REFUNDED: 'bg-accent-purple-light text-accent-purple',
   CANCELLED: 'bg-gray-100 text-gray-500',
+  CANCELED: 'bg-gray-100 text-gray-500',
+  FAILED: 'bg-accent-red-light text-accent-red',
+  PARTIAL_CANCELED: 'bg-accent-gold-light text-accent-gold',
 }
 const PLAN_LABEL: Record<PlanType, string> = {
   BASIC: '기본',
@@ -45,7 +51,7 @@ export default async function SubscriptionsPage({ searchParams }: PageProps) {
     ? (searchParams.status as PaymentStatus)
     : null
 
-  const subscriptions = await prisma.subscription.findMany({
+  const subscriptions = await prisma.subscriptionHistory.findMany({
     where: statusFilter ? { status: statusFilter } : {},
     select: {
       id: true,
@@ -237,6 +243,9 @@ function SubscriptionRow({
     EXPIRED: '만료',
     REFUNDED: '환불',
     CANCELLED: '취소',
+    CANCELED: '취소',
+    FAILED: '실패',
+    PARTIAL_CANCELED: '부분 취소',
   }
 
   return (

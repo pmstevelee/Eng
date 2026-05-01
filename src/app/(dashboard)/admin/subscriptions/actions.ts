@@ -25,14 +25,14 @@ export async function confirmPayment(formData: FormData) {
   const subscriptionId = formData.get('subscriptionId') as string
   if (!subscriptionId) return
 
-  const sub = await prisma.subscription.findUnique({
+  const sub = await prisma.subscriptionHistory.findUnique({
     where: { id: subscriptionId },
     select: { academyId: true, plan: true, expiresAt: true, startedAt: true },
   })
   if (!sub) return
 
   await prisma.$transaction([
-    prisma.subscription.update({
+    prisma.subscriptionHistory.update({
       where: { id: subscriptionId },
       data: { status: 'PAID' },
     }),

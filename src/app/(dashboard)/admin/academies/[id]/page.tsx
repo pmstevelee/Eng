@@ -11,12 +11,16 @@ const STATUS_LABEL: Record<SubscriptionStatus, string> = {
   ACTIVE: '활성',
   EXPIRED: '만료',
   CANCELLED: '정지',
+  PAST_DUE: '연체',
+  CANCELED: '해지',
 }
 const STATUS_CLASS: Record<SubscriptionStatus, string> = {
   TRIAL: 'bg-accent-gold-light text-accent-gold',
   ACTIVE: 'bg-accent-green-light text-accent-green',
   EXPIRED: 'bg-accent-red-light text-accent-red',
   CANCELLED: 'bg-gray-100 text-gray-500',
+  PAST_DUE: 'bg-accent-red-light text-accent-red',
+  CANCELED: 'bg-gray-100 text-gray-500',
 }
 const PLAN_LABEL: Record<PlanType, string> = {
   BASIC: '기본',
@@ -36,6 +40,9 @@ const PAYMENT_LABEL: Record<PaymentStatus, string> = {
   EXPIRED: '만료',
   REFUNDED: '환불',
   CANCELLED: '취소',
+  CANCELED: '취소',
+  FAILED: '실패',
+  PARTIAL_CANCELED: '부분 취소',
 }
 const PAYMENT_CLASS: Record<PaymentStatus, string> = {
   PENDING: 'bg-accent-gold-light text-accent-gold',
@@ -43,6 +50,9 @@ const PAYMENT_CLASS: Record<PaymentStatus, string> = {
   EXPIRED: 'bg-gray-100 text-gray-500',
   REFUNDED: 'bg-accent-purple-light text-accent-purple',
   CANCELLED: 'bg-gray-100 text-gray-500',
+  CANCELED: 'bg-gray-100 text-gray-500',
+  FAILED: 'bg-accent-red-light text-accent-red',
+  PARTIAL_CANCELED: 'bg-accent-gold-light text-accent-gold',
 }
 const PERIOD_LABEL: Record<SubscriptionPeriod, string> = {
   MONTHLY: '월간',
@@ -50,12 +60,13 @@ const PERIOD_LABEL: Record<SubscriptionPeriod, string> = {
 }
 
 interface PageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function AcademyDetailPage({ params }: PageProps) {
+  const { id } = await params
   const academy = await prisma.academy.findUnique({
-    where: { id: params.id, isDeleted: false },
+    where: { id, isDeleted: false },
     select: {
       id: true,
       name: true,
@@ -77,7 +88,7 @@ export default async function AcademyDetailPage({ params }: PageProps) {
         select: { role: true },
         where: { isDeleted: false, role: { in: ['TEACHER', 'STUDENT'] } },
       },
-      subscriptions: {
+      subscriptionHistory: {
         select: {
           id: true,
           plan: true,
@@ -331,7 +342,7 @@ export default async function AcademyDetailPage({ params }: PageProps) {
         <div className="px-5 py-4 border-b border-gray-100">
           <h2 className="text-sm font-semibold text-gray-700">구독 이력</h2>
         </div>
-        {academy.subscriptions.length === 0 ? (
+        {academy.subscriptionHistory.length === 0 ? (
           <div className="py-12 text-center text-sm text-gray-400">구독 이력이 없습니다</div>
         ) : (
           <div className="overflow-x-auto">
@@ -359,7 +370,7 @@ export default async function AcademyDetailPage({ params }: PageProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {academy.subscriptions.map((sub) => (
+                {academy.subscriptionHistory.map((sub) => (
                   <tr key={sub.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
                       <span

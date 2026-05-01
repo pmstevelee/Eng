@@ -8,6 +8,8 @@ const STATUS_LABEL: Record<SubscriptionStatus, string> = {
   ACTIVE: '활성',
   EXPIRED: '만료',
   CANCELLED: '정지',
+  PAST_DUE: '연체',
+  CANCELED: '해지',
 }
 
 const STATUS_CLASS: Record<SubscriptionStatus, string> = {
@@ -15,6 +17,8 @@ const STATUS_CLASS: Record<SubscriptionStatus, string> = {
   ACTIVE: 'bg-accent-green-light text-accent-green',
   EXPIRED: 'bg-accent-red-light text-accent-red',
   CANCELLED: 'bg-gray-100 text-gray-500',
+  PAST_DUE: 'bg-accent-red-light text-accent-red',
+  CANCELED: 'bg-gray-100 text-gray-500',
 }
 
 const PLAN_LABEL: Record<PlanType, string> = {

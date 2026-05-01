@@ -18,8 +18,8 @@ async function getDashboardData() {
     prisma.academy.count({ where: { isDeleted: false } }),
     prisma.user.count({ where: { isDeleted: false } }),
     prisma.academy.count({ where: { isDeleted: false, createdAt: { gte: startOfMonth } } }),
-    prisma.subscription.aggregate({
-      where: { status: 'PAID', createdAt: { gte: startOfMonth } },
+    prisma.payment.aggregate({
+      where: { status: 'PAID', paidAt: { gte: startOfMonth } },
       _sum: { amount: true },
     }),
   ])
