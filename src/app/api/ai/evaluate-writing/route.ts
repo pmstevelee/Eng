@@ -3,6 +3,8 @@ import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import type { DomainLevels } from '@/lib/ai/domain-level-calculator'
+import { checkAiUsageLimit, trackAiUsage } from '@/lib/usage/tracker'
+import { queueOverageCharge } from '@/lib/usage/overage'
 
 // ── 타입 정의 ──────────────────────────────────────────────────────────────────
 
@@ -347,6 +349,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '에세이 내용이 필요합니다.' }, { status: 400 })
     }
 
+    // ── 사용량 한도 체크 ──────────────────────────────────────────────────────
+    const dbUserForUsage = await prisma.user.findUnique({
+      where: { id: user.id, isDeleted: false },
+      select: { academyId: true },
+    })
+    const academyId = dbUserForUsage?.academyId
+    if (academyId) {
+      const usageCheck = await checkAiUsageLimit(academyId, 'WRITING')
+      if (!usageCheck.canUse) {
+        return NextResponse.json(
+          { error: 'limit_exceeded', message: usageCheck.message, upgrade: true },
+          { status: 402 },
+        )
+      }
+    }
+
     const wordCount = body.essay.trim().split(/\s+/).filter(Boolean).length
 
     const completion = await openai.chat.completions.create({
@@ -365,6 +383,15 @@ export async function POST(req: NextRequest) {
     }
 
     const result = JSON.parse(rawContent) as WritingEvaluationResult
+
+    // ── 사용량 기록 + 초과 결제 큐 ────────────────────────────────────────────
+    if (academyId) {
+      const usageCheck = await checkAiUsageLimit(academyId, 'WRITING')
+      await trackAiUsage(academyId, 'WRITING')
+      if (usageCheck.source === 'OVERAGE') {
+        queueOverageCharge(academyId, 'WRITING', 1)
+      }
+    }
 
     // ── DB 저장 ────────────────────────────────────────────────────────────────
     try {

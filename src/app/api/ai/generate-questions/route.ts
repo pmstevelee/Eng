@@ -3,6 +3,8 @@ import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import { type QuestionDomain } from '@/generated/prisma'
+import { checkAiUsageLimit, trackAiUsage } from '@/lib/usage/tracker'
+import { queueOverageCharge } from '@/lib/usage/overage'
 
 interface GenerateQuestionsRequest {
   domain: QuestionDomain
@@ -52,6 +54,17 @@ export async function POST(req: NextRequest) {
 
     if (!domain || !difficulty || !cefrLevel || !questionType || !count) {
       return NextResponse.json({ error: '필수 조건이 누락되었습니다.' }, { status: 400 })
+    }
+
+    // ── 사용량 한도 체크 ──────────────────────────────────────────────────────
+    if (academyId) {
+      const usageCheck = await checkAiUsageLimit(academyId, 'QUESTION')
+      if (!usageCheck.canUse) {
+        return NextResponse.json(
+          { error: 'limit_exceeded', message: usageCheck.message, upgrade: true },
+          { status: 402 },
+        )
+      }
     }
 
     const clampedCount = Math.min(Math.max(count, 1), 20)
@@ -151,6 +164,15 @@ export async function POST(req: NextRequest) {
         )
       )
       savedIds = created.map((q) => q.id)
+    }
+
+    // ── 사용량 기록 + 초과 결제 큐 ────────────────────────────────────────────
+    if (academyId) {
+      const usageCheck = await checkAiUsageLimit(academyId, 'QUESTION')
+      await trackAiUsage(academyId, 'QUESTION')
+      if (usageCheck.source === 'OVERAGE') {
+        queueOverageCharge(academyId, 'QUESTION', 1)
+      }
     }
 
     return NextResponse.json({ success: true, data: questions, savedIds })

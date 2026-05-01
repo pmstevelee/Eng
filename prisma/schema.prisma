@@ -78,6 +78,13 @@ enum ScheduleStatus {
   CANCELED
 }
 
+enum OverageMode {
+  REALTIME    // 매번 사용 시 즉시 결제
+  WEEKLY      // 매주 일요일 일괄 결제 (기본값)
+  MONTHLY     // 매월 말일 일괄 결제
+  BLOCK       // 한도 도달 시 사용 차단
+}
+
 enum Role {
   SUPER_ADMIN
   ACADEMY_OWNER
@@ -704,6 +711,8 @@ model Subscription {
   currentPeriodEnd   DateTime           @map("current_period_end")
   cancelAtPeriodEnd  Boolean            @default(false) @map("cancel_at_period_end")
   trialEndsAt        DateTime?          @map("trial_ends_at")
+  overageMode        OverageMode        @default(WEEKLY) @map("overage_mode")
+  overageBlocked     Boolean            @default(false) @map("overage_blocked")
   createdAt          DateTime           @default(now()) @map("created_at")
   updatedAt          DateTime           @updatedAt @map("updated_at")
 
