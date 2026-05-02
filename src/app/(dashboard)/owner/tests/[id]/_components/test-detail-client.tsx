@@ -15,7 +15,7 @@ import {
   PolarAngleAxis,
   Legend,
 } from 'recharts'
-import { Users, Clock, BookOpen, TrendingUp, AlertTriangle } from 'lucide-react'
+import { Users, Clock, BookOpen, TrendingUp, AlertTriangle, FileDown } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -206,6 +206,15 @@ export default function TestDetailClient({ test }: { test: TestDetailData }) {
             </div>
             <h1 className="text-xl font-bold text-gray-900">{test.title}</h1>
           </div>
+          <a
+            href={`/report/test/${test.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 h-9 text-sm font-medium text-primary-700 border border-primary-700 hover:bg-primary-50 rounded-xl transition-colors shrink-0"
+          >
+            <FileDown size={15} />
+            리포트 출력
+          </a>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-100">
