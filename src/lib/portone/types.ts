@@ -155,6 +155,7 @@ export type PortOneWebhookEventType =
   | 'Transaction.VirtualAccountIssued'
   | 'Transaction.VirtualAccountDeposited'
   | 'BillingKey.Issued'
+  | 'BillingKey.Failed'
   | 'BillingKey.Deleted'
   | 'Schedule.Executed'
   | 'Schedule.Failed'

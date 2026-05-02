@@ -78,6 +78,20 @@ enum ScheduleStatus {
   CANCELED
 }
 
+enum WebhookStatus {
+  RECEIVED
+  PROCESSED
+  FAILED
+  SKIPPED
+}
+
+enum AuditActorType {
+  USER
+  SYSTEM
+  ADMIN
+  WEBHOOK
+}
+
 enum OverageMode {
   REALTIME    // 매번 사용 시 즉시 결제
   WEEKLY      // 매주 일요일 일괄 결제 (기본값)
@@ -921,6 +935,41 @@ model LevelPromotionStatus {
 
   @@index([studentId])
   @@map("level_promotion_status")
+}
+
+/// 31. 포트원 웹훅 이벤트 (멱등성 보장)
+model WebhookEvent {
+  id          String        @id @default(uuid())
+  eventId     String        @unique @map("event_id")  // 포트원 webhook id
+  eventType   String        @map("event_type")
+  payload     Json
+  status      WebhookStatus @default(RECEIVED)
+  errorMsg    String?       @map("error_msg")
+  receivedAt  DateTime      @default(now()) @map("received_at")
+  processedAt DateTime?     @map("processed_at")
+
+  @@index([eventType])
+  @@index([status])
+  @@index([receivedAt])
+  @@map("webhook_events")
+}
+
+/// 32. 결제 감사 로그
+model PaymentAuditLog {
+  id         String         @id @default(uuid())
+  actorType  AuditActorType @map("actor_type")
+  actorId    String?        @map("actor_id")     // userId or "SYSTEM"
+  action     String                               // e.g. PAYMENT_VERIFIED, SUBSCRIPTION_ACTIVATED
+  target     String                               // e.g. "Payment:pay_xxx"
+  metadata   Json?
+  ip         String?
+  userAgent  String?        @map("user_agent")
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  @@index([actorType, actorId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("payment_audit_logs")
 }
 
 /// 18. 요금제 정의
