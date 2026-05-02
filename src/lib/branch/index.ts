@@ -9,6 +9,14 @@ export function canManageBranches(plan: Plan): boolean {
   return plan === 'STANDARD' || plan === 'PREMIUM'
 }
 
+// Academy.subscriptionPlan(PlanType)을 Plan enum으로 변환
+// Subscription 레코드가 없을 때 fallback으로 사용
+function academyPlanTypeToPlan(planType: string): Plan {
+  if (planType === 'STANDARD') return Plan.STANDARD
+  if (planType === 'PREMIUM' || planType === 'ENTERPRISE') return Plan.PREMIUM
+  return Plan.FREE
+}
+
 export type BranchInfo = {
   id: string
   name: string
@@ -46,7 +54,8 @@ export async function getOwnerBranches(ownerId: string): Promise<{
   })
   if (!hq) return null
 
-  const plan = hq.subscription?.plan ?? Plan.FREE
+  // Subscription 레코드가 없으면 Academy.subscriptionPlan으로 fallback
+  const plan = hq.subscription?.plan ?? academyPlanTypeToPlan(hq.subscriptionPlan)
   return {
     hq: { id: hq.id, name: hq.name, branchName: hq.branchName, branchOrder: 0 },
     branches: hq.branches,
@@ -71,7 +80,8 @@ export async function getViewableAcademyIds(
     where: { ownerId, parentAcademyId: null, isDeleted: false },
     include: { subscription: { select: { plan: true } } },
   })
-  const plan = hq?.subscription?.plan ?? Plan.FREE
+  // Subscription 레코드가 없으면 Academy.subscriptionPlan으로 fallback
+  const plan = hq?.subscription?.plan ?? academyPlanTypeToPlan(hq?.subscriptionPlan ?? '')
 
   if (!canManageBranches(plan)) return allIds
   if (!selectedBranchId || selectedBranchId === BRANCH_ALL) return allIds
