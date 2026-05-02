@@ -13,7 +13,10 @@ async function getOwnerHq() {
     where: { ownerId: user.id, parentAcademyId: null, isDeleted: false },
     include: { subscription: { select: { plan: true } } },
   })
-  return hq ? { user, hq } : null
+  if (!hq) return null
+  // Subscription 레코드가 없으면 Academy.subscriptionPlan으로 fallback
+  const planStr = hq.subscription?.plan ?? hq.subscriptionPlan
+  return { user, hq, planStr }
 }
 
 export async function createBranch(formData: {
@@ -25,8 +28,7 @@ export async function createBranch(formData: {
   const ctx = await getOwnerHq()
   if (!ctx) return { error: '권한이 없습니다.' }
 
-  const plan = ctx.hq.subscription?.plan ?? 'FREE'
-  if (!canManageBranches(plan)) {
+  if (!canManageBranches(ctx.planStr)) {
     return { error: '다지점 관리는 스탠다드 이상 플랜에서 사용 가능합니다.' }
   }
 
@@ -66,8 +68,7 @@ export async function updateBranch(
   const ctx = await getOwnerHq()
   if (!ctx) return { error: '권한이 없습니다.' }
 
-  const plan = ctx.hq.subscription?.plan ?? 'FREE'
-  if (!canManageBranches(plan)) return { error: '권한이 없습니다.' }
+  if (!canManageBranches(ctx.planStr)) return { error: '권한이 없습니다.' }
 
   const branch = await prisma.academy.findFirst({
     where: { id: branchId, parentAcademyId: ctx.hq.id, isDeleted: false },
@@ -95,8 +96,7 @@ export async function deleteBranch(branchId: string): Promise<{ error?: string; 
   const ctx = await getOwnerHq()
   if (!ctx) return { error: '권한이 없습니다.' }
 
-  const plan = ctx.hq.subscription?.plan ?? 'FREE'
-  if (!canManageBranches(plan)) return { error: '권한이 없습니다.' }
+  if (!canManageBranches(ctx.planStr)) return { error: '권한이 없습니다.' }
 
   const branch = await prisma.academy.findFirst({
     where: { id: branchId, parentAcademyId: ctx.hq.id, isDeleted: false },

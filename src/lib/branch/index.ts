@@ -5,8 +5,8 @@ import { prisma } from '@/lib/prisma/client'
 export const BRANCH_COOKIE = 'ivy-selected-branch'
 export const BRANCH_ALL = 'all'
 
-export function canManageBranches(plan: Plan): boolean {
-  return plan === 'STANDARD' || plan === 'PREMIUM'
+export function canManageBranches(plan: Plan | string): boolean {
+  return plan === 'STANDARD' || plan === 'PREMIUM' || plan === 'ENTERPRISE'
 }
 
 // Academy.subscriptionPlan(PlanType)을 Plan enum으로 변환
