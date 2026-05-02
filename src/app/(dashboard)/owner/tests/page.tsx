@@ -4,13 +4,14 @@ import { unstable_cache } from 'next/cache'
 import { FilePen, Plus } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
 import TestsListClient from './_components/tests-list-client'
 
-async function getTestsPageData(academyId: string) {
+async function getTestsPageData(viewIds: string[]) {
   // 1단계: 테스트 목록 + 반/교사 목록 병렬 조회
   const [tests, classes, teachers] = await Promise.all([
     prisma.test.findMany({
-      where: { academyId },
+      where: { academyId: { in: viewIds } },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
@@ -28,12 +29,12 @@ async function getTestsPageData(academyId: string) {
       },
     }),
     prisma.class.findMany({
-      where: { academyId, isActive: true },
+      where: { academyId: { in: viewIds }, isActive: true },
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     }),
     prisma.user.findMany({
-      where: { academyId, role: 'TEACHER', isDeleted: false },
+      where: { academyId: { in: viewIds }, role: 'TEACHER', isDeleted: false },
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     }),
@@ -69,11 +70,11 @@ async function getTestsPageData(academyId: string) {
 }
 
 // 테스트 목록 + 세션 통계를 30초 캐싱 (데이터 변경 시 tag로 즉시 무효화)
-const getCachedTestsPageData = (academyId: string) =>
+const getCachedTestsPageData = (hqId: string, viewIds: string[], branchKey: string) =>
   unstable_cache(
-    () => getTestsPageData(academyId),
-    ['owner-tests', academyId],
-    { revalidate: 30, tags: [`academy-${academyId}-tests`] },
+    () => getTestsPageData(viewIds),
+    ['owner-tests', branchKey],
+    { revalidate: 30, tags: [`academy-${hqId}-tests`] },
   )()
 
 export default async function OwnerTestsPage() {
@@ -84,9 +85,15 @@ export default async function OwnerTestsPage() {
   console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
+  const selectedBranchId = await getSelectedBranchId()
+  const viewIds = await getViewableAcademyIds(user.id, selectedBranchId)
+  const branchKey = viewIds.join(',')
+
   const dataStart = performance.now()
   const { tests, classes, teachers, totalMap, completedMap } = await getCachedTestsPageData(
     user.academyId,
+    viewIds,
+    branchKey,
   )
   console.log(`  [쿼리2] getCachedTestsPageData: ${(performance.now() - dataStart).toFixed(0)}ms`)
 

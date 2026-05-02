@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
 import { AnalyticsClient } from './_components/analytics-client'
 import type { AnalyticsData } from './_components/analytics-client'
 import type { ClassTrendItem } from './_components/analytics-charts'
@@ -48,7 +49,7 @@ function median(nums: number[]): number | null {
 
 // ─── Data Fetching ────────────────────────────────────────────────────────────
 
-async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date): Promise<AnalyticsData> {
+async function getAnalyticsData(viewIds: string[], fromDate: Date, toDate: Date): Promise<AnalyticsData> {
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
@@ -56,15 +57,15 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
   // ── Phase 1: 학원의 활성 학생/반/교사 기본 목록 (다른 쿼리들의 기반) ─────
   const [allClasses, allTeachers, activeStudents] = await Promise.all([
     prisma.class.findMany({
-      where: { academyId, isActive: true },
+      where: { academyId: { in: viewIds }, isActive: true },
       select: { id: true, name: true, teacherId: true },
     }),
     prisma.user.findMany({
-      where: { academyId, role: 'TEACHER', isActive: true, isDeleted: false },
+      where: { academyId: { in: viewIds }, role: 'TEACHER', isActive: true, isDeleted: false },
       select: { id: true, name: true },
     }),
     prisma.student.findMany({
-      where: { user: { academyId, isActive: true }, status: 'ACTIVE' },
+      where: { user: { academyId: { in: viewIds }, isActive: true }, status: 'ACTIVE' },
       select: { id: true, classId: true, currentLevel: true, userId: true },
     }),
   ])
@@ -153,7 +154,7 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     // 신규 학생 (최근 6개월)
     prisma.user.findMany({
       where: {
-        academyId,
+        academyId: { in: viewIds },
         role: 'STUDENT',
         isDeleted: false,
         createdAt: { gte: sixMonthsAgo },
@@ -164,7 +165,7 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
     // 탈퇴 학생 (최근 6개월)
     prisma.student.findMany({
       where: {
-        user: { academyId },
+        user: { academyId: { in: viewIds } },
         status: 'WITHDRAWN',
         updatedAt: { gte: sixMonthsAgo },
       },
@@ -621,12 +622,12 @@ async function getAnalyticsData(academyId: string, fromDate: Date, toDate: Date)
 
 // ─── Cached Wrapper (period별 독립 캐시, 5분 TTL) ────────────────────────────
 
-function getCachedAnalyticsData(academyId: string, period: string) {
+function getCachedAnalyticsData(hqId: string, viewIds: string[], branchKey: string, period: string) {
   const { from, to } = getPeriodDates(period)
   return unstable_cache(
-    () => getAnalyticsData(academyId, from, to),
-    ['owner-analytics', academyId, period],
-    { revalidate: 300, tags: [`academy-${academyId}-analytics`] },
+    () => getAnalyticsData(viewIds, from, to),
+    ['owner-analytics', branchKey, period],
+    { revalidate: 300, tags: [`academy-${hqId}-analytics`] },
   )()
 }
 
@@ -646,7 +647,11 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
   const period = searchParams.period ?? '3-months'
   const activeTab = searchParams.tab ?? 'scores'
 
-  const data = await getCachedAnalyticsData(user.academyId, period)
+  const selectedBranchId = await getSelectedBranchId()
+  const viewIds = await getViewableAcademyIds(user.id, selectedBranchId)
+  const branchKey = viewIds.join(',')
+
+  const data = await getCachedAnalyticsData(user.academyId, viewIds, branchKey, period)
 
   return <AnalyticsClient data={data} period={period} activeTab={activeTab} />
 }

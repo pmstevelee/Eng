@@ -3,13 +3,14 @@ import { unstable_cache } from 'next/cache'
 import { Users, TrendingUp, FileCheck, BarChart2, ArrowUpRight, ArrowDownRight, Minus, AlertCircle } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { OwnerCharts } from '@/components/dashboard/owner-charts'
 import type { ClassChartItem, MonthlyChartItem, LevelChartItem, DomainChartItem } from '@/components/dashboard/owner-charts'
 
 // ─── Data Fetching ────────────────────────────────────────────────────────────
 
-async function getOwnerDashboardData(academyId: string) {
+async function getOwnerDashboardData(viewIds: string[]) {
   const now = new Date()
   const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
@@ -32,20 +33,20 @@ async function getOwnerDashboardData(academyId: string) {
   ] = await Promise.all([
     // 1. 활성 학생 수
     prisma.student.count({
-      where: { user: { academyId, isActive: true, isDeleted: false }, status: 'ACTIVE' },
+      where: { user: { academyId: { in: viewIds }, isActive: true, isDeleted: false }, status: 'ACTIVE' },
     }),
 
     // 2. 이번 달 출석 현황
     prisma.attendance.groupBy({
       by: ['status'],
-      where: { student: { user: { academyId } }, date: { gte: startOfThisMonth } },
+      where: { student: { user: { academyId: { in: viewIds } } }, date: { gte: startOfThisMonth } },
       _count: { id: true },
     }),
 
     // 3. 이번 달 완료 테스트 수
     prisma.testSession.count({
       where: {
-        student: { user: { academyId } },
+        student: { user: { academyId: { in: viewIds } } },
         status: { in: ['COMPLETED', 'GRADED'] },
         completedAt: { gte: startOfThisMonth },
       },
@@ -54,7 +55,7 @@ async function getOwnerDashboardData(academyId: string) {
     // 4. 이번 달 평균 점수
     prisma.testSession.aggregate({
       where: {
-        student: { user: { academyId } },
+        student: { user: { academyId: { in: viewIds } } },
         status: 'GRADED',
         completedAt: { gte: startOfThisMonth },
         score: { not: null },
@@ -65,7 +66,7 @@ async function getOwnerDashboardData(academyId: string) {
     // 5. 지난 달 평균 점수
     prisma.testSession.aggregate({
       where: {
-        student: { user: { academyId } },
+        student: { user: { academyId: { in: viewIds } } },
         status: 'GRADED',
         completedAt: { gte: startOfLastMonth, lt: startOfThisMonth },
         score: { not: null },
@@ -75,7 +76,7 @@ async function getOwnerDashboardData(academyId: string) {
 
     // 6. 반별 평균 점수
     prisma.class.findMany({
-      where: { academyId, isActive: true },
+      where: { academyId: { in: viewIds }, isActive: true },
       select: {
         name: true,
         students: {
@@ -95,7 +96,7 @@ async function getOwnerDashboardData(academyId: string) {
     // 7. 최근 테스트 세션 10개
     prisma.testSession.findMany({
       where: {
-        student: { user: { academyId } },
+        student: { user: { academyId: { in: viewIds } } },
         status: { in: ['COMPLETED', 'GRADED'] },
       },
       select: {
@@ -113,7 +114,7 @@ async function getOwnerDashboardData(academyId: string) {
     // 8. 레벨 분포
     prisma.student.groupBy({
       by: ['currentLevel'],
-      where: { user: { academyId, isActive: true }, status: 'ACTIVE' },
+      where: { user: { academyId: { in: viewIds }, isActive: true }, status: 'ACTIVE' },
       _count: { id: true },
       orderBy: { currentLevel: 'asc' },
     }),
@@ -121,7 +122,7 @@ async function getOwnerDashboardData(academyId: string) {
     // 9. 월별 신규 학생 (최근 6개월)
     prisma.user.findMany({
       where: {
-        academyId,
+        academyId: { in: viewIds },
         role: 'STUDENT',
         isActive: true,
         isDeleted: false,
@@ -133,7 +134,7 @@ async function getOwnerDashboardData(academyId: string) {
     // 10. 영역별 평균 (최근 30일)
     prisma.testSession.aggregate({
       where: {
-        student: { user: { academyId } },
+        student: { user: { academyId: { in: viewIds } } },
         status: 'GRADED',
         completedAt: { gte: thirtyDaysAgo },
       },
@@ -148,7 +149,7 @@ async function getOwnerDashboardData(academyId: string) {
     // 11. 주의 학생 (평균 점수 < 60)
     prisma.student.findMany({
       where: {
-        user: { academyId, isActive: true },
+        user: { academyId: { in: viewIds }, isActive: true },
         status: 'ACTIVE',
         testSessions: { some: { status: 'GRADED' } },
       },
@@ -268,12 +269,12 @@ function TrendIcon({ delta }: { delta: number | null }) {
 
 // ─── Cached Data Fetcher (60초 TTL, academyId별 독립 캐시 + 태그 기반 무효화) ──
 
-function getCachedOwnerDashboardData(academyId: string) {
+function getCachedOwnerDashboardData(hqId: string, viewIds: string[], branchKey: string) {
   return unstable_cache(
-    getOwnerDashboardData,
-    [`owner-dashboard-${academyId}`],
-    { revalidate: 60, tags: [`owner-${academyId}-dashboard`] }
-  )(academyId)
+    () => getOwnerDashboardData(viewIds),
+    [`owner-dashboard-${branchKey}`],
+    { revalidate: 60, tags: [`owner-${hqId}-dashboard`] }
+  )()
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -287,6 +288,10 @@ export default async function OwnerDashboard() {
   console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
+  const selectedBranchId = await getSelectedBranchId()
+  const viewIds = await getViewableAcademyIds(user.id, selectedBranchId)
+  const branchKey = viewIds.join(',')
+
   const dataStart = performance.now()
   const {
     stats,
@@ -296,7 +301,7 @@ export default async function OwnerDashboard() {
     domainData,
     recentSessions,
     atRiskStudents,
-  } = await getCachedOwnerDashboardData(user.academyId)
+  } = await getCachedOwnerDashboardData(user.academyId, viewIds, branchKey)
   console.log(`  [쿼리2] getCachedOwnerDashboardData: ${(performance.now() - dataStart).toFixed(0)}ms`)
 
   const totalTime = performance.now() - pageStart

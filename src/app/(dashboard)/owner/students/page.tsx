@@ -4,6 +4,7 @@ import { unstable_cache } from 'next/cache'
 import { Users } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
 import StudentsListClient from './_components/students-list-client'
 
 const PAGE_SIZE = 20
@@ -16,32 +17,33 @@ type SearchParams = {
 }
 
 // 자주 바뀌지 않는 정적 데이터: 반 목록 + 학원 정보 + 전체 학생 수 (60초 캐싱)
-const getStaticStudentsPageData = (academyId: string) =>
+const getStaticStudentsPageData = (hqId: string, viewIds: string[], branchKey: string) =>
   unstable_cache(
     async () => {
       const [classes, academy, totalStudents] = await Promise.all([
         prisma.class.findMany({
-          where: { academyId, isActive: true },
+          where: { academyId: { in: viewIds }, isActive: true },
           select: { id: true, name: true },
           orderBy: { name: 'asc' },
         }),
         prisma.academy.findUnique({
-          where: { id: academyId },
+          where: { id: hqId },
           select: { maxStudents: true, subscriptionStatus: true },
         }),
         prisma.student.count({
-          where: { user: { academyId, isDeleted: false } },
+          where: { user: { academyId: { in: viewIds }, isDeleted: false } },
         }),
       ])
       return { classes, academy, totalStudents }
     },
-    ['owner-students-static', academyId],
-    { revalidate: 60, tags: [`academy-${academyId}-students`] },
+    ['owner-students-static', branchKey],
+    { revalidate: 60, tags: [`academy-${hqId}-students`] },
   )()
 
 // 동적 필터 쿼리 (15초 캐싱 — 탭/검색 반복 클릭 시 즉시 반환)
 const getDynamicStudentsData = (
-  academyId: string,
+  viewIds: string[],
+  branchKey: string,
   query: string,
   classIdFilter: string,
   statusFilter: string,
@@ -51,7 +53,7 @@ const getDynamicStudentsData = (
     async () => {
       type StudentWhere = {
         user: {
-          academyId: string
+          academyId: { in: string[] }
           isDeleted: boolean
           OR?: Array<{ name: { contains: string; mode: 'insensitive' } } | { email: { contains: string; mode: 'insensitive' } }>
         }
@@ -60,7 +62,7 @@ const getDynamicStudentsData = (
       }
 
       const where: StudentWhere = {
-        user: { academyId, isDeleted: false },
+        user: { academyId: { in: viewIds }, isDeleted: false },
       }
 
       if (query) {
@@ -101,8 +103,8 @@ const getDynamicStudentsData = (
       ])
       return [count, rows.map((s) => ({ ...s, createdAt: s.createdAt.toISOString() }))] as const
     },
-    ['owner-students-list', academyId, query, classIdFilter, statusFilter, String(page)],
-    { revalidate: 15, tags: [`academy-${academyId}-students`] },
+    ['owner-students-list', branchKey, query, classIdFilter, statusFilter, String(page)],
+    { revalidate: 15, tags: [`academy-${branchKey}-students`] },
   )()
 
 export default async function OwnerStudentsPage({
@@ -124,11 +126,15 @@ export default async function OwnerStudentsPage({
   const statusFilter = params.status ?? ''
   const page = Math.max(1, parseInt(params.page ?? '1', 10))
 
+  const selectedBranchId = await getSelectedBranchId()
+  const viewIds = await getViewableAcademyIds(user.id, selectedBranchId)
+  const branchKey = viewIds.join(',')
+
   // 정적 데이터(캐싱)와 동적 쿼리(캐싱)를 병렬 실행
   const dataStart = performance.now()
   const [{ classes, academy, totalStudents }, [totalCount, students]] = await Promise.all([
-    getStaticStudentsPageData(user.academyId),
-    getDynamicStudentsData(user.academyId, query, classIdFilter, statusFilter, page),
+    getStaticStudentsPageData(user.academyId, viewIds, branchKey),
+    getDynamicStudentsData(viewIds, branchKey, query, classIdFilter, statusFilter, page),
   ])
   console.log(`  [쿼리2] getStaticStudentsPageData + getDynamicStudentsData: ${(performance.now() - dataStart).toFixed(0)}ms`)
 

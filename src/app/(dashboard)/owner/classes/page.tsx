@@ -4,6 +4,7 @@ import { unstable_cache } from 'next/cache'
 import { BookOpen, Sparkles } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
 import ClassesListClient from './_components/classes-list-client'
 import type { ScheduleData } from './actions'
 
@@ -18,38 +19,39 @@ function parseSchedule(json: unknown): ScheduleData | null {
   }
 }
 
-const getClassesPageData = unstable_cache(
-  async (academyId: string) => {
-    return Promise.all([
-      prisma.class.findMany({
-        where: { academyId },
-        orderBy: { createdAt: 'desc' },
-        include: {
-          teacher: { select: { id: true, name: true } },
-          students: {
-            where: { status: 'ACTIVE' },
-            select: {
-              id: true,
-              testSessions: {
-                where: { score: { not: null } },
-                select: { score: true },
-                orderBy: { completedAt: 'desc' },
-                take: 5,
+const getClassesPageData = (viewIds: string[], branchKey: string) =>
+  unstable_cache(
+    async () => {
+      return Promise.all([
+        prisma.class.findMany({
+          where: { academyId: { in: viewIds } },
+          orderBy: { createdAt: 'desc' },
+          include: {
+            teacher: { select: { id: true, name: true } },
+            students: {
+              where: { status: 'ACTIVE' },
+              select: {
+                id: true,
+                testSessions: {
+                  where: { score: { not: null } },
+                  select: { score: true },
+                  orderBy: { completedAt: 'desc' },
+                  take: 5,
+                },
               },
             },
           },
-        },
-      }),
-      prisma.user.findMany({
-        where: { academyId, role: 'TEACHER', isDeleted: false },
-        select: { id: true, name: true },
-        orderBy: { name: 'asc' },
-      }),
-    ])
-  },
-  ['owner-classes'],
-  { revalidate: 60 },
-)
+        }),
+        prisma.user.findMany({
+          where: { academyId: { in: viewIds }, role: 'TEACHER', isDeleted: false },
+          select: { id: true, name: true },
+          orderBy: { name: 'asc' },
+        }),
+      ])
+    },
+    ['owner-classes', branchKey],
+    { revalidate: 60 },
+  )()
 
 export default async function OwnerClassesPage() {
   const pageStart = performance.now()
@@ -59,8 +61,12 @@ export default async function OwnerClassesPage() {
   console.log(`  [쿼리1] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
+  const selectedBranchId = await getSelectedBranchId()
+  const viewIds = await getViewableAcademyIds(user.id, selectedBranchId)
+  const branchKey = viewIds.join(',')
+
   const dataStart = performance.now()
-  const [classes, teachers] = await getClassesPageData(user.academyId)
+  const [classes, teachers] = await getClassesPageData(viewIds, branchKey)
   console.log(`  [쿼리2] getClassesPageData: ${(performance.now() - dataStart).toFixed(0)}ms`)
 
   const totalTime = performance.now() - pageStart
