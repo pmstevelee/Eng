@@ -208,6 +208,11 @@ model Academy {
   isDeleted             Boolean            @default(false) @map("is_deleted")
   deletedAt             DateTime?          @map("deleted_at")
 
+  // 다지점 관련 필드
+  parentAcademyId  String?   @map("parent_academy_id")
+  branchName       String?   @map("branch_name")
+  branchOrder      Int       @default(0) @map("branch_order")
+
   owner         User?          @relation("AcademyOwner", fields: [ownerId], references: [id])
   users         User[]         @relation("AcademyUsers")
   classes       Class[]
@@ -221,6 +226,11 @@ model Academy {
   announcements Announcement[]
   questionUsageLogs QuestionUsageLog[]
 
+  // 다지점 자기참조 관계
+  parentAcademy  Academy?  @relation("AcademyBranches", fields: [parentAcademyId], references: [id])
+  branches       Academy[] @relation("AcademyBranches")
+
+  @@index([parentAcademyId])
   @@map("academies")
 }
 

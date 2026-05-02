@@ -7,6 +7,7 @@ import { ChevronLeft, LogOut, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { signOut } from '@/app/(auth)/login/actions'
 import type { NavItem } from './nav-items'
+import { BranchSwitcher, type BranchOption } from './branch-switcher'
 
 interface SidebarProps {
   navItems: NavItem[]
@@ -16,6 +17,8 @@ interface SidebarProps {
   userRole: string
   academyName?: string | null
   businessName?: string | null
+  branches?: BranchOption[]
+  selectedBranchId?: string
   onToggleCollapse: () => void
   onCloseMobile: () => void
 }
@@ -69,6 +72,8 @@ export function Sidebar({
   userRole,
   academyName,
   businessName,
+  branches,
+  selectedBranchId,
   onToggleCollapse,
   onCloseMobile,
 }: SidebarProps) {
@@ -151,6 +156,17 @@ export function Sidebar({
           )}
         </div>
 
+        {/* 지점 선택기 (학원장 + 다지점 플랜) */}
+        {branches && branches.length > 0 && (
+          <div className="pt-2 pb-1 border-b border-primary-800">
+            <BranchSwitcher
+              branches={branches}
+              selectedId={selectedBranchId ?? 'all'}
+              collapsed={isCollapsed}
+            />
+          </div>
+        )}
+
         {/* 내비게이션 */}
         <nav className="flex-1 py-3 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => (
@@ -219,6 +235,17 @@ export function Sidebar({
             <X size={18} />
           </button>
         </div>
+
+        {/* 지점 선택기 (모바일) */}
+        {branches && branches.length > 0 && (
+          <div className="pt-2 pb-1 border-b border-primary-800">
+            <BranchSwitcher
+              branches={branches}
+              selectedId={selectedBranchId ?? 'all'}
+              collapsed={false}
+            />
+          </div>
+        )}
 
         {/* 내비게이션 */}
         <nav className="flex-1 py-3 space-y-0.5 overflow-y-auto">
