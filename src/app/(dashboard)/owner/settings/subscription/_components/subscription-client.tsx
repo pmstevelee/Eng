@@ -1,26 +1,22 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { createPendingSubscription } from '../actions'
 
-type Plan = 'BASIC' | 'STANDARD' | 'PREMIUM'
+type Plan = 'FREE' | 'STARTER' | 'STANDARD' | 'PREMIUM'
 type Period = 'MONTHLY' | 'YEARLY'
-
-interface PlanFeature {
-  label: string
-  basic: boolean
-  standard: boolean
-  premium: boolean
-}
 
 interface PlanConfig {
   type: Plan
   name: string
+  target: string
   monthlyPrice: number
   yearlyPrice: number
-  maxStudents: number | null
+  maxStudents: number | null  // null = 무제한
   maxTeachers: number | null
   recommended?: boolean
+  badge?: string
 }
 
 interface PendingSubscription {
@@ -38,57 +34,131 @@ interface Props {
 
 const PLANS: PlanConfig[] = [
   {
-    type: 'BASIC',
-    name: 'Basic',
-    monthlyPrice: 29000,
-    yearlyPrice: 290000,
-    maxStudents: 30,
-    maxTeachers: 3,
+    type: 'FREE',
+    name: '무료',
+    target: '도입 검토 중인 학원 · 1인 공부방',
+    monthlyPrice: 0,
+    yearlyPrice: 0,
+    maxStudents: 10,
+    maxTeachers: 1,
+  },
+  {
+    type: 'STARTER',
+    name: '스타터',
+    target: '1인 공부방 · 소형 교습소 (10~20명)',
+    monthlyPrice: 19900,
+    yearlyPrice: 191040,
+    maxStudents: 20,
+    maxTeachers: 2,
+    badge: '신규 권장',
   },
   {
     type: 'STANDARD',
-    name: 'Standard',
-    monthlyPrice: 69000,
-    yearlyPrice: 690000,
-    maxStudents: 100,
-    maxTeachers: 10,
+    name: '스탠다드',
+    target: '중형 영어학원 (30~50명)',
+    monthlyPrice: 49900,
+    yearlyPrice: 478080,
+    maxStudents: 50,
+    maxTeachers: 5,
     recommended: true,
+    badge: '가장 인기',
   },
   {
     type: 'PREMIUM',
-    name: 'Premium',
+    name: '프리미엄',
+    target: '대형 학원 · 다지점 · 프랜차이즈',
     monthlyPrice: 129000,
-    yearlyPrice: 1290000,
-    maxStudents: 300,
-    maxTeachers: 30,
+    yearlyPrice: 1238400,
+    maxStudents: null,
+    maxTeachers: null,
   },
 ]
 
-const FEATURES: PlanFeature[] = [
-  { label: '기본 레벨 테스트', basic: true, standard: true, premium: true },
-  { label: '학생 관리', basic: true, standard: true, premium: true },
-  { label: '출석 관리', basic: true, standard: true, premium: true },
-  { label: '단원 테스트', basic: false, standard: true, premium: true },
-  { label: '학습 리포트', basic: false, standard: true, premium: true },
-  { label: 'AI 추천', basic: false, standard: true, premium: true },
-  { label: '무제한 테스트', basic: false, standard: false, premium: true },
-  { label: 'AI 심층 분석', basic: false, standard: false, premium: true },
-  { label: '맞춤 학습 경로', basic: false, standard: false, premium: true },
-]
-
-const PLAN_ORDER: Plan[] = ['BASIC', 'STANDARD', 'PREMIUM']
+const PLAN_ORDER: Plan[] = ['FREE', 'STARTER', 'STANDARD', 'PREMIUM']
 
 function planRank(plan: Plan) {
   return PLAN_ORDER.indexOf(plan)
 }
 
-function featureAvailable(feature: PlanFeature, plan: Plan): boolean {
-  if (plan === 'BASIC') return feature.basic
-  if (plan === 'STANDARD') return feature.standard
-  return feature.premium
+// 플랜별 핵심 기능 목록 (카드 내 표시용)
+const PLAN_KEY_FEATURES: Record<Plan, string[]> = {
+  FREE: [
+    '학생 최대 10명 / 교사 1개',
+    '레벨 테스트 학생당 1회',
+    '자작 문제뱅크 100문항',
+    '공용 문제뱅크 읽기 전용',
+    '단원 테스트 월 3회',
+    'AI 쓰기 평가 월 5회',
+    'AI 문제 생성 월 3회',
+    'AI 약점 분석 요약본',
+    '기본 PDF 리포트 (월 5회)',
+    '스토리지 1GB / 보관 30일',
+  ],
+  STARTER: [
+    '학생 최대 20명 / 교사 2개',
+    '레벨 테스트 무제한',
+    '자작 문제뱅크 무제한',
+    '공용 문제뱅크 읽기 전용',
+    '단원 테스트 무제한',
+    'AI 쓰기 평가 월 50회',
+    'AI 문제 생성 월 30회',
+    'AI 약점 분석 상세',
+    'PDF 리포트 무제한 · 3종',
+    '학부모 알림톡 월 100건',
+    '스토리지 10GB / 보관 1년',
+  ],
+  STANDARD: [
+    '학생 최대 50명 / 교사 5개',
+    '레벨 테스트 무제한 + 자동 스케줄',
+    '공용 문제뱅크 전체 + 기여 가능',
+    '단원 테스트 무제한 + 자동 출제',
+    'AI 쓰기 평가 월 200회',
+    'AI 문제 생성 월 100회',
+    'AI 유사문제 생성 (오답 기반)',
+    'AI 약점 분석 상세 + 반별 비교',
+    '고급 분석 대시보드',
+    'PDF 리포트 무제한 · 8종 + 로고',
+    '학부모 알림톡 월 500건 + 자동 발송',
+    '스토리지 50GB / 보관 3년',
+  ],
+  PREMIUM: [
+    '학생 무제한 / 교사 무제한',
+    'Standard 모든 기능 포함',
+    'AI 쓰기 평가 월 1,000회',
+    'AI 문제 생성 월 500회',
+    '다지점/분원 통합 관리',
+    '학부모 알림톡 월 2,000건',
+    '화이트라벨 (학원 자체 브랜드)',
+    '우선 기능 요청권 + 베타 참여',
+    '스토리지 500GB / 보관 무제한',
+  ],
 }
 
+// 기능 비교 표 데이터
+type CompareRow = [string, string, string, string, string]
+
+const COMPARE_ROWS: CompareRow[] = [
+  ['학생 수',           '최대 10명',    '최대 20명',    '최대 50명',        '무제한'],
+  ['교사 계정',         '1개',          '2개',          '5개',              '무제한'],
+  ['레벨 테스트',       '1회/학생',     '무제한',       '무제한+자동',      '무제한+자동'],
+  ['자작 문제뱅크',     '100문항',      '무제한',       '무제한',           '무제한'],
+  ['공용 문제뱅크',     '읽기 전용',    '읽기 전용',    '전체+기여',        '전체+기여'],
+  ['단원 테스트',       '월 3회',       '무제한',       '무제한+자동',      '무제한+자동'],
+  ['AI 쓰기 평가',      '월 5회',       '월 50회',      '월 200회',         '월 1,000회'],
+  ['AI 문제 생성',      '월 3회',       '월 30회',      '월 100회',         '월 500회'],
+  ['AI 유사문제',       '—',            '—',            '✓',                '✓'],
+  ['AI 약점 분석',      '요약만',       '상세',         '상세+반별 비교',   '상세+반별 비교'],
+  ['고급 분석',         '—',            '—',            '✓',                '✓'],
+  ['PDF 리포트',        '월 5회',       '무제한(3종)',   '무제한(8종+로고)', '무제한(8종+로고)'],
+  ['학부모 알림톡',     '—',            '월 100건',     '월 500건+자동',    '월 2,000건'],
+  ['다지점 통합',       '—',            '—',            '—',                '✓'],
+  ['화이트라벨',        '—',            '—',            '—',                '✓'],
+  ['스토리지',          '1GB',          '10GB',         '50GB',             '500GB'],
+  ['데이터 보관',       '30일',         '1년',          '3년',              '무제한'],
+]
+
 export function SubscriptionClient({ currentPlan, academyName, pendingSubscription }: Props) {
+  const router = useRouter()
   const [period, setPeriod] = useState<Period>('MONTHLY')
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -97,7 +167,7 @@ export function SubscriptionClient({ currentPlan, academyName, pendingSubscripti
 
   const planConfig = PLANS.find((p) => p.type === selectedPlan)
   const price =
-    selectedPlan && planConfig
+    selectedPlan && planConfig && planConfig.type !== 'FREE' && planConfig.type !== 'STARTER'
       ? period === 'MONTHLY'
         ? planConfig.monthlyPrice
         : planConfig.yearlyPrice
@@ -111,17 +181,25 @@ export function SubscriptionClient({ currentPlan, academyName, pendingSubscripti
   }
 
   function handleSelectPlan(plan: Plan) {
-    if (plan === currentPlan) return
+    if (plan === currentPlan || plan === 'FREE') return
+    if (plan === 'STARTER') {
+      // 스타터는 카드 결제 페이지로 이동
+      router.push('/owner/billing/plans')
+      return
+    }
     setSelectedPlan(plan === selectedPlan ? null : plan)
     setSubmitted(false)
     setError(null)
   }
 
   function handleSubmit() {
-    if (!selectedPlan) return
+    if (!selectedPlan || selectedPlan === 'FREE' || selectedPlan === 'STARTER') return
     setError(null)
     startTransition(async () => {
-      const result = await createPendingSubscription(selectedPlan, period)
+      const result = await createPendingSubscription(
+        selectedPlan as 'STANDARD' | 'PREMIUM',
+        period,
+      )
       if ('error' in result) {
         setError(result.error)
       } else {
@@ -162,17 +240,18 @@ export function SubscriptionClient({ currentPlan, academyName, pendingSubscripti
             >
               연간
               <span className="text-xs bg-[#1FAF54] text-white px-1.5 py-0.5 rounded-full leading-none">
-                17% 절약
+                20% 할인
               </span>
             </button>
           </div>
         </div>
 
         {/* 플랜 카드 */}
-        <div className="grid sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
           {PLANS.map((plan) => {
             const isCurrentPlan = plan.type === currentPlan
             const isSelected = plan.type === selectedPlan
+            const isFree = plan.type === 'FREE'
             const isUpgrade = planRank(plan.type) > currentRank
             const isDowngrade = planRank(plan.type) < currentRank
             const planPrice = period === 'MONTHLY' ? plan.monthlyPrice : plan.yearlyPrice
@@ -189,94 +268,106 @@ export function SubscriptionClient({ currentPlan, academyName, pendingSubscripti
                 }`}
               >
                 {/* 배지 */}
-                <div className="flex gap-2 mb-4 min-h-6 flex-wrap">
+                <div className="flex gap-2 mb-3 min-h-6 flex-wrap">
                   {isCurrentPlan && (
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#1865F2] text-white">
                       현재
                     </span>
                   )}
-                  {plan.recommended && !isCurrentPlan && (
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#1FAF54] text-white">
-                      추천
+                  {plan.badge && !isCurrentPlan && (
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold text-white ${
+                      plan.recommended ? 'bg-[#1865F2]' : 'bg-[#1FAF54]'
+                    }`}>
+                      {plan.badge}
                     </span>
                   )}
                 </div>
 
                 {/* 플랜 정보 */}
-                <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  학생{' '}
-                  {plan.maxStudents !== null ? `${plan.maxStudents}명` : '무제한'}
-                  {' '}· 교사{' '}
-                  {plan.maxTeachers !== null ? `${plan.maxTeachers}명` : '무제한'}
-                </p>
+                <h3 className="text-base font-bold text-gray-900">{plan.name}</h3>
+                <p className="text-xs text-gray-400 mt-0.5 mb-3 leading-relaxed">{plan.target}</p>
 
-                <div className="mt-4 mb-1">
-                  <span className="text-2xl font-bold text-gray-900">
-                    {planPrice.toLocaleString('ko-KR')}원
-                  </span>
-                  <span className="text-sm text-gray-500 ml-1">
-                    /{period === 'MONTHLY' ? '월' : '년'}
-                  </span>
+                {/* 가격 */}
+                <div className="mb-1">
+                  {isFree ? (
+                    <span className="text-2xl font-bold text-gray-900">무료</span>
+                  ) : (
+                    <>
+                      <span className="text-2xl font-bold text-gray-900">
+                        {planPrice.toLocaleString('ko-KR')}원
+                      </span>
+                      <span className="text-sm text-gray-500 ml-1">
+                        /{period === 'MONTHLY' ? '월' : '년'}
+                      </span>
+                    </>
+                  )}
                 </div>
-                {period === 'YEARLY' && (
+                {period === 'YEARLY' && !isFree && (
                   <p className="text-xs text-gray-400 mb-4">
                     월 {Math.round(planPrice / 12).toLocaleString('ko-KR')}원
                   </p>
                 )}
-                {period === 'MONTHLY' && <div className="mb-4" />}
+                <div className={period === 'MONTHLY' || isFree ? 'mb-4' : ''} />
 
-                {/* 기능 목록 */}
-                <ul className="space-y-2.5 flex-1 mb-5">
-                  {FEATURES.map((feature) => {
-                    const available = featureAvailable(feature, plan.type)
-                    return (
-                      <li key={feature.label} className="flex items-center gap-2 text-sm">
-                        {available ? (
-                          <span className="text-[#1FAF54] font-bold flex-shrink-0 text-base leading-none">
-                            ✓
-                          </span>
-                        ) : (
-                          <span className="text-gray-300 font-bold flex-shrink-0 text-base leading-none">
-                            ✗
-                          </span>
-                        )}
-                        <span className={available ? 'text-gray-700' : 'text-gray-400'}>
-                          {feature.label}
-                        </span>
-                      </li>
-                    )
-                  })}
+                {/* 핵심 기능 */}
+                <ul className="space-y-1.5 flex-1 mb-5">
+                  {PLAN_KEY_FEATURES[plan.type].map((feature) => (
+                    <li key={feature} className="flex items-start gap-1.5 text-xs text-gray-700">
+                      <span className="text-[#1FAF54] font-bold flex-shrink-0 mt-0.5">✓</span>
+                      {feature}
+                    </li>
+                  ))}
                 </ul>
 
                 {/* CTA 버튼 */}
-                <button
-                  onClick={() => handleSelectPlan(plan.type)}
-                  disabled={isCurrentPlan || !!pendingSubscription}
-                  className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
-                    isCurrentPlan
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : pendingSubscription
+                {isFree ? (
+                  <button
+                    disabled
+                    className="w-full py-2.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-400 cursor-not-allowed min-h-[44px]"
+                  >
+                    {isCurrentPlan ? '현재 플랜' : '무료 플랜'}
+                  </button>
+                ) : plan.type === 'STARTER' ? (
+                  <button
+                    onClick={() => handleSelectPlan('STARTER')}
+                    disabled={isCurrentPlan}
+                    className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
+                      isCurrentPlan
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'border border-[#1FAF54] text-[#1FAF54] hover:bg-green-50'
+                    }`}
+                  >
+                    {isCurrentPlan ? '현재 플랜' : '카드 결제로 신청 →'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleSelectPlan(plan.type)}
+                    disabled={isCurrentPlan || !!pendingSubscription}
+                    className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
+                      isCurrentPlan
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : pendingSubscription
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : isSelected
+                            ? 'bg-[#1865F2] text-white hover:bg-blue-700'
+                            : isUpgrade
+                              ? 'border border-[#1865F2] text-[#1865F2] hover:bg-blue-50'
+                              : isDowngrade
+                                ? 'border border-gray-300 text-gray-600 hover:bg-gray-50'
+                                : 'border border-gray-200 text-gray-500'
+                    }`}
+                  >
+                    {isCurrentPlan
+                      ? '현재 플랜'
+                      : pendingSubscription
+                        ? '처리 대기중'
                         : isSelected
-                          ? 'bg-[#1865F2] text-white hover:bg-blue-700'
+                          ? '선택됨 ✓'
                           : isUpgrade
-                            ? 'border border-[#1865F2] text-[#1865F2] hover:bg-blue-50'
-                            : isDowngrade
-                              ? 'border border-gray-300 text-gray-600 hover:bg-gray-50'
-                              : 'border border-gray-200 text-gray-500'
-                  }`}
-                >
-                  {isCurrentPlan
-                    ? '현재 플랜'
-                    : pendingSubscription
-                      ? '처리 대기중'
-                      : isSelected
-                        ? '선택됨'
-                        : isUpgrade
-                          ? '업그레이드'
-                          : '변경'}
-                </button>
+                            ? '업그레이드'
+                            : '다운그레이드'}
+                  </button>
+                )}
               </div>
             )
           })}
@@ -284,68 +375,49 @@ export function SubscriptionClient({ currentPlan, academyName, pendingSubscripti
 
         {/* 기능 비교 표 */}
         <div className="border border-gray-200 rounded-xl overflow-x-auto">
-          <table className="w-full text-sm min-w-[480px]">
+          <table className="w-full text-sm min-w-[600px]">
             <thead>
-              <tr className="bg-gray-50">
+              <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
                   기능
                 </th>
                 {PLANS.map((plan) => (
                   <th
                     key={plan.type}
-                    className={`px-4 py-3 text-center text-xs font-medium uppercase tracking-wider ${
+                    className={`px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                       plan.type === currentPlan ? 'text-[#1865F2]' : 'text-gray-500'
                     }`}
                   >
                     {plan.name}
+                    {plan.type === currentPlan && (
+                      <span className="ml-1 normal-case text-[10px] bg-[#1865F2] text-white px-1.5 py-0.5 rounded-full">
+                        현재
+                      </span>
+                    )}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              <tr className="hover:bg-gray-50/50">
-                <td className="px-5 py-3 text-gray-700">월 요금</td>
-                {PLANS.map((plan) => (
-                  <td key={plan.type} className="px-4 py-3 text-center font-medium text-gray-900">
-                    {plan.monthlyPrice.toLocaleString('ko-KR')}원
-                  </td>
-                ))}
-              </tr>
-              <tr className="hover:bg-gray-50/50">
-                <td className="px-5 py-3 text-gray-700">연 요금</td>
-                {PLANS.map((plan) => (
-                  <td key={plan.type} className="px-4 py-3 text-center font-medium text-gray-900">
-                    {plan.yearlyPrice.toLocaleString('ko-KR')}원
-                  </td>
-                ))}
-              </tr>
-              <tr className="hover:bg-gray-50/50">
-                <td className="px-5 py-3 text-gray-700">학생 수</td>
-                {PLANS.map((plan) => (
-                  <td key={plan.type} className="px-4 py-3 text-center text-gray-700">
-                    {plan.maxStudents !== null ? `${plan.maxStudents}명` : '무제한'}
-                  </td>
-                ))}
-              </tr>
-              <tr className="hover:bg-gray-50/50">
-                <td className="px-5 py-3 text-gray-700">교사 수</td>
-                {PLANS.map((plan) => (
-                  <td key={plan.type} className="px-4 py-3 text-center text-gray-700">
-                    {plan.maxTeachers !== null ? `${plan.maxTeachers}명` : '무제한'}
-                  </td>
-                ))}
-              </tr>
-              {FEATURES.map((feature) => (
-                <tr key={feature.label} className="hover:bg-gray-50/50">
-                  <td className="px-5 py-3 text-gray-700">{feature.label}</td>
-                  {PLANS.map((plan) => {
-                    const available = featureAvailable(feature, plan.type)
+              {COMPARE_ROWS.map(([feature, free, starter, standard, premium], i) => (
+                <tr key={feature} className={`hover:bg-gray-50/50 ${i % 2 === 1 ? 'bg-gray-50/30' : ''}`}>
+                  <td className="px-5 py-3 text-gray-700 text-xs font-medium">{feature}</td>
+                  {([free, starter, standard, premium] as [string, string, string, string]).map((val, j) => {
+                    const planType = PLANS[j].type
+                    const isCurrent = planType === currentPlan
                     return (
-                      <td key={plan.type} className="px-4 py-3 text-center">
-                        {available ? (
-                          <span className="text-[#1FAF54] font-bold text-base">✓</span>
+                      <td
+                        key={planType}
+                        className={`px-3 py-3 text-center text-xs ${
+                          isCurrent ? 'text-[#1865F2] font-semibold' : 'text-gray-600'
+                        }`}
+                      >
+                        {val === '✓' ? (
+                          <span className="text-[#1FAF54] font-bold text-sm">✓</span>
+                        ) : val === '—' ? (
+                          <span className="text-gray-300">—</span>
                         ) : (
-                          <span className="text-gray-300 font-bold text-base">✗</span>
+                          val
                         )}
                       </td>
                     )
@@ -355,10 +427,14 @@ export function SubscriptionClient({ currentPlan, academyName, pendingSubscripti
             </tbody>
           </table>
         </div>
+
+        <p className="text-center text-xs text-gray-400 mt-4">
+          연간 구독 시 20% 할인 · 부가세 별도 · 언제든지 플랜 변경 가능
+        </p>
       </div>
 
       {/* 결제 섹션 */}
-      {selectedPlan && planConfig && !pendingSubscription && (
+      {selectedPlan && selectedPlan !== 'FREE' && planConfig && !pendingSubscription && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-base font-semibold text-gray-900 mb-5">선불 결제 안내</h2>
 
@@ -371,6 +447,11 @@ export function SubscriptionClient({ currentPlan, academyName, pendingSubscripti
               <p className="text-2xl font-bold text-[#1865F2] mt-0.5">
                 {price.toLocaleString('ko-KR')}원
               </p>
+              {period === 'YEARLY' && (
+                <p className="text-xs text-[#1865F2]/70 mt-0.5">
+                  월 {Math.round(price / 12).toLocaleString('ko-KR')}원 환산 (20% 할인 적용)
+                </p>
+              )}
             </div>
           </div>
 

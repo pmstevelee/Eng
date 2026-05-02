@@ -12,6 +12,7 @@ export interface PlanFeature {
 export interface PlanCardProps {
   plan: Plan
   name: string
+  description?: string
   price: number | null        // null = 무료
   yearlyPrice: number | null
   isYearly: boolean
@@ -26,6 +27,7 @@ export interface PlanCardProps {
 export function PlanCard({
   plan,
   name,
+  description,
   price,
   yearlyPrice,
   isYearly,
@@ -67,6 +69,9 @@ export function PlanCard({
       {/* 플랜명 */}
       <div className="mb-4">
         <h3 className="text-lg font-bold text-gray-900">{name}</h3>
+        {description && (
+          <p className="mt-1 text-xs text-gray-500 leading-relaxed">{description}</p>
+        )}
       </div>
 
       {/* 가격 */}

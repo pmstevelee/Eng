@@ -5,13 +5,14 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 const PLAN_PRICES: Record<string, { monthly: number; yearly: number }> = {
-  BASIC: { monthly: 300000, yearly: 3000000 },
-  STANDARD: { monthly: 500000, yearly: 5000000 },
-  PREMIUM: { monthly: 800000, yearly: 8000000 },
+  STARTER: { monthly: 19900, yearly: 191040 },
+  STANDARD: { monthly: 49900, yearly: 478080 },
+  PREMIUM: { monthly: 129000, yearly: 1238400 },
 }
 
 const PLAN_LABEL: Record<string, string> = {
-  BASIC: '베이직',
+  FREE: '무료',
+  STARTER: '스타터',
   STANDARD: '스탠다드',
   PREMIUM: '프리미엄',
 }
@@ -22,7 +23,7 @@ const PERIOD_LABEL: Record<string, string> = {
 }
 
 export async function createPendingSubscription(
-  plan: 'BASIC' | 'STANDARD' | 'PREMIUM',
+  plan: 'STANDARD' | 'PREMIUM',
   period: 'MONTHLY' | 'YEARLY',
 ): Promise<{ error: string } | { success: true }> {
   const supabase = await createClient()

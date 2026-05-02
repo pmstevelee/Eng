@@ -35,7 +35,8 @@ const PAYMENT_STATUS_CLASS: Record<string, string> = {
 }
 
 const PLAN_LABEL: Record<string, string> = {
-  BASIC: '베이직',
+  FREE: '무료',
+  STARTER: '스타터',
   STANDARD: '스탠다드',
   PREMIUM: '프리미엄',
   ENTERPRISE: '엔터프라이즈',
@@ -120,7 +121,7 @@ export default async function SubscriptionPage() {
   const teacherPct = Math.min(Math.round((teacherCount / academy.maxTeachers) * 100), 100)
   const studentPct = Math.min(Math.round((studentCount / academy.maxStudents) * 100), 100)
 
-  const currentPlan = academy.subscriptionPlan as 'BASIC' | 'STANDARD' | 'PREMIUM'
+  const currentPlan = academy.subscriptionPlan as 'FREE' | 'STARTER' | 'STANDARD' | 'PREMIUM'
   const academyName = academy.businessName ?? academy.name
 
   const pendingSubForClient = pendingSubscription ?? undefined
