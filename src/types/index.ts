@@ -30,3 +30,22 @@ export type ReportResult = {
   growthPoints: string[]
   studySuggestions: string[]
 }
+
+export type DetailedReportResult = {
+  parentSummary: string
+  overallEvaluation: string
+  gradeComparisonAnalysis: string
+  domainAnalysis: {
+    grammar: string
+    vocabulary: string
+    reading: string
+    writing: string
+    listening: string
+  }
+  writingTrend: string
+  practiceAnalysis: string
+  strengthPoints: string[]
+  improvementPoints: string[]
+  parentRecommendations: string[]
+  studySuggestions: string[]
+}

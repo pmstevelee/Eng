@@ -167,10 +167,10 @@ export default async function StudentDetailPage({
             href={`/report/student/${studentId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-primary-700 bg-white px-4 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-accent-purple hover:bg-purple-700 text-white px-4 py-2 text-sm font-medium transition-colors"
           >
             <FileDown size={15} />
-            성적 리포트 출력
+            AI 성적 분석 상세
           </a>
         </div>
       </div>
