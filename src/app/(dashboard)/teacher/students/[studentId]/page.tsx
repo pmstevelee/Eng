@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, BookOpen } from 'lucide-react'
+import { ArrowLeft, BookOpen, FileDown } from 'lucide-react'
 import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -159,6 +159,15 @@ export default async function StudentDetailPage({
               <BookOpen size={15} />
               연습 기록
             </Link>
+            <a
+              href={`/report/student/${student.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-primary-700 bg-white px-4 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50 transition-colors"
+            >
+              <FileDown size={15} />
+              성적 리포트 출력
+            </a>
           </div>
         </div>
       </div>
