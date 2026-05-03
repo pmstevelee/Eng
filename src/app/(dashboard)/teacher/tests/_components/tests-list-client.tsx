@@ -5,7 +5,7 @@ import { Clock, BookOpen, ChevronDown, ChevronUp, Send, Pencil, Trash2, Eye, Fil
 import { deployExistingTest, getStudentsForDeploy, deleteTest } from '../actions'
 import TestPreviewModal from './test-preview-modal'
 
-type SessionInfo = { status: string; studentName: string }
+type SessionInfo = { id: string; status: string; studentName: string }
 
 type TestItem = {
   id: string
@@ -325,18 +325,33 @@ export default function TestsListClient({ tests: initialTests }: { tests: TestIt
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                       학생별 응시 현황
                     </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                      {test.sessions.map((s, i) => (
-                        <div key={i} className="flex items-center gap-2 text-sm">
-                          <span
-                            className={`w-2 h-2 rounded-full flex-shrink-0 ${SESSION_DOT[s.status] ?? 'bg-gray-400'}`}
-                          />
-                          <span className="truncate text-gray-700">{s.studentName}</span>
-                          <span className="text-xs text-gray-400 shrink-0">
-                            {SESSION_LABEL[s.status] ?? s.status}
-                          </span>
-                        </div>
-                      ))}
+                    <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                      {test.sessions.map((s, i) => {
+                        const isDone = s.status === 'COMPLETED' || s.status === 'GRADED'
+                        return (
+                          <div key={i} className="flex items-center gap-2 text-sm">
+                            <span
+                              className={`w-2 h-2 rounded-full flex-shrink-0 ${SESSION_DOT[s.status] ?? 'bg-gray-400'}`}
+                            />
+                            <span className="truncate text-gray-700">{s.studentName}</span>
+                            <span className="text-xs text-gray-400 shrink-0">
+                              {SESSION_LABEL[s.status] ?? s.status}
+                            </span>
+                            {isDone && (
+                              <a
+                                href={`/print/report/session/${s.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="ml-auto flex items-center gap-0.5 shrink-0 rounded px-1.5 py-0.5 text-xs font-medium text-[#7854F7] hover:bg-[#7854F7]/10"
+                                title="AI 리포트 열기"
+                              >
+                                <FileDown size={11} />
+                                리포트
+                              </a>
+                            )}
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
                 )}

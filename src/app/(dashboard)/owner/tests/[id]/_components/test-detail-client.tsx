@@ -361,10 +361,15 @@ export default function TestDetailClient({ test }: { test: TestDetailData }) {
                       <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">
                         소요 시간
                       </th>
+                      <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">
+                        리포트
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {test.sessions.map((s) => (
+                    {test.sessions.map((s) => {
+                      const isDone = s.status === 'COMPLETED' || s.status === 'GRADED'
+                      return (
                       <tr key={s.id} className="hover:bg-gray-50">
                         <td className="px-5 py-3 font-medium text-gray-900">{s.studentName}</td>
                         <td className="px-4 py-3">
@@ -391,8 +396,24 @@ export default function TestDetailClient({ test }: { test: TestDetailData }) {
                             <span className="text-gray-400">-</span>
                           )}
                         </td>
+                        <td className="px-4 py-3 text-right">
+                          {isDone ? (
+                            <a
+                              href={`/print/report/session/${s.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-[#7854F7] hover:bg-[#7854F7]/10"
+                            >
+                              <FileDown size={12} />
+                              PDF
+                            </a>
+                          ) : (
+                            <span className="text-gray-300">-</span>
+                          )}
+                        </td>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>

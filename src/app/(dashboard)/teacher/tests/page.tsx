@@ -22,7 +22,11 @@ const getCachedTeacherTests = (userId: string, academyId: string) =>
           createdAt: true,
           class: { select: { name: true } },
           testSessions: {
-            select: { status: true, student: { select: { user: { select: { name: true } } } } },
+            select: {
+              id: true,
+              status: true,
+              student: { select: { user: { select: { name: true } } } },
+            },
           },
         },
       })
@@ -37,6 +41,7 @@ const getCachedTeacherTests = (userId: string, academyId: string) =>
         createdAt: t.createdAt.toISOString(),
         className: t.class?.name ?? null,
         sessions: t.testSessions.map((s) => ({
+          id: s.id,
           status: s.status,
           studentName: s.student.user.name,
         })),

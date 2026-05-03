@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma/client'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 import { ResultRadarChart } from './_components/result-radar-chart'
 import { PlacementResultView } from './_components/placement-result-view'
+import { AiAnalysisSection } from './_components/ai-analysis-section'
 import {
   CheckCircle2,
   XCircle,
@@ -300,6 +301,12 @@ export default async function TestResultPage({
           )}
         </div>
       </div>
+
+      {/* AI 분석 안내 */}
+      <p className="text-xs text-gray-400">테스트 완료 후 AI가 자동으로 결과를 분석합니다.</p>
+
+      {/* AI 분석 섹션 */}
+      <AiAnalysisSection sessionId={sessionId} />
 
       {/* 영역별 점수 + 레이더 차트 */}
       <div className="rounded-xl border border-gray-200 bg-white p-6">
