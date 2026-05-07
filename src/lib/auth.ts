@@ -4,14 +4,15 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 
 /**
- * Supabase `auth.getUser()`는 네트워크 왕복 검증(~200–400ms)이 있어
+ * Supabase `auth.getUser()`는 네트워크 왕복 검증(~200–600ms)이 있어
  * 페이지 네비게이션마다 반복 호출하면 체감 속도가 크게 저하된다.
- * access_token(JWT) 해시 기반 short-TTL 인메모리 캐시로 같은 토큰의
- * 재검증을 스킵한다. 60초 후 재검증 → 토큰 revoke 반영 지연 ≤60s.
+ * access_token(JWT) 해시 기반 인메모리 캐시로 같은 토큰의
+ * 재검증을 스킵한다. 5분 후 재검증 → 토큰 revoke 반영 지연 ≤5분.
+ * (정상 로그아웃은 access_token 자체가 변경되어 즉시 무효화됨)
  */
 type AuthUserCacheEntry = { userId: string; expiresAt: number }
 const authUserCache = new Map<string, AuthUserCacheEntry>()
-const AUTH_TTL_MS = 60_000
+const AUTH_TTL_MS = 5 * 60_000
 
 function pruneAuthCache(now: number) {
   if (authUserCache.size < 128) return

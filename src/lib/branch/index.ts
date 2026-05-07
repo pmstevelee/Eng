@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import { unstable_cache } from 'next/cache'
 import { Plan } from '@/generated/prisma'
 import { prisma } from '@/lib/prisma/client'
 
@@ -24,14 +25,58 @@ export type BranchInfo = {
   branchOrder: number
 }
 
+type OwnerBranchesResult = {
+  hq: BranchInfo & { id: string }
+  branches: BranchInfo[]
+  plan: Plan
+  canManage: boolean
+  allIds: string[]
+}
+
+/**
+ * 학원장의 본원/지점/플랜을 한 번의 쿼리로 가져와 60초간 캐싱한다.
+ * - layout/page에서 모두 호출되므로 동일 요청 내에서 재실행되어선 안 된다.
+ * - 학원 정보는 자주 바뀌지 않으므로 60초 캐시 + 태그 기반 무효화로 충분.
+ */
+const fetchOwnerBranchesCached = (ownerId: string) =>
+  unstable_cache(
+    async (): Promise<OwnerBranchesResult | null> => {
+      const hq = await prisma.academy.findFirst({
+        where: { ownerId, parentAcademyId: null, isDeleted: false },
+        select: {
+          id: true,
+          name: true,
+          branchName: true,
+          subscriptionPlan: true,
+          branches: {
+            where: { isDeleted: false },
+            select: { id: true, name: true, branchName: true, branchOrder: true },
+            orderBy: { branchOrder: 'asc' },
+          },
+          subscription: { select: { plan: true } },
+        },
+      })
+      if (!hq) return null
+
+      const plan = hq.subscription?.plan ?? academyPlanTypeToPlan(hq.subscriptionPlan)
+      const allIds = [hq.id, ...hq.branches.map((b) => b.id)]
+
+      return {
+        hq: { id: hq.id, name: hq.name, branchName: hq.branchName, branchOrder: 0 },
+        branches: hq.branches,
+        plan,
+        canManage: canManageBranches(plan),
+        allIds,
+      }
+    },
+    ['owner-branches', ownerId],
+    { revalidate: 60, tags: [`owner-${ownerId}-branches`] },
+  )()
+
 /** 학원장이 소유한 본원 + 모든 지점 ID 배열 반환 */
 export async function getOwnerAcademyIds(ownerId: string): Promise<string[]> {
-  const hq = await prisma.academy.findFirst({
-    where: { ownerId, parentAcademyId: null, isDeleted: false },
-    include: { branches: { where: { isDeleted: false }, select: { id: true } } },
-  })
-  if (!hq) return []
-  return [hq.id, ...hq.branches.map((b) => b.id)]
+  const data = await fetchOwnerBranchesCached(ownerId)
+  return data?.allIds ?? []
 }
 
 /** 학원장의 본원 정보 + 지점 목록 반환 */
@@ -41,27 +86,10 @@ export async function getOwnerBranches(ownerId: string): Promise<{
   plan: Plan
   canManage: boolean
 } | null> {
-  const hq = await prisma.academy.findFirst({
-    where: { ownerId, parentAcademyId: null, isDeleted: false },
-    include: {
-      branches: {
-        where: { isDeleted: false },
-        select: { id: true, name: true, branchName: true, branchOrder: true },
-        orderBy: { branchOrder: 'asc' },
-      },
-      subscription: { select: { plan: true } },
-    },
-  })
-  if (!hq) return null
-
-  // Subscription 레코드가 없으면 Academy.subscriptionPlan으로 fallback
-  const plan = hq.subscription?.plan ?? academyPlanTypeToPlan(hq.subscriptionPlan)
-  return {
-    hq: { id: hq.id, name: hq.name, branchName: hq.branchName, branchOrder: 0 },
-    branches: hq.branches,
-    plan,
-    canManage: canManageBranches(plan),
-  }
+  const data = await fetchOwnerBranchesCached(ownerId)
+  if (!data) return null
+  const { allIds: _allIds, ...rest } = data
+  return rest
 }
 
 /**
@@ -74,16 +102,10 @@ export async function getViewableAcademyIds(
   ownerId: string,
   selectedBranchId?: string,
 ): Promise<string[]> {
-  const allIds = await getOwnerAcademyIds(ownerId)
-
-  const hq = await prisma.academy.findFirst({
-    where: { ownerId, parentAcademyId: null, isDeleted: false },
-    include: { subscription: { select: { plan: true } } },
-  })
-  // Subscription 레코드가 없으면 Academy.subscriptionPlan으로 fallback
-  const plan = hq?.subscription?.plan ?? academyPlanTypeToPlan(hq?.subscriptionPlan ?? '')
-
-  if (!canManageBranches(plan)) return allIds
+  const data = await fetchOwnerBranchesCached(ownerId)
+  if (!data) return []
+  const { allIds, canManage } = data
+  if (!canManage) return allIds
   if (!selectedBranchId || selectedBranchId === BRANCH_ALL) return allIds
   if (allIds.includes(selectedBranchId)) return [selectedBranchId]
   return allIds
