@@ -196,6 +196,14 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
             회원가입
           </Link>
         </p>
+        <p className="text-center text-sm text-gray-500">
+          <Link
+            href="/"
+            className="font-medium text-gray-500 hover:text-primary-700 transition-colors"
+          >
+            ← 홈페이지로 가기
+          </Link>
+        </p>
       </div>
     </div>
   )
