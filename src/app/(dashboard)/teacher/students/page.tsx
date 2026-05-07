@@ -12,6 +12,7 @@ const getCachedTeacherStudents = (teacherId: string) =>
       const now = new Date()
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
+      // 1단계: 반과 학생 본체(+최근 2개 세션)를 동시 로드
       const [classes, students] = await Promise.all([
         prisma.class.findMany({
           where: { teacherId, isActive: true },
@@ -20,7 +21,9 @@ const getCachedTeacherStudents = (teacherId: string) =>
         }),
         prisma.student.findMany({
           where: { class: { teacherId }, status: 'ACTIVE' },
-          include: {
+          select: {
+            id: true,
+            currentLevel: true,
             user: { select: { name: true, email: true } },
             class: { select: { id: true, name: true } },
             testSessions: {
@@ -38,14 +41,34 @@ const getCachedTeacherStudents = (teacherId: string) =>
                 completedAt: true,
               },
             },
-            attendance: {
-              where: { date: { gte: monthStart } },
-              select: { status: true },
-            },
           },
           orderBy: { user: { name: 'asc' } },
         }),
       ])
+
+      // 2단계: 출석 통계는 학생별 raw row 로딩 대신 DB groupBy 집계로 한 번에 계산
+      // (학생수 × 월별 출석일수 = 수십~수백 rows → 학생별 status 카운트만)
+      const studentIds = students.map((s) => s.id)
+      const attendanceAgg =
+        studentIds.length > 0
+          ? await prisma.attendance.groupBy({
+              by: ['studentId', 'status'],
+              where: { studentId: { in: studentIds }, date: { gte: monthStart } },
+              _count: { id: true },
+            })
+          : []
+
+      const attRateById: Record<string, number | null> = {}
+      const tally: Record<string, { present: number; total: number }> = {}
+      for (const r of attendanceAgg) {
+        const t = tally[r.studentId] ?? (tally[r.studentId] = { present: 0, total: 0 })
+        t.total += r._count.id
+        if (r.status === 'PRESENT' || r.status === 'LATE') t.present += r._count.id
+      }
+      for (const id of studentIds) {
+        const t = tally[id]
+        attRateById[id] = t && t.total > 0 ? Math.round((t.present / t.total) * 100) : null
+      }
 
       return {
         classes,
@@ -64,14 +87,7 @@ const getCachedTeacherStudents = (teacherId: string) =>
             writingScore: ts.writingScore,
             completedAt: ts.completedAt?.toISOString() ?? null,
           })),
-          attendanceRate:
-            s.attendance.length > 0
-              ? Math.round(
-                  (s.attendance.filter((a) => a.status === 'PRESENT' || a.status === 'LATE').length /
-                    s.attendance.length) *
-                    100,
-                )
-              : null,
+          attendanceRate: attRateById[s.id] ?? null,
         })),
       }
     },

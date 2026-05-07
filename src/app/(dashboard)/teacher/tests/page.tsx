@@ -9,27 +9,39 @@ import TestsListClient from './_components/tests-list-client'
 const getCachedTeacherTests = (userId: string, academyId: string) =>
   unstable_cache(
     async () => {
-      const tests = await prisma.test.findMany({
-        where: { createdBy: userId, academyId },
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          title: true,
-          type: true,
-          status: true,
-          timeLimitMin: true,
-          questionOrder: true,
-          createdAt: true,
-          class: { select: { name: true } },
-          testSessions: {
-            select: {
-              id: true,
-              status: true,
-              student: { select: { user: { select: { name: true } } } },
-            },
+      // 테스트 본체와 세션 목록을 평탄한 두 쿼리로 분리 → 단일 LEFT JOIN의
+      // 행 폭증(테스트 × 세션) 회피, 두 쿼리를 Promise.all 로 동시 실행.
+      const [tests, sessions] = await Promise.all([
+        prisma.test.findMany({
+          where: { createdBy: userId, academyId },
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            type: true,
+            status: true,
+            timeLimitMin: true,
+            questionOrder: true,
+            createdAt: true,
+            class: { select: { name: true } },
           },
-        },
-      })
+        }),
+        prisma.testSession.findMany({
+          where: { test: { createdBy: userId, academyId } },
+          select: {
+            id: true,
+            testId: true,
+            status: true,
+            student: { select: { user: { select: { name: true } } } },
+          },
+        }),
+      ])
+
+      const sessionsByTest: Record<string, Array<{ id: string; status: string; studentName: string }>> = {}
+      for (const s of sessions) {
+        const arr = sessionsByTest[s.testId] ?? (sessionsByTest[s.testId] = [])
+        arr.push({ id: s.id, status: s.status, studentName: s.student.user.name })
+      }
 
       return tests.map((t) => ({
         id: t.id,
@@ -40,11 +52,7 @@ const getCachedTeacherTests = (userId: string, academyId: string) =>
         questionCount: Array.isArray(t.questionOrder) ? (t.questionOrder as string[]).length : 0,
         createdAt: t.createdAt.toISOString(),
         className: t.class?.name ?? null,
-        sessions: t.testSessions.map((s) => ({
-          id: s.id,
-          status: s.status,
-          studentName: s.student.user.name,
-        })),
+        sessions: sessionsByTest[t.id] ?? [],
       }))
     },
     ['teacher-tests', userId],
