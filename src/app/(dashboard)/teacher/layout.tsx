@@ -10,7 +10,7 @@ export default async function TeacherLayout({ children }: { children: React.Reac
   const user = await getCurrentUser()
   console.log(`  [세션/유저] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
 
-  if (!user || user.role !== 'TEACHER') redirect('/login')
+  if (!user || user.role !== 'TEACHER') redirect('/api/auth/clear-session')
 
   const totalTime = performance.now() - layoutStart
   console.log(`📊 [TeacherLayout] 전체: ${totalTime.toFixed(0)}ms`)

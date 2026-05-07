@@ -12,11 +12,14 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
   const user = await getCurrentUser()
   console.log(`  [세션/유저] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
 
-  if (!user || user.role !== 'ACADEMY_OWNER') redirect('/login')
+  if (!user || user.role !== 'ACADEMY_OWNER') redirect('/api/auth/clear-session')
 
   // 다지점 데이터 로드
   const [branchData, selectedBranchId] = await Promise.all([
-    getOwnerBranches(user.id),
+    getOwnerBranches(user.id).catch((err) => {
+      console.error('[OwnerLayout] getOwnerBranches failed:', err)
+      return null
+    }),
     getSelectedBranchId(),
   ])
 

@@ -6,7 +6,7 @@ import { ROLE_LABEL } from '@/components/layout/nav-items'
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser()
 
-  if (!user || user.role !== 'SUPER_ADMIN') redirect('/login')
+  if (!user || user.role !== 'SUPER_ADMIN') redirect('/api/auth/clear-session')
 
   return (
     <DashboardLayout

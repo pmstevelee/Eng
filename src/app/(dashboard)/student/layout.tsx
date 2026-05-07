@@ -10,7 +10,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
   const user = await getCurrentUser()
   console.log(`  [세션/유저] getCurrentUser: ${(performance.now() - authStart).toFixed(0)}ms`)
 
-  if (!user || user.role !== 'STUDENT') redirect('/login')
+  if (!user || user.role !== 'STUDENT') redirect('/api/auth/clear-session')
 
   const totalTime = performance.now() - layoutStart
   console.log(`📊 [StudentLayout] 전체: ${totalTime.toFixed(0)}ms`)
