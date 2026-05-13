@@ -36,10 +36,14 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E']
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
+const POPUP_FEATURES =
+  'width=1280,height=820,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes'
+
 type Props = {
   sessionId: string
   studentName: string
   testTitle: string
+  isPopup?: boolean
 }
 
 type Phase = 'intro' | 'loading' | 'question' | 'writing' | 'complete' | 'error'
@@ -193,7 +197,7 @@ function ShortAnswerQuestion({
 
 // ─── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
 
-export function AdaptiveTestClient({ sessionId, studentName, testTitle }: Props) {
+export function AdaptiveTestClient({ sessionId, studentName, testTitle, isPopup = false }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
@@ -289,8 +293,13 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle }: Props)
 
   // ── 시작 ─────────────────────────────────────────────────────────────────────
   function handleStart() {
-    // 사용자 제스처에서 전체화면 요청
-    document.documentElement.requestFullscreen().catch(() => {})
+    if (!isPopup) {
+      // 대시보드에서 클릭: 팝업 창으로 열고 원래 페이지는 목록으로 이동
+      window.open(`/test/${sessionId}`, `test-${sessionId}`, POPUP_FEATURES)
+      router.push('/student/tests')
+      return
+    }
+    // 팝업 창에서 실제 시험 시작
     setPhase('loading')
     setLoadingMsg('첫 번째 문제를 준비하고 있습니다...')
     startTransition(async () => {

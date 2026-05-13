@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Clock, FileText, BookOpen, AlertCircle } from 'lucide-react'
 import type { SessionForTest, TestForTest } from '../page'
 
@@ -9,6 +10,9 @@ const TYPE_LABEL: Record<string, string> = {
   UNIT_TEST: '단원 테스트',
   PRACTICE: '연습 테스트',
 }
+
+const POPUP_FEATURES =
+  'width=1280,height=820,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes'
 
 type Props = {
   session: SessionForTest
@@ -20,18 +24,20 @@ type Props = {
 export function TestStartScreen({ session, test, questionCount, onStart }: Props) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   function handleStart() {
     setError(null)
-    // 전체화면 요청: 서버 액션 후 TestTakingClient가 마운트될 때 감지
-    sessionStorage.setItem('ivy-test-fullscreen', 'true')
     startTransition(async () => {
       const result = await onStart(session.id)
       if (result.error) {
-        sessionStorage.removeItem('ivy-test-fullscreen')
         setError(result.error)
         return
       }
+      // 팝업 창으로 시험 열기
+      window.open(`/test/${session.id}`, `test-${session.id}`, POPUP_FEATURES)
+      // 원래 페이지는 테스트 목록으로 이동
+      router.push('/student/tests')
     })
   }
 
@@ -90,7 +96,7 @@ export function TestStartScreen({ session, test, questionCount, onStart }: Props
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 text-[#1865F2]">•</span>
-                <span>시작하기 버튼을 누르면 타이머가 시작됩니다.</span>
+                <span>시작하기 버튼을 누르면 새 창에서 시험이 시작됩니다.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 text-[#1865F2]">•</span>
@@ -118,7 +124,7 @@ export function TestStartScreen({ session, test, questionCount, onStart }: Props
         <div className="mb-6 flex items-start gap-3 rounded-xl border border-[#FFB100]/30 bg-[#FFFBEB] p-4">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#FFB100]" />
           <p className="text-sm text-gray-700">
-            테스트 진행 중 다른 탭으로 전환하거나 창을 닫으면 경고가 표시됩니다.
+            시험은 새 팝업 창에서 진행됩니다. 팝업이 차단된 경우 브라우저 설정에서 팝업을 허용해 주세요.
           </p>
         </div>
 
@@ -133,7 +139,7 @@ export function TestStartScreen({ session, test, questionCount, onStart }: Props
           disabled={isPending}
           className="h-12 w-full rounded-xl bg-[#1865F2] text-base font-semibold text-white transition-colors hover:bg-[#1558d6] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isPending ? '시작 중...' : '시작하기'}
+          {isPending ? '시작 중...' : '새 창에서 시험 시작하기'}
         </button>
       </div>
     </div>
