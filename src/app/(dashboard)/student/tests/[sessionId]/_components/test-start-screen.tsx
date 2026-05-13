@@ -23,9 +23,12 @@ export function TestStartScreen({ session, test, questionCount, onStart }: Props
 
   function handleStart() {
     setError(null)
+    // 전체화면 요청: 서버 액션 후 TestTakingClient가 마운트될 때 감지
+    sessionStorage.setItem('ivy-test-fullscreen', 'true')
     startTransition(async () => {
       const result = await onStart(session.id)
       if (result.error) {
+        sessionStorage.removeItem('ivy-test-fullscreen')
         setError(result.error)
         return
       }

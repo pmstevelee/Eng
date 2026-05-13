@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback, useTransition, useRef } from 'react'
-import { ChevronRight, Loader2, BookOpen, PenLine, AlertCircle } from 'lucide-react'
+import { useState, useCallback, useTransition, useRef, useEffect } from 'react'
+import { ChevronRight, Loader2, BookOpen, PenLine, AlertCircle, Maximize2, Minimize2 } from 'lucide-react'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 import {
   startAdaptiveSession,
@@ -208,6 +208,34 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle }: Props)
 
   const totalQuestionsRef = useRef(0)
 
+  // 전체화면 & 폰트 크기
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [fontSize, setFontSize] = useState(16)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('ivy-test-font-size')
+    if (saved) setFontSize(Math.min(22, Math.max(14, parseInt(saved))))
+    function onFsChange() { setIsFullscreen(!!document.fullscreenElement) }
+    document.addEventListener('fullscreenchange', onFsChange)
+    return () => document.removeEventListener('fullscreenchange', onFsChange)
+  }, [])
+
+  function toggleFullscreen() {
+    if (isFullscreen) {
+      document.exitFullscreen()
+    } else {
+      document.documentElement.requestFullscreen().catch(() => {})
+    }
+  }
+
+  function changeFontSize(delta: number) {
+    setFontSize((prev) => {
+      const next = Math.min(22, Math.max(14, prev + delta))
+      localStorage.setItem('ivy-test-font-size', String(next))
+      return next
+    })
+  }
+
   // ── 채점 헬퍼 ────────────────────────────────────────────────────────────────
   function checkAnswer(content: QuestionContentJson, userAnswer: string): boolean {
     if (content.type === 'essay') return false
@@ -261,6 +289,8 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle }: Props)
 
   // ── 시작 ─────────────────────────────────────────────────────────────────────
   function handleStart() {
+    // 사용자 제스처에서 전체화면 요청
+    document.documentElement.requestFullscreen().catch(() => {})
     setPhase('loading')
     setLoadingMsg('첫 번째 문제를 준비하고 있습니다...')
     startTransition(async () => {
@@ -424,15 +454,30 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle }: Props)
     const wordCount = writingAnswer.trim().split(/\s+/).filter(Boolean).length
 
     return (
-      <div className="mx-auto max-w-2xl px-4 py-8 space-y-5">
+      <div className="mx-auto max-w-2xl px-4 py-8 space-y-5" style={{ fontSize: `${fontSize}px` }}>
         {/* 헤더 */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <DomainProgressBar
               currentDomain="WRITING"
               domainOrder={DOMAIN_ORDER}
               history={history}
             />
+            {/* 폰트 크기 & 전체화면 */}
+            <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-1 py-0.5">
+                <button onClick={() => changeFontSize(-1)} disabled={fontSize <= 14} className="flex h-6 w-6 items-center justify-center rounded text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed" title="글자 작게">
+                  <span className="text-[10px] font-bold">A−</span>
+                </button>
+                <span className="w-5 text-center text-[10px] text-gray-400 tabular-nums">{fontSize}</span>
+                <button onClick={() => changeFontSize(1)} disabled={fontSize >= 22} className="flex h-6 w-6 items-center justify-center rounded text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed" title="글자 크게">
+                  <span className="text-xs font-bold">A+</span>
+                </button>
+              </div>
+              <button onClick={toggleFullscreen} className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100" title={isFullscreen ? '전체화면 종료' : '전체화면'}>
+                {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+              </button>
+            </div>
           </div>
 
           {/* 진행 바 */}
@@ -500,14 +545,45 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle }: Props)
     const canSubmit = answer.trim().length > 0
 
     return (
-      <div className="mx-auto max-w-2xl px-4 py-8 space-y-5">
+      <div className="mx-auto max-w-2xl px-4 py-8 space-y-5" style={{ fontSize: `${fontSize}px` }}>
         {/* 진행 헤더 */}
         <div className="space-y-3">
-          <DomainProgressBar
-            currentDomain={domain}
-            domainOrder={domainOrder as AdaptiveDomain[]}
-            history={history}
-          />
+          <div className="flex items-center justify-between gap-2">
+            <DomainProgressBar
+              currentDomain={domain}
+              domainOrder={domainOrder as AdaptiveDomain[]}
+              history={history}
+            />
+            {/* 폰트 크기 & 전체화면 */}
+            <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-1 py-0.5">
+                <button
+                  onClick={() => changeFontSize(-1)}
+                  disabled={fontSize <= 14}
+                  className="flex h-6 w-6 items-center justify-center rounded text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="글자 작게"
+                >
+                  <span className="text-[10px] font-bold">A−</span>
+                </button>
+                <span className="w-5 text-center text-[10px] text-gray-400 tabular-nums">{fontSize}</span>
+                <button
+                  onClick={() => changeFontSize(1)}
+                  disabled={fontSize >= 22}
+                  className="flex h-6 w-6 items-center justify-center rounded text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="글자 크게"
+                >
+                  <span className="text-xs font-bold">A+</span>
+                </button>
+              </div>
+              <button
+                onClick={toggleFullscreen}
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100"
+                title={isFullscreen ? '전체화면 종료' : '전체화면'}
+              >
+                {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+              </button>
+            </div>
+          </div>
 
           {/* 영역 내 진행 바 */}
           <div className="flex items-center gap-3">

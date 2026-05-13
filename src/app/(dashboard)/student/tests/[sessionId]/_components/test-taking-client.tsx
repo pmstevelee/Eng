@@ -10,7 +10,7 @@ import {
   useReducer,
 } from 'react'
 import Image from 'next/image'
-import { ChevronLeft, ChevronRight, Clock, Save, AlertTriangle, Volume2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, Save, AlertTriangle, Volume2, Maximize2, Minimize2 } from 'lucide-react'
 import type { QuestionForTest, SessionForTest, TestForTest, InitialAnswers } from '../page'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 
@@ -91,6 +91,13 @@ export function TestTakingClient({
   const answersRef = useRef(answers)
   useEffect(() => { answersRef.current = answers }, [answers])
 
+  // 전체화면
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  // 폰트 크기 (px 단위, 14~22)
+  const [fontSize, setFontSize] = useState(16)
+
   // 터치 스와이프
   const touchStartXRef = useRef<number | null>(null)
 
@@ -98,6 +105,43 @@ export function TestTakingClient({
   const tabWarningShownRef = useRef(false)
 
   const currentQuestion = questions[currentIdx]
+
+  // ── 전체화면 & 폰트 크기 초기화 ──────────────────────────────────────────────
+
+  useEffect(() => {
+    const saved = localStorage.getItem('ivy-test-font-size')
+    if (saved) setFontSize(Math.min(22, Math.max(14, parseInt(saved))))
+
+    const shouldFullscreen = sessionStorage.getItem('ivy-test-fullscreen')
+    if (shouldFullscreen === 'true') {
+      sessionStorage.removeItem('ivy-test-fullscreen')
+      containerRef.current?.requestFullscreen().catch(() => {})
+    }
+  }, [])
+
+  useEffect(() => {
+    function onFullscreenChange() {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener('fullscreenchange', onFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange)
+  }, [])
+
+  function toggleFullscreen() {
+    if (isFullscreen) {
+      document.exitFullscreen()
+    } else {
+      containerRef.current?.requestFullscreen().catch(() => {})
+    }
+  }
+
+  function changeFontSize(delta: number) {
+    setFontSize((prev) => {
+      const next = Math.min(22, Math.max(14, prev + delta))
+      localStorage.setItem('ivy-test-font-size', String(next))
+      return next
+    })
+  }
 
   // ── 자동 제출 (ref 기반으로 stale closure 없이) ──────────────────────────────
 
@@ -290,7 +334,11 @@ export function TestTakingClient({
   if (!currentQuestion) return null
 
   return (
-    <div className="flex h-full flex-col">
+    <div
+      ref={containerRef}
+      className="flex h-full flex-col bg-white"
+      style={{ fontSize: `${fontSize}px` }}
+    >
       {/* ── 상단 바 ── */}
       <div className="shrink-0 border-b border-gray-200 bg-white px-4 py-3">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
@@ -299,9 +347,30 @@ export function TestTakingClient({
             {test.title}
           </h1>
 
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2">
             {/* 자동 저장 상태 */}
             <SaveIndicator status={saveStatus} />
+
+            {/* 폰트 크기 조절 */}
+            <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-1 py-0.5">
+              <button
+                onClick={() => changeFontSize(-1)}
+                disabled={fontSize <= 14}
+                className="flex h-7 w-7 items-center justify-center rounded text-gray-500 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30"
+                title="글자 작게"
+              >
+                <span className="text-xs font-bold">A−</span>
+              </button>
+              <span className="w-6 text-center text-xs text-gray-400 tabular-nums">{fontSize}</span>
+              <button
+                onClick={() => changeFontSize(1)}
+                disabled={fontSize >= 22}
+                className="flex h-7 w-7 items-center justify-center rounded text-gray-500 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30"
+                title="글자 크게"
+              >
+                <span className="text-sm font-bold">A+</span>
+              </button>
+            </div>
 
             {/* 타이머 */}
             {remainingSec !== null && (
@@ -321,6 +390,19 @@ export function TestTakingClient({
             <span className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-600">
               {currentIdx + 1} / {questions.length}
             </span>
+
+            {/* 전체화면 토글 */}
+            <button
+              onClick={toggleFullscreen}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-500 transition-colors hover:bg-gray-100"
+              title={isFullscreen ? '전체화면 종료' : '전체화면'}
+            >
+              {isFullscreen ? (
+                <Minimize2 className="h-4 w-4" />
+              ) : (
+                <Maximize2 className="h-4 w-4" />
+              )}
+            </button>
           </div>
         </div>
       </div>
