@@ -74,9 +74,10 @@ function SourceBadge({ source }: { source: string }) {
 
 type Props = {
   initialQuestions: AdminQuestionRow[]
+  highlightId?: string | null
 }
 
-export default function AdminQuestionTable({ initialQuestions }: Props) {
+export default function AdminQuestionTable({ initialQuestions, highlightId }: Props) {
   const [questions, setQuestions] = useState(initialQuestions)
   const [search, setSearch] = useState('')
   const [filterDomain, setFilterDomain] = useState('')
@@ -311,7 +312,8 @@ export default function AdminQuestionTable({ initialQuestions }: Props) {
               return (
                 <tr
                   key={q.id}
-                  className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${!q.isActive ? 'opacity-50' : ''} ${selected.has(q.id) ? 'bg-blue-50' : ''}`}
+                  data-question-id={q.id}
+                  className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${!q.isActive ? 'opacity-50' : ''} ${selected.has(q.id) ? 'bg-blue-50' : ''} ${highlightId === q.id ? 'ring-2 ring-inset ring-orange-400' : ''}`}
                 >
                   <td className="py-3 px-4 w-10">
                     <input

@@ -180,6 +180,20 @@ enum QuestionSource {
   AI_SHARED        // AI 유사문제 중 공용 풀에 공유된 것
 }
 
+enum QuestionReportType {
+  WRONG_ANSWER  // 정답 오류
+  TYPO          // 오탈자
+  UNCLEAR       // 문제 불명확
+  AUDIO_ERROR   // 음원 오류
+  OTHER         // 기타
+}
+
+enum QuestionReportStatus {
+  PENDING    // 처리 대기
+  RESOLVED   // 처리 완료
+  DISMISSED  // 반려
+}
+
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 /// 1. 학원
@@ -261,12 +275,14 @@ model User {
   student          Student?
   taughtClasses    Class[]          @relation("TeacherClasses")
   createdTests     Test[]           @relation("TestCreator")
-  createdQuestions Question[]
-  writtenComments  TeacherComment[] @relation("CommentAuthor")
-  generatedReports Report[]         @relation("ReportGenerator")
-  notifications    Notification[]
-  announcements    Announcement[]   @relation("AnnouncementAuthor")
-  levelAssessments LevelAssessment[] @relation("AssessmentOverrider")
+  createdQuestions  Question[]
+  writtenComments   TeacherComment[] @relation("CommentAuthor")
+  generatedReports  Report[]         @relation("ReportGenerator")
+  notifications     Notification[]
+  announcements     Announcement[]   @relation("AnnouncementAuthor")
+  levelAssessments  LevelAssessment[] @relation("AssessmentOverrider")
+  questionReports   QuestionReport[] @relation("ReportedBy")
+  resolvedReports   QuestionReport[] @relation("ResolvedBy")
 
   @@index([academyId])
   @@map("users")
@@ -433,6 +449,7 @@ model Question {
   creator          User?              @relation(fields: [createdBy], references: [id])
   responses        QuestionResponse[]
   usageLogs        QuestionUsageLog[]
+  reports          QuestionReport[]
   originalQuestion Question?          @relation("QuestionVariants", fields: [originalQuestionId], references: [id])
   variants         Question[]         @relation("QuestionVariants")
 
@@ -980,6 +997,30 @@ model PaymentAuditLog {
   @@index([action])
   @@index([createdAt])
   @@map("payment_audit_logs")
+}
+
+/// 33. 문제 오류 신고
+model QuestionReport {
+  id          String               @id @default(uuid())
+  questionId  String               @map("question_id")
+  reportedBy  String               @map("reported_by") // userId
+  reportType  QuestionReportType   @map("report_type")
+  description String?
+  status      QuestionReportStatus @default(PENDING)
+  resolvedBy  String?              @map("resolved_by") // userId
+  resolvedAt  DateTime?            @map("resolved_at")
+  resolveNote String?              @map("resolve_note")
+  createdAt   DateTime             @default(now()) @map("created_at")
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  reporter   User     @relation("ReportedBy", fields: [reportedBy], references: [id])
+  resolver   User?    @relation("ResolvedBy", fields: [resolvedBy], references: [id])
+
+  @@index([questionId])
+  @@index([reportedBy])
+  @@index([status])
+  @@index([createdAt])
+  @@map("question_reports")
 }
 
 /// 18. 요금제 정의

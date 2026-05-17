@@ -8,6 +8,8 @@ import type { QuestionRow } from '@/components/shared/question-bank-client'
 import PublicQuestionList from '@/components/shared/public-question-list'
 import type { PublicQuestionRow } from '@/components/shared/public-question-list'
 import { createQuestion, updateQuestion, deleteQuestion, getQuestionDetail } from './actions'
+import { getOwnerQuestionReports } from '@/lib/questions/report-actions'
+import OwnerReportsTab from './_components/owner-reports-tab'
 
 // ── 캐시 쿼리 ──────────────────────────────────────────────────────────────────
 
@@ -70,9 +72,10 @@ export default async function OwnerQuestionsPage({ searchParams }: { searchParam
 
   const { tab = 'academy' } = await searchParams
 
-  const [rawAcademy, rawPublic] = await Promise.all([
+  const [rawAcademy, rawPublic, reports] = await Promise.all([
     getCachedAcademyQuestions(user.academyId),
-    tab === 'academy' ? Promise.resolve([]) : getCachedPublicQuestions(),
+    tab === 'academy' || tab === 'reports' ? Promise.resolve([]) : getCachedPublicQuestions(),
+    getOwnerQuestionReports({}),
   ])
 
   // 학원 문제 → QuestionRow
@@ -145,10 +148,13 @@ export default async function OwnerQuestionsPage({ searchParams }: { searchParam
     { label: '쓰기', count: domainCounts.WRITING, color: '#E35C20' },
   ]
 
+  const pendingReportCount = reports.filter((r) => r.status === 'PENDING').length
+
   const tabs = [
-    { key: 'academy', label: '우리 학원 문제', count: academyQuestions.length },
-    { key: 'public', label: '공용 문제', count: publicQuestions.length || null },
-    { key: 'all', label: '전체', count: null },
+    { key: 'academy', label: '우리 학원 문제', count: academyQuestions.length, badge: null },
+    { key: 'public', label: '공용 문제', count: publicQuestions.length || null, badge: null },
+    { key: 'all', label: '전체', count: null, badge: null },
+    { key: 'reports', label: '오류 신고', count: null, badge: pendingReportCount > 0 ? pendingReportCount : null },
   ]
 
   return (
@@ -184,7 +190,7 @@ export default async function OwnerQuestionsPage({ searchParams }: { searchParam
           <a
             key={t.key}
             href={`/owner/tests/questions?tab=${t.key}`}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
               tab === t.key
                 ? 'border-primary-700 text-primary-700'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -192,7 +198,12 @@ export default async function OwnerQuestionsPage({ searchParams }: { searchParam
           >
             {t.label}
             {t.count !== null && (
-              <span className="ml-1.5 text-xs text-gray-400">({t.count})</span>
+              <span className="text-xs text-gray-400">({t.count})</span>
+            )}
+            {t.badge !== null && (
+              <span className="rounded-full bg-[#D92916] px-1.5 py-0.5 text-xs font-bold text-white leading-none">
+                {t.badge}
+              </span>
             )}
           </a>
         ))}
@@ -201,6 +212,11 @@ export default async function OwnerQuestionsPage({ searchParams }: { searchParam
       {/* 탭 콘텐츠 */}
       {tab === 'public' ? (
         <PublicQuestionList questions={publicQuestions} />
+      ) : tab === 'reports' ? (
+        <OwnerReportsTab
+          reports={reports}
+          academyId={user.academyId}
+        />
       ) : tab === 'all' ? (
         <QuestionBankClient
           questions={allQuestions}

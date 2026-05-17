@@ -10,7 +10,9 @@ import {
   useReducer,
 } from 'react'
 import Image from 'next/image'
-import { ChevronLeft, ChevronRight, Clock, Save, AlertTriangle, Volume2, Maximize2, Minimize2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, Save, AlertTriangle, Volume2, Maximize2, Minimize2, Flag } from 'lucide-react'
+import { reportQuestion } from '@/lib/questions/report-actions'
+import type { QuestionReportType } from '@/generated/prisma'
 import type { QuestionForTest, SessionForTest, TestForTest, InitialAnswers } from '../page'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 
@@ -103,6 +105,11 @@ export function TestTakingClient({
 
   // 탭 전환 감지
   const tabWarningShownRef = useRef(false)
+
+  // 오류 신고 모달
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [reportSubmitting, setReportSubmitting] = useState(false)
+  const [reportDone, setReportDone] = useState(false)
 
   const currentQuestion = questions[currentIdx]
 
@@ -445,14 +452,24 @@ export function TestTakingClient({
       >
         <div className="mx-auto max-w-3xl px-4 py-6">
           {/* 도메인 배지 */}
-          <div className="mb-4 flex items-center gap-2">
-            <span
-              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
-              style={{ backgroundColor: DOMAIN_COLOR[currentQuestion.domain] }}
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span
+                className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
+                style={{ backgroundColor: DOMAIN_COLOR[currentQuestion.domain] }}
+              >
+                {DOMAIN_LABEL[currentQuestion.domain]}
+              </span>
+              <span className="text-xs text-gray-400">문제 {currentIdx + 1}</span>
+            </div>
+            <button
+              onClick={() => { setShowReportModal(true); setReportDone(false) }}
+              className="flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1 text-xs text-gray-400 transition-colors hover:border-orange-300 hover:text-orange-500"
+              title="오류 신고"
             >
-              {DOMAIN_LABEL[currentQuestion.domain]}
-            </span>
-            <span className="text-xs text-gray-400">문제 {currentIdx + 1}</span>
+              <Flag className="h-3 w-3" />
+              오류 신고
+            </button>
           </div>
 
           {/* 문제 유형별 렌더링 */}
@@ -511,6 +528,23 @@ export function TestTakingClient({
 
       {/* ── 채점 중 오버레이 ── */}
       {isSubmitting && <GradingOverlay />}
+
+      {/* ── 오류 신고 모달 ── */}
+      {showReportModal && (
+        <ReportModal
+          questionId={currentQuestion.id}
+          onClose={() => setShowReportModal(false)}
+          isSubmitting={reportSubmitting}
+          isDone={reportDone}
+          onSubmit={async (type, desc) => {
+            setReportSubmitting(true)
+            const res = await reportQuestion({ questionId: currentQuestion.id, reportType: type, description: desc })
+            setReportSubmitting(false)
+            if (!res.error) setReportDone(true)
+            return res
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -1691,6 +1725,121 @@ function SubmitDialog({
             className="flex-1 rounded-xl bg-[#1FAF54] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#18a049] disabled:opacity-60"
           >
             {isPending ? '제출 중...' : '제출하기'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── 오류 신고 모달 ─────────────────────────────────────────────────────────────
+
+const REPORT_TYPES: { value: QuestionReportType; label: string }[] = [
+  { value: 'WRONG_ANSWER', label: '정답 오류' },
+  { value: 'TYPO', label: '오탈자' },
+  { value: 'UNCLEAR', label: '문제 불명확' },
+  { value: 'AUDIO_ERROR', label: '음원 오류' },
+  { value: 'OTHER', label: '기타' },
+]
+
+function ReportModal({
+  questionId: _questionId,
+  onClose,
+  isSubmitting,
+  isDone,
+  onSubmit,
+}: {
+  questionId: string
+  onClose: () => void
+  isSubmitting: boolean
+  isDone: boolean
+  onSubmit: (type: QuestionReportType, desc: string) => Promise<{ error?: string }>
+}) {
+  const [selectedType, setSelectedType] = useState<QuestionReportType>('WRONG_ANSWER')
+  const [description, setDescription] = useState('')
+  const [error, setError] = useState('')
+
+  async function handleSubmit() {
+    setError('')
+    const res = await onSubmit(selectedType, description)
+    if (res.error) setError(res.error)
+  }
+
+  if (isDone) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-sm text-center">
+          <div className="mb-4 mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-50">
+            <Flag className="h-6 w-6 text-[#1FAF54]" />
+          </div>
+          <h3 className="text-base font-bold text-gray-900 mb-2">신고가 접수되었습니다</h3>
+          <p className="text-sm text-gray-500 mb-6">검토 후 반영하겠습니다. 감사합니다.</p>
+          <button
+            onClick={onClose}
+            className="w-full rounded-xl bg-[#1865F2] py-3 text-sm font-semibold text-white"
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-50">
+            <Flag className="h-5 w-5 text-orange-500" />
+          </div>
+          <h3 className="text-base font-bold text-gray-900">문제 오류 신고</h3>
+        </div>
+
+        <p className="text-xs text-gray-500 mb-4">오류 유형을 선택하고 내용을 입력해 주세요.</p>
+
+        {/* 신고 유형 */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          {REPORT_TYPES.map((t) => (
+            <button
+              key={t.value}
+              onClick={() => setSelectedType(t.value)}
+              className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
+                selectedType === t.value
+                  ? 'border-orange-400 bg-orange-50 text-orange-600'
+                  : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* 설명 */}
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="오류 내용을 자세히 설명해 주세요. (선택)"
+          rows={3}
+          maxLength={500}
+          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm resize-none outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+        />
+
+        {error && <p className="mt-2 text-xs text-[#D92916]">{error}</p>}
+
+        <div className="mt-4 flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-60"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="flex-1 rounded-xl bg-orange-500 py-3 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
+          >
+            {isSubmitting ? '신고 중...' : '신고하기'}
           </button>
         </div>
       </div>

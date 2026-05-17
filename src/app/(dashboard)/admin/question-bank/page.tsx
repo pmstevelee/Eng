@@ -4,8 +4,9 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { getQuestionBankOverview, getHeatmapData } from '@/lib/questions/cached-queries'
 import { getAdminQuestions } from './actions'
+import { getAdminQuestionReports } from '@/lib/questions/report-actions'
 import QuestionBankHeatmap from './_components/heatmap'
-import AdminQuestionTable from './_components/admin-question-table'
+import AdminQuestionBankTabs from './_components/admin-question-bank-tabs'
 import GenerateButton from './_components/generate-button'
 import CreateQuestionButton from './_components/create-question-button'
 
@@ -13,10 +14,11 @@ export default async function AdminQuestionBankPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'SUPER_ADMIN') redirect('/login')
 
-  const [overview, heatmapStats, questions] = await Promise.all([
+  const [overview, heatmapStats, questions, reports] = await Promise.all([
     getQuestionBankOverview(),
     getHeatmapData(),
     getAdminQuestions({}),
+    getAdminQuestionReports({}),
   ])
 
   // 저품질 문제 수 (qualityScore < 0.4 또는 미집계)
@@ -154,11 +156,8 @@ export default async function AdminQuestionBankPage() {
         </div>
       </div>
 
-      {/* 문제 목록 */}
-      <div>
-        <h2 className="text-base font-semibold text-gray-900 mb-3">공용 문제 목록</h2>
-        <AdminQuestionTable initialQuestions={questions} />
-      </div>
+      {/* 문제 목록 + 신고 탭 */}
+      <AdminQuestionBankTabs questions={questions} reports={reports} />
     </div>
   )
 }
