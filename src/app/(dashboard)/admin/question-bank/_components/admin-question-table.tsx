@@ -4,7 +4,7 @@ import { useState, useTransition, useMemo } from 'react'
 import { Search, ChevronDown, Loader2, Eye, EyeOff, Volume2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { deactivateQuestion, activateQuestion, adjustDifficulty, bulkDeleteQuestions } from '../actions'
+import { deactivateQuestion, activateQuestion, adjustDifficulty, bulkDeleteQuestions, getAdminQuestions } from '../actions'
 import type { AdminQuestionRow } from '../actions'
 import EditQuestionModal from './edit-question-modal'
 
@@ -80,13 +80,15 @@ type Props = {
 }
 
 export default function AdminQuestionTable({ initialQuestions, highlightId }: Props) {
-  const [questions, setQuestions] = useState(initialQuestions)
+  // serverQuestions: 서버에서 가져온 원본 (도메인/난이도/출처/품질 필터 적용)
+  const [serverQuestions, setServerQuestions] = useState(initialQuestions)
   const [search, setSearch] = useState('')
   const [filterDomain, setFilterDomain] = useState('')
   const [filterDifficulty, setFilterDifficulty] = useState('')
   const [filterSource, setFilterSource] = useState('')
   const [filterQuality, setFilterQuality] = useState('')
   const [page, setPage] = useState(1)
+  const [isFetching, startFetch] = useTransition()
   const [editTarget, setEditTarget] = useState<AdminQuestionRow | null>(null)
   const [pending, startTransition] = useTransition()
   const [actionId, setActionId] = useState<string | null>(null)
@@ -95,23 +97,34 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
   const [bulkError, setBulkError] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  function resetPage() { setPage(1) }
-
-  const filtered = useMemo(() => {
-    return questions.filter((q) => {
-      if (filterDomain && q.domain !== filterDomain) return false
-      if (filterDifficulty && q.difficulty !== Number(filterDifficulty)) return false
-      if (filterSource && q.source !== filterSource) return false
-      if (filterQuality === 'high' && (q.qualityScore === null || q.qualityScore < 0.7)) return false
-      if (filterQuality === 'mid' && (q.qualityScore === null || q.qualityScore < 0.4 || q.qualityScore >= 0.7)) return false
-      if (filterQuality === 'low' && (q.qualityScore === null || q.qualityScore >= 0.4)) return false
-      if (search) {
-        const s = search.toLowerCase()
-        if (!q.questionText.toLowerCase().includes(s) && !q.id.includes(s)) return false
-      }
-      return true
+  // 도메인/난이도/출처/품질 필터 변경 → 서버 재조회
+  function applyServerFilter(params: {
+    domain?: string
+    difficulty?: string
+    source?: string
+    quality?: string
+  }) {
+    setPage(1)
+    setSelected(new Set())
+    startFetch(async () => {
+      const rows = await getAdminQuestions({
+        domain: params.domain || undefined,
+        difficulty: params.difficulty ? Number(params.difficulty) : undefined,
+        source: params.source || undefined,
+        quality: params.quality || undefined,
+      })
+      setServerQuestions(rows)
     })
-  }, [questions, search, filterDomain, filterDifficulty, filterSource, filterQuality])
+  }
+
+  // 텍스트 검색은 클라이언트 사이드로만 처리
+  const filtered = useMemo(() => {
+    if (!search) return serverQuestions
+    const s = search.toLowerCase()
+    return serverQuestions.filter(
+      (q) => q.questionText.toLowerCase().includes(s) || q.id.includes(s),
+    )
+  }, [serverQuestions, search])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
@@ -122,7 +135,7 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
     startTransition(async () => {
       const res = await deactivateQuestion(id)
       if (!res.error) {
-        setQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, isActive: false } : q)))
+        setServerQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, isActive: false } : q)))
       }
       setActionId(null)
     })
@@ -133,7 +146,7 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
     startTransition(async () => {
       const res = await activateQuestion(id)
       if (!res.error) {
-        setQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, isActive: true } : q)))
+        setServerQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, isActive: true } : q)))
       }
       setActionId(null)
     })
@@ -149,14 +162,14 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
     startTransition(async () => {
       const res = await adjustDifficulty(id, newDiff)
       if (!res.error) {
-        setQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, difficulty: newDiff } : q)))
+        setServerQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, difficulty: newDiff } : q)))
       }
       setActionId(null)
     })
   }
 
   function handleSaved(updated: AdminQuestionRow) {
-    setQuestions((prev) => prev.map((q) => (q.id === updated.id ? updated : q)))
+    setServerQuestions((prev) => prev.map((q) => (q.id === updated.id ? updated : q)))
   }
 
   const allFilteredSelected =
@@ -194,7 +207,7 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
       if (res.error) {
         setBulkError(res.error)
       } else {
-        setQuestions((prev) => prev.filter((q) => !ids.includes(q.id)))
+        setServerQuestions((prev) => prev.filter((q) => !ids.includes(q.id)))
         setSelected(new Set())
       }
       setShowDeleteConfirm(false)
@@ -209,7 +222,7 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <Input
             value={search}
-            onChange={(e) => { setSearch(e.target.value); resetPage() }}
+            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder="문제 검색..."
             className="pl-8 h-9 text-sm"
           />
@@ -217,7 +230,11 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
 
         <select
           value={filterDomain}
-          onChange={(e) => { setFilterDomain(e.target.value); resetPage() }}
+          onChange={(e) => {
+            const v = e.target.value
+            setFilterDomain(v)
+            applyServerFilter({ domain: v, difficulty: filterDifficulty, source: filterSource, quality: filterQuality })
+          }}
           className="h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 bg-white"
         >
           <option value="">전체 영역</option>
@@ -228,7 +245,11 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
 
         <select
           value={filterDifficulty}
-          onChange={(e) => { setFilterDifficulty(e.target.value); resetPage() }}
+          onChange={(e) => {
+            const v = e.target.value
+            setFilterDifficulty(v)
+            applyServerFilter({ domain: filterDomain, difficulty: v, source: filterSource, quality: filterQuality })
+          }}
           className="h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 bg-white"
         >
           <option value="">전체 난이도</option>
@@ -239,7 +260,11 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
 
         <select
           value={filterSource}
-          onChange={(e) => { setFilterSource(e.target.value); resetPage() }}
+          onChange={(e) => {
+            const v = e.target.value
+            setFilterSource(v)
+            applyServerFilter({ domain: filterDomain, difficulty: filterDifficulty, source: v, quality: filterQuality })
+          }}
           className="h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 bg-white"
         >
           <option value="">전체 출처</option>
@@ -250,7 +275,11 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
 
         <select
           value={filterQuality}
-          onChange={(e) => { setFilterQuality(e.target.value); resetPage() }}
+          onChange={(e) => {
+            const v = e.target.value
+            setFilterQuality(v)
+            applyServerFilter({ domain: filterDomain, difficulty: filterDifficulty, source: filterSource, quality: v })
+          }}
           className="h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 bg-white"
         >
           <option value="">전체 품질</option>
@@ -260,7 +289,13 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
         </select>
 
         <span className="text-xs text-gray-400 ml-auto">
-          {filtered.length}개 중 {(safePage - 1) * PAGE_SIZE + 1}~{Math.min(safePage * PAGE_SIZE, filtered.length)}
+          {isFetching ? (
+            <Loader2 size={12} className="inline animate-spin" />
+          ) : filtered.length === 0 ? (
+            '0개'
+          ) : (
+            `${filtered.length}개 중 ${(safePage - 1) * PAGE_SIZE + 1}~${Math.min(safePage * PAGE_SIZE, filtered.length)}`
+          )}
         </span>
 
         {selected.size > 0 && (
@@ -441,7 +476,7 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
           <span className="text-xs text-gray-400">
-            {filtered.length}개 중 {(safePage - 1) * PAGE_SIZE + 1}~{Math.min(safePage * PAGE_SIZE, filtered.length)}번째
+            전체 {filtered.length}개 중 {(safePage - 1) * PAGE_SIZE + 1}~{Math.min(safePage * PAGE_SIZE, filtered.length)}번째
           </span>
           <div className="flex items-center gap-1">
             <button

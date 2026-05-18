@@ -88,10 +88,13 @@ export async function getAdminQuestions(filters: {
     where.qualityScore = { lt: 0.4 }
   }
 
+  // 필터가 없으면 최신 500개, 필터가 있으면 전체 조회
+  const hasFilter = !!(filters.domain || filters.difficulty || filters.source || filters.quality)
+
   const rows = await prisma.question.findMany({
     where,
     orderBy: [{ createdAt: 'desc' }],
-    take: 300,
+    ...(hasFilter ? {} : { take: 500 }),
     select: {
       id: true,
       domain: true,
