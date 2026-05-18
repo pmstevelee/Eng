@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useMemo } from 'react'
-import { Search, ChevronDown, Loader2, Eye, EyeOff, Volume2, Trash2 } from 'lucide-react'
+import { Search, ChevronDown, Loader2, Eye, EyeOff, Volume2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { deactivateQuestion, activateQuestion, adjustDifficulty, bulkDeleteQuestions } from '../actions'
@@ -70,6 +70,8 @@ function SourceBadge({ source }: { source: string }) {
   )
 }
 
+const PAGE_SIZE = 50
+
 // ── 메인 컴포넌트 ──────────────────────────────────────────────────────────────
 
 type Props = {
@@ -84,6 +86,7 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
   const [filterDifficulty, setFilterDifficulty] = useState('')
   const [filterSource, setFilterSource] = useState('')
   const [filterQuality, setFilterQuality] = useState('')
+  const [page, setPage] = useState(1)
   const [editTarget, setEditTarget] = useState<AdminQuestionRow | null>(null)
   const [pending, startTransition] = useTransition()
   const [actionId, setActionId] = useState<string | null>(null)
@@ -91,6 +94,8 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
   const [bulkDeleting, startBulkDelete] = useTransition()
   const [bulkError, setBulkError] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  function resetPage() { setPage(1) }
 
   const filtered = useMemo(() => {
     return questions.filter((q) => {
@@ -107,6 +112,10 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
       return true
     })
   }, [questions, search, filterDomain, filterDifficulty, filterSource, filterQuality])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
   function handleDeactivate(id: string) {
     setActionId(id)
@@ -200,7 +209,7 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <Input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); resetPage() }}
             placeholder="문제 검색..."
             className="pl-8 h-9 text-sm"
           />
@@ -208,7 +217,7 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
 
         <select
           value={filterDomain}
-          onChange={(e) => setFilterDomain(e.target.value)}
+          onChange={(e) => { setFilterDomain(e.target.value); resetPage() }}
           className="h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 bg-white"
         >
           <option value="">전체 영역</option>
@@ -219,7 +228,7 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
 
         <select
           value={filterDifficulty}
-          onChange={(e) => setFilterDifficulty(e.target.value)}
+          onChange={(e) => { setFilterDifficulty(e.target.value); resetPage() }}
           className="h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 bg-white"
         >
           <option value="">전체 난이도</option>
@@ -230,7 +239,7 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
 
         <select
           value={filterSource}
-          onChange={(e) => setFilterSource(e.target.value)}
+          onChange={(e) => { setFilterSource(e.target.value); resetPage() }}
           className="h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 bg-white"
         >
           <option value="">전체 출처</option>
@@ -241,7 +250,7 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
 
         <select
           value={filterQuality}
-          onChange={(e) => setFilterQuality(e.target.value)}
+          onChange={(e) => { setFilterQuality(e.target.value); resetPage() }}
           className="h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 bg-white"
         >
           <option value="">전체 품질</option>
@@ -250,7 +259,9 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
           <option value="low">낮음 (&lt;0.4)</option>
         </select>
 
-        <span className="text-xs text-gray-400 ml-auto">{filtered.length}개</span>
+        <span className="text-xs text-gray-400 ml-auto">
+          {filtered.length}개 중 {(safePage - 1) * PAGE_SIZE + 1}~{Math.min(safePage * PAGE_SIZE, filtered.length)}
+        </span>
 
         {selected.size > 0 && (
           <div className="flex items-center gap-2 border-l border-gray-200 pl-3">
@@ -307,7 +318,7 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
                 </td>
               </tr>
             )}
-            {filtered.map((q) => {
+            {pageItems.map((q) => {
               const isLoading = actionId === q.id && pending
               return (
                 <tr
@@ -425,6 +436,57 @@ export default function AdminQuestionTable({ initialQuestions, highlightId }: Pr
           </tbody>
         </table>
       </div>
+
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+          <span className="text-xs text-gray-400">
+            {filtered.length}개 중 {(safePage - 1) * PAGE_SIZE + 1}~{Math.min(safePage * PAGE_SIZE, filtered.length)}번째
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 2)
+              .reduce<(number | '...')[]>((acc, p, idx, arr) => {
+                if (idx > 0 && typeof arr[idx - 1] === 'number' && (p as number) - (arr[idx - 1] as number) > 1) {
+                  acc.push('...')
+                }
+                acc.push(p)
+                return acc
+              }, [])
+              .map((p, idx) =>
+                p === '...' ? (
+                  <span key={`ellipsis-${idx}`} className="px-1 text-xs text-gray-400">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p as number)}
+                    className={`min-w-[28px] h-7 rounded-lg text-xs font-medium border transition-colors ${
+                      safePage === p
+                        ? 'bg-primary-700 text-white border-primary-700'
+                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ),
+              )}
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {editTarget && (
         <EditQuestionModal
