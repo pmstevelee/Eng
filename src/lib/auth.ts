@@ -22,6 +22,23 @@ function pruneAuthCache(now: number) {
 }
 
 /**
+ * 로그인 직후 access_token으로 인증 캐시를 미리 채워서
+ * 첫 대시보드 진입 시 supabase.auth.getUser() 네트워크 왕복(~300-500ms)을 건너뛴다.
+ */
+export function primeAuthCache(accessToken: string, userId: string) {
+  const now = Date.now()
+  pruneAuthCache(now)
+  authUserCache.set(accessToken, { userId, expiresAt: now + AUTH_TTL_MS })
+}
+
+/**
+ * 로그아웃 시 토큰을 캐시에서 즉시 제거하여 stale 인증을 방지한다.
+ */
+export function invalidateAuthCache(accessToken: string) {
+  authUserCache.delete(accessToken)
+}
+
+/**
  * unstable_cache로 감싸서 요청 간에도 DB 조회 결과를 재사용합니다.
  * 로그인한 유저 정보(role, name, academyId)는 자주 바뀌지 않으므로
  * 60초 TTL 캐시가 안전하며, 로그아웃 시 태그로 즉시 무효화할 수 있습니다.
