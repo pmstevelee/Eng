@@ -235,7 +235,7 @@ export function CheckoutForm({
 
       <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400">
         <ShieldCheck className="h-3.5 w-3.5" />
-        <span>KG이니시스 PG · SSL 암호화 결제</span>
+        <span>토스페이먼츠 · SSL 암호화 결제</span>
       </div>
     </div>
   )

@@ -140,7 +140,7 @@ export function PlansClient({ currentPlan }: PlansClientProps) {
 
       {/* 하단 안내 */}
       <p className="text-center text-sm text-gray-400">
-        언제든지 플랜 변경 및 해지 가능 · KG이니시스 카드 정기결제 · 부가세 별도
+        언제든지 플랜 변경 및 해지 가능 · 토스페이먼츠 카드 정기결제 · 부가세 별도
       </p>
     </div>
   )
