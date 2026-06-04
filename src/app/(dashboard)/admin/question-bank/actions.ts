@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import OpenAI from 'openai'
 import { updateQuestionBankStatsForDomain } from '@/lib/questions/share-to-pool'
+import { Prisma } from '@/generated/prisma'
 import type { QuestionDomain, QuestionSource } from '@/generated/prisma'
 
 // ── 인증 헬퍼 ──────────────────────────────────────────────────────────────────
@@ -419,16 +420,13 @@ export async function generateQuestionsForGaps(minCount = 10): Promise<{
 
         const correctAnswer = qObj.correct_answer ?? qObj.answer ?? 'A'
 
-        const contentJson: Record<string, unknown> = {
+        const contentJson: Prisma.InputJsonObject = {
           type: 'multiple_choice',
           question_text: questionText,
           options: qObj.options ?? [],
           correct_answer: correctAnswer,
           explanation: qObj.explanation ?? '',
-        }
-
-        if (isListening && qObj.audio_script) {
-          contentJson.audio_script = qObj.audio_script
+          ...(isListening && qObj.audio_script ? { audio_script: qObj.audio_script } : {}),
         }
 
         await prisma.question.create({
