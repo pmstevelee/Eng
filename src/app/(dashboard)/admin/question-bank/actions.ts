@@ -334,7 +334,27 @@ export async function generateQuestionsForGaps(minCount = 10): Promise<{
     const domainName = DOMAIN_NAMES[stat.domain] ?? stat.domain
 
     try {
-      const prompt = `영어 학원용 ${domainName} 문제를 ${needed}개 생성하세요.
+      const isListening = stat.domain === 'LISTENING'
+
+      const prompt = isListening
+        ? `영어 학원용 듣기(Listening) 문제를 ${needed}개 생성하세요.
+레벨: Level ${stat.difficulty} (${cefrLevel})
+형식: JSON 배열, 각 문제는 아래 구조를 따를 것:
+{
+  "audio_script": "실제 음성으로 읽힐 영어 대화 또는 독백 스크립트 (3~8문장)",
+  "question_text": "스크립트를 듣고 답하는 영어 문제 (예: What is the main topic of the conversation?)",
+  "options": ["A) ...", "B) ...", "C) ...", "D) ..."],
+  "correct_answer": "A",
+  "explanation": "한국어 해설 (스크립트 근거 포함)"
+}
+- audio_script: 레벨에 맞는 자연스러운 영어 대화/독백, ${cefrLevel} 수준 어휘와 문장 사용
+- question_text: 스크립트 내용을 기반으로 한 문제
+- 보기 4개 필수 (A/B/C/D)
+- 정답은 A/B/C/D 중 하나
+- 해설은 반드시 한국어로, 스크립트의 어느 부분이 근거인지 설명
+- 레벨에 맞는 적절한 난이도
+응답은 {"questions": [...]} 형식의 JSON으로 출력하세요.`
+        : `영어 학원용 ${domainName} 문제를 ${needed}개 생성하세요.
 레벨: Level ${stat.difficulty} (${cefrLevel})
 형식: JSON 배열, 각 문제는 아래 구조를 따를 것:
 {
@@ -347,7 +367,7 @@ export async function generateQuestionsForGaps(minCount = 10): Promise<{
 - 정답은 A/B/C/D 중 하나
 - 해설은 반드시 한국어로
 - 레벨에 맞는 적절한 난이도
-응답은 JSON 배열만 출력하세요.`
+응답은 {"questions": [...]} 형식의 JSON으로 출력하세요.`
 
       const response = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
@@ -366,12 +386,25 @@ export async function generateQuestionsForGaps(minCount = 10): Promise<{
       let savedCount = 0
       for (const q of questionList) {
         const qObj = q as {
+          audio_script?: string
           question_text?: string
           options?: string[]
           correct_answer?: string
           explanation?: string
         }
         if (!qObj.question_text) continue
+
+        const contentJson: Record<string, unknown> = {
+          type: 'multiple_choice',
+          question_text: qObj.question_text,
+          options: qObj.options ?? [],
+          correct_answer: qObj.correct_answer ?? 'A',
+          explanation: qObj.explanation ?? '',
+        }
+
+        if (isListening && qObj.audio_script) {
+          contentJson.audio_script = qObj.audio_script
+        }
 
         await prisma.question.create({
           data: {
@@ -383,13 +416,7 @@ export async function generateQuestionsForGaps(minCount = 10): Promise<{
             isVerified: true,
             isActive: true,
             qualityScore: 0.6,
-            contentJson: {
-              type: 'multiple_choice',
-              question_text: qObj.question_text,
-              options: qObj.options ?? [],
-              correct_answer: qObj.correct_answer ?? 'A',
-              explanation: qObj.explanation ?? '',
-            },
+            contentJson,
           },
         })
         savedCount++
