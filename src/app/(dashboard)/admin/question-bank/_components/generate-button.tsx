@@ -17,6 +17,7 @@ const DOMAIN_LABEL: Record<string, string> = {
   VOCABULARY: '어휘',
   READING: '읽기',
   WRITING: '쓰기',
+  LISTENING: '듣기',
 }
 
 export default function GenerateButton() {

@@ -377,28 +377,53 @@ export async function generateQuestionsForGaps(minCount = 10): Promise<{
       })
 
       const raw = response.choices[0]?.message?.content ?? '{}'
-      const parsed = JSON.parse(raw) as { questions?: unknown[] } | unknown[]
+      const parsed = JSON.parse(raw) as Record<string, unknown>
 
-      const questionList = Array.isArray(parsed)
-        ? parsed
-        : (parsed as { questions?: unknown[] }).questions ?? []
+      // GPT가 다양한 키로 배열을 반환할 수 있으므로 순서대로 탐색
+      let questionList: unknown[] = []
+      if (Array.isArray(parsed)) {
+        questionList = parsed
+      } else {
+        const arrayKey = ['questions', 'items', 'data', 'problems', 'results'].find(
+          (k) => Array.isArray((parsed as Record<string, unknown>)[k]),
+        )
+        if (arrayKey) {
+          questionList = (parsed as Record<string, unknown[]>)[arrayKey]
+        }
+      }
+
+      if (questionList.length === 0) {
+        results.push({
+          domain: stat.domain,
+          difficulty: stat.difficulty,
+          generated: 0,
+          error: `GPT 응답에서 문제 배열을 찾지 못했습니다. 키: ${Object.keys(parsed).join(', ')}`,
+        })
+        continue
+      }
 
       let savedCount = 0
       for (const q of questionList) {
         const qObj = q as {
           audio_script?: string
           question_text?: string
+          question?: string       // GPT 가 question_text 대신 쓸 수 있는 대체 키
           options?: string[]
           correct_answer?: string
+          answer?: string         // correct_answer 대체 키
           explanation?: string
         }
-        if (!qObj.question_text) continue
+
+        const questionText = qObj.question_text ?? qObj.question
+        if (!questionText) continue
+
+        const correctAnswer = qObj.correct_answer ?? qObj.answer ?? 'A'
 
         const contentJson: Record<string, unknown> = {
           type: 'multiple_choice',
-          question_text: qObj.question_text,
+          question_text: questionText,
           options: qObj.options ?? [],
-          correct_answer: qObj.correct_answer ?? 'A',
+          correct_answer: correctAnswer,
           explanation: qObj.explanation ?? '',
         }
 
