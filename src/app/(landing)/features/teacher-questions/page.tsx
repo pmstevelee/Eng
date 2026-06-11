@@ -142,10 +142,7 @@ export default function TeacherQuestionsPage() {
               className="inline-flex items-center gap-1.5 text-sm font-medium mb-6 hover:underline"
               style={{ color: '#0FBFAD' }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              기능소개로 돌아가기
+              ← 기능소개로 돌아가기
             </Link>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
@@ -155,7 +152,7 @@ export default function TeacherQuestionsPage() {
                 >
                   핵심 기능 03
                 </div>
-                <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+                <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-4 leading-tight">
                   교사 직접
                   <br />
                   <span style={{ color: '#0FBFAD' }}>문제 출제</span>
@@ -224,7 +221,7 @@ export default function TeacherQuestionsPage() {
                 <div className="text-3xl lg:text-4xl font-bold mb-1" style={{ color: stat.color }}>
                   {stat.value}
                 </div>
-                <div className="text-sm text-gray-500">{stat.label}</div>
+                <div className="text-base text-gray-500">{stat.label}</div>
               </div>
             </ScrollReveal>
           ))}
@@ -236,7 +233,7 @@ export default function TeacherQuestionsPage() {
         <div className="max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-14">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">4가지 핵심 출제 기능</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-3">4가지 핵심 출제 기능</h2>
               <p className="text-gray-500 max-w-xl mx-auto">
                 교사가 주도하는 교육 환경. AI는 보조하고, 교사가 최종 결정합니다.
               </p>
@@ -246,21 +243,11 @@ export default function TeacherQuestionsPage() {
             {CORE_FEATURES.map((feature, i) => (
               <ScrollReveal key={feature.title} delay={i * 70}>
                 <div className="rounded-xl border border-gray-200 p-5 hover:border-gray-300 hover:shadow-sm transition-all h-full">
-                  <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                    style={{ background: feature.bg, color: feature.color }}
-                  >
-                    {feature.icon}
-                  </div>
-                  <div className="text-base font-bold text-gray-900 mb-2">{feature.title}</div>
-                  <p className="text-xs text-gray-500 leading-relaxed mb-4">{feature.desc}</p>
+                  <div className="text-lg font-bold text-gray-900 mb-2">{feature.title}</div>
+                  <p className="text-sm text-gray-500 leading-relaxed mb-4">{feature.desc}</p>
                   <ul className="space-y-1.5">
                     {feature.items.map((item) => (
-                      <li key={item} className="flex items-center gap-2 text-xs text-gray-600">
-                        <div
-                          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                          style={{ background: feature.color }}
-                        />
+                      <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
                         {item}
                       </li>
                     ))}
@@ -284,7 +271,7 @@ export default function TeacherQuestionsPage() {
                 >
                   출제 에디터
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-5">
+                <h2 className="text-4xl font-bold text-gray-900 mb-5">
                   문제 출제부터 배포까지
                   <br />
                   한 화면에서 완성
@@ -301,15 +288,8 @@ export default function TeacherQuestionsPage() {
                     { text: '완성 즉시 테스트로 배포 가능', color: '#0FBFAD' },
                     { text: '문제 난이도·태그 자동 추천', color: '#0FBFAD' },
                   ].map((item) => (
-                    <li key={item.text} className="flex items-start gap-3 text-sm text-gray-700">
-                      <svg
-                        className="w-4 h-4 mt-0.5 flex-shrink-0"
-                        style={{ color: '#1FAF54' }}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
+                    <li key={item.text} className="flex items-start gap-3 text-base text-gray-700">
+                      <span className="text-accent-green font-bold flex-shrink-0">✓</span>
                       {item.text}
                     </li>
                   ))}
@@ -346,7 +326,7 @@ export default function TeacherQuestionsPage() {
         <div className="max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-14">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">5가지 문제 유형 지원</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-3">5가지 문제 유형 지원</h2>
               <p className="text-gray-500 max-w-xl mx-auto">
                 영역과 학습 목표에 따라 가장 효과적인 유형의 문제를 선택하세요.
               </p>
@@ -382,7 +362,7 @@ export default function TeacherQuestionsPage() {
         <div className="max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-14">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">문제 출제는 어떻게 이루어지나요?</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-3">문제 출제는 어떻게 이루어지나요?</h2>
               <p className="text-gray-500 max-w-xl mx-auto">
                 설정부터 배포까지, 평균 3분이면 충분합니다.
               </p>
@@ -400,8 +380,8 @@ export default function TeacherQuestionsPage() {
                     >
                       {step.step}
                     </div>
-                    <h3 className="text-base font-bold text-gray-900 mb-2">{step.title}</h3>
-                    <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
+                    <p className="text-base text-gray-500 leading-relaxed">{step.desc}</p>
                   </div>
                 </ScrollReveal>
               ))}
@@ -422,7 +402,7 @@ export default function TeacherQuestionsPage() {
                 >
                   AI 보조 생성
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-5">
+                <h2 className="text-4xl font-bold text-gray-900 mb-5">
                   AI가 초안을 만들고,
                   <br />
                   교사가 완성합니다
@@ -440,15 +420,8 @@ export default function TeacherQuestionsPage() {
                     '교사 최종 승인 없이는 배포 불가',
                     '생성 이력 및 AI 기여도 통계 제공',
                   ].map((item) => (
-                    <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
-                      <svg
-                        className="w-4 h-4 flex-shrink-0"
-                        style={{ color: '#1FAF54' }}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
+                    <li key={item} className="flex items-center gap-3 text-base text-gray-700">
+                      <span className="text-accent-green font-bold flex-shrink-0">✓</span>
                       {item}
                     </li>
                   ))}
@@ -540,7 +513,7 @@ export default function TeacherQuestionsPage() {
         <div className="max-w-5xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-14">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">기존 방식과 무엇이 다른가요?</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-3">기존 방식과 무엇이 다른가요?</h2>
               <p className="text-gray-500 max-w-xl mx-auto">
                 교재 의존에서 벗어나 학원만의 커리큘럼을 직접 설계하세요.
               </p>
@@ -566,20 +539,10 @@ export default function TeacherQuestionsPage() {
                   <div className="space-y-3">
                     {col.items.map((item) => (
                       <div key={item.text} className="flex items-start gap-3">
-                        <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${item.bad ? 'bg-red-100' : 'bg-green-100'}`}
-                        >
-                          {item.bad ? (
-                            <svg className="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                          ) : (
-                            <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          )}
-                        </div>
-                        <div className={`text-sm font-medium ${item.bad ? 'text-gray-500' : 'text-gray-900'}`}>
+                        <span className={`font-bold flex-shrink-0 mt-0.5 ${item.bad ? 'text-red-400' : 'text-accent-green'}`}>
+                          {item.bad ? '✗' : '✓'}
+                        </span>
+                        <div className={`text-base font-medium ${item.bad ? 'text-gray-500' : 'text-gray-900'}`}>
                           {item.text}
                         </div>
                       </div>
@@ -596,7 +559,7 @@ export default function TeacherQuestionsPage() {
       <section className="py-20 px-6" style={{ background: '#0C2340' }}>
         <ScrollReveal>
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-4xl font-bold text-white mb-4">
               교사가 설계하고, AI가 보조하고,
               <br />
               학생이 성장합니다

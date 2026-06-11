@@ -106,7 +106,7 @@ export default function ReviewsPage() {
       {/* Hero */}
       <section className="bg-gradient-to-b from-primary-50 to-white py-20 text-center px-6">
         <ScrollReveal>
-          <h1 className="text-4xl md:text-5xl font-bold text-primary-900 mb-4">
+          <h1 className="text-5xl md:text-6xl font-bold text-primary-900 mb-4">
             실제 학원의
             <br />
             실제 변화
@@ -127,8 +127,8 @@ export default function ReviewsPage() {
             { value: '65%', label: '평균 행정 절감' },
           ].map(({ value, label }) => (
             <div key={label}>
-              <div className="text-2xl font-bold mb-1">{value}</div>
-              <div className="text-sm text-white/60">{label}</div>
+              <div className="text-3xl font-bold mb-1">{value}</div>
+              <div className="text-base text-white/60">{label}</div>
             </div>
           ))}
         </div>
@@ -146,34 +146,25 @@ export default function ReviewsPage() {
                     {review.avatar}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 text-sm">{review.academy}</div>
-                    <div className="text-xs text-gray-500">{review.type} · {review.students} · {review.duration}</div>
+                    <div className="font-semibold text-gray-900 text-base">{review.academy}</div>
+                    <div className="text-sm text-gray-500">{review.type} · {review.students} · {review.duration}</div>
                   </div>
-                </div>
-
-                {/* Stars */}
-                <div className="flex gap-0.5 mb-4">
-                  {Array.from({ length: 5 }).map((_, j) => (
-                    <svg key={j} className="w-4 h-4 text-accent-gold" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
                 </div>
 
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-2 mb-4">
                   {review.stats.map((stat) => (
                     <div key={stat.label} className="bg-gray-50 rounded-xl p-2 text-center">
-                      <div className="text-sm font-bold text-gray-900">{stat.value}</div>
-                      <div className="text-xs text-gray-500 leading-tight mt-0.5">{stat.label}</div>
+                      <div className="text-base font-bold text-gray-900">{stat.value}</div>
+                      <div className="text-sm text-gray-500 leading-tight mt-0.5">{stat.label}</div>
                     </div>
                   ))}
                 </div>
 
-                <p className="text-sm text-gray-600 leading-relaxed flex-1 mb-4">
+                <p className="text-base text-gray-600 leading-relaxed flex-1 mb-4">
                   &ldquo;{review.quote}&rdquo;
                 </p>
-                <div className="text-xs font-medium text-gray-500">— {review.author}</div>
+                <div className="text-sm font-medium text-gray-500">— {review.author}</div>
               </div>
             </ScrollReveal>
           ))}
@@ -183,8 +174,8 @@ export default function ReviewsPage() {
       {/* CTA */}
       <section className="bg-gradient-to-b from-white to-primary-50 py-20 text-center px-6">
         <ScrollReveal>
-          <h2 className="text-3xl font-bold text-primary-900 mb-4">우리 학원도 시작해보세요</h2>
-          <p className="text-gray-600 mb-8">14일 무료 체험 · 카드 등록 없음 · 설치 5분</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-primary-900 mb-4">우리 학원도 시작해보세요</h2>
+          <p className="text-lg text-gray-600 mb-8">14일 무료 체험 · 카드 등록 없음 · 설치 5분</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register/owner" className="bg-primary-700 text-white font-bold px-8 py-4 rounded-xl text-lg hover:bg-primary-800 transition-colors">
               14일 무료 체험 시작

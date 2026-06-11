@@ -141,10 +141,7 @@ export default function AiAnalysisPage() {
               className="inline-flex items-center gap-1.5 text-sm font-medium mb-6 hover:underline"
               style={{ color: '#7854F7' }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              기능소개로 돌아가기
+              ← 기능소개로 돌아가기
             </Link>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
@@ -154,7 +151,7 @@ export default function AiAnalysisPage() {
                 >
                   핵심 기능 02
                 </div>
-                <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+                <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-4 leading-tight">
                   AI 데이터 분석
                   <br />
                   <span style={{ color: '#7854F7' }}>+ 약점 반복 제시</span>
@@ -262,7 +259,7 @@ export default function AiAnalysisPage() {
                   {stat.value}
                   <span className="text-xl">{stat.unit}</span>
                 </div>
-                <div className="text-sm text-gray-500">{stat.label}</div>
+                <div className="text-base text-gray-500">{stat.label}</div>
               </div>
             </ScrollReveal>
           ))}
@@ -274,7 +271,7 @@ export default function AiAnalysisPage() {
         <div className="max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-14">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">4가지 핵심 AI 분석 기능</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-3">4가지 핵심 AI 분석 기능</h2>
               <p className="text-gray-500 max-w-xl mx-auto">
                 단순한 오답 체크를 넘어, 학생 개개인의 학습 패턴을 깊이 이해하고 최적의 학습 경로를 제시합니다.
               </p>
@@ -284,21 +281,11 @@ export default function AiAnalysisPage() {
             {ANALYSIS_FEATURES.map((feature, i) => (
               <ScrollReveal key={feature.title} delay={i * 70}>
                 <div className="rounded-xl border border-gray-200 p-5 hover:border-gray-300 hover:shadow-sm transition-all h-full">
-                  <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                    style={{ background: feature.bg, color: feature.color }}
-                  >
-                    {feature.icon}
-                  </div>
-                  <div className="text-base font-bold text-gray-900 mb-2">{feature.title}</div>
-                  <p className="text-xs text-gray-500 leading-relaxed mb-4">{feature.desc}</p>
+                  <div className="text-lg font-bold text-gray-900 mb-2">{feature.title}</div>
+                  <p className="text-sm text-gray-500 leading-relaxed mb-4">{feature.desc}</p>
                   <ul className="space-y-1.5">
                     {feature.items.map((item) => (
-                      <li key={item} className="flex items-center gap-2 text-xs text-gray-600">
-                        <div
-                          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                          style={{ background: feature.color }}
-                        />
+                      <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
                         {item}
                       </li>
                     ))}
@@ -315,7 +302,7 @@ export default function AiAnalysisPage() {
         <div className="max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-14">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">AI 분석은 어떻게 작동하나요?</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-3">AI 분석은 어떻게 작동하나요?</h2>
               <p className="text-gray-500 max-w-xl mx-auto">
                 데이터 수집부터 개인화 문제 제시까지, AI가 전 과정을 자동으로 처리합니다.
               </p>
@@ -333,8 +320,8 @@ export default function AiAnalysisPage() {
                     >
                       {step.step}
                     </div>
-                    <h3 className="text-base font-bold text-gray-900 mb-2">{step.title}</h3>
-                    <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
+                    <p className="text-base text-gray-500 leading-relaxed">{step.desc}</p>
                   </div>
                 </ScrollReveal>
               ))}
@@ -355,7 +342,7 @@ export default function AiAnalysisPage() {
                 >
                   약점 분석 대시보드
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-5">
+                <h2 className="text-4xl font-bold text-gray-900 mb-5">
                   교사와 학생이 함께
                   <br />
                   약점을 파악합니다
@@ -371,15 +358,8 @@ export default function AiAnalysisPage() {
                     { text: '교사 전용 반 전체 약점 현황 뷰', color: '#7854F7' },
                     { text: '학생별 1:1 맞춤 피드백 메모 추가', color: '#7854F7' },
                   ].map((item) => (
-                    <li key={item.text} className="flex items-start gap-3 text-sm text-gray-700">
-                      <svg
-                        className="w-4 h-4 mt-0.5 flex-shrink-0"
-                        style={{ color: '#1FAF54' }}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
+                    <li key={item.text} className="flex items-start gap-3 text-base text-gray-700">
+                      <span className="text-accent-green font-bold flex-shrink-0">✓</span>
                       {item.text}
                     </li>
                   ))}
@@ -489,7 +469,7 @@ export default function AiAnalysisPage() {
         <div className="max-w-5xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-14">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">기존 방식과 무엇이 다른가요?</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-3">기존 방식과 무엇이 다른가요?</h2>
               <p className="text-gray-500 max-w-xl mx-auto">
                 수동 오답 노트 관리에서 벗어나 AI가 자동으로 분석하고 최적 복습 경로를 설계합니다.
               </p>
@@ -515,20 +495,10 @@ export default function AiAnalysisPage() {
                   <div className="space-y-3">
                     {col.items.map((item) => (
                       <div key={item.text} className="flex items-start gap-3">
-                        <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${item.bad ? 'bg-red-100' : 'bg-green-100'}`}
-                        >
-                          {item.bad ? (
-                            <svg className="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                          ) : (
-                            <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          )}
-                        </div>
-                        <div className={`text-sm font-medium ${item.bad ? 'text-gray-500' : 'text-gray-900'}`}>
+                        <span className={`font-bold flex-shrink-0 mt-0.5 ${item.bad ? 'text-red-400' : 'text-accent-green'}`}>
+                          {item.bad ? '✗' : '✓'}
+                        </span>
+                        <div className={`text-base font-medium ${item.bad ? 'text-gray-500' : 'text-gray-900'}`}>
                           {item.text}
                         </div>
                       </div>
@@ -553,7 +523,7 @@ export default function AiAnalysisPage() {
                 >
                   AI 즉시 피드백
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-5">
+                <h2 className="text-4xl font-bold text-gray-900 mb-5">
                   오답 즉시,
                   <br />
                   AI가 이유를 설명합니다
@@ -571,15 +541,8 @@ export default function AiAnalysisPage() {
                     '교사 추가 코멘트 병행으로 완전 학습 지원',
                     '피드백 이력 누적으로 성장 추이 확인',
                   ].map((item) => (
-                    <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
-                      <svg
-                        className="w-4 h-4 flex-shrink-0"
-                        style={{ color: '#1FAF54' }}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
+                    <li key={item} className="flex items-center gap-3 text-base text-gray-700">
+                      <span className="text-accent-green font-bold flex-shrink-0">✓</span>
                       {item}
                     </li>
                   ))}
@@ -605,16 +568,10 @@ export default function AiAnalysisPage() {
                     By the time she arrived, he ___ for two hours.
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
+                    <div className="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">
                       선택: was waiting
                     </div>
-                    <div className="flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
+                    <div className="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">
                       정답: had been waiting
                     </div>
                   </div>
@@ -633,7 +590,7 @@ export default function AiAnalysisPage() {
                   </div>
                   <div className="rounded-xl bg-gray-50 p-4">
                     <div className="text-xs font-bold text-gray-600 mb-2">올바른 개념 정리</div>
-                    <div className="text-xs text-gray-600 leading-relaxed">
+                    <div className="text-sm text-gray-600 leading-relaxed">
                       <span className="font-semibold">과거완료진행 (had been + V-ing)</span>: 과거의 기준 시점 이전부터 계속 진행 중인 동작을 나타냄.
                     </div>
                     <div className="mt-2 p-2 bg-white rounded-lg border border-gray-200 text-xs text-gray-500 italic">
@@ -661,7 +618,7 @@ export default function AiAnalysisPage() {
       <section className="py-20 px-6" style={{ background: '#0C2340' }}>
         <ScrollReveal>
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-4xl font-bold text-white mb-4">
               AI가 분석하고, 학생이 성장하고,
               <br />
               교사가 확인합니다

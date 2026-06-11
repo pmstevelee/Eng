@@ -9,21 +9,18 @@ export const metadata: Metadata = {
 
 const CONTACT_METHODS = [
   {
-    icon: '✉️',
     title: '이메일',
     desc: '평일 기준 1영업일 내 답변',
     value: 'hello@wegupenglish.com',
     link: 'mailto:hello@wegupenglish.com',
   },
   {
-    icon: '💬',
     title: '카카오톡',
     desc: '실시간 채팅 상담 가능',
     value: '@위고업잉글리시',
     link: 'https://open.kakao.com/',
   },
   {
-    icon: '📞',
     title: '운영시간',
     desc: '전화 상담 예약 가능',
     value: '평일 09:00 – 18:00',
@@ -37,7 +34,7 @@ export default function ContactPage() {
       {/* Hero */}
       <section className="bg-gradient-to-b from-primary-50 to-white py-20 text-center px-6">
         <ScrollReveal>
-          <h1 className="text-4xl md:text-5xl font-bold text-primary-900 mb-4">
+          <h1 className="text-5xl md:text-6xl font-bold text-primary-900 mb-4">
             도입 상담 & 문의
           </h1>
           <p className="text-lg text-gray-600 max-w-xl mx-auto">
@@ -53,7 +50,7 @@ export default function ContactPage() {
           {/* Contact form */}
           <div className="md:col-span-3">
             <ScrollReveal>
-              <h2 className="text-xl font-bold text-gray-900 mb-6">문의 남기기</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">문의 남기기</h2>
               <ContactForm />
             </ScrollReveal>
           </div>
@@ -61,45 +58,40 @@ export default function ContactPage() {
           {/* Contact info */}
           <div className="md:col-span-2">
             <ScrollReveal delay={100}>
-              <h2 className="text-xl font-bold text-gray-900 mb-6">연락처</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">연락처</h2>
               <div className="space-y-4 mb-8">
                 {CONTACT_METHODS.map((method) => (
                   <div key={method.title} className="border border-gray-200 rounded-xl p-5">
-                    <div className="flex items-start gap-3">
-                      <div className="text-2xl">{method.icon}</div>
-                      <div>
-                        <div className="font-semibold text-gray-900 text-sm mb-0.5">{method.title}</div>
-                        <div className="text-xs text-gray-500 mb-1.5">{method.desc}</div>
-                        {method.link ? (
-                          <a
-                            href={method.link}
-                            target={method.link.startsWith('http') ? '_blank' : undefined}
-                            rel={method.link.startsWith('http') ? 'noopener noreferrer' : undefined}
-                            className="text-sm font-medium text-primary-700 hover:underline"
-                          >
-                            {method.value}
-                          </a>
-                        ) : (
-                          <div className="text-sm font-medium text-gray-700">{method.value}</div>
-                        )}
-                      </div>
-                    </div>
+                    <div className="font-semibold text-gray-900 text-base mb-0.5">{method.title}</div>
+                    <div className="text-sm text-gray-500 mb-1.5">{method.desc}</div>
+                    {method.link ? (
+                      <a
+                        href={method.link}
+                        target={method.link.startsWith('http') ? '_blank' : undefined}
+                        rel={method.link.startsWith('http') ? 'noopener noreferrer' : undefined}
+                        className="text-base font-medium text-primary-700 hover:underline"
+                      >
+                        {method.value}
+                      </a>
+                    ) : (
+                      <div className="text-base font-medium text-gray-700">{method.value}</div>
+                    )}
                   </div>
                 ))}
               </div>
 
               {/* Quick CTA */}
               <div className="bg-primary-50 rounded-xl p-5 border border-primary-100">
-                <div className="text-sm font-semibold text-primary-900 mb-2">
-                  📋 먼저 무료로 체험해보세요
+                <div className="text-base font-semibold text-primary-900 mb-2">
+                  먼저 무료로 체험해보세요
                 </div>
-                <p className="text-xs text-primary-700 leading-relaxed mb-4">
+                <p className="text-sm text-primary-700 leading-relaxed mb-4">
                   14일 동안 모든 기능을 무료로 사용해보시고 결정하셔도 늦지 않습니다.
                   카드 등록 없이 5분 안에 시작할 수 있습니다.
                 </p>
                 <a
                   href="/register/owner"
-                  className="block text-center bg-primary-700 text-white text-sm font-bold py-2.5 rounded-lg hover:bg-primary-800 transition-colors"
+                  className="block text-center bg-primary-700 text-white text-base font-bold py-2.5 rounded-lg hover:bg-primary-800 transition-colors"
                 >
                   무료 체험 시작하기
                 </a>

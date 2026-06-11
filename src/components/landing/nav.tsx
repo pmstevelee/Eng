@@ -40,7 +40,7 @@ export default function LandingNav() {
               <Link
                 key={href}
                 href={href}
-                className="text-sm font-medium text-gray-600 hover:text-primary-700 transition-colors"
+                className="text-base font-medium text-gray-600 hover:text-primary-700 transition-colors"
               >
                 {label}
               </Link>
@@ -50,32 +50,26 @@ export default function LandingNav() {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
             <Link
-              href="/login"
-              className="text-sm font-medium text-gray-600 hover:text-primary-700 transition-colors px-4 py-2"
+              href="https://login.wegoupenglish.com"
+              className="text-base font-medium text-gray-600 hover:text-primary-700 transition-colors px-4 py-2"
             >
               로그인
             </Link>
             <Link
-              href="/register/owner"
-              className="bg-primary-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-primary-800 transition-colors"
+              href="https://login.wegoupenglish.com"
+              className="bg-primary-700 text-white text-base font-bold px-5 py-2.5 rounded-lg hover:bg-primary-800 transition-colors"
             >
               무료 시작하기
             </Link>
           </div>
 
-          {/* Mobile hamburger */}
+          {/* Mobile menu toggle */}
           <button
-            className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+            className="md:hidden px-3 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="메뉴"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {menuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
+            {menuOpen ? '닫기' : '메뉴'}
           </button>
         </div>
 
@@ -86,7 +80,7 @@ export default function LandingNav() {
               <Link
                 key={href}
                 href={href}
-                className="text-sm font-medium text-gray-600 px-2 py-3 hover:text-primary-700 transition-colors rounded-lg"
+                className="text-base font-medium text-gray-600 px-2 py-3 hover:text-primary-700 transition-colors rounded-lg"
                 onClick={() => setMenuOpen(false)}
               >
                 {label}
@@ -94,15 +88,15 @@ export default function LandingNav() {
             ))}
             <hr className="my-2 border-gray-100" />
             <Link
-              href="/login"
-              className="text-sm font-medium text-gray-600 px-2 py-3"
+              href="https://login.wegoupenglish.com"
+              className="text-base font-medium text-gray-600 px-2 py-3"
               onClick={() => setMenuOpen(false)}
             >
               로그인
             </Link>
             <Link
-              href="/register/owner"
-              className="bg-primary-700 text-white text-sm font-bold px-5 py-3 rounded-lg text-center mt-1 hover:bg-primary-800 transition-colors"
+              href="https://login.wegoupenglish.com"
+              className="bg-primary-700 text-white text-base font-bold px-5 py-3 rounded-lg text-center mt-1 hover:bg-primary-800 transition-colors"
               onClick={() => setMenuOpen(false)}
             >
               무료 시작하기

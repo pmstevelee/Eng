@@ -118,7 +118,7 @@ export default function FaqPage() {
       {/* Hero */}
       <section className="bg-gradient-to-b from-primary-50 to-white py-20 text-center px-6">
         <ScrollReveal>
-          <h1 className="text-4xl md:text-5xl font-bold text-primary-900 mb-4">
+          <h1 className="text-5xl md:text-6xl font-bold text-primary-900 mb-4">
             자주 묻는 질문
           </h1>
           <p className="text-lg text-gray-600">
@@ -138,15 +138,14 @@ export default function FaqPage() {
       <section className="bg-gray-50 py-16 px-6">
         <ScrollReveal>
           <div className="max-w-xl mx-auto text-center">
-            <div className="text-4xl mb-4">💬</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">답변을 찾지 못하셨나요?</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">답변을 찾지 못하셨나요?</h2>
+            <p className="text-lg text-gray-600 mb-6">
               도입 상담 또는 카카오톡으로 문의해 주시면 빠르게 답변드립니다.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/contact"
-                className="bg-primary-700 text-white font-bold px-6 py-3 rounded-xl hover:bg-primary-800 transition-colors"
+                className="bg-primary-700 text-white font-bold text-base px-6 py-3 rounded-xl hover:bg-primary-800 transition-colors"
               >
                 1:1 문의하기
               </Link>
@@ -154,7 +153,7 @@ export default function FaqPage() {
                 href="https://open.kakao.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="border border-gray-300 text-gray-700 font-bold px-6 py-3 rounded-xl hover:bg-gray-50 transition-colors"
+                className="border border-gray-300 text-gray-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-gray-50 transition-colors"
               >
                 카카오톡 문의
               </a>

@@ -63,7 +63,7 @@ export default function RoleTabs() {
           <button
             key={t.id}
             onClick={() => setActive(t.id)}
-            className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all ${
+            className={`px-6 py-3 rounded-xl text-base font-semibold transition-all ${
               active === t.id
                 ? 'bg-primary-700 text-white shadow-sm'
                 : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
@@ -77,28 +77,19 @@ export default function RoleTabs() {
       {/* Tab content */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto">
         <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">{tab.title}</h3>
-          <p className="text-gray-500 mb-6">{tab.desc}</p>
-          <ul className="space-y-4">
+          <h3 className="text-3xl font-bold text-gray-900 mb-2">{tab.title}</h3>
+          <p className="text-lg text-gray-500 mb-6">{tab.desc}</p>
+          <ul className="space-y-3 border-l-2 border-primary-100 pl-5">
             {tab.features.map((feature) => (
-              <li key={feature} className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <svg className="w-3 h-3 text-primary-700" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <span className="text-gray-700">{feature}</span>
+              <li key={feature} className="text-lg text-gray-700 leading-relaxed">
+                {feature}
               </li>
             ))}
           </ul>
           <div className="mt-8">
             <a
-              href="/register/owner"
-              className="inline-flex items-center gap-2 text-primary-700 text-sm font-semibold hover:underline"
+              href="https://login.wegoupenglish.com"
+              className="inline-flex items-center gap-2 text-primary-700 text-base font-semibold hover:underline"
             >
               무료로 시작하기 →
             </a>
@@ -118,11 +109,6 @@ export default function RoleTabs() {
           </div>
         ) : (
           <div className="bg-gray-50 rounded-2xl aspect-[4/3] flex flex-col items-center justify-center border border-gray-200 gap-4 overflow-hidden p-8">
-            <div className="flex gap-2">
-              {['#1865F2', '#7854F7', '#0FBFAD', '#E35C20', '#E91E8A'].map((c) => (
-                <div key={c} className="w-2 h-2 rounded-full" style={{ background: c }} />
-              ))}
-            </div>
             <div className="grid grid-cols-3 gap-2 w-full max-w-xs">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
@@ -132,7 +118,7 @@ export default function RoleTabs() {
                 />
               ))}
             </div>
-            <div className="text-xs text-gray-400">{tab.mockupLabel}</div>
+            <div className="text-sm text-gray-400">{tab.mockupLabel}</div>
           </div>
         )}
       </div>

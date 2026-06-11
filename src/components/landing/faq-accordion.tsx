@@ -26,18 +26,13 @@ function AccordionItem({ q, a }: FaqItem) {
         onClick={() => setOpen(!open)}
         className="w-full flex items-start justify-between gap-4 px-6 py-4 text-left hover:bg-gray-50 transition-colors"
       >
-        <span className="font-semibold text-gray-900 text-sm leading-relaxed">{q}</span>
-        <svg
-          className={`w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <span className="font-semibold text-gray-900 text-lg leading-relaxed">{q}</span>
+        <span className="text-2xl font-light text-gray-400 flex-shrink-0 leading-none mt-0.5">
+          {open ? '−' : '+'}
+        </span>
       </button>
       {open && (
-        <div className="px-6 pb-5 text-sm text-gray-600 leading-relaxed border-t border-gray-100 pt-4">
+        <div className="px-6 pb-5 text-base text-gray-600 leading-relaxed border-t border-gray-100 pt-4">
           {a}
         </div>
       )}
@@ -51,7 +46,7 @@ export default function FaqAccordion({ groups }: FaqAccordionProps) {
       {groups.map((group, gi) => (
         <ScrollReveal key={group.category} delay={gi * 60}>
           <div>
-            <h2 className="text-sm font-semibold text-primary-700 uppercase tracking-wider mb-4">
+            <h2 className="text-base font-semibold text-primary-700 uppercase tracking-wider mb-4">
               {group.category}
             </h2>
             <div className="space-y-3">

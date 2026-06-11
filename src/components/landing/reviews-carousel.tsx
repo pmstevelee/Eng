@@ -50,43 +50,32 @@ export default function ReviewsCarousel() {
       {/* Card */}
       <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-10">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center text-primary-700 font-bold text-sm">
+          <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center text-primary-700 font-bold text-base">
             {review.academy.charAt(0)}
           </div>
           <div>
-            <div className="font-semibold text-gray-900 text-sm">{review.academy}</div>
-            <div className="text-xs text-gray-500">{review.type} · {review.duration}</div>
+            <div className="font-semibold text-gray-900 text-base">{review.academy}</div>
+            <div className="text-sm text-gray-500">{review.type} · {review.duration}</div>
           </div>
           <div className="ml-auto">
-            <span className="bg-accent-green/10 text-accent-green text-xs font-semibold px-3 py-1 rounded-full">
+            <span className="bg-accent-green/10 text-accent-green text-sm font-semibold px-3 py-1 rounded-full">
               {review.change}
             </span>
           </div>
         </div>
 
-        {/* Stars */}
-        <div className="flex gap-1 mb-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <svg key={i} className="w-4 h-4 text-accent-gold" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          ))}
-        </div>
-
-        <p className="text-gray-700 leading-relaxed mb-6">&ldquo;{review.quote}&rdquo;</p>
-        <div className="text-sm font-medium text-gray-500">— {review.author}</div>
+        <p className="text-lg text-gray-700 leading-relaxed mb-6">&ldquo;{review.quote}&rdquo;</p>
+        <div className="text-base font-medium text-gray-500">— {review.author}</div>
       </div>
 
       {/* Controls */}
       <div className="flex items-center justify-between mt-6">
         <button
           onClick={prev}
-          className="w-10 h-10 rounded-xl border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50 transition-colors"
+          className="px-4 h-10 rounded-xl border border-gray-200 bg-white text-base font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
           aria-label="이전"
         >
-          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
+          이전
         </button>
 
         <div className="flex gap-2">
@@ -104,12 +93,10 @@ export default function ReviewsCarousel() {
 
         <button
           onClick={next}
-          className="w-10 h-10 rounded-xl border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50 transition-colors"
+          className="px-4 h-10 rounded-xl border border-gray-200 bg-white text-base font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
           aria-label="다음"
         >
-          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+          다음
         </button>
       </div>
     </div>

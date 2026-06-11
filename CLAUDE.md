@@ -46,6 +46,15 @@
 - .env 파일을 Git에 커밋하지 말 것
 - any 타입 사용 금지
 
+## 랜딩페이지 작업 규칙
+- 랜딩페이지 관련 작업은 `~/Downloads/wegoup_website` 레포에서 진행
+- GitHub 저장소: https://github.com/pmstevelee/wegoup_website
+- 랜딩페이지 작업 완료 후 반드시 해당 레포에 push
+- 로컬 경로: `~/Downloads/wegoup_website`
+- ivy의 `src/app/(landing)/` 및 `src/components/landing/` 변경 시 wegoup_website에도 동기화
+- 로그인/무료체험 버튼 링크: `https://login.wegoupenglish.com`
+- 내부 앱 링크(`/register/owner`, `/login`)는 모두 `https://login.wegoupenglish.com` 으로 처리
+
 ## UI/UX 디자인 시스템
 ### 디자인 철학
 - Khan Academy 스타일: 깔끔하고 신뢰감 있는 교육 플랫폼
