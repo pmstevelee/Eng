@@ -61,7 +61,7 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
     startForgotTransition(async () => {
       const supabase = createClient()
       const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
       })
       if (error) {
         setForgotMessage('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.')
