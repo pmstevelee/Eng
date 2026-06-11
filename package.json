@@ -10,6 +10,7 @@
     "postinstall": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "seed:grammar": "tsx prisma/seed-grammar.ts",
+    "seed:partb1-3": "tsx prisma/seed-partb1-3.ts",
     "fix:question-format": "tsx prisma/fix-question-format.ts",
     "seed:unit-test-u1": "tsx prisma/seed-unit-test-u1.ts"
   },
@@ -24,6 +25,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.99.0",
+    "@tosspayments/tosspayments-sdk": "^2.7.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.577.0",

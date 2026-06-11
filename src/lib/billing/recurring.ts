@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma/client'
 import { Plan, BillingCycle, PaymentStatus, PaymentType, SubscriptionStatus } from '@/generated/prisma'
-import { payWithBillingKey, PortOneServerError } from '@/lib/portone/server'
+import { payWithBillingKey, TossServerError } from '@/lib/tosspayments/server'
 import { PLANS, STUDENT_OVERAGE, getOverageAmount } from '@/lib/pricing'
 import {
   sendPaymentSuccess,
@@ -116,7 +116,7 @@ export async function processRecurringPayment(
     return { success: true }
   }
 
-  const portonePaymentId = crypto.randomUUID()
+  const tossPaymentId = crypto.randomUUID()
   const academyName = subscription.academy.businessName ?? subscription.academy.name
 
   const nextPeriodStart = currentPeriodEnd
@@ -132,7 +132,7 @@ export async function processRecurringPayment(
     data: {
       subscriptionId: subscription.id,
       academyId: subscription.academyId,
-      paymentId: portonePaymentId,
+      paymentId: tossPaymentId,
       type: PaymentType.SUBSCRIPTION,
       amount: breakdown.total,
       status: PaymentStatus.PENDING,
@@ -141,20 +141,12 @@ export async function processRecurringPayment(
 
   try {
     const result = await payWithBillingKey({
-      paymentId: portonePaymentId,
       billingKey: subscription.billingKey.portoneBillingKey,
+      customerKey: subscription.academyId,
+      orderId: tossPaymentId,
       orderName: `위고업잉글리시 ${subscription.plan} 정기결제`,
       amount: breakdown.total,
-      customer: {
-        fullName: academyName,
-        customerId: subscription.academyId,
-      },
-      customData: {
-        subscriptionId: subscription.id,
-        periodStart: currentPeriodStart.toISOString(),
-        periodEnd: currentPeriodEnd.toISOString(),
-        breakdown,
-      },
+      customerName: academyName,
     })
 
     // ── 결제 성공 ──
@@ -163,10 +155,10 @@ export async function processRecurringPayment(
         where: { id: payment.id },
         data: {
           status: PaymentStatus.PAID,
-          pgProvider: result.channel?.pgProvider ?? null,
-          pgTxId: result.transactionId ?? null,
-          receiptUrl: result.receiptUrl ?? null,
-          paidAt: new Date(),
+          pgProvider: 'TOSSPAYMENTS',
+          pgTxId: result.paymentKey ?? null,
+          receiptUrl: result.receipt?.url ?? null,
+          paidAt: result.approvedAt ? new Date(result.approvedAt) : new Date(),
         },
       }),
       prisma.subscription.update({
@@ -184,10 +176,10 @@ export async function processRecurringPayment(
       await sendPaymentSuccess(subscription.academyId, paidPayment)
     }
 
-    return { success: true, paymentId: portonePaymentId }
+    return { success: true, paymentId: tossPaymentId }
   } catch (err) {
     const failureReason =
-      err instanceof PortOneServerError ? err.message : '알 수 없는 오류'
+      err instanceof TossServerError ? err.message : '알 수 없는 오류'
 
     await prisma.payment.update({
       where: { id: payment.id },
@@ -215,6 +207,6 @@ export async function processRecurringPayment(
       await sendPaymentFailed(subscription.academyId, failedPayment, retryAt)
     }
 
-    return { success: false, paymentId: portonePaymentId, error: failureReason }
+    return { success: false, paymentId: tossPaymentId, error: failureReason }
   }
 }

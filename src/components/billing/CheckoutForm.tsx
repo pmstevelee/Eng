@@ -1,16 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { loadTossPayments } from '@tosspayments/tosspayments-sdk'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { AlertCircle, CreditCard, Loader2, ShieldCheck } from 'lucide-react'
-import { requestPaymentWithBillingKey, isPaymentError } from '@/lib/portone/client'
 import { PLANS, PLAN_DISPLAY_NAMES, BILLING_CYCLE_DISPLAY_NAMES } from '@/lib/pricing'
 import type { Plan, BillingCycle } from '@/generated/prisma'
+
+const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY!
 
 interface CheckoutFormProps {
   plan: Plan
@@ -18,6 +19,7 @@ interface CheckoutFormProps {
   customerName: string
   customerEmail: string
   academyName: string
+  academyId: string
 }
 
 export function CheckoutForm({
@@ -26,8 +28,8 @@ export function CheckoutForm({
   customerName,
   customerEmail,
   academyName,
+  academyId,
 }: CheckoutFormProps) {
-  const router = useRouter()
   const [businessNumber, setBusinessNumber] = useState('')
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [agreePrivacy, setAgreePrivacy] = useState(false)
@@ -47,7 +49,7 @@ export function CheckoutForm({
     setLoading(true)
 
     try {
-      // 1. 서버에서 paymentId 발급 + Payment 레코드 생성
+      // 1. 서버에서 구독 레코드 생성 (TRIAL)
       const checkoutRes = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -62,53 +64,37 @@ export function CheckoutForm({
         return
       }
 
-      // FREE 플랜인 경우 바로 완료
+      // FREE 플랜: 바로 완료
       if (checkoutData.free) {
-        router.push('/owner/billing/success?free=1')
+        window.location.href = '/owner/billing/success?free=1'
         return
       }
 
-      const { paymentId, orderName, customerInfo } = checkoutData
+      // 2. 토스페이먼츠 SDK 초기화
+      const tossPayments = await loadTossPayments(TOSS_CLIENT_KEY)
 
-      // 2. 포트원 빌링키 발급 (카드 인증 UI)
-      const billingResult = await requestPaymentWithBillingKey({
-        paymentId,
-        orderName,
-        totalAmount: price,
-        customer: customerInfo,
-        redirectUrl: `${window.location.origin}/owner/billing/success`,
+      // customerKey = academyId (구매자 고유 키)
+      const payment = tossPayments.payment({ customerKey: academyId })
+
+      // 3. 카드 등록창 열기 (리다이렉트 방식)
+      await payment.requestBillingAuth({
+        method: 'CARD',
+        successUrl: `${window.location.origin}/owner/billing/toss-success`,
+        failUrl: `${window.location.origin}/owner/billing/toss-fail`,
+        customerEmail,
+        customerName,
       })
 
-      if (isPaymentError(billingResult)) {
-        setError(billingResult.message)
-        setLoading(false)
-        return
+      // requestBillingAuth는 리다이렉트이므로 이 이후 코드는 실행되지 않음
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다'
+
+      // 사용자가 직접 취소한 경우
+      if (message.includes('PAY_PROCESS_CANCELED')) {
+        setError(null)
+      } else {
+        setError(`카드 등록 중 오류가 발생했습니다: ${message}`)
       }
-
-      // 3. 서버에서 결제 검증 + 구독 활성화
-      const verifyRes = await fetch('/api/billing/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          paymentId: billingResult.paymentId,
-          billingKey: billingResult.billingKey,
-        }),
-      })
-
-      const verifyData = await verifyRes.json()
-
-      if (!verifyRes.ok) {
-        setError(verifyData.error ?? '결제 검증 중 오류가 발생했습니다')
-        router.push('/owner/billing/failed')
-        return
-      }
-
-      // 4. 성공
-      router.push(
-        `/owner/billing/success?plan=${plan}&cycle=${billingCycle}`,
-      )
-    } catch {
-      setError('결제 처리 중 네트워크 오류가 발생했습니다. 다시 시도해 주세요.')
       setLoading(false)
     }
   }
@@ -223,12 +209,12 @@ export function CheckoutForm({
         {loading ? (
           <>
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            결제 처리 중...
+            카드 등록 준비 중...
           </>
         ) : (
           <>
             <CreditCard className="mr-2 h-5 w-5" />
-            {price.toLocaleString('ko-KR')}원 결제하기
+            카드 등록하고 {price.toLocaleString('ko-KR')}원 결제하기
           </>
         )}
       </Button>

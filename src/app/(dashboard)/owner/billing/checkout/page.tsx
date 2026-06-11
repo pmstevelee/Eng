@@ -113,6 +113,7 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
             customerName={user.name}
             customerEmail={user.email}
             academyName={user.academy?.name ?? user.academy?.businessName ?? ''}
+            academyId={user.academyId ?? ''}
           />
         </div>
       </div>
