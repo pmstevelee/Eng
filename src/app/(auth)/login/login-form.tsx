@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { signIn } from './actions'
+import { signIn, findId } from './actions'
 import { createClient } from '@/lib/supabase/client'
 
 function getInitials(name: string): string {
@@ -39,7 +39,29 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
   const [forgotMessage, setForgotMessage] = useState<string | null>(null)
   const [isForgotPending, startForgotTransition] = useTransition()
 
+  const [showFindId, setShowFindId] = useState(false)
+  const [findIdName, setFindIdName] = useState('')
+  const [findIdPhone, setFindIdPhone] = useState('')
+  const [findIdResult, setFindIdResult] = useState<string | null>(null)
+  const [findIdIsError, setFindIdIsError] = useState(false)
+  const [isFindIdPending, startFindIdTransition] = useTransition()
+
   const initials = academyInitials ?? getInitials(academyName)
+
+  const handleFindId = () => {
+    setFindIdResult(null)
+    startFindIdTransition(async () => {
+      const result = await findId(findIdName, findIdPhone)
+      if ('error' in result) {
+        setFindIdIsError(true)
+        setFindIdResult(result.error)
+      } else {
+        setFindIdIsError(false)
+        const masked = result.email.replace(/(?<=.{3}).(?=[^@]*@)/g, '*')
+        setFindIdResult(`가입된 이메일: ${masked}`)
+      }
+    })
+  }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -117,16 +139,6 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
                 <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                   비밀번호
                 </Label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForgot(!showForgot)
-                    setForgotMessage(null)
-                  }}
-                  className="text-xs text-gray-500 hover:text-primary-700 transition-colors"
-                >
-                  비밀번호를 잊으셨나요?
-                </button>
               </div>
               <Input
                 id="password"
@@ -139,42 +151,6 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
               />
             </div>
 
-            {/* 비밀번호 찾기 */}
-            {showForgot && (
-              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
-                <p className="text-xs text-gray-500">
-                  가입한 이메일 주소를 입력하면 비밀번호 재설정 링크를 보내드립니다.
-                </p>
-                <div className="flex gap-2">
-                  <Input
-                    type="email"
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    placeholder="이메일 입력"
-                    disabled={isForgotPending}
-                    className="h-9 text-sm"
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={handleForgotPassword}
-                    disabled={isForgotPending}
-                    className="shrink-0"
-                  >
-                    {isForgotPending ? '전송 중...' : '전송'}
-                  </Button>
-                </div>
-                {forgotMessage && (
-                  <p
-                    className={`text-xs ${forgotMessage.includes('전송했습니다') ? 'text-accent-green' : 'text-accent-red'}`}
-                  >
-                    {forgotMessage}
-                  </p>
-                )}
-              </div>
-            )}
-
             {error && (
               <div className="rounded-lg bg-accent-red-light border border-accent-red/20 px-4 py-3 text-sm text-accent-red">
                 {error}
@@ -184,7 +160,109 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? '로그인 중...' : '로그인'}
             </Button>
+
+            <div className="flex items-center justify-center gap-4 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowFindId(!showFindId)
+                  setFindIdResult(null)
+                  if (showForgot) { setShowForgot(false); setForgotMessage(null) }
+                }}
+                className="text-xs text-gray-500 hover:text-primary-700 transition-colors"
+              >
+                아이디 찾기
+              </button>
+              <span className="text-gray-300 text-xs">|</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForgot(!showForgot)
+                  setForgotMessage(null)
+                  if (showFindId) { setShowFindId(false); setFindIdResult(null) }
+                }}
+                className="text-xs text-gray-500 hover:text-primary-700 transition-colors"
+              >
+                비밀번호 찾기
+              </button>
+            </div>
           </form>
+
+          {/* 비밀번호 찾기 */}
+          {showForgot && (
+            <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+              <p className="text-xs font-medium text-gray-700">비밀번호 찾기</p>
+              <p className="text-xs text-gray-500">
+                가입한 이메일 주소를 입력하면 비밀번호 재설정 링크를 보내드립니다.
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  placeholder="이메일 입력"
+                  disabled={isForgotPending}
+                  className="h-9 text-sm"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleForgotPassword}
+                  disabled={isForgotPending}
+                  className="shrink-0"
+                >
+                  {isForgotPending ? '전송 중...' : '전송'}
+                </Button>
+              </div>
+              {forgotMessage && (
+                <p className={`text-xs ${forgotMessage.includes('전송했습니다') ? 'text-accent-green' : 'text-accent-red'}`}>
+                  {forgotMessage}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* 아이디 찾기 */}
+          {showFindId && (
+            <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+              <p className="text-xs font-medium text-gray-700">아이디(이메일) 찾기</p>
+              <p className="text-xs text-gray-500">가입 시 등록한 이름과 전화번호를 입력해 주세요.</p>
+              <div className="space-y-2">
+                <Input
+                  type="text"
+                  value={findIdName}
+                  onChange={(e) => setFindIdName(e.target.value)}
+                  placeholder="이름"
+                  disabled={isFindIdPending}
+                  className="h-9 text-sm"
+                />
+                <Input
+                  type="tel"
+                  value={findIdPhone}
+                  onChange={(e) => setFindIdPhone(e.target.value)}
+                  placeholder="전화번호 (예: 010-1234-5678)"
+                  disabled={isFindIdPending}
+                  className="h-9 text-sm"
+                />
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleFindId}
+                disabled={isFindIdPending}
+                className="w-full"
+              >
+                {isFindIdPending ? '조회 중...' : '아이디 찾기'}
+              </Button>
+              {findIdResult && (
+                <p className={`text-xs ${findIdIsError ? 'text-accent-red' : 'text-accent-green font-medium'}`}>
+                  {findIdResult}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <p className="text-center text-sm text-gray-500">

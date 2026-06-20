@@ -68,6 +68,37 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
   redirect(ROLE_REDIRECT[role])
 }
 
+export async function findId(
+  name: string,
+  phone: string,
+): Promise<{ email: string } | { error: string }> {
+  if (!name.trim() || !phone.trim()) {
+    return { error: '이름과 전화번호를 모두 입력해 주세요.' }
+  }
+
+  const normalizedPhone = phone.replace(/[-\s]/g, '')
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        name: name.trim(),
+        phone: { in: [normalizedPhone, phone.trim()] },
+        isDeleted: false,
+        isActive: true,
+      },
+      select: { email: true },
+    })
+
+    if (!user) {
+      return { error: '입력하신 정보와 일치하는 계정을 찾을 수 없습니다.' }
+    }
+
+    return { email: user.email }
+  } catch {
+    return { error: '오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
+  }
+}
+
 export async function signOut(): Promise<void> {
   // scope: 'local'을 사용해 Supabase Auth 서버 호출(~300-500ms)을 생략한다.
   // 어차피 쿠키 삭제로 클라이언트는 즉시 무효화되며, 토큰은 1시간 후 자연 만료된다.
