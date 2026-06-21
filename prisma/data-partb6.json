@@ -1,0 +1,1746 @@
+{
+  "B6": {
+    "label": "Clauses (Intermediate / Upper-Intermediate)",
+    "count": 158,
+    "questions": [
+      {
+        "number": 1,
+        "question_text": "I don't know _______ to telephone.",
+        "options": {
+          "A": "whom did Tom want",
+          "B": "why was Tom going",
+          "C": "when is Tom",
+          "D": "who Tom was going"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 2,
+        "question_text": "No one seemed to know _______.",
+        "options": {
+          "A": "why was he angry",
+          "B": "which party has won",
+          "C": "when the festival was due to start",
+          "D": "what is his latest decision"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 3,
+        "question_text": "\"Why don't we go out for dinner?\" His wife suggested that _______.",
+        "options": {
+          "A": "they would go out for dinner",
+          "B": "they should go out for dinner",
+          "C": "we will go out for dinner",
+          "D": "we'd like to go out for dinner"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 4,
+        "question_text": "\"Oh dear! It looks as if it is going to rain again.\" Mother was afraid that _______.",
+        "options": {
+          "A": "it was raining again",
+          "B": "it was going to rain",
+          "C": "it is going to rain again",
+          "D": "it looked like rain again"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 5,
+        "question_text": "\"Fantastic! I've actually passed my exam!\" exclaimed Janet. Janet was delighted to find that _______.",
+        "options": {
+          "A": "I'd passed my exam",
+          "B": "I've passed my exam",
+          "C": "she's passed her exam",
+          "D": "she'd passed her exam"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 6,
+        "question_text": "I doubt ______ anybody knows how to solve the housing problem in Turkey.",
+        "options": {
+          "A": "whether",
+          "B": "which",
+          "C": "why",
+          "D": "what"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 7,
+        "question_text": "It is important that you _______ late.",
+        "options": {
+          "A": "don't be",
+          "B": "won't be",
+          "C": "not to be",
+          "D": "not be"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 8,
+        "question_text": "The doctor recommended that she _______ in bed for a few days.",
+        "options": {
+          "A": "will stay",
+          "B": "stay",
+          "C": "would stay",
+          "D": "to stay"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 9,
+        "question_text": "The bank manager suggested that I ______ again the following year.",
+        "options": {
+          "A": "should apply",
+          "B": "applied",
+          "C": "to apply",
+          "D": "would apply"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 10,
+        "question_text": "_______ is still uncertain.",
+        "options": {
+          "A": "Why did they lose the match",
+          "B": "He is really guilty",
+          "C": "When will they come",
+          "D": "Who first reported the fire"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 11,
+        "question_text": "The accused pretended that he _______ the lawyer's question.",
+        "options": {
+          "A": "didn't understand",
+          "B": "hasn't understood",
+          "C": "doesn't understand",
+          "D": "wouldn't understand"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 12,
+        "question_text": "His doctor recommended that he ______ taking sleeping pills for a while.",
+        "options": {
+          "A": "would try",
+          "B": "should try",
+          "C": "tries",
+          "D": "tried"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 13,
+        "question_text": "_______ next was lost in the general uproar.",
+        "options": {
+          "A": "What the speaker said",
+          "B": "That the speaker said",
+          "C": "What did the speaker say",
+          "D": "The speaker said that"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 14,
+        "question_text": "_______ is where you get all your energy from.",
+        "options": {
+          "A": "It amazes me",
+          "B": "That amazes me",
+          "C": "What amazes me",
+          "D": "That amazed me"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 15,
+        "question_text": "_______ me to do is out of question.",
+        "options": {
+          "A": "What you are asking",
+          "B": "How you are asking",
+          "C": "That you ask",
+          "D": "That you asked"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 16,
+        "question_text": "No one doubted _______ sincere in his beliefs.",
+        "options": {
+          "A": "what he was",
+          "B": "that he was",
+          "C": "why was he",
+          "D": "that he is"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 17,
+        "question_text": "He didn't even apologize. This made her really angry. _______ he didn't even apologize made her really angry.",
+        "options": {
+          "A": "Why",
+          "B": "What",
+          "C": "The fact that",
+          "D": "The reason"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 18,
+        "question_text": "_______ made her angry was the fact that her husband had forgotten her birthday.",
+        "options": {
+          "A": "Why",
+          "B": "The fact that",
+          "C": "What",
+          "D": "The thing"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 19,
+        "question_text": "On entering the restaurant, I immediately realized _____ so popular.",
+        "options": {
+          "A": "why was it",
+          "B": "how is it",
+          "C": "the fact that was",
+          "D": "why it was"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 20,
+        "question_text": "Where the pilot finally managed to land _______.",
+        "options": {
+          "A": "is not known",
+          "B": "nobody knows",
+          "C": "we don't know",
+          "D": "nobody knew"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 21,
+        "question_text": "Teachers have found the overhead projector to be invaluable as a teaching aid. Teachers have found that the overhead projector _____.",
+        "options": {
+          "A": "to be invaluable as a teaching aid",
+          "B": "is invaluable as a teaching aid",
+          "C": "was invaluable as a teaching aid",
+          "D": "invaluable as a teaching aid"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 22,
+        "question_text": "The law requires that all cars _______ regularly tested for safety and efficiency.",
+        "options": {
+          "A": "should be",
+          "B": "to be",
+          "C": "were to be",
+          "D": "have to be"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 23,
+        "question_text": "I assured him that he _______ pneumonia.",
+        "options": {
+          "A": "should get",
+          "B": "would get",
+          "C": "get",
+          "D": "gets"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 24,
+        "question_text": "He began to realize that he _______ mistake.",
+        "options": {
+          "A": "is making",
+          "B": "has made",
+          "C": "had made",
+          "D": "will make"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 25,
+        "question_text": "The Prime minister warned that higher wages _____ higher prices.",
+        "options": {
+          "A": "would mean",
+          "B": "will mean",
+          "C": "mean",
+          "D": "to mean"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 26,
+        "question_text": "Many people considered it to be cruel to send animals in rockets into outer space. Many people consider that _______ cruel to send animals in rockets into further space.",
+        "options": {
+          "A": "to be",
+          "B": "it to be",
+          "C": "it is",
+          "D": "it was"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 27,
+        "question_text": "The Prime Minister clearly suspects his party to have little chance of winning the next election. The Prime Minister clearly suspects that his party _______ little chance of winning the next election.",
+        "options": {
+          "A": "to have",
+          "B": "has",
+          "C": "would have",
+          "D": "had"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 28,
+        "question_text": "The witness later disclosed the evidence to have been destroyed. The witness later disclosed that the evidence _______.",
+        "options": {
+          "A": "to be destroyed",
+          "B": "had been destroyed",
+          "C": "has been destroyed",
+          "D": "would be destroyed"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 29,
+        "question_text": "Researches have now proved that earlier theories _______ incorrect.",
+        "options": {
+          "A": "were",
+          "B": "had been",
+          "C": "to have been",
+          "D": "to be"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 30,
+        "question_text": "\"May I have my letters addressed in care of your office?\" asked Mr. Taylor. Mr. Taylor asked if ______ letters addressed in care of ______ office.",
+        "options": {
+          "A": "he may have his / my",
+          "B": "I might have my / your",
+          "C": "he may have his / his",
+          "D": "he might have his / my"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 31,
+        "question_text": "The doctor says, \"The moisture in the air might affect your breathing.\" He thinks that the moisture in the air _______.",
+        "options": {
+          "A": "might affect my breathing",
+          "B": "might affect your breathing",
+          "C": "would affect my breathing",
+          "D": "may affect your breathing"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 32,
+        "question_text": "\"I'd love to come.\" she said. She said _______ to come.",
+        "options": {
+          "A": "she'd liked",
+          "B": "I'd like",
+          "C": "she'd like",
+          "D": "I'd liked"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 33,
+        "question_text": "\"Which of these films have you seen?\" My friend asked me which of the films _______.",
+        "options": {
+          "A": "have I seen",
+          "B": "I had seen",
+          "C": "you had seen",
+          "D": "have you seen"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 34,
+        "question_text": "\"Whom did you see at the concert last night?\" She asked us whom _______ the other night.",
+        "options": {
+          "A": "I'd seen",
+          "B": "we'd seen",
+          "C": "we saw",
+          "D": "I saw"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 35,
+        "question_text": "They asked, \"Is the work going to be easy?\" They wondered if _____.",
+        "options": {
+          "A": "was work going to be easy",
+          "B": "the work is going to be easy",
+          "C": "the work was easy",
+          "D": "the work was going to be easy"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 36,
+        "question_text": "He asked \"Have you read The Old Man and the Sea, Ted?\" He wanted to know if _______ The Old Man and the Sea.",
+        "options": {
+          "A": "I'd read",
+          "B": "he'd read",
+          "C": "I have read",
+          "D": "he has read"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 37,
+        "question_text": "\"Please give me a pain killer.\" the patient said. The patient begged the nurse _______ a pain killer.",
+        "options": {
+          "A": "to give her",
+          "B": "she would give her",
+          "C": "she would give me",
+          "D": "to give me"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 38,
+        "question_text": "\"Don't eat those cherries, they are poisonous,\" said David. David _______ not to eat those cherries because they were poisonous.",
+        "options": {
+          "A": "didn't want me",
+          "B": "said to me that",
+          "C": "warned me",
+          "D": "suggested that"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 39,
+        "question_text": "\"Did she agree with me?\" He wondered if _______.",
+        "options": {
+          "A": "she'd agreed with he",
+          "B": "she agreed with him",
+          "C": "she'd agreed with him",
+          "D": "she'd agree with him"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 40,
+        "question_text": "I wanted to know why no one _______.",
+        "options": {
+          "A": "had come",
+          "B": "hadn't come",
+          "C": "has come",
+          "D": "hasn't come"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 41,
+        "question_text": "Everybody said, \"We're glad the danger is over.\" Everybody said that _______.",
+        "options": {
+          "A": "he was glad the danger was over",
+          "B": "they are glad the danger is over",
+          "C": "they were glad the danger was over",
+          "D": "he is glad the danger is over"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 42,
+        "question_text": "_______ was to have dinner after the meeting.",
+        "options": {
+          "A": "What we are to do",
+          "B": "Which we needed",
+          "C": "What I wanted to do",
+          "D": "Why he comes"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 43,
+        "question_text": "I recommended that the patient _______ on as soon as possible.",
+        "options": {
+          "A": "is operated",
+          "B": "operated",
+          "C": "would be operated",
+          "D": "be operated"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 44,
+        "question_text": "George told me that _______ with his roommate next semester.",
+        "options": {
+          "A": "he'd rather not live",
+          "B": "he wouldn't have lived",
+          "C": "he won't live",
+          "D": "he hadn't lived"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 45,
+        "question_text": "\"I'll hit you!\" _______ to hit me.",
+        "options": {
+          "A": "He suggested",
+          "B": "He threatened",
+          "C": "He promised",
+          "D": "He offered"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 46,
+        "question_text": "\"Would you like to come to my party?\" He invited her _______.",
+        "options": {
+          "A": "she'd like to come to his party",
+          "B": "she'd like to come to my party",
+          "C": "if she'd come to his party",
+          "D": "to come to his party"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 47,
+        "question_text": "I didn't hear _______ because there was so much noise where I was sitting.",
+        "options": {
+          "A": "what was he saying",
+          "B": "what he has said",
+          "C": "what did he say",
+          "D": "what he said"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 48,
+        "question_text": "I had hoped _______ my letter.",
+        "options": {
+          "A": "that she answer",
+          "B": "she answers",
+          "C": "that she would answer",
+          "D": "she will answer"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 49,
+        "question_text": "I have no idea _______.",
+        "options": {
+          "A": "what does this word mean",
+          "B": "why he has left",
+          "C": "when will he arrive",
+          "D": "how was he killed"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 50,
+        "question_text": "\"Let's go to the cinema this evening,\" she said. She suggested that they _______ to the cinema that evening.",
+        "options": {
+          "A": "should go",
+          "B": "would go",
+          "C": "will go",
+          "D": "had gone"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 51,
+        "question_text": "A: Are you going to complain to the police?\nB: Yes, that is _______.",
+        "options": {
+          "A": "what I have done",
+          "B": "what I'm going to do",
+          "C": "what I was going to do",
+          "D": "what I would do"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 52,
+        "question_text": "He _______ to me that he had written a new book.",
+        "options": {
+          "A": "told",
+          "B": "tells",
+          "C": "has said",
+          "D": "said"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 53,
+        "question_text": "She said _______ to walk back home.",
+        "options": {
+          "A": "she'd rather",
+          "B": "she'd prefer",
+          "C": "she'd better",
+          "D": "she has got"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 54,
+        "question_text": "I knew that _______ would be difficult.",
+        "options": {
+          "A": "their coming",
+          "B": "they would come",
+          "C": "they came",
+          "D": "they were coming"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 55,
+        "question_text": "It is important that _______ the bilateral talks.",
+        "options": {
+          "A": "he attend",
+          "B": "he attends",
+          "C": "he attended",
+          "D": "he'll attend"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 56,
+        "question_text": "We urge that the plans _______.",
+        "options": {
+          "A": "not approved",
+          "B": "not be approved",
+          "C": "not to be approved",
+          "D": "won't be approved"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 57,
+        "question_text": "We now insist that all cars _____ seat belts to reduce the death toll.",
+        "options": {
+          "A": "to have",
+          "B": "will have",
+          "C": "have had",
+          "D": "have"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 58,
+        "question_text": "_______ makes visiting him very difficult.",
+        "options": {
+          "A": "The fact that he is very busy",
+          "B": "The reason why he is very busy",
+          "C": "What I know is that he is very busy",
+          "D": "It is a fact that he is very busy"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 59,
+        "question_text": "_______ was clear from his letter.",
+        "options": {
+          "A": "He was angry",
+          "B": "He resented being treated rudely",
+          "C": "That he was not interested",
+          "D": "What I knew"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 60,
+        "question_text": "The fact that the experts say stagnation will continue for some time _______.",
+        "options": {
+          "A": "industry will suffer a lot",
+          "B": "we should be prepared for higher inflation",
+          "C": "is annoying",
+          "D": "we cannot avoid it"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 61,
+        "question_text": "If grades are going to be given to students for their reports, it is suggested that these _______ for expression and use of language.",
+        "options": {
+          "A": "given",
+          "B": "to be given",
+          "C": "are given",
+          "D": "be given"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 62,
+        "question_text": "_______ best is riding horses.",
+        "options": {
+          "A": "She likes",
+          "B": "That she likes",
+          "C": "What she liked",
+          "D": "What she likes"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 63,
+        "question_text": "We had hoped _______ the game, but other team played very well.",
+        "options": {
+          "A": "the National Team to win",
+          "B": "that the National Team win",
+          "C": "that the National Team would win",
+          "D": "the National Team's winning"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 64,
+        "question_text": "It is important that he _______ his reservations by Saturday.",
+        "options": {
+          "A": "will confirm",
+          "B": "confirm",
+          "C": "confirms",
+          "D": "must confirm"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 65,
+        "question_text": "He asked me if I had ever played the piano. He asked me, \"____?\"",
+        "options": {
+          "A": "Do you ever play the piano",
+          "B": "Did you ever play the piano",
+          "C": "Have I ever played the piano",
+          "D": "Have you ever played the piano"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 66,
+        "question_text": "The doctor asked the patient if she had had a heart attack before. The doctor asked the patient, \"_______ a heart attack before?\"",
+        "options": {
+          "A": "Has she had",
+          "B": "Have you had",
+          "C": "Did she have",
+          "D": "Did you have"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 67,
+        "question_text": "It is urgent that he _______ on time.",
+        "options": {
+          "A": "arrived",
+          "B": "will arrive",
+          "C": "would arrive",
+          "D": "arrive"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 68,
+        "question_text": "It is important that you _______ honest.",
+        "options": {
+          "A": "will be",
+          "B": "be",
+          "C": "were",
+          "D": "to be"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 69,
+        "question_text": "The doctor recommended that I _______ weight.",
+        "options": {
+          "A": "should lose",
+          "B": "would lose",
+          "C": "must lose",
+          "D": "will lose"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 70,
+        "question_text": "Julia must understand the question. It is necessary. It is necessary that Julia _______ the question.",
+        "options": {
+          "A": "understood",
+          "B": "understands",
+          "C": "must understand",
+          "D": "should understand"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 71,
+        "question_text": "Bill must talk to the teacher. It is urgent. It is urgent that Bill _______ to the teacher.",
+        "options": {
+          "A": "must talk",
+          "B": "talk",
+          "C": "talks",
+          "D": "has talked"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 72,
+        "question_text": "_______ because he got bored so easily.",
+        "options": {
+          "A": "Why he left early",
+          "B": "Why he was embarrassed",
+          "C": "Why did he get angry",
+          "D": "Why he acted as he did was"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 73,
+        "question_text": "I can't imagine _______.",
+        "options": {
+          "A": "why did he recommend him",
+          "B": "who recommended him for training",
+          "C": "when will he recommend me",
+          "D": "how will he recommend him"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 74,
+        "question_text": "What would have suited him better _______.",
+        "options": {
+          "A": "would be to be a politician",
+          "B": "to give up smoking",
+          "C": "he shouldn't have married her",
+          "D": "than his father's job"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 75,
+        "question_text": "I suggested that she _______ a doctor.",
+        "options": {
+          "A": "will see",
+          "B": "would see",
+          "C": "must see",
+          "D": "see"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 76,
+        "question_text": "I don't know _______.",
+        "options": {
+          "A": "they were thinking about",
+          "B": "that they were thinking about",
+          "C": "what do they think about",
+          "D": "what they were thinking about"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 77,
+        "question_text": "I insisted that he _______ me the money.",
+        "options": {
+          "A": "was paid",
+          "B": "be paid",
+          "C": "pay",
+          "D": "will pay"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 78,
+        "question_text": "It is not probable that _______ in the next ten years.",
+        "options": {
+          "A": "the world's population stopped",
+          "B": "man must discover a cure for cancer",
+          "C": "computers must become more important",
+          "D": "air pollution will decrease"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 79,
+        "question_text": "_______ still puzzles me.",
+        "options": {
+          "A": "He got selected president",
+          "B": "Where they got the idea from",
+          "C": "He has got a lot of money",
+          "D": "How can they beat us"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 80,
+        "question_text": "I don't know much about art but I know _______.",
+        "options": {
+          "A": "what I like",
+          "B": "who is a good artist",
+          "C": "what is it like",
+          "D": "why are people paying that much"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 81,
+        "question_text": "Do you think _______ man will travel to Mars in this century?",
+        "options": {
+          "A": "is it possible that",
+          "B": "it is possible that",
+          "C": "will it be possible",
+          "D": "it became possible"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 82,
+        "question_text": "Mike must explain his idea. It is important. It is important that Mike _______ his ideas.",
+        "options": {
+          "A": "explain",
+          "B": "will explain",
+          "C": "explains",
+          "D": "would explain"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 83,
+        "question_text": "Why is it necessary that _______?",
+        "options": {
+          "A": "for him to study",
+          "B": "he will have an operation",
+          "C": "he consult an expert",
+          "D": "he applied for a job"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 84,
+        "question_text": "He advised that she _______ the bad news.",
+        "options": {
+          "A": "not be told",
+          "B": "not to be told",
+          "C": "isn't told",
+          "D": "wouldn't tell"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 85,
+        "question_text": "He asked us whom we would visit. He asked us, \"Whom _______?\"",
+        "options": {
+          "A": "will you visit",
+          "B": "would you visit",
+          "C": "you will visit",
+          "D": "we would visit"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 86,
+        "question_text": "The teacher insisted on the students' arriving punctually for their lessons. The teacher insisted that the students _______ punctually for their lessons.",
+        "options": {
+          "A": "had arrived",
+          "B": "should arrive",
+          "C": "would arrive",
+          "D": "have to arrive"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 87,
+        "question_text": "Most people don't even know _______.",
+        "options": {
+          "A": "why has he resigned",
+          "B": "where was he buried",
+          "C": "what good music is",
+          "D": "where did they take him"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 88,
+        "question_text": "I refuse to believe her having told me the truth. I refuse to believe that she _______ me the truth.",
+        "options": {
+          "A": "tell",
+          "B": "tells",
+          "C": "had told",
+          "D": "would tell"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 89,
+        "question_text": "They proposed that a new highway _______.",
+        "options": {
+          "A": "should build",
+          "B": "must build",
+          "C": "to be built",
+          "D": "be built"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 90,
+        "question_text": "It is desirable that no one else _______ about the problem.",
+        "options": {
+          "A": "doesn't know",
+          "B": "know",
+          "C": "to know",
+          "D": "will know"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 91,
+        "question_text": "That she was chosen Miss Turkey _______.",
+        "options": {
+          "A": "made me happy",
+          "B": "nobody was glad about it",
+          "C": "everybody approved it",
+          "D": "everyone present voted in her favor"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 92,
+        "question_text": "Whether they do it or not _______.",
+        "options": {
+          "A": "don't make any difference",
+          "B": "depends on various factors",
+          "C": "created a big problem",
+          "D": "will cause a lot of disturbance"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 93,
+        "question_text": "I am satisfied _______.",
+        "options": {
+          "A": "that she came third in the competition",
+          "B": "it was our victory against enemies",
+          "C": "what you promised to do",
+          "D": "will make her happy, I believe"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 94,
+        "question_text": "The fact that they blamed us for the accident _______.",
+        "options": {
+          "A": "which was not our fault",
+          "B": "was surprising",
+          "C": "at which a person was killed",
+          "D": "I wasn't involved"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 95,
+        "question_text": "_______ is a fact.",
+        "options": {
+          "A": "That the poor have a hard life",
+          "B": "The world is round",
+          "C": "He came first",
+          "D": "What is he saying"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 96,
+        "question_text": "Did _______ help him in his career?",
+        "options": {
+          "A": "the fact that his father was a professor",
+          "B": "he was rich and friendly",
+          "C": "that he won a scholarship",
+          "D": "his teacher recommended him"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 97,
+        "question_text": "It is incredible that _______.",
+        "options": {
+          "A": "she study very hard",
+          "B": "will be the result",
+          "C": "he undergo an operation",
+          "D": "he has passed his exams"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 98,
+        "question_text": "It is necessary that everyone _______ here on time.",
+        "options": {
+          "A": "will be",
+          "B": "be",
+          "C": "are",
+          "D": "to be"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 99,
+        "question_text": "\"If I were you, I'd open a bank account because interest is high now.\" I told her. I suggested that she _______ a saving account.",
+        "options": {
+          "A": "would open",
+          "B": "will open",
+          "C": "open",
+          "D": "had opened"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 100,
+        "question_text": "Our teacher wishes he _______ another profession.",
+        "options": {
+          "A": "chose",
+          "B": "had chosen",
+          "C": "would choose",
+          "D": "has chosen"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 101,
+        "question_text": "I wish the teacher ______ us more about the exam before it takes place.",
+        "options": {
+          "A": "would tell",
+          "B": "has told",
+          "C": "had told",
+          "D": "tells"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 102,
+        "question_text": "I wish you _______ here now. I miss you a lot.",
+        "options": {
+          "A": "are",
+          "B": "were",
+          "C": "had been",
+          "D": "will be"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 103,
+        "question_text": "I wish you _______. I'm sure you would enjoy joining us.",
+        "options": {
+          "A": "could come",
+          "B": "had come",
+          "C": "may come",
+          "D": "would come"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 104,
+        "question_text": "She won't help me. I wish she _______ me.",
+        "options": {
+          "A": "will help",
+          "B": "would help",
+          "C": "helps",
+          "D": "had helped"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 105,
+        "question_text": "I wish I _______ the last bus. Now I'll have to walk.",
+        "options": {
+          "A": "didn't miss",
+          "B": "hadn't missed",
+          "C": "wouldn't miss",
+          "D": "wouldn't have missed"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 106,
+        "question_text": "Don't you wish we _______ tonight?",
+        "options": {
+          "A": "weren't going",
+          "B": "aren't going",
+          "C": "don't go",
+          "D": "hadn't gone"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 107,
+        "question_text": "It is raining. I wish it _______.",
+        "options": {
+          "A": "hadn't rain",
+          "B": "didn't rain",
+          "C": "weren't raining",
+          "D": "isn't raining"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 108,
+        "question_text": "When it was too late, he wished he _______ a better husband.",
+        "options": {
+          "A": "has been",
+          "B": "had been",
+          "C": "were",
+          "D": "would be"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 109,
+        "question_text": "You can't change things simply by wishing they _______ different.",
+        "options": {
+          "A": "are",
+          "B": "will be",
+          "C": "would be",
+          "D": "were"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 110,
+        "question_text": "I wish he _______ to Tokyo with me last weekend.",
+        "options": {
+          "A": "came",
+          "B": "would come",
+          "C": "had come",
+          "D": "could come"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 111,
+        "question_text": "I wish that you _______ such a bad headache because I'm sure that you'd have enjoyed the party.",
+        "options": {
+          "A": "didn't have",
+          "B": "hadn't had",
+          "C": "wouldn't have",
+          "D": "won't have"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 112,
+        "question_text": "I wish that I _______ with you last summer.",
+        "options": {
+          "A": "went",
+          "B": "could go",
+          "C": "have gone",
+          "D": "could've gone"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 113,
+        "question_text": "You might have cleaned the bath after you'd used it. I wish you _______ the bath after using it.",
+        "options": {
+          "A": "had cleaned",
+          "B": "cleaned",
+          "C": "would clean",
+          "D": "clean"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 114,
+        "question_text": "You might come to work a bit earlier on Mondays. I wish you _______ a bit earlier on Mondays.",
+        "options": {
+          "A": "had come",
+          "B": "would've come",
+          "C": "were coming",
+          "D": "would come"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 115,
+        "question_text": "You might have remembered my birthday. I wish you _______ my birthday.",
+        "options": {
+          "A": "had remembered",
+          "B": "remembered",
+          "C": "would remember",
+          "D": "could remember"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 116,
+        "question_text": "You might make less noise. If only you _______ less noise.",
+        "options": {
+          "A": "had made",
+          "B": "made",
+          "C": "would make",
+          "D": "might make"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 117,
+        "question_text": "If only I _____ busy yesterday. I could have helped you with the problem.",
+        "options": {
+          "A": "weren't",
+          "B": "hadn't been",
+          "C": "wasn't",
+          "D": "haven't been"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 118,
+        "question_text": "He wishes his father _____ him some shoes before the new term starts.",
+        "options": {
+          "A": "was buying",
+          "B": "was going to buy",
+          "C": "would buy",
+          "D": "had bought"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 119,
+        "question_text": "I wish our school _______ a bigger library than it has.",
+        "options": {
+          "A": "had had",
+          "B": "would have",
+          "C": "had",
+          "D": "will have"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 120,
+        "question_text": "I wish we _______ late for this film. I can't follow the story.",
+        "options": {
+          "A": "didn't arrive",
+          "B": "hadn't arrived",
+          "C": "wouldn't arrive",
+          "D": "wouldn't have arrived"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 121,
+        "question_text": "She wishes she _______ younger than she is.",
+        "options": {
+          "A": "were",
+          "B": "would be",
+          "C": "had been",
+          "D": "is"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 122,
+        "question_text": "A: Janet couldn't come to the concert last night.\nB: I wish she _______.",
+        "options": {
+          "A": "is able to come",
+          "B": "was able to come",
+          "C": "could have come",
+          "D": "had come"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 123,
+        "question_text": "I couldn't get through the traffic in time. I wish I _______ through the traffic in time.",
+        "options": {
+          "A": "am able to get",
+          "B": "had been able to get",
+          "C": "was able to get",
+          "D": "would have got"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 124,
+        "question_text": "My father wasn't able to pay the money back. I wish my father _______ the money back.",
+        "options": {
+          "A": "could have paid",
+          "B": "were able to pay",
+          "C": "could pay",
+          "D": "would be able to pay"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 125,
+        "question_text": "It is a pity you drink too much. If only you _______ so much.",
+        "options": {
+          "A": "don't drink",
+          "B": "won't drink",
+          "C": "didn't drink",
+          "D": "hadn't drunk"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 126,
+        "question_text": "It is a pity that we rejected their proposal. If only we _______ their proposal.",
+        "options": {
+          "A": "won't reject",
+          "B": "hadn't rejected",
+          "C": "wouldn't reject",
+          "D": "didn't reject"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 127,
+        "question_text": "A: I must go home now.\nB: I wish you _______ home now.",
+        "options": {
+          "A": "don't have to go",
+          "B": "mustn't have gone",
+          "C": "didn't have to go",
+          "D": "needn't have gone"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 128,
+        "question_text": "A: Don't you have enough time to learn English?\nB: No, I don't. I wish I _______ time to learn English.",
+        "options": {
+          "A": "did have",
+          "B": "had had",
+          "C": "do have",
+          "D": "will have"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 129,
+        "question_text": "The bus always stops at every bus-stop. I wish it ______ at every bus-stop.",
+        "options": {
+          "A": "didn't stop",
+          "B": "would stop",
+          "C": "hadn't stopped",
+          "D": "won't stop"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 130,
+        "question_text": "The party was so bad that they left early. They wish _______.",
+        "options": {
+          "A": "they didn't go",
+          "B": "they wouldn't have gone",
+          "C": "they didn't have to go",
+          "D": "they hadn't gone"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 131,
+        "question_text": "A: Sandy had an accident because she wasn't careful.\nB: If only she _______.",
+        "options": {
+          "A": "had been careful",
+          "B": "were careful",
+          "C": "would be careful",
+          "D": "would have been careful"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 132,
+        "question_text": "A: Robert is unhappy because he can't find his passport.\nB: If only he _______.",
+        "options": {
+          "A": "could have found it",
+          "B": "had been able to find",
+          "C": "could find it",
+          "D": "had found it"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 133,
+        "question_text": "A: We have to cancel the match because it is raining.\nB: If only it _______.",
+        "options": {
+          "A": "won't be raining",
+          "B": "isn't raining",
+          "C": "didn't rain",
+          "D": "weren't raining"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 134,
+        "question_text": "A: Mary is sorry that she bought such an expensive dress.\nB: If only she _______ such an expensive dress.",
+        "options": {
+          "A": "didn't buy",
+          "B": "wouldn't have bought",
+          "C": "hadn't bought",
+          "D": "could have bought"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 135,
+        "question_text": "Don't you think it is significant _______?",
+        "options": {
+          "A": "in case he fails",
+          "B": "that he has been re-elected",
+          "C": "how comfortable is it",
+          "D": "if we had been offered the job"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 136,
+        "question_text": "Water is a compound _______ molecule consists of two atoms of hydrogen and one atom of oxygen.",
+        "options": {
+          "A": "which",
+          "B": "whom",
+          "C": "whose",
+          "D": "of which"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 137,
+        "question_text": "A dynamo is a machine _______ is used for producing electricity.",
+        "options": {
+          "A": "who",
+          "B": "which",
+          "C": "whom",
+          "D": "of which"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 138,
+        "question_text": "The student couldn't remember the year _______ Hitler was born.",
+        "options": {
+          "A": "when",
+          "B": "which",
+          "C": "at which",
+          "D": "where"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 139,
+        "question_text": "That is the hotel _______ I stayed at.",
+        "options": {
+          "A": "where",
+          "B": "which",
+          "C": "that",
+          "D": "whose"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 140,
+        "question_text": "Hydrogen is an element _______ atomic number is 1 and _______ atomic weight is 1.008.",
+        "options": {
+          "A": "whose / whose",
+          "B": "of which / whose",
+          "C": "which / of which",
+          "D": "which / which"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 141,
+        "question_text": "Neron, _______ was Emperor of Rome, from 45 to 68 A.D, is believed to have murdered both his mother and his wife.",
+        "options": {
+          "A": "whom",
+          "B": "whose",
+          "C": "who",
+          "D": "that"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 142,
+        "question_text": "Marlon Brando, _______, is a friend of my father's.",
+        "options": {
+          "A": "whose son is in jail now",
+          "B": "which is famous worldwide",
+          "C": "that you met at the seminar",
+          "D": "has just arrived in Spain"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 143,
+        "question_text": "The problem was with the battery _______ a dead cell.",
+        "options": {
+          "A": "that has",
+          "B": "which had",
+          "C": "who had",
+          "D": "in which has"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 144,
+        "question_text": "There were fifty questions on the test, _______.",
+        "options": {
+          "A": "either was easy",
+          "B": "all of which were difficult",
+          "C": "all of them were very hard",
+          "D": "all of whom were very interested"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 145,
+        "question_text": "I'm looking for something with _______ I can clean the board.",
+        "options": {
+          "A": "whom",
+          "B": "which",
+          "C": "that",
+          "D": "whose"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 146,
+        "question_text": "Gentlemen, from _______ we expect politeness, ought not to lose their tempers.",
+        "options": {
+          "A": "which",
+          "B": "who",
+          "C": "whom",
+          "D": "where"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 147,
+        "question_text": "Your information, for _______ I'm grateful, is very helpful.",
+        "options": {
+          "A": "that",
+          "B": "which",
+          "C": "whom",
+          "D": "whose"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 148,
+        "question_text": "Men _______ work is good receive high wages.",
+        "options": {
+          "A": "who",
+          "B": "that",
+          "C": "whom",
+          "D": "whose"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 149,
+        "question_text": "He did his medical training at a hospital _______.",
+        "options": {
+          "A": "who is very famous as a surgeon",
+          "B": "of which is located just beside a river",
+          "C": "which specializes in heart surgery",
+          "D": "whose patients are treated very carefully"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 150,
+        "question_text": "That evening we went to the opera, _______.",
+        "options": {
+          "A": "where we met the newly appointed general director",
+          "B": "that was opened last week by the Minister of Culture",
+          "C": "which were fully booked",
+          "D": "when all the lights went out"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 151,
+        "question_text": "His father, _______, said he didn't like to work.",
+        "options": {
+          "A": "that had retired a few weeks ago",
+          "B": "he gave a series of interviews",
+          "C": "is an electrical engineer",
+          "D": "who was already over sixty-five"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 152,
+        "question_text": "Mr. Benson, _______, shot himself.",
+        "options": {
+          "A": "that was known to be very rich",
+          "B": "whose firm closed because of complaints",
+          "C": "we haven't ever met him",
+          "D": "he owns several factories"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 153,
+        "question_text": "Crops can now be grown in deserts _______.",
+        "options": {
+          "A": "most of them are in Africa",
+          "B": "it was impossible to cultivate the land",
+          "C": "where farming would be impossible without irrigation",
+          "D": "these are known as dry areas"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 154,
+        "question_text": "The boys _______ are having special lessons.",
+        "options": {
+          "A": "which need more care",
+          "B": "they are behind the other boys",
+          "C": "who have been offered a scholarship",
+          "D": "their fathers own factories"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 155,
+        "question_text": "It was they _______.",
+        "options": {
+          "A": "who told us the news",
+          "B": "are against the proposal",
+          "C": "when they came to see us",
+          "D": "which is very late"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 156,
+        "question_text": "They refused to be reasonable about the delay, _______.",
+        "options": {
+          "A": "the rain was late",
+          "B": "that caused a lot of trouble",
+          "C": "which made me angry",
+          "D": "whose passengers were tourists"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 157,
+        "question_text": "George ordered an enormous steak, _______.",
+        "options": {
+          "A": "it wasn't well-done",
+          "B": "which cost him a lot",
+          "C": "was very delicious",
+          "D": "he ate all by himself"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 158,
+        "question_text": "The students in the early class, _______, did very well on yesterday's maths test.",
+        "options": {
+          "A": "they study very hard all semester",
+          "B": "very few of them had studied very hard",
+          "C": "most of whom had studied the night before",
+          "D": "they studied hard last week"
+        },
+        "correct_answer": "C"
+      }
+    ]
+  }
+}

@@ -1,8 +1,10 @@
+export const dynamic = 'force-dynamic'
+
 import Link from 'next/link'
 import { Library, AlertTriangle, Star, TrendingUp, Database } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getQuestionBankOverview, getHeatmapData } from '@/lib/questions/cached-queries'
+import { getQuestionBankOverviewLive, getHeatmapData } from '@/lib/questions/cached-queries'
 import { getAdminQuestions } from './actions'
 import { getAdminQuestionReports } from '@/lib/questions/report-actions'
 import QuestionBankHeatmap from './_components/heatmap'
@@ -15,7 +17,7 @@ export default async function AdminQuestionBankPage() {
   if (!user || user.role !== 'SUPER_ADMIN') redirect('/login')
 
   const [overview, heatmapStats, questions, reports] = await Promise.all([
-    getQuestionBankOverview(),
+    getQuestionBankOverviewLive(),
     getHeatmapData(),
     getAdminQuestions({}),
     getAdminQuestionReports({}),

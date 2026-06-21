@@ -49,6 +49,62 @@ export const getAcademyQuestionIds = unstable_cache(
   { revalidate: 300, tags: ['question-bank'] },
 )
 
+// ── 문제 뱅크 개요 실시간 통계 (캐시 없음, 관리자 페이지용) ──────────────────────
+
+/**
+ * 관리자 대시보드용 실시간 집계 — question 테이블에서 직접 count.
+ * question_bank_stats 캐시를 거치지 않아 항상 최신 값을 반환하고,
+ * 호출 시 question_bank_stats도 동기화한다.
+ */
+export async function getQuestionBankOverviewLive() {
+  const domains = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING', 'LISTENING'] as const
+
+  const [domainCounts, qualityAgg] = await Promise.all([
+    prisma.question.groupBy({
+      by: ['domain'],
+      where: { academyId: null, isActive: true },
+      _count: { id: true },
+    }),
+    prisma.question.aggregate({
+      where: { academyId: null, isActive: true, qualityScore: { not: null } },
+      _avg: { qualityScore: true },
+    }),
+  ])
+
+  const byDomain = Object.fromEntries(
+    domains.map((d) => [d, domainCounts.find((r) => r.domain === d)?._count.id ?? 0]),
+  ) as Record<(typeof domains)[number], number>
+
+  const totalPublic = Object.values(byDomain).reduce((s, v) => s + v, 0)
+  const avgQuality = qualityAgg._avg.qualityScore ?? 0
+
+  // question_bank_stats 동기화 (비동기 — 완료를 기다리지 않음)
+  syncQuestionBankStats().catch(() => {})
+
+  return { totalPublic, byDomain, avgQuality }
+}
+
+async function syncQuestionBankStats() {
+  const domains = ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING', 'LISTENING']
+  for (const domain of domains) {
+    for (let diff = 1; diff <= 10; diff++) {
+      const [totalCount, verifiedCount, qualityAgg] = await Promise.all([
+        prisma.question.count({ where: { domain: domain as QuestionDomain, difficulty: diff, isActive: true, academyId: null } }),
+        prisma.question.count({ where: { domain: domain as QuestionDomain, difficulty: diff, isActive: true, isVerified: true, academyId: null } }),
+        prisma.question.aggregate({
+          where: { domain: domain as QuestionDomain, difficulty: diff, isActive: true, academyId: null, qualityScore: { not: null } },
+          _avg: { qualityScore: true },
+        }),
+      ])
+      await prisma.questionBankStats.upsert({
+        where: { domain_difficulty: { domain, difficulty: diff } },
+        create: { domain, difficulty: diff, totalCount, verifiedCount, avgQualityScore: qualityAgg._avg.qualityScore ?? null, lastUpdatedAt: new Date() },
+        update: { totalCount, verifiedCount, avgQualityScore: qualityAgg._avg.qualityScore ?? null, lastUpdatedAt: new Date() },
+      })
+    }
+  }
+}
+
 // ── 문제 뱅크 개요 통계 캐시 (1시간) ────────────────────────────────────────────
 
 /**
