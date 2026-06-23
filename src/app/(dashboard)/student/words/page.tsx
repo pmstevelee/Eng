@@ -199,7 +199,7 @@ export default async function WordsHubPage() {
           )}
 
           {/* 오늘의 복습 위젯 */}
-          <DailyReviewWidget studentId={studentId} />
+          <DailyReviewWidget studentId={studentId} newWordHref="#word-sets" />
 
           {/* 신규 학습 */}
           <div
@@ -219,7 +219,7 @@ export default async function WordsHubPage() {
 
       {/* 추천 단어 세트 */}
       {recommendedSets.length > 0 && (
-        <section>
+        <section id="word-sets">
           <h2 className="text-base font-bold text-gray-900 mb-3">
             추천 세트 — 내 레벨 ({levelInfo.cefr})
           </h2>
@@ -262,7 +262,7 @@ export default async function WordsHubPage() {
 
       {/* 전체 단어 세트 */}
       {otherSets.length > 0 && (
-        <section>
+        <section id={recommendedSets.length === 0 ? 'word-sets' : undefined}>
           <h2 className="text-base font-bold text-gray-900 mb-3">전체 단어 세트</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {otherSets.map((set) => {

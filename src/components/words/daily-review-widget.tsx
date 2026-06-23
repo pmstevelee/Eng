@@ -4,9 +4,10 @@ import { prisma } from '@/lib/prisma/client'
 
 interface Props {
   studentId: string
+  newWordHref?: string
 }
 
-export async function DailyReviewWidget({ studentId }: Props) {
+export async function DailyReviewWidget({ studentId, newWordHref = '/student/words' }: Props) {
   const now = new Date()
   const dueCount = await prisma.wordProgress.count({
     where: { studentId, nextReviewAt: { lte: now } },
@@ -25,7 +26,7 @@ export async function DailyReviewWidget({ studentId }: Props) {
           </div>
         </div>
         <Link
-          href="/student/words"
+          href={newWordHref}
           className="inline-flex h-9 items-center gap-1 rounded-xl px-3 text-xs font-semibold text-white bg-[#1FAF54] hover:bg-[#1FAF54]/90 transition-colors shrink-0"
         >
           새 단어<ArrowRight className="h-3.5 w-3.5" />
