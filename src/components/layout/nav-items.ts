@@ -59,6 +59,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '대시보드', href: '/teacher', icon: LayoutDashboard },
     { label: '테스트 출제/채점', href: '/teacher/tests', icon: FilePen },
     { label: '문제 뱅크', href: '/teacher/tests/questions', icon: Library },
+    { label: '단어학습 관리', href: '/teacher/words', icon: Languages },
     { label: '학생학습관리', href: '/teacher/students', icon: Users },
     { label: '커뮤니케이션', href: '/teacher/communication', icon: MessageSquare },
     { label: '일정', href: '/teacher/schedule', icon: Calendar },
