@@ -243,6 +243,7 @@ model Academy {
   // 다지점 자기참조 관계
   parentAcademy  Academy?  @relation("AcademyBranches", fields: [parentAcademyId], references: [id])
   branches       Academy[] @relation("AcademyBranches")
+  wordSets       WordSet[]
 
   @@index([parentAcademyId])
   @@map("academies")
@@ -283,6 +284,7 @@ model User {
   levelAssessments  LevelAssessment[] @relation("AssessmentOverrider")
   questionReports   QuestionReport[] @relation("ReportedBy")
   resolvedReports   QuestionReport[] @relation("ResolvedBy")
+  ownedWordSets     WordSet[]         @relation("OwnedWordSets")
 
   @@index([academyId])
   @@map("users")
@@ -320,6 +322,8 @@ model Student {
   xpHistory        StudentXp[]
   levelAssessments LevelAssessment[]
   promotionStatus  LevelPromotionStatus?
+  wordProgress     WordProgress[]
+  wordTests        WordTest[]
 
   @@index([classId])
   @@index([status])
@@ -1037,4 +1041,152 @@ model SubscriptionPlan {
   createdAt    DateTime @default(now()) @map("created_at")
 
   @@map("subscription_plans")
+}
+
+// ─── Word Learning Module ─────────────────────────────────────────────────────
+
+enum WordSource {
+  OXFORD_3000
+  OXFORD_5000
+  PUBLISHER
+  TEACHER
+  AI_GENERATED
+}
+
+enum WordSetSource {
+  PUBLISHER
+  TEACHER
+  AI_GENERATED
+  OXFORD_3000
+  OXFORD_5000
+}
+
+enum LearnStage {
+  FLASHCARD
+  RECALL
+  SPELL
+  MASTERED
+}
+
+enum WordTestMode {
+  EN_TO_KO
+  KO_TO_EN
+  SPELL
+  MIXED
+}
+
+enum OxfordCefr {
+  A1
+  A2
+  B1
+  B2
+  C1
+}
+
+/// 단어 마스터 (Oxford 기반)
+model Word {
+  id            String      @id @default(uuid())
+  term          String
+  partOfSpeech  String      @map("part_of_speech")
+  cefrLevel     Int         @map("cefr_level") // 위고업 1~10
+  oxfordCefr    OxfordCefr  @map("oxford_cefr")
+  contextNote   String?     @map("context_note")
+  homonymIndex  Int?        @map("homonym_index")
+  meaning       String?
+  definition    String?
+  example       String?
+  audioUrl      String?     @map("audio_url")
+  source        WordSource  @default(OXFORD_3000)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  wordSetItems  WordSetItem[]
+  wordProgress  WordProgress[]
+
+  @@unique([term, partOfSpeech, homonymIndex])
+  @@index([cefrLevel])
+  @@index([oxfordCefr])
+  @@map("words")
+}
+
+/// 단어 세트
+model WordSet {
+  id          String        @id @default(uuid())
+  title       String
+  description String?
+  cefrLevel   Int           @map("cefr_level")
+  isPublic    Boolean       @default(false) @map("is_public")
+  source      WordSetSource
+  ownerId     String?       @map("owner_id")
+  academyId   String?       @map("academy_id")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  owner     User?     @relation("OwnedWordSets", fields: [ownerId], references: [id])
+  academy   Academy?  @relation(fields: [academyId], references: [id])
+
+  items     WordSetItem[]
+  wordTests WordTest[]
+
+  @@index([ownerId])
+  @@index([academyId])
+  @@map("word_sets")
+}
+
+/// 단어 세트 항목 (N:M + 순서)
+model WordSetItem {
+  id      String  @id @default(uuid())
+  setId   String  @map("set_id")
+  wordId  String  @map("word_id")
+  order   Int
+
+  wordSet WordSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+  word    Word    @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([setId, wordId])
+  @@index([setId])
+  @@map("word_set_items")
+}
+
+/// 학생 단어 학습 진도 (스페이스드 리피티션)
+model WordProgress {
+  id            String      @id @default(uuid())
+  studentId     String      @map("student_id")
+  wordId        String      @map("word_id")
+  stage         LearnStage  @default(FLASHCARD)
+  easeFactor    Float       @default(2.5) @map("ease_factor")
+  intervalDays  Int         @default(0) @map("interval_days")
+  repetitions   Int         @default(0)
+  nextReviewAt  DateTime?   @map("next_review_at")
+  correctCount  Int         @default(0) @map("correct_count")
+  wrongCount    Int         @default(0) @map("wrong_count")
+  lastStudiedAt DateTime?   @map("last_studied_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  word    Word    @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, wordId])
+  @@index([studentId, nextReviewAt])
+  @@map("word_progress")
+}
+
+/// 단어 테스트 결과
+model WordTest {
+  id             String      @id @default(uuid())
+  studentId      String      @map("student_id")
+  setId          String?     @map("set_id")
+  mode           WordTestMode
+  score          Int
+  totalQuestions Int         @map("total_questions")
+  answers        Json
+  takenAt        DateTime    @default(now()) @map("taken_at")
+
+  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  wordSet WordSet? @relation(fields: [setId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([setId])
+  @@map("word_tests")
 }
