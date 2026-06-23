@@ -8,6 +8,8 @@ import { assertCanUseWordLearning, getWordLearningLimits } from '@/lib/words/acc
 import { getDueWords, applySrsResult } from '@/lib/words/progress'
 import { checkSpelling } from '@/lib/words/spell-check'
 import { QUALITY, type SrsQuality } from '@/lib/words/srs'
+import { awardXP } from '@/lib/missions/xp-manager'
+import { updateStreak } from '@/lib/missions/streak-manager'
 import type { LearnStage } from '@/generated/prisma'
 
 // ─── 공통 응답 타입 ────────────────────────────────────────────────────────────
@@ -313,6 +315,43 @@ export async function getRecallOptions(wordId: string): Promise<Result<unknown>>
     }))
 
     return ok({ correctId: validWordId, options })
+  } catch (e) {
+    if (e instanceof z.ZodError) return err('INVALID_INPUT', e.errors[0]?.message ?? '입력 오류')
+    if (e instanceof Error) return err('FORBIDDEN', e.message)
+    return err('UNKNOWN', '오류가 발생했습니다.')
+  }
+}
+
+// ─── 6b. completeReviewSession ────────────────────────────────────────────────
+
+const CompleteReviewSchema = z.object({
+  completedCount: z.number().int().min(0),
+  correctCount: z.number().int().min(0),
+})
+
+export async function completeReviewSession(
+  input: z.infer<typeof CompleteReviewSchema>,
+): Promise<Result<{ xpEarned: number; currentStreak: number; isNewRecord: boolean }>> {
+  try {
+    const { completedCount, correctCount } = CompleteReviewSchema.parse(input)
+    const { studentId } = await getAuthContext()
+
+    const xpAmount = Math.round(completedCount * 2 + correctCount * 1)
+
+    const [xpResult, streakResult] = await Promise.all([
+      awardXP(studentId, xpAmount, 'WORD_REVIEW'),
+      updateStreak(studentId),
+    ])
+
+    revalidatePath('/student')
+    revalidatePath('/student/words')
+    revalidatePath('/student/words/review')
+
+    return ok({
+      xpEarned: xpResult.earned,
+      currentStreak: streakResult.currentStreak,
+      isNewRecord: streakResult.isNewRecord,
+    })
   } catch (e) {
     if (e instanceof z.ZodError) return err('INVALID_INPUT', e.errors[0]?.message ?? '입력 오류')
     if (e instanceof Error) return err('FORBIDDEN', e.message)

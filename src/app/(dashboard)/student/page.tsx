@@ -15,9 +15,10 @@ import { requireStudent } from '@/lib/auth-student'
 import { getStudentDashboardData } from './_actions/gamification'
 import { getLevelInfo } from '@/lib/constants/levels'
 import { DailyMissionCard } from '@/components/student/daily-mission-card'
+import { DailyReviewWidget } from '@/components/words/daily-review-widget'
 
 export default async function StudentDashboardPage() {
-  const { user } = await requireStudent()
+  const { user, studentId } = await requireStudent()
   const data = await getStudentDashboardData()
   if (!data) redirect('/login')
 
@@ -221,6 +222,9 @@ export default async function StudentDashboardPage() {
 
       {/* ── 오늘의 미션 카드 ─────────────────────────────────────────────── */}
       {mission && <DailyMissionCard mission={mission} />}
+
+      {/* ── 단어 복습 위젯 ──────────────────────────────────────────────── */}
+      <DailyReviewWidget studentId={studentId} />
 
       {/* ── 예정된 테스트 카드 ───────────────────────────────────────────── */}
       {upcomingSessions.length > 0 && (

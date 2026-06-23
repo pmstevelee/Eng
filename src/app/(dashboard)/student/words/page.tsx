@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen, RotateCcw, ChevronRight, Lock, Layers } from 'lucide-react'
+import { BookOpen, ChevronRight, Lock, Layers } from 'lucide-react'
 import { requireStudent } from '@/lib/auth-student'
 import { prisma } from '@/lib/prisma/client'
 import {
@@ -7,25 +7,19 @@ import {
   getAcademyDailyNewWords,
 } from '@/lib/words/access-guard'
 import { getLevelInfo } from '@/lib/constants/levels'
+import { DailyReviewWidget } from '@/components/words/daily-review-widget'
 
 async function getWordsHubData(studentId: string, userId: string) {
-  const now = new Date()
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      academyId: true,
+      academy: { select: { settingsJson: true } },
+      student: { select: { currentLevel: true } },
+    },
+  })
 
-  const [user, dueCount] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        academyId: true,
-        academy: { select: { settingsJson: true } },
-        student: { select: { currentLevel: true } },
-      },
-    }),
-    prisma.wordProgress.count({
-      where: { studentId, nextReviewAt: { lte: now } },
-    }),
-  ])
-
-  return { user, dueCount }
+  return { user }
 }
 
 async function getWordSets(academyId: string | null, studentLevel: number) {
@@ -86,7 +80,7 @@ function UpgradePrompt() {
 
 export default async function WordsHubPage() {
   const { studentId, userId } = await requireStudent()
-  const { user, dueCount } = await getWordsHubData(studentId, userId)
+  const { user } = await getWordsHubData(studentId, userId)
 
   const academyId = user?.academyId ?? null
 
@@ -145,42 +139,22 @@ export default async function WordsHubPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {/* 오늘의 복습 */}
-          <Link
-            href="/student/words/review"
-            className="flex flex-col rounded-xl border bg-white p-4 transition-opacity hover:opacity-90"
-            style={{ borderColor: '#DDD6FE' }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <RotateCcw className="h-4 w-4" style={{ color: '#7854F7' }} />
-              <span className="text-sm font-semibold text-gray-700">복습할 단어</span>
-            </div>
-            <p
-              className="text-3xl font-black leading-none"
-              style={{ color: dueCount > 0 ? '#7854F7' : '#9CA3AF' }}
-            >
-              {dueCount}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">개 대기 중</p>
-          </Link>
+        <div className="space-y-3">
+          {/* 오늘의 복습 위젯 */}
+          <DailyReviewWidget studentId={studentId} />
 
           {/* 신규 학습 */}
           <div
-            className="flex flex-col rounded-xl border bg-white p-4"
+            className="flex items-center gap-3 rounded-xl border bg-white p-4"
             style={{ borderColor: '#DDD6FE' }}
           >
-            <div className="flex items-center gap-2 mb-2">
-              <Layers className="h-4 w-4" style={{ color: '#7854F7' }} />
-              <span className="text-sm font-semibold text-gray-700">하루 신규 한도</span>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: '#F3F0FF' }}>
+              <Layers className="h-5 w-5" style={{ color: '#7854F7' }} />
             </div>
-            <p
-              className="text-3xl font-black leading-none"
-              style={{ color: '#7854F7' }}
-            >
-              {dailyNewWords}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">개/일</p>
+            <div>
+              <p className="text-sm font-semibold text-gray-700">하루 신규 단어 한도</p>
+              <p className="text-xs text-gray-500">{dailyNewWords}개/일</p>
+            </div>
           </div>
         </div>
       </div>
