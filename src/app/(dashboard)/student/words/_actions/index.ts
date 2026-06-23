@@ -1,16 +1,17 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma/client'
 import { requireStudent } from '@/lib/auth-student'
 import { assertCanUseWordLearning, getWordLearningLimits } from '@/lib/words/access-guard'
 import { getDueWords, applySrsResult } from '@/lib/words/progress'
 import { checkSpelling } from '@/lib/words/spell-check'
+import { gradeTest, buildQuestions } from '@/lib/words/test-grader'
 import { QUALITY, type SrsQuality } from '@/lib/words/srs'
-import { awardXP } from '@/lib/missions/xp-manager'
-import { updateStreak } from '@/lib/missions/streak-manager'
-import type { LearnStage } from '@/generated/prisma'
+import { emitWordEvent } from '@/lib/words/word-events'
+import type { BadgeType, LearnStage } from '@/generated/prisma'
 
 // ─── 공통 응답 타입 ────────────────────────────────────────────────────────────
 
@@ -185,7 +186,7 @@ export async function getFlashcards(setId: string): Promise<Result<unknown>> {
         word: {
           id: item.word.id,
           term: item.word.term,
-          meaning: item.word.meaning,
+          meaning: item.word.meaning ?? '',
           definition: item.word.definition,
           partOfSpeech: item.word.partOfSpeech,
           example: item.word.example,
@@ -331,26 +332,31 @@ const CompleteReviewSchema = z.object({
 
 export async function completeReviewSession(
   input: z.infer<typeof CompleteReviewSchema>,
-): Promise<Result<{ xpEarned: number; currentStreak: number; isNewRecord: boolean }>> {
+): Promise<Result<{ xpEarned: number; currentStreak: number; isNewRecord: boolean; badgesEarned: BadgeType[] }>> {
   try {
     const { completedCount, correctCount } = CompleteReviewSchema.parse(input)
     const { studentId } = await getAuthContext()
 
-    const xpAmount = Math.round(completedCount * 2 + correctCount * 1)
+    const isPerfect = completedCount > 0 && correctCount === completedCount
 
-    const [xpResult, streakResult] = await Promise.all([
-      awardXP(studentId, xpAmount, 'WORD_REVIEW'),
-      updateStreak(studentId),
+    const events = await Promise.all([
+      emitWordEvent(studentId, 'DAILY_REVIEW_COMPLETED'),
+      ...(isPerfect ? [emitWordEvent(studentId, 'PERFECT_SET')] : []),
     ])
+
+    const totalXp = events.reduce((sum, e) => sum + e.xp.earned, 0)
+    const streakResult = events[0].streak
+    const badgesEarned = events.flatMap((e) => (e.badgeEarned ? [e.badgeEarned] : []))
 
     revalidatePath('/student')
     revalidatePath('/student/words')
     revalidatePath('/student/words/review')
 
     return ok({
-      xpEarned: xpResult.earned,
-      currentStreak: streakResult.currentStreak,
-      isNewRecord: streakResult.isNewRecord,
+      xpEarned: totalXp,
+      currentStreak: streakResult?.currentStreak ?? 0,
+      isNewRecord: streakResult?.isNewRecord ?? false,
+      badgesEarned,
     })
   } catch (e) {
     if (e instanceof z.ZodError) return err('INVALID_INPUT', e.errors[0]?.message ?? '입력 오류')
@@ -403,6 +409,216 @@ export async function checkSpell(
     })
   } catch (e) {
     if (e instanceof z.ZodError) return err('INVALID_INPUT', e.errors[0]?.message ?? '입력 오류')
+    if (e instanceof Error) return err('FORBIDDEN', e.message)
+    return err('UNKNOWN', '오류가 발생했습니다.')
+  }
+}
+
+// ─── 단어 시험 (교사 배정) ───────────────────────────────────────────────────
+
+export async function getWordTestAssignment(testId: string): Promise<Result<unknown>> {
+  try {
+    const { studentId } = await getAuthContext()
+
+    const assignment = await prisma.wordTestAssignment.findUnique({
+      where: { id: testId },
+      include: {
+        wordSet: {
+          include: {
+            items: {
+              orderBy: { order: 'asc' },
+              include: { word: { select: { id: true, term: true, meaning: true, partOfSpeech: true } } },
+            },
+          },
+        },
+        classAssignments: { include: { class: { include: { students: { select: { id: true } } } } } },
+        studentAssignments: { select: { studentId: true } },
+        attempts: { where: { studentId }, select: { id: true } },
+      },
+    })
+
+    if (!assignment) return err('NOT_FOUND', '시험을 찾을 수 없습니다.')
+
+    // 배정 대상 확인
+    const classStudentIds = assignment.classAssignments.flatMap((ca) =>
+      ca.class.students.map((s) => s.id),
+    )
+    const individualStudentIds = assignment.studentAssignments.map((sa) => sa.studentId)
+    const isAssigned = classStudentIds.includes(studentId) || individualStudentIds.includes(studentId)
+    if (!isAssigned) return err('FORBIDDEN', '이 시험에 배정되지 않았습니다.')
+
+    // 이미 응시한 경우
+    if (assignment.attempts.length > 0) {
+      return err('ALREADY_TAKEN', '이미 응시한 시험입니다.')
+    }
+
+    // 기간 체크
+    const now = new Date()
+    if (assignment.startsAt && now < assignment.startsAt) {
+      return err('NOT_STARTED', '아직 시험 기간이 아닙니다.')
+    }
+    if (assignment.endsAt && now > assignment.endsAt) {
+      return err('EXPIRED', '시험 기간이 종료되었습니다.')
+    }
+
+    const allWords = assignment.wordSet.items.map((i) => i.word)
+    const questions = buildQuestions(assignment.wordSet.items, assignment.mode, assignment.numQuestions, allWords)
+
+    return ok({
+      assignment: {
+        id: assignment.id,
+        title: assignment.title,
+        mode: assignment.mode,
+        timePerQuestion: assignment.timePerQuestion,
+        numQuestions: assignment.numQuestions,
+        passingScore: assignment.passingScore,
+      },
+      questions,
+    })
+  } catch (e) {
+    if (e instanceof Error) return err('FORBIDDEN', e.message)
+    return err('UNKNOWN', '오류가 발생했습니다.')
+  }
+}
+
+export async function submitWordTest(
+  testId: string,
+  userAnswers: Record<string, string>,
+): Promise<Result<unknown>> {
+  try {
+    const { studentId } = await getAuthContext()
+
+    // 중복 응시 방지
+    const existing = await prisma.wordTestAttempt.findUnique({
+      where: { assignmentId_studentId: { assignmentId: testId, studentId } },
+    })
+    if (existing) return err('ALREADY_TAKEN', '이미 응시한 시험입니다.')
+
+    const assignment = await prisma.wordTestAssignment.findUnique({
+      where: { id: testId },
+      include: {
+        wordSet: {
+          include: {
+            items: {
+              orderBy: { order: 'asc' },
+              include: { word: { select: { id: true, term: true, meaning: true, partOfSpeech: true } } },
+            },
+          },
+        },
+      },
+    })
+    if (!assignment) return err('NOT_FOUND', '시험을 찾을 수 없습니다.')
+
+    const allWords = assignment.wordSet.items.map((i) => i.word)
+    // userAnswers의 wordId 목록으로 questions 재구성 (결정론적 채점을 위해 제출된 wordId 순서 사용)
+    const submittedWordIds = Object.keys(userAnswers)
+    const questionItems = assignment.wordSet.items.filter((i) =>
+      submittedWordIds.includes(i.word.id),
+    )
+
+    // direction/isSpell은 userAnswers에 포함된 메타로 추론하기 어려우므로
+    // mode 기반으로 재생성 (결과만 채점)
+    const questions = questionItems.map((item) => {
+      const isSpell = assignment.mode === 'SPELL'
+      const direction: 'EN_TO_KO' | 'KO_TO_EN' =
+        assignment.mode === 'KO_TO_EN' ? 'KO_TO_EN' : 'EN_TO_KO'
+      return {
+        wordId: item.word.id,
+        term: item.word.term,
+        meaning: item.word.meaning ?? '',
+        partOfSpeech: item.word.partOfSpeech,
+        direction,
+        isSpell,
+      }
+    })
+
+    const result = gradeTest(questions, userAnswers, assignment.passingScore)
+
+    const attempt = await prisma.wordTestAttempt.create({
+      data: {
+        assignmentId: testId,
+        studentId,
+        score: result.score,
+        totalQuestions: result.totalQuestions,
+        isPassed: result.isPassed,
+        answers: result.answers as unknown as object[],
+        completedAt: new Date(),
+      },
+    })
+
+    revalidatePath(`/student/words/test/${testId}/result`)
+    return ok({ attemptId: attempt.id, score: result.score, isPassed: result.isPassed })
+  } catch (e) {
+    if (e instanceof Error) return err('FORBIDDEN', e.message)
+    return err('UNKNOWN', '오류가 발생했습니다.')
+  }
+}
+
+// ─── 오답 단어 SRS 강제 삽입 + 임시 세트 생성 ──────────────────────────────────
+
+export async function retakeWrong(testId: string): Promise<Result<unknown>> {
+  try {
+    const { studentId } = await getAuthContext()
+
+    const attempt = await prisma.wordTestAttempt.findUnique({
+      where: { assignmentId_studentId: { assignmentId: testId, studentId } },
+      include: { assignment: { select: { title: true } } },
+    })
+    if (!attempt) return err('NOT_FOUND', '응시 기록이 없습니다.')
+
+    const answers = attempt.answers as { wordId: string; isCorrect: boolean }[]
+    const wrongWordIds = answers.filter((a) => !a.isCorrect).map((a) => a.wordId)
+    if (wrongWordIds.length === 0) return ok({ message: '오답이 없습니다.' })
+
+    // 임시 WordSet 생성
+    const set = await prisma.$transaction(async (tx) => {
+      const newSet = await tx.wordSet.create({
+        data: {
+          title: `[오답복습] ${attempt.assignment.title}`,
+          cefrLevel: 1,
+          isPublic: false,
+          source: 'AI_GENERATED',
+          ownerId: studentId,
+        },
+      })
+      await tx.wordSetItem.createMany({
+        data: wrongWordIds.map((wordId, i) => ({ setId: newSet.id, wordId, order: i })),
+      })
+
+      // SRS 큐에 강제 삽입 (nextReviewAt = now → 즉시 복습 대상)
+      const existingProgress = await tx.wordProgress.findMany({
+        where: { studentId, wordId: { in: wrongWordIds } },
+        select: { wordId: true },
+      })
+      const existingIds = new Set(existingProgress.map((p) => p.wordId))
+      const newIds = wrongWordIds.filter((id) => !existingIds.has(id))
+
+      if (newIds.length > 0) {
+        await tx.wordProgress.createMany({
+          data: newIds.map((wordId) => ({
+            studentId,
+            wordId,
+            nextReviewAt: new Date(),
+            intervalDays: 0,
+            repetitions: 0,
+            easeFactor: 2.5,
+          })),
+        })
+      }
+
+      // 기존 진도는 nextReviewAt을 now로 당김
+      if (existingIds.size > 0) {
+        await tx.wordProgress.updateMany({
+          where: { studentId, wordId: { in: Array.from(existingIds) } },
+          data: { nextReviewAt: new Date() },
+        })
+      }
+
+      return newSet
+    })
+
+    return ok({ setId: set.id })
+  } catch (e) {
     if (e instanceof Error) return err('FORBIDDEN', e.message)
     return err('UNKNOWN', '오류가 발생했습니다.')
   }

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen, ChevronRight, Lock, Layers } from 'lucide-react'
+import { BookOpen, ChevronRight, Lock, Layers, ClipboardList } from 'lucide-react'
 import { requireStudent } from '@/lib/auth-student'
 import { prisma } from '@/lib/prisma/client'
 import {
@@ -101,6 +101,33 @@ export default async function WordsHubPage() {
   const dailyNewWords = getAcademyDailyNewWords(user?.academy?.settingsJson)
   const wordSets = await getWordSets(academyId, studentLevel)
 
+  // 배정된 시험 (미응시만)
+  const now = new Date()
+  const pendingTests = await prisma.wordTestAssignment.findMany({
+    where: {
+      AND: [
+        {
+          OR: [
+            { classAssignments: { some: { class: { students: { some: { id: studentId } } } } } },
+            { studentAssignments: { some: { studentId } } },
+          ],
+        },
+        { attempts: { none: { studentId } } },
+        { OR: [{ endsAt: null }, { endsAt: { gte: now } }] },
+      ],
+    },
+    select: {
+      id: true,
+      title: true,
+      mode: true,
+      numQuestions: true,
+      passingScore: true,
+      endsAt: true,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+  })
+
   // 추천 세트: 현재 레벨 ±1 범위
   const recommendedSets = wordSets.filter(
     (s) => s.cefrLevel >= studentLevel - 1 && s.cefrLevel <= studentLevel + 1,
@@ -140,6 +167,37 @@ export default async function WordsHubPage() {
         </div>
 
         <div className="space-y-3">
+          {/* 배정 시험 */}
+          {pendingTests.length > 0 && (
+            <div className="rounded-xl border border-[#FFB100]/40 bg-[#FFB100]/5 overflow-hidden">
+              <div className="px-4 py-2.5 border-b border-[#FFB100]/20 flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-[#FFB100]" />
+                <span className="text-sm font-semibold text-gray-900">응시 대기 시험</span>
+                <span className="ml-auto text-xs bg-[#FFB100] text-white px-2 py-0.5 rounded-full font-bold">
+                  {pendingTests.length}
+                </span>
+              </div>
+              <div className="divide-y divide-[#FFB100]/10">
+                {pendingTests.map((test) => (
+                  <Link
+                    key={test.id}
+                    href={`/student/words/test/${test.id}`}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#FFB100]/10"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{test.title}</p>
+                      <p className="text-xs text-gray-400">
+                        {test.numQuestions}문항 · 합격 {test.passingScore}%
+                        {test.endsAt && ` · ${test.endsAt.toLocaleDateString('ko-KR')} 마감`}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#FFB100] shrink-0" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* 오늘의 복습 위젯 */}
           <DailyReviewWidget studentId={studentId} />
 

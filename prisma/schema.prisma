@@ -243,7 +243,8 @@ model Academy {
   // 다지점 자기참조 관계
   parentAcademy  Academy?  @relation("AcademyBranches", fields: [parentAcademyId], references: [id])
   branches       Academy[] @relation("AcademyBranches")
-  wordSets       WordSet[]
+  wordSets               WordSet[]
+  wordTestAssignments    WordTestAssignment[]
 
   @@index([parentAcademyId])
   @@map("academies")
@@ -284,7 +285,8 @@ model User {
   levelAssessments  LevelAssessment[] @relation("AssessmentOverrider")
   questionReports   QuestionReport[] @relation("ReportedBy")
   resolvedReports   QuestionReport[] @relation("ResolvedBy")
-  ownedWordSets     WordSet[]         @relation("OwnedWordSets")
+  ownedWordSets              WordSet[]                @relation("OwnedWordSets")
+  wordTestAssignments        WordTestAssignment[]     @relation("TeacherWordTestAssignments")
 
   @@index([academyId])
   @@map("users")
@@ -322,8 +324,10 @@ model Student {
   xpHistory        StudentXp[]
   levelAssessments LevelAssessment[]
   promotionStatus  LevelPromotionStatus?
-  wordProgress     WordProgress[]
-  wordTests        WordTest[]
+  wordProgress              WordProgress[]
+  wordTests                 WordTest[]
+  wordTestStudentAssignments WordTestStudentAssignment[]
+  wordTestAttempts          WordTestAttempt[]
 
   @@index([classId])
   @@index([status])
@@ -345,11 +349,12 @@ model Class {
   academy  Academy @relation(fields: [academyId], references: [id])
   teacher  User?   @relation("TeacherClasses", fields: [teacherId], references: [id])
 
-  students      Student[]
-  attendance    Attendance[]
-  enrollments   Enrollment[]
-  tests         Test[]
-  announcements Announcement[]
+  students               Student[]
+  attendance             Attendance[]
+  enrollments            Enrollment[]
+  tests                  Test[]
+  announcements          Announcement[]
+  wordTestClassAssignments WordTestClassAssignment[]
 
   @@index([academyId])
   @@index([teacherId])
@@ -1125,8 +1130,9 @@ model WordSet {
   owner     User?     @relation("OwnedWordSets", fields: [ownerId], references: [id])
   academy   Academy?  @relation(fields: [academyId], references: [id])
 
-  items     WordSetItem[]
-  wordTests WordTest[]
+  items               WordSetItem[]
+  wordTests           WordTest[]
+  wordTestAssignments WordTestAssignment[]
 
   @@index([ownerId])
   @@index([academyId])
@@ -1172,7 +1178,7 @@ model WordProgress {
   @@map("word_progress")
 }
 
-/// 단어 테스트 결과
+/// 단어 테스트 결과 (개인 자율학습용)
 model WordTest {
   id             String      @id @default(uuid())
   studentId      String      @map("student_id")
@@ -1189,4 +1195,83 @@ model WordTest {
   @@index([studentId])
   @@index([setId])
   @@map("word_tests")
+}
+
+/// 교사 출제 단어 시험 (배정 정보)
+model WordTestAssignment {
+  id              String       @id @default(uuid())
+  teacherId       String       @map("teacher_id")
+  academyId       String       @map("academy_id")
+  setId           String       @map("set_id")
+  title           String
+  mode            WordTestMode
+  timePerQuestion Int          @map("time_per_question") // seconds: 20/12/8/5
+  numQuestions    Int          @default(20) @map("num_questions")
+  passingScore    Int          @default(80) @map("passing_score") // percent
+  startsAt        DateTime?    @map("starts_at")
+  endsAt          DateTime?    @map("ends_at")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  teacher  User    @relation("TeacherWordTestAssignments", fields: [teacherId], references: [id])
+  academy  Academy @relation(fields: [academyId], references: [id])
+  wordSet  WordSet @relation(fields: [setId], references: [id])
+
+  classAssignments   WordTestClassAssignment[]
+  studentAssignments WordTestStudentAssignment[]
+  attempts           WordTestAttempt[]
+
+  @@index([teacherId])
+  @@index([academyId])
+  @@index([setId])
+  @@map("word_test_assignments")
+}
+
+/// 반 단위 배정
+model WordTestClassAssignment {
+  id           String @id @default(uuid())
+  assignmentId String @map("assignment_id")
+  classId      String @map("class_id")
+
+  assignment WordTestAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  class      Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, classId])
+  @@index([assignmentId])
+  @@map("word_test_class_assignments")
+}
+
+/// 개별 학생 배정
+model WordTestStudentAssignment {
+  id           String @id @default(uuid())
+  assignmentId String @map("assignment_id")
+  studentId    String @map("student_id")
+
+  assignment WordTestAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, studentId])
+  @@index([assignmentId])
+  @@map("word_test_student_assignments")
+}
+
+/// 학생 응시 결과
+model WordTestAttempt {
+  id             String    @id @default(uuid())
+  assignmentId   String    @map("assignment_id")
+  studentId      String    @map("student_id")
+  score          Int
+  totalQuestions Int       @map("total_questions")
+  isPassed       Boolean   @map("is_passed")
+  answers        Json      // WordTestAnswerRecord[]
+  takenAt        DateTime  @default(now()) @map("taken_at")
+  completedAt    DateTime? @map("completed_at")
+
+  assignment WordTestAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, studentId]) // 1회만 응시
+  @@index([assignmentId])
+  @@index([studentId])
+  @@map("word_test_attempts")
 }
