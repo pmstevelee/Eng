@@ -7,6 +7,7 @@ const navItems = [
   { label: '학원 정보', href: '/owner/settings/academy' },
   { label: '초대 코드', href: '/owner/settings/invite' },
   { label: '알림 설정', href: '/owner/settings/notifications' },
+  { label: '단어학습', href: '/owner/settings/word-learning' },
   { label: '구독 관리', href: '/owner/settings/subscription' },
   { label: '계정 정보', href: '/owner/settings/account' },
   { label: '계정 탈퇴', href: '/owner/settings/withdraw' },

@@ -198,6 +198,51 @@ export async function updateNotificationSettings(settings: {
   return { success: true }
 }
 
+export async function updateWordLearningSettings(settings: {
+  dailyNewWords: number
+}): Promise<{ error?: string; success?: boolean }> {
+  if (settings.dailyNewWords < 1 || settings.dailyNewWords > 100) {
+    return { error: '하루 단어 수는 1~100 사이여야 합니다.' }
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser()
+  if (!authUser) return { error: '인증이 필요합니다.' }
+
+  const user = await prisma.user.findUnique({
+    where: { id: authUser.id, isDeleted: false },
+    select: { id: true, role: true, academyId: true },
+  })
+  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return { error: '권한이 없습니다.' }
+
+  const academy = await prisma.academy.findUnique({
+    where: { id: user.academyId },
+    select: { settingsJson: true },
+  })
+
+  const currentSettings =
+    academy?.settingsJson && typeof academy.settingsJson === 'object'
+      ? (academy.settingsJson as Record<string, unknown>)
+      : {}
+
+  await prisma.academy.update({
+    where: { id: user.academyId },
+    data: {
+      settingsJson: {
+        ...currentSettings,
+        wordLearning: {
+          dailyNewWords: settings.dailyNewWords,
+        },
+      },
+    },
+  })
+
+  revalidatePath('/owner/settings/word-learning')
+  return { success: true }
+}
+
 export async function sendPasswordResetEmail(): Promise<{ error?: string; success?: boolean }> {
   const supabase = await createClient()
   const {
