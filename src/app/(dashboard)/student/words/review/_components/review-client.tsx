@@ -47,9 +47,54 @@ interface RecallOption {
   partOfSpeech: string | null
 }
 
+import type { BadgeType } from '@/generated/prisma'
+
 type CardMode = 'RECALL' | 'SPELL'
 type Phase = 'quizzing' | 'done'
 type SpellAnswerState = 'idle' | 'correct' | 'nearly' | 'wrong'
+
+const BADGE_LABEL: Partial<Record<BadgeType, { emoji: string; name: string; desc: string }>> = {
+  MISSION_COMPLETE: { emoji: '✅', name: '미션 완료', desc: '오늘의 단어 복습을 마쳤어요!' },
+  PERFECT_SCORE: { emoji: '💯', name: '완벽한 세트', desc: '모든 단어를 맞혔어요!' },
+  MASTER: { emoji: '🏆', name: '마스터', desc: '단어를 완전히 마스터했어요!' },
+}
+
+function BadgeModal({ badges, onClose }: { badges: BadgeType[]; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-xs shadow-lg text-center"
+      >
+        <div className="text-3xl mb-2">🎖️</div>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">배지 획득!</h3>
+        <p className="text-sm text-gray-500 mb-5">새 배지를 획득했어요</p>
+        <div className="flex flex-col gap-3 mb-6">
+          {badges.map((b) => {
+            const info = BADGE_LABEL[b]
+            if (!info) return null
+            return (
+              <div key={b} className="flex items-center gap-3 rounded-xl bg-[#FFB100]/10 border border-[#FFB100]/20 px-4 py-3">
+                <span className="text-2xl">{info.emoji}</span>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{info.name}</p>
+                  <p className="text-xs text-gray-500">{info.desc}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        <Button
+          onClick={onClose}
+          className="w-full h-12 bg-[#7854F7] hover:bg-[#7854F7]/90 text-white rounded-xl font-semibold"
+        >
+          확인
+        </Button>
+      </motion.div>
+    </div>
+  )
+}
 
 interface Props {
   cards: ReviewCard[]
@@ -361,67 +406,98 @@ function DoneScreen({
   correct,
   xpEarned,
   streak,
+  badges,
 }: {
   total: number
   correct: number
   xpEarned: number
   streak: number
+  badges: BadgeType[]
 }) {
   const router = useRouter()
+  const [showBadgeModal, setShowBadgeModal] = useState(badges.length > 0)
   const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0
   const perfect = accuracy === 100
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
-      <motion.div
-        initial={{ scale: 0.6, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-        className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl font-black ${
-          perfect ? 'bg-[#1FAF54]/10 text-[#1FAF54]' : 'bg-[#7854F7]/10 text-[#7854F7]'
-        }`}
-      >
-        {perfect ? '🎉' : `${accuracy}%`}
-      </motion.div>
-
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-          {perfect ? '완벽해요!' : '복습 완료!'}
-        </h2>
-        <p className="text-sm text-gray-500">
-          {total}개 중 {correct}개 정답
-        </p>
-      </div>
-
-      <div className="flex gap-4">
-        <div className="flex flex-col items-center gap-1 px-5 py-3 rounded-xl bg-[#FFB100]/10 border border-[#FFB100]/20">
-          <Zap className="w-5 h-5 text-[#FFB100]" />
-          <span className="text-lg font-black text-[#FFB100]">+{xpEarned}</span>
-          <span className="text-xs text-gray-500">XP</span>
-        </div>
-        <div className="flex flex-col items-center gap-1 px-5 py-3 rounded-xl bg-[#FF6B35]/10 border border-[#FF6B35]/20">
-          <Flame className="w-5 h-5 text-[#FF6B35]" />
-          <span className="text-lg font-black text-[#FF6B35]">{streak}일</span>
-          <span className="text-xs text-gray-500">스트릭</span>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-3 w-full max-w-xs">
-        <Button
-          onClick={() => router.push('/student/words')}
-          className="h-14 bg-[#7854F7] hover:bg-[#7854F7]/90 text-white rounded-xl font-semibold text-base"
+    <>
+      {showBadgeModal && badges.length > 0 && (
+        <BadgeModal badges={badges} onClose={() => setShowBadgeModal(false)} />
+      )}
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
+        <motion.div
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+          className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl font-black ${
+            perfect ? 'bg-[#1FAF54]/10 text-[#1FAF54]' : 'bg-[#7854F7]/10 text-[#7854F7]'
+          }`}
         >
-          새 단어 시작하기<ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/student')}
-          className="text-gray-500 h-10"
-        >
-          홈으로
-        </Button>
+          {perfect ? '🎉' : `${accuracy}%`}
+        </motion.div>
+
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+            {perfect ? '완벽해요!' : '복습 완료!'}
+          </h2>
+          <p className="text-sm text-gray-500">
+            {total}개 중 {correct}개 정답
+          </p>
+        </div>
+
+        <div className="flex gap-4">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="flex flex-col items-center gap-1 px-5 py-3 rounded-xl bg-[#FFB100]/10 border border-[#FFB100]/20"
+          >
+            <Zap className="w-5 h-5 text-[#FFB100]" />
+            <span className="text-lg font-black text-[#FFB100]">+{xpEarned}</span>
+            <span className="text-xs text-gray-500">XP</span>
+          </motion.div>
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-col items-center gap-1 px-5 py-3 rounded-xl bg-[#FF6B35]/10 border border-[#FF6B35]/20"
+          >
+            <Flame className="w-5 h-5 text-[#FF6B35]" />
+            <span className="text-lg font-black text-[#FF6B35]">{streak}일</span>
+            <span className="text-xs text-gray-500">스트릭</span>
+          </motion.div>
+          {badges.length > 0 && (
+            <motion.button
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              onClick={() => setShowBadgeModal(true)}
+              className="flex flex-col items-center gap-1 px-5 py-3 rounded-xl bg-[#7854F7]/10 border border-[#7854F7]/20"
+            >
+              <span className="text-xl">🎖️</span>
+              <span className="text-lg font-black text-[#7854F7]">{badges.length}</span>
+              <span className="text-xs text-gray-500">배지</span>
+            </motion.button>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <Button
+            onClick={() => router.push('/student/words')}
+            className="h-14 bg-[#7854F7] hover:bg-[#7854F7]/90 text-white rounded-xl font-semibold text-base"
+          >
+            새 단어 시작하기<ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => router.push('/student')}
+            className="text-gray-500 h-10"
+          >
+            홈으로
+          </Button>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -432,7 +508,7 @@ export function ReviewClient({ cards }: Props) {
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
   const [answeredCount, setAnsweredCount] = useState(0)
-  const [doneStats, setDoneStats] = useState({ xpEarned: 0, streak: 0 })
+  const [doneStats, setDoneStats] = useState<{ xpEarned: number; streak: number; badges: BadgeType[] }>({ xpEarned: 0, streak: 0, badges: [] })
 
   const currentCard = cards[index]
   const mode = currentCard ? modeForCard(currentCard) : 'RECALL'
@@ -454,6 +530,7 @@ export function ReviewClient({ cards }: Props) {
         setDoneStats({
           xpEarned: res.ok ? res.data.xpEarned : 0,
           streak: res.ok ? res.data.currentStreak : 0,
+          badges: res.ok ? res.data.badgesEarned : [],
         })
         setPhase('done')
       } else {
@@ -470,6 +547,7 @@ export function ReviewClient({ cards }: Props) {
         correct={correctCount}
         xpEarned={doneStats.xpEarned}
         streak={doneStats.streak}
+        badges={doneStats.badges}
       />
     )
   }
