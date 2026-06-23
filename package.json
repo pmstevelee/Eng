@@ -7,6 +7,7 @@
     "build": "prisma migrate deploy && prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
     "postinstall": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "seed:grammar": "tsx prisma/seed-grammar.ts",
@@ -14,9 +15,17 @@
     "seed:partb4": "tsx prisma/seed-partb4.ts",
     "seed:partb5": "tsx prisma/seed-partb5.ts",
     "seed:partb6": "tsx prisma/seed-partb6.ts",
+    "seed:partb6b": "tsx prisma/seed-partb6b.ts",
+    "seed:partb7": "tsx prisma/seed-partb7.ts",
+    "seed:partb8": "tsx prisma/seed-partb8.ts",
     "update-stats": "tsx prisma/update-stats.ts",
+    "oxford:seed": "tsx scripts/oxford/seed-oxford.ts",
+    "oxford:seed:dry": "tsx scripts/oxford/seed-oxford.ts --dry-run",
+    "oxford:seed:a1": "tsx scripts/oxford/seed-oxford.ts --filter=A1",
     "fix:question-format": "tsx prisma/fix-question-format.ts",
-    "seed:unit-test-u1": "tsx prisma/seed-unit-test-u1.ts"
+    "seed:unit-test-u1": "tsx prisma/seed-unit-test-u1.ts",
+    "oxford:download": "tsx scripts/oxford/download-pdfs.ts",
+    "oxford:parse": "tsx scripts/oxford/parse-oxford.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -31,10 +40,14 @@
     "@supabase/supabase-js": "^2.99.0",
     "@tosspayments/tosspayments-sdk": "^2.7.0",
     "class-variance-authority": "^0.7.1",
+    "cli-progress": "^3.12.0",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.41.0",
     "lucide-react": "^0.577.0",
     "next": "14.2.35",
     "openai": "^6.32.0",
+    "p-limit": "^7.3.0",
+    "pdf-parse": "^2.2.2",
     "prisma": "^6.19.2",
     "react": "^18",
     "react-dom": "^18",
@@ -51,6 +64,7 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.9"
   }
 }
