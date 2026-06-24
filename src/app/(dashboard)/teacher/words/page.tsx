@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
-import { BookOpen, Plus } from 'lucide-react'
+import { BookOpen, Plus, BarChart2 } from 'lucide-react'
 
 export default async function TeacherWordsPage() {
   const user = await getCurrentUser()
@@ -27,6 +27,12 @@ export default async function TeacherWordsPage() {
     <div className="max-w-3xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">단어 세트</h1>
+        <Link href="/teacher/words/report">
+          <Button variant="outline" size="sm" className="h-9 gap-2 text-[#1865F2] border-[#1865F2]/30 hover:bg-[#EFF4FE]">
+            <BarChart2 className="w-4 h-4" />
+            학습 리포트
+          </Button>
+        </Link>
       </div>
 
       {wordSets.length === 0 ? (

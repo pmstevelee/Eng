@@ -52,6 +52,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '테스트관리', href: '/owner/tests', icon: FileText },
     { label: '문제 뱅크', href: '/owner/tests/questions', icon: Library },
     { label: '분석통계', href: '/owner/analytics', icon: BarChart2 },
+    { label: '단어학습 현황', href: '/owner/words', icon: Languages },
     { label: '지점관리', href: '/owner/branches', icon: GitBranch },
     { label: '설정', href: '/owner/settings', icon: Settings },
   ],

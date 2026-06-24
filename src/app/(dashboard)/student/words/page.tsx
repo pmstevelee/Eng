@@ -139,11 +139,20 @@ export default async function WordsHubPage() {
   return (
     <div className="space-y-6">
       {/* 헤더 */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">단어학습</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          플래시카드로 어휘를 체계적으로 학습하세요.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">단어학습</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            플래시카드로 어휘를 체계적으로 학습하세요.
+          </p>
+        </div>
+        <Link
+          href="/student/words/report"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:border-gray-300 transition-colors"
+        >
+          <Layers className="w-4 h-4" />
+          내 리포트
+        </Link>
       </div>
 
       {/* 오늘의 현황 카드 */}
