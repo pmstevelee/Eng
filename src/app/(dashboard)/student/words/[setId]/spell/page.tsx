@@ -10,7 +10,7 @@ interface Props {
 
 export default async function SpellPage({ params }: Props) {
   const { setId } = await params
-  const result = await getFlashcards(setId)
+  const result = await getFlashcards(setId, 'SPELL')
 
   if (!result.ok) {
     if (result.error.code === 'FORBIDDEN' || result.error.code === 'NOT_FOUND') {

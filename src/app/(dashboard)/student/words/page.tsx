@@ -22,6 +22,50 @@ async function getWordsHubData(studentId: string, userId: string) {
   return { user }
 }
 
+const CEFR_LABEL_MAP: Record<number, string> = {
+  1: 'Pre-A1', 2: 'A1 하', 3: 'A1 상', 4: 'A2 하', 5: 'A2 상',
+  6: 'B1 하', 7: 'B1 상', 8: 'B2 하', 9: 'B2 상', 10: 'C1+',
+}
+
+async function ensureSystemWordSets() {
+  const levelGroups = await prisma.word.groupBy({
+    by: ['cefrLevel'],
+    _count: { _all: true },
+    orderBy: { cefrLevel: 'asc' },
+  })
+
+  for (const { cefrLevel, _count } of levelGroups) {
+    if (_count._all === 0) continue
+
+    const existing = await prisma.wordSet.findFirst({
+      where: { isPublic: true, cefrLevel, academyId: null, source: 'PUBLISHER' },
+    })
+    if (existing) continue
+
+    const words = await prisma.word.findMany({
+      where: { cefrLevel },
+      select: { id: true },
+      orderBy: { term: 'asc' },
+    })
+
+    const label = CEFR_LABEL_MAP[cefrLevel] ?? `Lv${cefrLevel}`
+    await prisma.$transaction(async (tx) => {
+      const set = await tx.wordSet.create({
+        data: {
+          title: `${label} 전체 단어`,
+          description: `${label} 레벨의 모든 단어 (${words.length}개)`,
+          cefrLevel,
+          isPublic: true,
+          source: 'PUBLISHER',
+        },
+      })
+      await tx.wordSetItem.createMany({
+        data: words.map((w, i) => ({ setId: set.id, wordId: w.id, order: i })),
+      })
+    })
+  }
+}
+
 async function getWordSets(academyId: string | null, studentLevel: number) {
   return prisma.wordSet.findMany({
     where: {
@@ -38,15 +82,11 @@ async function getWordSets(academyId: string | null, studentLevel: number) {
       _count: { select: { items: true } },
     },
     orderBy: { cefrLevel: 'asc' },
-    take: 20,
+    take: 50,
   })
 }
 
-// CEFR level (1~10) → label
-const CEFR_LABEL: Record<number, string> = {
-  1: 'Pre-A1', 2: 'A1 하', 3: 'A1 상', 4: 'A2 하', 5: 'A2 상',
-  6: 'B1 하', 7: 'B1 상', 8: 'B2 하', 9: 'B2 상', 10: 'C1+',
-}
+const CEFR_LABEL = CEFR_LABEL_MAP
 
 function cefrBadgeStyle(cefrLevel: number, studentLevel: number) {
   if (cefrLevel <= studentLevel) return { bg: '#F3F0FF', text: '#7854F7', border: '#DDD6FE' }
@@ -99,6 +139,7 @@ export default async function WordsHubPage() {
   const studentLevel = user?.student?.currentLevel ?? 1
   const levelInfo = getLevelInfo(studentLevel)
   const dailyNewWords = getAcademyDailyNewWords(user?.academy?.settingsJson)
+  await ensureSystemWordSets()
   const wordSets = await getWordSets(academyId, studentLevel)
 
   // 배정된 시험 (미응시만)
@@ -314,7 +355,7 @@ export default async function WordsHubPage() {
         <div className="flex flex-col items-center justify-center py-16 text-center rounded-xl border border-gray-200 bg-white">
           <BookOpen className="h-10 w-10 text-gray-300 mb-3" />
           <p className="text-sm font-semibold text-gray-500">등록된 단어 세트가 없습니다</p>
-          <p className="text-xs text-gray-400 mt-1">학원 선생님께 단어 세트 추가를 요청하세요.</p>
+          <p className="text-xs text-gray-400 mt-1">단어 데이터를 불러오는 중 오류가 발생했습니다.</p>
         </div>
       )}
     </div>

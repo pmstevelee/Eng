@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
-import { getFlashcards } from '@/app/(dashboard)/student/words/_actions'
+import { getFlashcards, startWordSet } from '@/app/(dashboard)/student/words/_actions'
 import { FlashcardClient } from './_components/flashcard-client'
 
 interface Props {
@@ -10,7 +10,10 @@ interface Props {
 
 export default async function FlashcardPage({ params }: Props) {
   const { setId } = await params
-  const result = await getFlashcards(setId)
+  // 세트 진입 시 신규 단어의 학습 진도를 먼저 초기화한다.
+  // (일일 한도 도달/이미 시작됨 등은 정상 흐름이므로 실패해도 그대로 진행)
+  await startWordSet(setId)
+  const result = await getFlashcards(setId, 'FLASHCARD')
 
   if (!result.ok) {
     if (result.error.code === 'FORBIDDEN' || result.error.code === 'NOT_FOUND') {

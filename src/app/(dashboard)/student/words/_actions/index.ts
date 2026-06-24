@@ -148,7 +148,7 @@ export async function startWordSet(setId: string): Promise<Result<{ created: num
 
 const GetFlashcardsSchema = z.object({ setId: z.string().uuid() })
 
-export async function getFlashcards(setId: string): Promise<Result<unknown>> {
+export async function getFlashcards(setId: string, stage?: 'FLASHCARD' | 'RECALL' | 'SPELL'): Promise<Result<unknown>> {
   try {
     const { setId: validSetId } = GetFlashcardsSchema.parse({ setId })
     const { studentId, academyId } = await getAuthContext()
@@ -167,7 +167,10 @@ export async function getFlashcards(setId: string): Promise<Result<unknown>> {
             word: {
               include: {
                 wordProgress: {
-                  where: { studentId },
+                  where: {
+                    studentId,
+                    ...(stage ? { stage } : {}),
+                  },
                   take: 1,
                 },
               },
@@ -244,6 +247,22 @@ export async function recordProgress(
         where: { studentId_wordId: { studentId, wordId } },
         data: { stage: nextStage },
       })
+    }
+
+    // 게이미피케이션: 단계별 XP 지급 (실패해도 학습 기록에는 영향 없음)
+    try {
+      if (stage === 'FLASHCARD') {
+        await emitWordEvent(studentId, 'FLASHCARD_COMPLETED', wordId)
+      } else if (stage === 'RECALL' && isCorrect) {
+        await emitWordEvent(studentId, 'RECALL_CORRECT', wordId)
+      } else if (stage === 'SPELL' && isCorrect) {
+        await emitWordEvent(studentId, 'SPELL_CORRECT', wordId)
+      }
+      if (nextStage === 'MASTERED' && stage !== 'MASTERED') {
+        await emitWordEvent(studentId, 'WORD_MASTERED', wordId)
+      }
+    } catch {
+      // XP/배지 지급 실패는 무시한다 (학습 진도는 이미 저장됨).
     }
 
     revalidatePath('/student/words')
