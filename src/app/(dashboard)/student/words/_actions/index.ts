@@ -167,10 +167,7 @@ export async function getFlashcards(setId: string, stage?: 'FLASHCARD' | 'RECALL
             word: {
               include: {
                 wordProgress: {
-                  where: {
-                    studentId,
-                    ...(stage ? { stage } : {}),
-                  },
+                  where: { studentId },
                   take: 1,
                 },
               },
