@@ -206,6 +206,8 @@ export function SpellClient({ setId, initialCards }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isSubmittingRef = useRef(false)
+  // 현재 문제가 이미 처리됐는지 추적 (handleSubmit + handleSkip 중복 실행 방지)
+  const isAnsweredRef = useRef(false)
 
   const currentCard = deck[qIndex]
 
@@ -217,7 +219,10 @@ export function SpellClient({ setId, initialCards }: Props) {
   }, [qIndex, phase, answerState])
 
   const advance = useCallback(() => {
-    if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current)
+    if (autoAdvanceRef.current) {
+      clearTimeout(autoAdvanceRef.current)
+      autoAdvanceRef.current = null
+    }
     const nextIndex = qIndex + 1
     if (nextIndex >= deck.length) {
       setPhase('round-done')
@@ -227,12 +232,14 @@ export function SpellClient({ setId, initialCards }: Props) {
       setAnswerState('idle')
       setUsedHint(false)
       setShowHint(false)
+      isAnsweredRef.current = false
     }
   }, [qIndex, deck.length])
 
   async function handleSubmit() {
     if (!currentCard || answerState !== 'idle' || input.trim() === '') return
     if (isSubmittingRef.current) return
+    if (isAnsweredRef.current) return
     isSubmittingRef.current = true
 
     const res = await checkSpell({
@@ -241,10 +248,14 @@ export function SpellClient({ setId, initialCards }: Props) {
       usedHint,
     })
 
-    if (!res.ok) {
-      isSubmittingRef.current = false
-      return
-    }
+    isSubmittingRef.current = false
+
+    if (!res.ok) return
+
+    // handleSkip이 await 중 먼저 실행됐으면 중단
+    if (isAnsweredRef.current) return
+
+    isAnsweredRef.current = true
 
     const { correct, nearlyCorrect, quality, correctTerm: ct } = res.data as {
       correct: boolean
@@ -266,7 +277,6 @@ export function SpellClient({ setId, initialCards }: Props) {
       setWrongCards((prev) => [...prev, currentCard])
     }
     setAnswerState(state)
-    isSubmittingRef.current = false
 
     recordProgress({
       wordId: currentCard.word.id,
@@ -283,7 +293,9 @@ export function SpellClient({ setId, initialCards }: Props) {
   }
 
   function handleSkip() {
-    if (answerState !== 'idle' || !currentCard) return
+    // handleSubmit 비동기 처리 중이거나 이미 답변 처리된 경우 무시
+    if (isSubmittingRef.current || isAnsweredRef.current || answerState !== 'idle' || !currentCard) return
+    isAnsweredRef.current = true
     setTotalAnswered((n) => n + 1)
     setWrongCards((prev) => [...prev, currentCard])
     setAnswerState('wrong')
@@ -295,6 +307,10 @@ export function SpellClient({ setId, initialCards }: Props) {
       isCorrect: false,
       userAnswer: '',
     })
+    if (autoAdvanceRef.current) {
+      clearTimeout(autoAdvanceRef.current)
+      autoAdvanceRef.current = null
+    }
     autoAdvanceRef.current = setTimeout(() => advance(), 1500)
   }
 
@@ -323,6 +339,12 @@ export function SpellClient({ setId, initialCards }: Props) {
   }, [phase, answerState, input, advance])
 
   function handleRetry() {
+    if (autoAdvanceRef.current) {
+      clearTimeout(autoAdvanceRef.current)
+      autoAdvanceRef.current = null
+    }
+    isAnsweredRef.current = false
+    isSubmittingRef.current = false
     const newDeck = [...wrongCards]
     setDeck(newDeck)
     setQIndex(0)

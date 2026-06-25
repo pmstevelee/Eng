@@ -105,6 +105,111 @@ export async function getClassesForTeacher() {
   })
 }
 
+// ─── 단어 검색 (세트빌더용) ─────────────────────────────────────────────────────
+
+const SearchWordsSchema = z.object({
+  query: z.string().max(80).default(''),
+  oxfordCefr: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', '']).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+})
+
+export type WordSearchResult = {
+  id: string
+  term: string
+  meaning: string | null
+  partOfSpeech: string | null
+  cefrLevel: number
+  oxfordCefr: string | null
+}
+
+export async function searchWords(
+  input: z.infer<typeof SearchWordsSchema>,
+): Promise<{ words: WordSearchResult[]; total: number }> {
+  const teacher = await getAuthedTeacher()
+  if (!teacher) return { words: [], total: 0 }
+
+  const { query, oxfordCefr, page } = SearchWordsSchema.parse(input)
+  const PAGE_SIZE = 20
+  const skip = (page - 1) * PAGE_SIZE
+
+  const where = {
+    ...(query
+      ? {
+          OR: [
+            { term: { contains: query, mode: 'insensitive' as const } },
+            { meaning: { contains: query, mode: 'insensitive' as const } },
+          ],
+        }
+      : {}),
+    ...(oxfordCefr ? { oxfordCefr: oxfordCefr as 'A1' | 'A2' | 'B1' | 'B2' | 'C1' } : {}),
+  }
+
+  const [words, total] = await Promise.all([
+    prisma.word.findMany({
+      where,
+      select: {
+        id: true,
+        term: true,
+        meaning: true,
+        partOfSpeech: true,
+        cefrLevel: true,
+        oxfordCefr: true,
+      },
+      orderBy: [{ cefrLevel: 'asc' }, { term: 'asc' }],
+      skip,
+      take: PAGE_SIZE,
+    }),
+    prisma.word.count({ where }),
+  ])
+
+  return { words, total }
+}
+
+// ─── 교사 세트 생성 ──────────────────────────────────────────────────────────────
+
+const CreateTeacherSetSchema = z.object({
+  title: z.string().min(1, '세트 이름을 입력하세요.').max(100),
+  description: z.string().max(300).optional(),
+  cefrLevel: z.coerce.number().int().min(1).max(10),
+  wordIds: z.array(z.string().uuid()).min(1, '단어를 1개 이상 추가하세요.').max(500),
+})
+
+export async function createTeacherWordSet(
+  input: z.infer<typeof CreateTeacherSetSchema>,
+): Promise<{ error?: string; setId?: string }> {
+  const teacher = await getAuthedTeacher()
+  if (!teacher) return { error: '인증이 필요합니다.' }
+
+  const parsed = CreateTeacherSetSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
+
+  const { title, description, cefrLevel, wordIds } = parsed.data
+
+  // 중복 wordId 제거 + 순서 보존
+  const uniqueWordIds = wordIds.filter((id, idx) => wordIds.indexOf(id) === idx)
+
+  const newSet = await prisma.$transaction(async (tx) => {
+    const set = await tx.wordSet.create({
+      data: {
+        title,
+        description: description ?? null,
+        cefrLevel,
+        isPublic: false,
+        source: 'TEACHER',
+        ownerId: teacher.id,
+        academyId: teacher.academyId!,
+      },
+    })
+    await tx.wordSetItem.createMany({
+      data: uniqueWordIds.map((wordId, i) => ({ setId: set.id, wordId, order: i })),
+    })
+    return set
+  })
+
+  revalidatePath('/teacher/words')
+  redirect(`/teacher/words/sets/${newSet.id}`)
+}
+
 // ─── 보충 세트 생성 (오답 단어만) ────────────────────────────────────────────────
 
 export async function createSupplementarySet(
