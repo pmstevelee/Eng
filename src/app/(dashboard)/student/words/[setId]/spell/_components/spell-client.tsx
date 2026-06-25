@@ -205,6 +205,7 @@ export function SpellClient({ setId, initialCards }: Props) {
 
   const inputRef = useRef<HTMLInputElement>(null)
   const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isSubmittingRef = useRef(false)
 
   const currentCard = deck[qIndex]
 
@@ -231,6 +232,8 @@ export function SpellClient({ setId, initialCards }: Props) {
 
   async function handleSubmit() {
     if (!currentCard || answerState !== 'idle' || input.trim() === '') return
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
 
     const res = await checkSpell({
       wordId: currentCard.word.id,
@@ -238,7 +241,10 @@ export function SpellClient({ setId, initialCards }: Props) {
       usedHint,
     })
 
-    if (!res.ok) return
+    if (!res.ok) {
+      isSubmittingRef.current = false
+      return
+    }
 
     const { correct, nearlyCorrect, quality, correctTerm: ct } = res.data as {
       correct: boolean
@@ -260,6 +266,7 @@ export function SpellClient({ setId, initialCards }: Props) {
       setWrongCards((prev) => [...prev, currentCard])
     }
     setAnswerState(state)
+    isSubmittingRef.current = false
 
     recordProgress({
       wordId: currentCard.word.id,

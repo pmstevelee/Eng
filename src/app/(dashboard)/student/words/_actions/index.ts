@@ -180,7 +180,11 @@ export async function getFlashcards(setId: string, stage?: 'FLASHCARD' | 'RECALL
     if (!wordSet) return err('NOT_FOUND', '단어 세트를 찾을 수 없습니다.')
 
     const cards = wordSet.items
-      .filter((item) => item.word.wordProgress.length > 0)
+      .filter((item) => {
+        if (item.word.wordProgress.length === 0) return false
+        if (stage) return item.word.wordProgress[0].stage === stage
+        return true
+      })
       .slice(0, limits.dailyNewWords)
       .map((item) => ({
         word: {
