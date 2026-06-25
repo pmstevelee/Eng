@@ -25,7 +25,8 @@
     "fix:question-format": "tsx prisma/fix-question-format.ts",
     "seed:unit-test-u1": "tsx prisma/seed-unit-test-u1.ts",
     "oxford:download": "tsx scripts/oxford/download-pdfs.ts",
-    "oxford:parse": "tsx scripts/oxford/parse-oxford.ts"
+    "oxford:parse": "tsx scripts/oxford/parse-oxford.ts",
+    "oxford:seed:sets": "tsx scripts/oxford/seed-wordsets.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
