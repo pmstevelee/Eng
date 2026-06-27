@@ -90,15 +90,29 @@ export async function startWordSet(setId: string): Promise<Result<{ created: num
     const { setId: validSetId } = StartWordSetSchema.parse({ setId })
     const { studentId, academyId } = await getAuthContext()
 
+    const limits = await getWordLearningLimits(academyId)
+
     const wordSet = await prisma.wordSet.findFirst({
       where: {
         id: validSetId,
         OR: [{ isPublic: true }, { ownerId: studentId }, { academyId }],
       },
-      include: { items: { select: { wordId: true } } },
+      include: { items: { orderBy: { order: 'asc' }, select: { wordId: true } } },
     })
 
     if (!wordSet) return err('NOT_FOUND', '단어 세트를 찾을 수 없습니다.')
+
+    const todayStart = new Date()
+    todayStart.setHours(0, 0, 0, 0)
+
+    // 오늘 새로 시작한 신규 단어 수 (전역 일일 한도)
+    const todayNewCount = await prisma.wordProgress.count({
+      where: { studentId, createdAt: { gte: todayStart } },
+    })
+
+    const remaining = limits.dailyNewWords - todayNewCount
+    // 한도 소진 시에도 에러 대신 0개 생성 — 오늘 이미 시작한 배치를 그대로 학습하면 된다.
+    if (remaining <= 0) return ok({ created: 0 })
 
     const existingWordIds = new Set(
       (
@@ -109,10 +123,11 @@ export async function startWordSet(setId: string): Promise<Result<{ created: num
       ).map((p) => p.wordId),
     )
 
-    // 세트의 모든 단어에 대해 progress 생성 (일일한도 제한 없음)
+    // 세트 순서대로 아직 시작하지 않은 단어를 일일 한도만큼만 신규 생성한다.
     const newWordIds = wordSet.items
       .map((i) => i.wordId)
       .filter((id) => !existingWordIds.has(id))
+      .slice(0, remaining)
 
     if (newWordIds.length === 0) return ok({ created: 0 })
 
@@ -135,10 +150,12 @@ export async function startWordSet(setId: string): Promise<Result<{ created: num
 
 const GetFlashcardsSchema = z.object({ setId: z.string().uuid() })
 
-export async function getFlashcards(setId: string, stage?: 'FLASHCARD' | 'RECALL' | 'SPELL'): Promise<Result<unknown>> {
+export async function getFlashcards(setId: string, _stage?: 'FLASHCARD' | 'RECALL' | 'SPELL'): Promise<Result<unknown>> {
   try {
     const { setId: validSetId } = GetFlashcardsSchema.parse({ setId })
     const { studentId, academyId } = await getAuthContext()
+
+    const limits = await getWordLearningLimits(academyId)
 
     const wordSet = await prisma.wordSet.findFirst({
       where: {
@@ -164,33 +181,48 @@ export async function getFlashcards(setId: string, stage?: 'FLASHCARD' | 'RECALL
 
     if (!wordSet) return err('NOT_FOUND', '단어 세트를 찾을 수 없습니다.')
 
+    const todayStart = new Date()
+    todayStart.setHours(0, 0, 0, 0)
+
     const totalWords = wordSet.items.length
     const masteredWords = wordSet.items.filter(
       (item) => item.word.wordProgress[0]?.stage === 'MASTERED',
     ).length
 
-    const cards = wordSet.items
-      .filter((item) => {
-        if (item.word.wordProgress.length === 0) return false
-        if (stage) return item.word.wordProgress[0].stage === stage
-        return true
-      })
-      .map((item) => ({
-        word: {
-          id: item.word.id,
-          term: item.word.term,
-          meaning: item.word.meaning ?? '',
-          definition: item.word.definition,
-          partOfSpeech: item.word.partOfSpeech,
-          example: item.word.example,
-          audioUrl: item.word.audioUrl,
-          cefrLevel: item.word.cefrLevel,
-        },
-        progress: item.word.wordProgress[0],
-        order: item.order,
-      }))
+    // 진도가 시작된 단어만 대상
+    const startedItems = wordSet.items.filter((item) => item.word.wordProgress.length > 0)
 
-    return ok({ setId: validSetId, cards, totalWords, masteredWords })
+    // 오늘의 학습 배치 = 오늘 새로 시작한 단어.
+    // 플래시카드·리콜·스펠 모두 "동일한" 배치를 사용해 단계별 단어 수가 일치하도록 한다.
+    // (기존: 단계별로 stage 필터링 → 정답 단어만 다음 단계로 넘어가 30→7→3으로 줄어드는 funnel 버그)
+    let batchItems = startedItems.filter(
+      (item) => item.word.wordProgress[0].createdAt >= todayStart,
+    )
+
+    // 오늘 새로 시작한 단어가 없으면(일일 한도 소진 후 재진입 등)
+    // 아직 마스터하지 않은 진행 중 단어를 한도만큼 이어서 학습한다.
+    if (batchItems.length === 0) {
+      batchItems = startedItems
+        .filter((item) => item.word.wordProgress[0].stage !== 'MASTERED')
+        .slice(0, limits.dailyNewWords)
+    }
+
+    const cards = batchItems.map((item) => ({
+      word: {
+        id: item.word.id,
+        term: item.word.term,
+        meaning: item.word.meaning ?? '',
+        definition: item.word.definition,
+        partOfSpeech: item.word.partOfSpeech,
+        example: item.word.example,
+        audioUrl: item.word.audioUrl,
+        cefrLevel: item.word.cefrLevel,
+      },
+      progress: item.word.wordProgress[0],
+      order: item.order,
+    }))
+
+    return ok({ setId: validSetId, cards, totalWords, masteredWords, batchSize: cards.length })
   } catch (e) {
     if (e instanceof z.ZodError) return err('INVALID_INPUT', e.errors[0]?.message ?? '입력 오류')
     if (e instanceof Error) return err('FORBIDDEN', e.message)
