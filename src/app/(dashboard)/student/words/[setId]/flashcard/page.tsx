@@ -29,9 +29,11 @@ export default async function FlashcardPage({ params }: Props) {
     )
   }
 
-  const { cards } = result.data as {
+  const { cards, totalWords, masteredWords } = result.data as {
     setId: string
     cards: Parameters<typeof FlashcardClient>[0]['initialCards']
+    totalWords: number
+    masteredWords: number
   }
 
   return (
@@ -48,7 +50,12 @@ export default async function FlashcardPage({ params }: Props) {
         </Link>
       </div>
 
-      <FlashcardClient setId={setId} initialCards={cards} />
+      <FlashcardClient
+        setId={setId}
+        initialCards={cards}
+        totalWords={totalWords}
+        masteredWords={masteredWords}
+      />
     </div>
   )
 }

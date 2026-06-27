@@ -28,6 +28,8 @@ interface WordCard {
 interface Props {
   setId: string
   initialCards: WordCard[]
+  totalWords: number
+  masteredWords: number
 }
 
 // ─── 단일 플래시카드 ──────────────────────────────────────────────────────────
@@ -240,13 +242,14 @@ function RoundDone({
 
 // ─── 메인 클라이언트 컴포넌트 ─────────────────────────────────────────────────
 
-export function FlashcardClient({ setId, initialCards }: Props) {
+export function FlashcardClient({ setId, initialCards, totalWords, masteredWords: initialMastered }: Props) {
   const [deck, setDeck] = useState<WordCard[]>(initialCards)
   const [index, setIndex] = useState(0)
   const [unknownCards, setUnknownCards] = useState<WordCard[]>([])
   const [isDone, setIsDone] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const [direction, setDirection] = useState(0)
+  const [masteredWords, setMasteredWords] = useState(initialMastered)
   const pendingRef = useRef<Promise<unknown> | null>(null)
 
   const total = deck.length
@@ -309,28 +312,69 @@ export function FlashcardClient({ setId, initialCards }: Props) {
     setIsDone(false)
   }
 
+  // 세트 전체 진행 표시 영역 (항상 렌더)
+  const SetProgress = () => (
+    <div className="mb-4 rounded-xl border border-gray-100 bg-white p-4">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-medium text-gray-500">세트 전체 학습 진행</span>
+        <span className="text-xs font-semibold text-[#7854F7]">{masteredWords} / {totalWords} 마스터</span>
+      </div>
+      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-[#1FAF54] rounded-full transition-all duration-500"
+          style={{ width: totalWords > 0 ? `${(masteredWords / totalWords) * 100}%` : '0%' }}
+        />
+      </div>
+    </div>
+  )
+
   if (total === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-4">
-        <p className="text-gray-500">학습할 단어가 없습니다.</p>
-        <p className="text-xs text-gray-400">먼저 단어 세트를 시작해 주세요.</p>
+      <div className="flex flex-col gap-4">
+        <SetProgress />
+        {masteredWords >= totalWords && totalWords > 0 ? (
+          <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center px-4">
+            <div className="w-16 h-16 rounded-full bg-[#1FAF54]/10 flex items-center justify-center">
+              <span className="text-3xl">🎉</span>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">세트 완료!</h2>
+            <p className="text-gray-500 text-sm">이 세트의 모든 단어를 마스터했습니다.</p>
+            <Button
+              onClick={() => window.location.href = '/student/words'}
+              className="h-12 bg-[#7854F7] hover:bg-[#7854F7]/90 text-white rounded-xl px-8"
+            >
+              단어 허브로 돌아가기
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center px-4">
+            <p className="text-gray-500">현재 단계에서 학습할 단어가 없습니다.</p>
+            <p className="text-xs text-gray-400">다음 단계(리콜/스펠)로 진행하거나 복습하세요.</p>
+          </div>
+        )}
       </div>
     )
   }
 
   if (isDone) {
     return (
-      <RoundDone
-        unknownCards={unknownCards}
-        setId={setId}
-        onRetry={handleRetry}
-      />
+      <div className="flex flex-col gap-4">
+        <SetProgress />
+        <RoundDone
+          unknownCards={unknownCards}
+          setId={setId}
+          onRetry={handleRetry}
+        />
+      </div>
     )
   }
 
   return (
     <div className="flex flex-col h-full min-h-[80vh] pb-8">
-      {/* 진행바 */}
+      {/* 세트 전체 진행 */}
+      <SetProgress />
+
+      {/* 현재 라운드 진행바 */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-[#0C2340] dark:text-white">

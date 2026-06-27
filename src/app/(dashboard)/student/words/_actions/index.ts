@@ -90,8 +90,6 @@ export async function startWordSet(setId: string): Promise<Result<{ created: num
     const { setId: validSetId } = StartWordSetSchema.parse({ setId })
     const { studentId, academyId } = await getAuthContext()
 
-    const limits = await getWordLearningLimits(academyId)
-
     const wordSet = await prisma.wordSet.findFirst({
       where: {
         id: validSetId,
@@ -102,17 +100,6 @@ export async function startWordSet(setId: string): Promise<Result<{ created: num
 
     if (!wordSet) return err('NOT_FOUND', '단어 세트를 찾을 수 없습니다.')
 
-    const todayStart = new Date()
-    todayStart.setHours(0, 0, 0, 0)
-
-    const todayNewCount = await prisma.wordProgress.count({
-      where: { studentId, createdAt: { gte: todayStart } },
-    })
-
-    const remaining = limits.dailyNewWords - todayNewCount
-    if (remaining <= 0)
-      return err('DAILY_LIMIT', `오늘 신규 단어 학습 한도(${limits.dailyNewWords}개)에 도달했습니다.`)
-
     const existingWordIds = new Set(
       (
         await prisma.wordProgress.findMany({
@@ -122,10 +109,10 @@ export async function startWordSet(setId: string): Promise<Result<{ created: num
       ).map((p) => p.wordId),
     )
 
+    // 세트의 모든 단어에 대해 progress 생성 (일일한도 제한 없음)
     const newWordIds = wordSet.items
       .map((i) => i.wordId)
       .filter((id) => !existingWordIds.has(id))
-      .slice(0, remaining)
 
     if (newWordIds.length === 0) return ok({ created: 0 })
 
@@ -153,8 +140,6 @@ export async function getFlashcards(setId: string, stage?: 'FLASHCARD' | 'RECALL
     const { setId: validSetId } = GetFlashcardsSchema.parse({ setId })
     const { studentId, academyId } = await getAuthContext()
 
-    const limits = await getWordLearningLimits(academyId)
-
     const wordSet = await prisma.wordSet.findFirst({
       where: {
         id: validSetId,
@@ -179,13 +164,17 @@ export async function getFlashcards(setId: string, stage?: 'FLASHCARD' | 'RECALL
 
     if (!wordSet) return err('NOT_FOUND', '단어 세트를 찾을 수 없습니다.')
 
+    const totalWords = wordSet.items.length
+    const masteredWords = wordSet.items.filter(
+      (item) => item.word.wordProgress[0]?.stage === 'MASTERED',
+    ).length
+
     const cards = wordSet.items
       .filter((item) => {
         if (item.word.wordProgress.length === 0) return false
         if (stage) return item.word.wordProgress[0].stage === stage
         return true
       })
-      .slice(0, limits.dailyNewWords)
       .map((item) => ({
         word: {
           id: item.word.id,
@@ -201,7 +190,7 @@ export async function getFlashcards(setId: string, stage?: 'FLASHCARD' | 'RECALL
         order: item.order,
       }))
 
-    return ok({ setId: validSetId, cards })
+    return ok({ setId: validSetId, cards, totalWords, masteredWords })
   } catch (e) {
     if (e instanceof z.ZodError) return err('INVALID_INPUT', e.errors[0]?.message ?? '입력 오류')
     if (e instanceof Error) return err('FORBIDDEN', e.message)
