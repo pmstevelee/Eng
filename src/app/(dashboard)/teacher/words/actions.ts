@@ -262,7 +262,10 @@ const CreateTeacherSetSchema = z.object({
   title: z.string().min(1, '세트 이름을 입력하세요.').max(100),
   description: z.string().max(300).optional(),
   cefrLevel: z.coerce.number().int().min(1).max(10),
-  wordIds: z.array(z.string().uuid()).min(1, '단어를 1개 이상 추가하세요.').max(500),
+  wordIds: z
+    .array(z.string().uuid())
+    .min(1, '단어를 1개 이상 추가하세요.')
+    .max(1000, '한 세트에는 단어를 최대 1,000개까지 담을 수 있습니다.'),
 })
 
 export async function createTeacherWordSet(
