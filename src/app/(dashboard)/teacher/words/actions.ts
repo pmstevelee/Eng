@@ -165,6 +165,97 @@ export async function searchWords(
   return { words, total }
 }
 
+// ─── 자동 생성: 사용 가능한 단어 수 ─────────────────────────────────────────────
+
+const OXFORD_CEFR_VALUES = ['A1', 'A2', 'B1', 'B2', 'C1'] as const
+type OxfordCefrValue = (typeof OXFORD_CEFR_VALUES)[number]
+
+const CountAvailableSchema = z.object({
+  cefrLevels: z.array(z.enum(OXFORD_CEFR_VALUES)).default([]),
+  excludeWordIds: z.array(z.string().uuid()).default([]),
+})
+
+/** 선택한 레벨 + 이미 추가한 단어 제외 시 남은 단어 수 (경고 표시용) */
+export async function getAvailableWordCount(
+  input: z.infer<typeof CountAvailableSchema>,
+): Promise<number> {
+  const teacher = await getAuthedTeacher()
+  if (!teacher) return 0
+
+  const parsed = CountAvailableSchema.safeParse(input)
+  if (!parsed.success) return 0
+  const { cefrLevels, excludeWordIds } = parsed.data
+
+  return prisma.word.count({
+    where: buildAutoWhere(cefrLevels, excludeWordIds),
+  })
+}
+
+// ─── 자동 생성: 조건에 맞는 단어 자동 선택 ───────────────────────────────────────
+
+const AutoSelectSchema = z.object({
+  cefrLevels: z.array(z.enum(OXFORD_CEFR_VALUES)).default([]),
+  count: z.coerce.number().int().min(1).max(1000),
+  order: z.enum(['recommended', 'random']).default('recommended'),
+  excludeWordIds: z.array(z.string().uuid()).default([]),
+})
+
+/** 레벨/개수/정렬 조건으로 단어를 자동 선택 (이미 추가된 단어는 제외) */
+export async function autoSelectWords(
+  input: z.infer<typeof AutoSelectSchema>,
+): Promise<{ words: WordSearchResult[]; available: number }> {
+  const teacher = await getAuthedTeacher()
+  if (!teacher) return { words: [], available: 0 }
+
+  const parsed = AutoSelectSchema.safeParse(input)
+  if (!parsed.success) return { words: [], available: 0 }
+  const { cefrLevels, count, order, excludeWordIds } = parsed.data
+
+  const where = buildAutoWhere(cefrLevels, excludeWordIds)
+  const select = {
+    id: true,
+    term: true,
+    meaning: true,
+    partOfSpeech: true,
+    cefrLevel: true,
+    oxfordCefr: true,
+  } as const
+
+  const available = await prisma.word.count({ where })
+
+  if (order === 'random') {
+    // 매칭되는 id만 가볍게 로드 후 셔플 → 상위 count개 선택
+    const ids = await prisma.word.findMany({ where, select: { id: true } })
+    for (let i = ids.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[ids[i], ids[j]] = [ids[j], ids[i]]
+    }
+    const pickedIds = ids.slice(0, count).map((r) => r.id)
+    const picked = await prisma.word.findMany({ where: { id: { in: pickedIds } }, select })
+    const byId = new Map(picked.map((w) => [w.id, w]))
+    const words: WordSearchResult[] = pickedIds
+      .map((id) => byId.get(id))
+      .filter((w): w is NonNullable<typeof w> => w !== undefined)
+    return { words, available }
+  }
+
+  // 추천순: 레벨 → 알파벳 순으로 앞에서부터
+  const words = await prisma.word.findMany({
+    where,
+    select,
+    orderBy: [{ cefrLevel: 'asc' }, { term: 'asc' }],
+    take: count,
+  })
+  return { words, available }
+}
+
+function buildAutoWhere(cefrLevels: OxfordCefrValue[], excludeWordIds: string[]) {
+  return {
+    ...(cefrLevels.length > 0 ? { oxfordCefr: { in: cefrLevels } } : {}),
+    ...(excludeWordIds.length > 0 ? { id: { notIn: excludeWordIds } } : {}),
+  }
+}
+
 // ─── 교사 세트 생성 ──────────────────────────────────────────────────────────────
 
 const CreateTeacherSetSchema = z.object({

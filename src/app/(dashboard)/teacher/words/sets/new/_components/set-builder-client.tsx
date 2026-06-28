@@ -1,11 +1,28 @@
 'use client'
 
-import { useState, useTransition, useCallback, useRef } from 'react'
+import { useState, useTransition, useCallback, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, Plus, X, BookOpen, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  Search,
+  Plus,
+  X,
+  BookOpen,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  Minus,
+  AlertTriangle,
+  ListPlus,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { searchWords, createTeacherWordSet } from '@/app/(dashboard)/teacher/words/actions'
+import {
+  searchWords,
+  createTeacherWordSet,
+  autoSelectWords,
+  getAvailableWordCount,
+} from '@/app/(dashboard)/teacher/words/actions'
 import type { WordSearchResult } from '@/app/(dashboard)/teacher/words/actions'
 
 // ─── 상수 ─────────────────────────────────────────────────────────────────────
@@ -27,6 +44,46 @@ const CEFR_BADGE: Record<string, { bg: string; text: string }> = {
   B1: { bg: '#F3F0FF', text: '#7854F7' },
   B2: { bg: '#F3F0FF', text: '#7854F7' },
   C1: { bg: '#FFF3EE', text: '#E35C20' },
+}
+
+// 자동 생성: 레벨 옵션 (전체 = 모든 레벨)
+const AUTO_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'] as const
+type AutoLevel = (typeof AUTO_LEVELS)[number]
+
+// 학습 기간 프리셋 (라벨 → 일수)
+const DURATION_PRESETS = [
+  { label: '1주', days: 7 },
+  { label: '2주', days: 14 },
+  { label: '3주', days: 21 },
+  { label: '한 달', days: 30 },
+] as const
+
+// 하루 학습량 프리셋
+const PER_DAY_PRESETS = [5, 8, 10, 15, 20] as const
+
+// ─── 날짜 유틸 ────────────────────────────────────────────────────────────────
+
+/** YYYY-MM-DD 형식 (date input 호환) */
+function toDateInput(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function addDays(dateStr: string, days: number): string {
+  const d = new Date(dateStr + 'T00:00:00')
+  d.setDate(d.getDate() + days)
+  return toDateInput(d)
+}
+
+/** 시작일~종료일 포함 일수 */
+function daysBetween(start: string, end: string): number {
+  if (!start || !end) return 0
+  const s = new Date(start + 'T00:00:00').getTime()
+  const e = new Date(end + 'T00:00:00').getTime()
+  if (Number.isNaN(s) || Number.isNaN(e) || e < s) return 0
+  return Math.floor((e - s) / 86_400_000) + 1
 }
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
@@ -56,6 +113,20 @@ export function SetBuilderClient() {
   // 선택된 단어
   const [selectedWords, setSelectedWords] = useState<SelectedWord[]>([])
   const selectedIds = new Set(selectedWords.map((w) => w.id))
+
+  // 자동 생성 조건
+  const today = toDateInput(new Date())
+  const [autoLevels, setAutoLevels] = useState<AutoLevel[]>([])
+  const [durationPreset, setDurationPreset] = useState<number | null>(30)
+  const [startDate, setStartDate] = useState(today)
+  const [endDate, setEndDate] = useState(addDays(today, 29))
+  const [perDay, setPerDay] = useState(20)
+  const [autoOrder, setAutoOrder] = useState<'recommended' | 'random'>('recommended')
+  const [availableCount, setAvailableCount] = useState<number | null>(null)
+  const [isAutoFilling, startAutoFill] = useTransition()
+
+  const totalDays = daysBetween(startDate, endDate)
+  const neededCount = perDay * totalDays
 
   // 저장
   const [isSaving, startSave] = useTransition()
@@ -96,6 +167,88 @@ export function SetBuilderClient() {
 
   function removeWord(id: string) {
     setSelectedWords((prev) => prev.filter((w) => w.id !== id))
+  }
+
+  // 검색 결과 일괄 추가 (이미 추가된 단어 자동 제외)
+  function addAllVisible() {
+    const toAdd = searchResults.filter((w) => !selectedIds.has(w.id))
+    if (toAdd.length === 0) return
+    const now = Date.now()
+    setSelectedWords((prev) => [...prev, ...toAdd.map((w, i) => ({ ...w, addedAt: now + i }))])
+  }
+
+  const visibleAddableCount = searchResults.filter((w) => !selectedIds.has(w.id)).length
+
+  // ─── 자동 생성 ───────────────────────────────────────────────────────────────
+
+  // 레벨/이미 추가한 단어가 바뀌면 사용 가능한 단어 수를 다시 계산
+  useEffect(() => {
+    let cancelled = false
+    setAvailableCount(null)
+    const excludeWordIds = selectedWords.map((w) => w.id)
+    const timer = setTimeout(async () => {
+      const count = await getAvailableWordCount({ cefrLevels: autoLevels, excludeWordIds })
+      if (!cancelled) setAvailableCount(count)
+    }, 300)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [autoLevels, selectedWords])
+
+  function toggleAutoLevel(level: AutoLevel) {
+    setAutoLevels((prev) =>
+      prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level],
+    )
+  }
+
+  function applyDurationPreset(days: number) {
+    setDurationPreset(days)
+    setEndDate(addDays(startDate, days - 1))
+  }
+
+  function handleStartDateChange(value: string) {
+    setStartDate(value)
+    if (durationPreset && value) {
+      setEndDate(addDays(value, durationPreset - 1))
+    } else {
+      setDurationPreset(null)
+    }
+  }
+
+  function handleEndDateChange(value: string) {
+    setEndDate(value)
+    setDurationPreset(null)
+  }
+
+  function setPerDayValue(n: number) {
+    const clamped = Math.max(1, Math.min(200, n))
+    setPerDay(clamped)
+  }
+
+  const fillCount =
+    availableCount === null ? neededCount : Math.min(neededCount, availableCount)
+  const isShort = availableCount !== null && availableCount < neededCount
+
+  function handleAutoFill() {
+    if (neededCount < 1) return
+    startAutoFill(async () => {
+      const excludeWordIds = selectedWords.map((w) => w.id)
+      const { words, available } = await autoSelectWords({
+        cefrLevels: autoLevels,
+        count: neededCount,
+        order: autoOrder,
+        excludeWordIds,
+      })
+      setAvailableCount(available)
+      if (words.length === 0) return
+      const now = Date.now()
+      setSelectedWords((prev) => {
+        const have = new Set(prev.map((w) => w.id))
+        const fresh = words.filter((w) => !have.has(w.id))
+        return [...prev, ...fresh.map((w, i) => ({ ...w, addedAt: now + i }))]
+      })
+    })
   }
 
   // ─── 저장 ────────────────────────────────────────────────────────────────────
@@ -172,6 +325,201 @@ export function SetBuilderClient() {
         </div>
       </div>
 
+      {/* 자동 생성 조건 */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-5">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-[#7854F7]" />
+          <h2 className="text-sm font-semibold text-gray-700">자동 생성 조건</h2>
+        </div>
+        <p className="text-sm text-gray-500 -mt-2">
+          레벨, 기간, 하루 학습량을 정하면 그만큼의 단어를 자동으로 골라 채워드려요.
+        </p>
+
+        {/* 레벨 (복수 선택) */}
+        <div>
+          <label className="text-xs font-medium text-gray-500 mb-2 block">레벨 (복수 선택 가능)</label>
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setAutoLevels([])}
+              className={`px-4 h-10 rounded-full text-sm font-semibold border transition-colors ${
+                autoLevels.length === 0
+                  ? 'bg-[#1865F2] text-white border-[#1865F2]'
+                  : 'bg-white text-gray-500 border-gray-200 hover:border-[#1865F2] hover:text-[#1865F2]'
+              }`}
+            >
+              전체
+            </button>
+            {AUTO_LEVELS.map((level) => {
+              const active = autoLevels.includes(level)
+              return (
+                <button
+                  key={level}
+                  type="button"
+                  onClick={() => toggleAutoLevel(level)}
+                  className={`px-4 h-10 rounded-full text-sm font-semibold border transition-colors ${
+                    active
+                      ? 'bg-[#1865F2] text-white border-[#1865F2]'
+                      : 'bg-white text-gray-500 border-gray-200 hover:border-[#1865F2] hover:text-[#1865F2]'
+                  }`}
+                >
+                  {level}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* 학습 기간 */}
+        <div>
+          <label className="text-xs font-medium text-gray-500 mb-2 block">학습 기간</label>
+          <div className="flex gap-2 flex-wrap mb-3">
+            {DURATION_PRESETS.map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                onClick={() => applyDurationPreset(preset.days)}
+                className={`px-4 h-10 rounded-full text-sm font-semibold border transition-colors ${
+                  durationPreset === preset.days
+                    ? 'bg-[#1865F2] text-white border-[#1865F2]'
+                    : 'bg-white text-gray-500 border-gray-200 hover:border-[#1865F2] hover:text-[#1865F2]'
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-end gap-4 flex-wrap">
+            <div>
+              <label className="text-xs font-medium text-gray-500 mb-1 block">시작일</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => handleStartDateChange(e.target.value)}
+                className="h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:border-[#1865F2]"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-500 mb-1 block">종료일</label>
+              <input
+                type="date"
+                value={endDate}
+                min={startDate}
+                onChange={(e) => handleEndDateChange(e.target.value)}
+                className="h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:border-[#1865F2]"
+              />
+            </div>
+            <span className="h-11 inline-flex items-center px-4 rounded-xl bg-[#1865F2]/10 text-[#1865F2] text-sm font-semibold">
+              총 {totalDays}일
+            </span>
+          </div>
+        </div>
+
+        {/* 하루 학습량 */}
+        <div>
+          <label className="text-xs font-medium text-gray-500 mb-2 block">하루 학습량</label>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="inline-flex items-center h-12 rounded-xl border border-gray-200 bg-white overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setPerDayValue(perDay - 1)}
+                className="w-12 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50"
+                aria-label="하루 학습량 줄이기"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <span className="w-20 text-center text-base font-bold text-gray-900">{perDay}개</span>
+              <button
+                type="button"
+                onClick={() => setPerDayValue(perDay + 1)}
+                className="w-12 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50"
+                aria-label="하루 학습량 늘리기"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div className="flex gap-2 flex-wrap mt-3">
+            {PER_DAY_PRESETS.map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setPerDayValue(n)}
+                className={`px-4 h-10 rounded-full text-sm font-semibold border transition-colors ${
+                  perDay === n
+                    ? 'bg-[#1865F2] text-white border-[#1865F2]'
+                    : 'bg-white text-gray-500 border-gray-200 hover:border-[#1865F2] hover:text-[#1865F2]'
+                }`}
+              >
+                하루 {n}개
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 단어 선택 순서 */}
+        <div className="flex items-center gap-3">
+          <label className="text-xs font-medium text-gray-500">단어 선택 순서</label>
+          <div className="inline-flex p-1 rounded-xl bg-gray-100">
+            {(
+              [
+                { value: 'recommended', label: '추천순' },
+                { value: 'random', label: '무작위' },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setAutoOrder(opt.value)}
+                className={`px-4 h-9 rounded-lg text-sm font-semibold transition-colors ${
+                  autoOrder === opt.value
+                    ? 'bg-[#1865F2] text-white'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 필요한 단어 수 */}
+        <p className="text-sm text-gray-700">
+          필요한 단어 수: 하루 {perDay}개 × {totalDays}일 ={' '}
+          <span className="font-bold text-gray-900">{neededCount}개</span>
+        </p>
+
+        {/* 부족 경고 */}
+        {isShort && availableCount !== null && (
+          <div className="flex items-start gap-2 rounded-xl border border-[#FFB100]/40 bg-[#FFB100]/10 px-4 py-3 text-sm text-[#8A6D00]">
+            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-[#FFB100]" />
+            <p>
+              선택한 레벨에는 {availableCount}개 단어만 있어 {neededCount - availableCount}개가
+              부족해요. 다른 레벨도 함께 선택하거나 기간을 줄여보세요.
+            </p>
+          </div>
+        )}
+
+        {/* 자동 채우기 버튼 */}
+        <Button
+          type="button"
+          onClick={handleAutoFill}
+          disabled={isAutoFilling || neededCount < 1 || availableCount === 0}
+          className="w-full h-12 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white rounded-xl font-semibold"
+        >
+          {isAutoFilling ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              단어를 고르는 중...
+            </>
+          ) : isShort ? (
+            `사용 가능한 단어 ${fillCount}개로 채우기`
+          ) : (
+            `단어 ${fillCount}개 자동 채우기`
+          )}
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* 단어 검색 패널 */}
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden flex flex-col">
@@ -214,6 +562,26 @@ export function SetBuilderClient() {
               ))}
             </div>
           </div>
+
+          {/* 일괄 추가 바 */}
+          {searchResults.length > 0 && (
+            <div className="px-5 py-2.5 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+              <span className="text-xs text-gray-500">
+                {visibleAddableCount > 0
+                  ? `추가할 수 있는 단어 ${visibleAddableCount}개`
+                  : '이 페이지는 모두 추가됨'}
+              </span>
+              <button
+                type="button"
+                onClick={addAllVisible}
+                disabled={visibleAddableCount === 0}
+                className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs font-semibold text-[#1865F2] bg-[#1865F2]/10 hover:bg-[#1865F2] hover:text-white disabled:opacity-40 disabled:hover:bg-[#1865F2]/10 disabled:hover:text-[#1865F2] transition-colors"
+              >
+                <ListPlus className="w-3.5 h-3.5" />
+                보이는 단어 {visibleAddableCount}개 한 번에 추가
+              </button>
+            </div>
+          )}
 
           {/* 검색 결과 */}
           <div className="flex-1 overflow-y-auto" style={{ maxHeight: 420 }}>
