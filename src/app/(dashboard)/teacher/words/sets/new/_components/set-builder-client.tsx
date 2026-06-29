@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input'
 import {
   searchWords,
   createTeacherWordSet,
-  autoSelectWords,
+  autoCreateDailySets,
   getAvailableWordCount,
 } from '@/app/(dashboard)/teacher/words/actions'
 import type { WordSearchResult } from '@/app/(dashboard)/teacher/words/actions'
@@ -123,7 +123,8 @@ export function SetBuilderClient() {
   const [perDay, setPerDay] = useState(20)
   const [autoOrder, setAutoOrder] = useState<'recommended' | 'random'>('recommended')
   const [availableCount, setAvailableCount] = useState<number | null>(null)
-  const [isAutoFilling, startAutoFill] = useTransition()
+  const [isAutoCreating, startAutoCreate] = useTransition()
+  const [autoError, setAutoError] = useState<string | null>(null)
 
   const totalDays = daysBetween(startDate, endDate)
   const neededCount = perDay * totalDays
@@ -181,20 +182,19 @@ export function SetBuilderClient() {
 
   // ─── 자동 생성 ───────────────────────────────────────────────────────────────
 
-  // 레벨/이미 추가한 단어가 바뀌면 사용 가능한 단어 수를 다시 계산
+  // 레벨이 바뀌면 사용 가능한 단어 수(전체 풀)를 다시 계산
   useEffect(() => {
     let cancelled = false
     setAvailableCount(null)
-    const excludeWordIds = selectedWords.map((w) => w.id)
     const timer = setTimeout(async () => {
-      const count = await getAvailableWordCount({ cefrLevels: autoLevels, excludeWordIds })
+      const count = await getAvailableWordCount({ cefrLevels: autoLevels, excludeWordIds: [] })
       if (!cancelled) setAvailableCount(count)
     }, 300)
     return () => {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [autoLevels, selectedWords])
+  }, [autoLevels])
 
   function toggleAutoLevel(level: AutoLevel) {
     setAutoLevels((prev) =>
@@ -226,28 +226,37 @@ export function SetBuilderClient() {
     setPerDay(clamped)
   }
 
-  const fillCount =
+  // 실제로 채울 수 있는 단어 수 / 만들어질 세트(일자) 수
+  const usableWords =
     availableCount === null ? neededCount : Math.min(neededCount, availableCount)
+  const expectedSets =
+    perDay > 0 ? Math.max(1, Math.min(totalDays, Math.ceil(usableWords / perDay))) : 0
   const isShort = availableCount !== null && availableCount < neededCount
 
-  function handleAutoFill() {
-    if (neededCount < 1) return
-    startAutoFill(async () => {
-      const excludeWordIds = selectedWords.map((w) => w.id)
-      const { words, available } = await autoSelectWords({
+  function handleAutoCreate() {
+    setAutoError(null)
+    if (!title.trim()) {
+      setAutoError('세트 이름을 먼저 입력하세요.')
+      return
+    }
+    if (totalDays < 1) {
+      setAutoError('학습 기간을 올바르게 설정하세요.')
+      return
+    }
+    startAutoCreate(async () => {
+      const result = await autoCreateDailySets({
+        titleBase: title.trim(),
+        description: description.trim() || undefined,
+        cefrLevel,
         cefrLevels: autoLevels,
-        count: neededCount,
+        perDay,
+        totalDays,
         order: autoOrder,
-        excludeWordIds,
       })
-      setAvailableCount(available)
-      if (words.length === 0) return
-      const now = Date.now()
-      setSelectedWords((prev) => {
-        const have = new Set(prev.map((w) => w.id))
-        const fresh = words.filter((w) => !have.has(w.id))
-        return [...prev, ...fresh.map((w, i) => ({ ...w, addedAt: now + i }))]
-      })
+      if (result?.error) {
+        setAutoError(result.error)
+      }
+      // 성공 시 server action 내부에서 /teacher/words 로 redirect
     })
   }
 
@@ -332,7 +341,7 @@ export function SetBuilderClient() {
           <h2 className="text-sm font-semibold text-gray-700">자동 생성 조건</h2>
         </div>
         <p className="text-sm text-gray-500 -mt-2">
-          레벨, 기간, 하루 학습량을 정하면 그만큼의 단어를 자동으로 골라 채워드려요.
+          레벨·기간·하루 학습량을 정하면 일자별 단어 세트(1일차, 2일차…)를 한 번에 만들어 드려요.
         </p>
 
         {/* 레벨 (복수 선택) */}
@@ -483,11 +492,20 @@ export function SetBuilderClient() {
           </div>
         </div>
 
-        {/* 필요한 단어 수 */}
-        <p className="text-sm text-gray-700">
-          필요한 단어 수: 하루 {perDay}개 × {totalDays}일 ={' '}
-          <span className="font-bold text-gray-900">{neededCount}개</span>
-        </p>
+        {/* 생성 요약 */}
+        <div className="text-sm text-gray-700 space-y-1">
+          <p>
+            필요한 단어 수: 하루 {perDay}개 × {totalDays}일 ={' '}
+            <span className="font-bold text-gray-900">{neededCount}개</span>
+          </p>
+          <p>
+            생성될 세트:{' '}
+            <span className="font-bold text-[#1865F2]">
+              {totalDays > 1 ? `"${title.trim() || '세트'} 1일차" 형식 ${expectedSets}개` : '1개'}
+            </span>{' '}
+            <span className="text-gray-400">(세트당 하루 {perDay}개)</span>
+          </p>
+        </div>
 
         {/* 부족 경고 */}
         {isShort && availableCount !== null && (
@@ -495,27 +513,35 @@ export function SetBuilderClient() {
             <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-[#FFB100]" />
             <p>
               선택한 레벨에는 {availableCount}개 단어만 있어 {neededCount - availableCount}개가
-              부족해요. 다른 레벨도 함께 선택하거나 기간을 줄여보세요.
+              부족해요. {expectedSets}개 일자만 생성됩니다. 다른 레벨도 함께 선택하거나 기간을
+              줄여보세요.
             </p>
           </div>
         )}
 
-        {/* 자동 채우기 버튼 */}
+        {/* 자동 생성 에러 */}
+        {autoError && (
+          <div className="rounded-xl border border-[#D92916]/20 bg-[#D92916]/5 px-4 py-3 text-sm text-[#D92916]">
+            {autoError}
+          </div>
+        )}
+
+        {/* 일자별 세트 생성 버튼 */}
         <Button
           type="button"
-          onClick={handleAutoFill}
-          disabled={isAutoFilling || neededCount < 1 || availableCount === 0}
+          onClick={handleAutoCreate}
+          disabled={isAutoCreating || neededCount < 1 || availableCount === 0}
           className="w-full h-12 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white rounded-xl font-semibold"
         >
-          {isAutoFilling ? (
+          {isAutoCreating ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              단어를 고르는 중...
+              세트 생성 중...
             </>
-          ) : isShort ? (
-            `사용 가능한 단어 ${fillCount}개로 채우기`
+          ) : totalDays > 1 ? (
+            `일자별 세트 ${expectedSets}개 자동 생성 (하루 ${perDay}개씩)`
           ) : (
-            `단어 ${fillCount}개 자동 채우기`
+            `단어 ${usableWords}개 세트 생성`
           )}
         </Button>
       </div>

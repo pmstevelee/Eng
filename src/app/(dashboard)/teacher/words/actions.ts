@@ -191,64 +191,6 @@ export async function getAvailableWordCount(
   })
 }
 
-// ─── 자동 생성: 조건에 맞는 단어 자동 선택 ───────────────────────────────────────
-
-const AutoSelectSchema = z.object({
-  cefrLevels: z.array(z.enum(OXFORD_CEFR_VALUES)).default([]),
-  count: z.coerce.number().int().min(1).max(1000),
-  order: z.enum(['recommended', 'random']).default('recommended'),
-  excludeWordIds: z.array(z.string().uuid()).default([]),
-})
-
-/** 레벨/개수/정렬 조건으로 단어를 자동 선택 (이미 추가된 단어는 제외) */
-export async function autoSelectWords(
-  input: z.infer<typeof AutoSelectSchema>,
-): Promise<{ words: WordSearchResult[]; available: number }> {
-  const teacher = await getAuthedTeacher()
-  if (!teacher) return { words: [], available: 0 }
-
-  const parsed = AutoSelectSchema.safeParse(input)
-  if (!parsed.success) return { words: [], available: 0 }
-  const { cefrLevels, count, order, excludeWordIds } = parsed.data
-
-  const where = buildAutoWhere(cefrLevels, excludeWordIds)
-  const select = {
-    id: true,
-    term: true,
-    meaning: true,
-    partOfSpeech: true,
-    cefrLevel: true,
-    oxfordCefr: true,
-  } as const
-
-  const available = await prisma.word.count({ where })
-
-  if (order === 'random') {
-    // 매칭되는 id만 가볍게 로드 후 셔플 → 상위 count개 선택
-    const ids = await prisma.word.findMany({ where, select: { id: true } })
-    for (let i = ids.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[ids[i], ids[j]] = [ids[j], ids[i]]
-    }
-    const pickedIds = ids.slice(0, count).map((r) => r.id)
-    const picked = await prisma.word.findMany({ where: { id: { in: pickedIds } }, select })
-    const byId = new Map(picked.map((w) => [w.id, w]))
-    const words: WordSearchResult[] = pickedIds
-      .map((id) => byId.get(id))
-      .filter((w): w is NonNullable<typeof w> => w !== undefined)
-    return { words, available }
-  }
-
-  // 추천순: 레벨 → 알파벳 순으로 앞에서부터
-  const words = await prisma.word.findMany({
-    where,
-    select,
-    orderBy: [{ cefrLevel: 'asc' }, { term: 'asc' }],
-    take: count,
-  })
-  return { words, available }
-}
-
 function buildAutoWhere(cefrLevels: OxfordCefrValue[], excludeWordIds: string[]) {
   return {
     ...(cefrLevels.length > 0 ? { oxfordCefr: { in: cefrLevels } } : {}),
@@ -302,6 +244,90 @@ export async function createTeacherWordSet(
 
   revalidatePath('/teacher/words')
   redirect(`/teacher/words/sets/${newSet.id}`)
+}
+
+// ─── 자동 생성: 일자별 세트 일괄 생성 ────────────────────────────────────────────
+
+const AutoCreateDailySetsSchema = z.object({
+  titleBase: z.string().min(1, '세트 이름을 입력하세요.').max(80),
+  description: z.string().max(300).optional(),
+  cefrLevel: z.coerce.number().int().min(1).max(10),
+  cefrLevels: z.array(z.enum(OXFORD_CEFR_VALUES)).default([]),
+  perDay: z.coerce.number().int().min(1).max(200),
+  totalDays: z.coerce.number().int().min(1).max(120),
+  order: z.enum(['recommended', 'random']).default('recommended'),
+})
+
+/**
+ * 기간 조건으로 "일자별" 단어 세트를 한 번에 생성한다.
+ * 예) 하루 20개 × 7일 → "{이름} 1일차" ~ "{이름} 7일차" 7개 세트 (각 20개)
+ * 단어가 부족하면 채울 수 있는 일자까지만 생성한다.
+ */
+export async function autoCreateDailySets(
+  input: z.infer<typeof AutoCreateDailySetsSchema>,
+): Promise<{ error?: string; createdSets?: number }> {
+  const teacher = await getAuthedTeacher()
+  if (!teacher) return { error: '인증이 필요합니다.' }
+
+  const parsed = AutoCreateDailySetsSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
+
+  const { titleBase, description, cefrLevel, cefrLevels, perDay, totalDays, order } = parsed.data
+
+  const need = perDay * totalDays
+  const where = buildAutoWhere(cefrLevels, [])
+
+  // 필요한 만큼 단어 id 선택 (추천순 / 무작위)
+  let wordIds: string[]
+  if (order === 'random') {
+    const ids = await prisma.word.findMany({ where, select: { id: true } })
+    for (let i = ids.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[ids[i], ids[j]] = [ids[j], ids[i]]
+    }
+    wordIds = ids.slice(0, need).map((r) => r.id)
+  } else {
+    const ids = await prisma.word.findMany({
+      where,
+      select: { id: true },
+      orderBy: [{ cefrLevel: 'asc' }, { term: 'asc' }],
+      take: need,
+    })
+    wordIds = ids.map((r) => r.id)
+  }
+
+  if (wordIds.length === 0) {
+    return { error: '선택한 레벨에 사용할 수 있는 단어가 없습니다.' }
+  }
+
+  // 하루치(perDay)씩 묶기 — 최대 totalDays개, 단어가 있는 일자만 생성
+  const chunks: string[][] = []
+  for (let i = 0; i < wordIds.length && chunks.length < totalDays; i += perDay) {
+    chunks.push(wordIds.slice(i, i + perDay))
+  }
+
+  const multiDay = chunks.length > 1
+  await prisma.$transaction(async (tx) => {
+    for (let d = 0; d < chunks.length; d++) {
+      const set = await tx.wordSet.create({
+        data: {
+          title: multiDay ? `${titleBase} ${d + 1}일차` : titleBase,
+          description: description ?? null,
+          cefrLevel,
+          isPublic: false,
+          source: 'TEACHER',
+          ownerId: teacher.id,
+          academyId: teacher.academyId!,
+        },
+      })
+      await tx.wordSetItem.createMany({
+        data: chunks[d].map((wordId, i) => ({ setId: set.id, wordId, order: i })),
+      })
+    }
+  })
+
+  revalidatePath('/teacher/words')
+  redirect('/teacher/words')
 }
 
 // ─── 보충 세트 생성 (오답 단어만) ────────────────────────────────────────────────
