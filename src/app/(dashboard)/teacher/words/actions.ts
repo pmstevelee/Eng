@@ -171,6 +171,16 @@ export async function searchWords(
 const OXFORD_CEFR_VALUES = ['A1', 'A2', 'B1', 'B2', 'C1'] as const
 type OxfordCefrValue = (typeof OXFORD_CEFR_VALUES)[number]
 
+/**
+ * 위고업 단계(1~10) → Oxford CEFR(A1~C1) 매핑.
+ * Level 1·2 → A1, 3·4 → A2, 5·6 → B1, 7·8 → B2, 9·10 → C1
+ * (단어 DB의 cefrLevel ↔ oxfordCefr 대응: A1=L2, A2=L4, B1=L6, B2=L8, C1=L10)
+ */
+export function levelToOxfordCefr(level: number): OxfordCefrValue {
+  const idx = Math.min(5, Math.max(1, Math.ceil(level / 2)))
+  return OXFORD_CEFR_VALUES[idx - 1]
+}
+
 const CountAvailableSchema = z.object({
   cefrLevels: z.array(z.enum(OXFORD_CEFR_VALUES)).default([]),
   excludeWordIds: z.array(z.string().uuid()).default([]),
@@ -275,8 +285,11 @@ export async function autoCreateDailySets(
 
   const { titleBase, description, cefrLevel, cefrLevels, perDay, totalDays, order } = parsed.data
 
+  // 레벨 칩을 선택하지 않았으면 세트의 위고업 단계에 맞춰 자동 보정
+  const effectiveLevels = cefrLevels.length > 0 ? cefrLevels : [levelToOxfordCefr(cefrLevel)]
+
   const need = perDay * totalDays
-  const where = buildAutoWhere(cefrLevels, [])
+  const where = buildAutoWhere(effectiveLevels, [])
 
   // 필요한 만큼 단어 id 선택 (추천순 / 무작위)
   let wordIds: string[]

@@ -46,9 +46,18 @@ const CEFR_BADGE: Record<string, { bg: string; text: string }> = {
   C1: { bg: '#FFF3EE', text: '#E35C20' },
 }
 
-// 자동 생성: 레벨 옵션 (전체 = 모든 레벨)
+// 자동 생성: 레벨 옵션
 const AUTO_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'] as const
 type AutoLevel = (typeof AUTO_LEVELS)[number]
+
+/**
+ * 위고업 단계(1~10) → Oxford CEFR(A1~C1) 매핑.
+ * Level 1·2 → A1, 3·4 → A2, 5·6 → B1, 7·8 → B2, 9·10 → C1
+ */
+function levelToOxfordCefr(level: number): AutoLevel {
+  const idx = Math.min(5, Math.max(1, Math.ceil(level / 2)))
+  return AUTO_LEVELS[idx - 1]
+}
 
 // 학습 기간 프리셋 (라벨 → 일수)
 const DURATION_PRESETS = [
@@ -126,6 +135,10 @@ export function SetBuilderClient() {
   const [isAutoCreating, startAutoCreate] = useTransition()
   const [autoError, setAutoError] = useState<string | null>(null)
 
+  // 레벨 칩을 선택하지 않았으면 세트의 위고업 단계에 맞춰 자동 보정
+  const autoLevelFallback = autoLevels.length === 0
+  const effectiveLevels = autoLevelFallback ? [levelToOxfordCefr(cefrLevel)] : autoLevels
+
   const totalDays = daysBetween(startDate, endDate)
   const neededCount = perDay * totalDays
 
@@ -187,14 +200,15 @@ export function SetBuilderClient() {
     let cancelled = false
     setAvailableCount(null)
     const timer = setTimeout(async () => {
-      const count = await getAvailableWordCount({ cefrLevels: autoLevels, excludeWordIds: [] })
+      const count = await getAvailableWordCount({ cefrLevels: effectiveLevels, excludeWordIds: [] })
       if (!cancelled) setAvailableCount(count)
     }, 300)
     return () => {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [autoLevels])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLevels, cefrLevel])
 
   function toggleAutoLevel(level: AutoLevel) {
     setAutoLevels((prev) =>
@@ -248,7 +262,7 @@ export function SetBuilderClient() {
         titleBase: title.trim(),
         description: description.trim() || undefined,
         cefrLevel,
-        cefrLevels: autoLevels,
+        cefrLevels: effectiveLevels,
         perDay,
         totalDays,
         order: autoOrder,
@@ -357,7 +371,7 @@ export function SetBuilderClient() {
                   : 'bg-white text-gray-500 border-gray-200 hover:border-[#1865F2] hover:text-[#1865F2]'
               }`}
             >
-              전체
+              위고업 단계 따름
             </button>
             {AUTO_LEVELS.map((level) => {
               const active = autoLevels.includes(level)
@@ -377,6 +391,13 @@ export function SetBuilderClient() {
               )
             })}
           </div>
+          {autoLevelFallback && (
+            <p className="text-xs text-gray-500 mt-2">
+              레벨을 선택하지 않아 세트 정보의 <span className="font-semibold text-gray-700">위고업 단계(Level {cefrLevel})</span>에 맞춰{' '}
+              <span className="font-semibold text-[#1865F2]">{effectiveLevels[0]}</span> 단어로 생성됩니다.
+              다른 레벨을 직접 고르려면 위 칩을 선택하세요.
+            </p>
+          )}
         </div>
 
         {/* 학습 기간 */}
