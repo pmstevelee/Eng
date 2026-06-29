@@ -1,5 +1,6 @@
 'use server'
 
+import { randomUUID } from 'node:crypto'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
@@ -307,24 +308,27 @@ export async function autoCreateDailySets(
   }
 
   const multiDay = chunks.length > 1
-  await prisma.$transaction(async (tx) => {
-    for (let d = 0; d < chunks.length; d++) {
-      const set = await tx.wordSet.create({
-        data: {
-          title: multiDay ? `${titleBase} ${d + 1}일차` : titleBase,
-          description: description ?? null,
-          cefrLevel,
-          isPublic: false,
-          source: 'TEACHER',
-          ownerId: teacher.id,
-          academyId: teacher.academyId!,
-        },
-      })
-      await tx.wordSetItem.createMany({
-        data: chunks[d].map((wordId, i) => ({ setId: set.id, wordId, order: i })),
-      })
-    }
-  })
+
+  // 세트 id를 미리 생성해 두고 createMany 2번으로 일괄 삽입
+  // (일자 수가 많아도 트랜잭션이 길어지지 않도록 — interactive transaction 타임아웃 방지)
+  const setsData = chunks.map((_, d) => ({
+    id: randomUUID(),
+    title: multiDay ? `${titleBase} ${d + 1}일차` : titleBase,
+    description: description ?? null,
+    cefrLevel,
+    isPublic: false,
+    source: 'TEACHER' as const,
+    ownerId: teacher.id,
+    academyId: teacher.academyId!,
+  }))
+  const itemsData = chunks.flatMap((chunk, d) =>
+    chunk.map((wordId, i) => ({ setId: setsData[d].id, wordId, order: i })),
+  )
+
+  await prisma.$transaction([
+    prisma.wordSet.createMany({ data: setsData }),
+    prisma.wordSetItem.createMany({ data: itemsData }),
+  ])
 
   revalidatePath('/teacher/words')
   redirect('/teacher/words')
