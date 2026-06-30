@@ -2,8 +2,17 @@
 
 import { prisma } from '@/lib/prisma/client'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
+import type { PlanType } from '@/generated/prisma'
+
+// 플랜별 정원 (회원가입 PLAN_LIMITS와 동일 기준 + ENTERPRISE)
+const PLAN_LIMITS: Record<PlanType, { maxStudents: number; maxTeachers: number }> = {
+  BASIC: { maxStudents: 30, maxTeachers: 3 },
+  STANDARD: { maxStudents: 100, maxTeachers: 10 },
+  PREMIUM: { maxStudents: 300, maxTeachers: 30 },
+  ENTERPRISE: { maxStudents: 9999, maxTeachers: 999 },
+}
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -60,16 +69,24 @@ export async function changePlan(formData: FormData) {
   const validPlans = ['BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE']
   if (!validPlans.includes(plan)) return
 
+  const newPlan = plan as PlanType
+  const limits = PLAN_LIMITS[newPlan]
+
   await prisma.academy.update({
     where: { id: academyId },
     data: {
-      subscriptionPlan: plan as 'BASIC' | 'STANDARD' | 'PREMIUM' | 'ENTERPRISE',
-      planType: plan as 'BASIC' | 'STANDARD' | 'PREMIUM' | 'ENTERPRISE',
+      subscriptionPlan: newPlan,
+      planType: newPlan,
+      // 플랜에 맞춰 정원(교사/학생 한도)도 함께 적용
+      maxStudents: limits.maxStudents,
+      maxTeachers: limits.maxTeachers,
     },
   })
 
   revalidatePath(`/admin/academies/${academyId}`)
   revalidatePath('/admin/academies')
+  // 학원장 구독 페이지 캐시 무효화
+  revalidateTag(`academy-${academyId}-subscription`)
 }
 
 export async function suspendAcademy(formData: FormData) {
