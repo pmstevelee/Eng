@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
 import { BookOpen, Plus, BarChart2, Pencil } from 'lucide-react'
+import { DeleteSetButton } from './_components/delete-set-button'
 
 const SOURCE_LABEL: Record<string, string> = {
   PUBLISHER: '시스템',
@@ -102,6 +103,7 @@ export default async function TeacherWordsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
+                  <DeleteSetButton setId={set.id} setTitle={set.title} />
                   <Link href={`/teacher/words/sets/${set.id}`}>
                     <Button variant="outline" size="sm" className="h-9 text-gray-600 border-gray-200">
                       <Pencil className="w-3.5 h-3.5 mr-1" />

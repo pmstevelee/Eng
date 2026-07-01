@@ -347,6 +347,31 @@ export async function autoCreateDailySets(
   redirect('/teacher/words')
 }
 
+// ─── 세트 삭제 ──────────────────────────────────────────────────────────────────
+
+export async function deleteTeacherWordSet(
+  setId: string,
+): Promise<{ error?: string }> {
+  const teacher = await getAuthedTeacher()
+  if (!teacher) return { error: '인증이 필요합니다.' }
+
+  const wordSet = await prisma.wordSet.findFirst({
+    where: { id: setId, academyId: teacher.academyId! },
+    select: { id: true, source: true, ownerId: true },
+  })
+  if (!wordSet) return { error: '세트를 찾을 수 없습니다.' }
+  if (wordSet.source === 'PUBLISHER') return { error: '시스템 기본 세트는 삭제할 수 없습니다.' }
+  if (wordSet.ownerId !== teacher.id) return { error: '내가 만든 세트만 삭제할 수 있습니다.' }
+
+  await prisma.$transaction([
+    prisma.wordSetItem.deleteMany({ where: { setId } }),
+    prisma.wordSet.delete({ where: { id: setId } }),
+  ])
+
+  revalidatePath('/teacher/words')
+  return {}
+}
+
 // ─── 보충 세트 생성 (오답 단어만) ────────────────────────────────────────────────
 
 export async function createSupplementarySet(
