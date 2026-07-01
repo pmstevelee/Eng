@@ -176,7 +176,7 @@ type OxfordCefrValue = (typeof OXFORD_CEFR_VALUES)[number]
  * Level 1·2 → A1, 3·4 → A2, 5·6 → B1, 7·8 → B2, 9·10 → C1
  * (단어 DB의 cefrLevel ↔ oxfordCefr 대응: A1=L2, A2=L4, B1=L6, B2=L8, C1=L10)
  */
-export function levelToOxfordCefr(level: number): OxfordCefrValue {
+function levelToOxfordCefr(level: number): OxfordCefrValue {
   const idx = Math.min(5, Math.max(1, Math.ceil(level / 2)))
   return OXFORD_CEFR_VALUES[idx - 1]
 }

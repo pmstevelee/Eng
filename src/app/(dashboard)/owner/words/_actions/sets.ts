@@ -86,7 +86,7 @@ export async function searchWordsForOwner(
 const OXFORD_CEFR_VALUES = ['A1', 'A2', 'B1', 'B2', 'C1'] as const
 type OxfordCefrValue = (typeof OXFORD_CEFR_VALUES)[number]
 
-export function levelToOxfordCefr(level: number): OxfordCefrValue {
+function levelToOxfordCefr(level: number): OxfordCefrValue {
   const idx = Math.min(5, Math.max(1, Math.ceil(level / 2)))
   return OXFORD_CEFR_VALUES[idx - 1]
 }
