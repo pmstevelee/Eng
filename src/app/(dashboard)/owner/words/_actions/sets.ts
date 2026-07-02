@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
+import { mapOxfordCefrToWegoupLevel } from '@/lib/words/cefr-mapping'
 
 async function getAuthedOwner() {
   const supabase = await createClient()
@@ -220,11 +221,12 @@ export async function autoCreateOwnerDailySets(
 
   const multiDay = chunks.length > 1
 
+  const savedCefrLevel = mapOxfordCefrToWegoupLevel(effectiveLevels[0])
   const setsData = chunks.map((_, d) => ({
     id: randomUUID(),
     title: multiDay ? `${titleBase} ${d + 1}일차` : titleBase,
     description: description ?? null,
-    cefrLevel,
+    cefrLevel: savedCefrLevel,
     isPublic: false,
     source: 'TEACHER' as const,
     ownerId: owner.id,

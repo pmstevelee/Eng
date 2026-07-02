@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
+import { mapOxfordCefrToWegoupLevel } from '@/lib/words/cefr-mapping'
 import type { WordTestMode } from '@/generated/prisma'
 
 async function getAuthedTeacher() {
@@ -324,11 +325,12 @@ export async function autoCreateDailySets(
 
   // 세트 id를 미리 생성해 두고 createMany 2번으로 일괄 삽입
   // (일자 수가 많아도 트랜잭션이 길어지지 않도록 — interactive transaction 타임아웃 방지)
+  const savedCefrLevel = mapOxfordCefrToWegoupLevel(effectiveLevels[0])
   const setsData = chunks.map((_, d) => ({
     id: randomUUID(),
     title: multiDay ? `${titleBase} ${d + 1}일차` : titleBase,
     description: description ?? null,
-    cefrLevel,
+    cefrLevel: savedCefrLevel,
     isPublic: false,
     source: 'TEACHER' as const,
     ownerId: teacher.id,
