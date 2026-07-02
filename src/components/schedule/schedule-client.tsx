@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { WeeklyView } from './weekly-view'
 import { MonthlyView } from './monthly-view'
 import { AddEventDialog } from './add-event-dialog'
-import { ClassData, TestEvent, PersonalEvent, getWeekStart, formatDateStr } from './types'
+import { ClassData, TestEvent, PersonalEvent, ActivityEvent, getWeekStart, formatDateStr } from './types'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 type ViewMode = 'weekly' | 'monthly'
@@ -17,12 +17,25 @@ type Props = {
   classes: ClassData[]
   tests: TestEvent[]
   pendingCount: number
+  activities?: ActivityEvent[]
+  /** 반/학생 바로가기 링크의 기준 경로 (교사: /teacher, 학원장: /owner) */
+  basePath?: string
+  /** "오늘 할 일" 페이지 링크 표시 여부 (해당 라우트가 있는 역할만) */
+  showTodayLink?: boolean
 }
 
 const STORAGE_KEY_PREFIX = 'teacher_events_'
 
 // ─── 컴포넌트 ─────────────────────────────────────────────────────────────────
-export function ScheduleClient({ userId, classes, tests, pendingCount }: Props) {
+export function ScheduleClient({
+  userId,
+  classes,
+  tests,
+  pendingCount,
+  activities = [],
+  basePath = '/teacher',
+  showTodayLink = true,
+}: Props) {
   const [view, setView] = useState<ViewMode>('weekly')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [personalEvents, setPersonalEvents] = useState<PersonalEvent[]>([])
@@ -112,7 +125,7 @@ export function ScheduleClient({ userId, classes, tests, pendingCount }: Props) 
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {pendingCount > 0 && (
-            <Link href="/teacher/tests">
+            <Link href={`${basePath}/tests`}>
               <Button
                 variant="outline"
                 size="sm"
@@ -122,12 +135,14 @@ export function ScheduleClient({ userId, classes, tests, pendingCount }: Props) 
               </Button>
             </Link>
           )}
-          <Link href="/teacher/schedule/today">
-            <Button variant="outline" size="sm" className="h-9 gap-1.5">
-              <Clock size={14} />
-              오늘 할 일
-            </Button>
-          </Link>
+          {showTodayLink && (
+            <Link href={`${basePath}/schedule/today`}>
+              <Button variant="outline" size="sm" className="h-9 gap-1.5">
+                <Clock size={14} />
+                오늘 할 일
+              </Button>
+            </Link>
+          )}
           <Button
             size="sm"
             className="h-9 gap-1.5 bg-primary-700 text-white hover:bg-primary-800"
@@ -202,9 +217,11 @@ export function ScheduleClient({ userId, classes, tests, pendingCount }: Props) 
       {classes.length === 0 && (
         <div className="rounded-xl border border-dashed border-gray-200 bg-white py-12 text-center">
           <CalendarDays size={32} className="mx-auto mb-3 text-gray-300" />
-          <p className="text-sm font-medium text-gray-500">담당 반이 없습니다</p>
+          <p className="text-sm font-medium text-gray-500">
+            {basePath === '/owner' ? '등록된 반이 없습니다' : '담당 반이 없습니다'}
+          </p>
           <p className="mt-1 text-xs text-gray-400">
-            학원장에게 반 배정을 요청해 주세요
+            {basePath === '/owner' ? '반관리에서 반을 먼저 등록해 주세요' : '학원장에게 반 배정을 요청해 주세요'}
           </p>
         </div>
       )}
@@ -217,6 +234,8 @@ export function ScheduleClient({ userId, classes, tests, pendingCount }: Props) 
             classes={classes}
             tests={tests}
             personalEvents={personalEvents}
+            activities={activities}
+            basePath={basePath}
             onDeleteEvent={handleDeleteEvent}
             onDayClick={handleDayClick}
           />
@@ -226,6 +245,7 @@ export function ScheduleClient({ userId, classes, tests, pendingCount }: Props) 
             classes={classes}
             tests={tests}
             personalEvents={personalEvents}
+            activities={activities}
             onDayClick={handleDayClick}
           />
         )

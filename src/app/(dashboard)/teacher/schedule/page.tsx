@@ -2,11 +2,12 @@ import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
-import { ScheduleClient } from './_components/schedule-client'
+import { getStudentActivityEvents } from '@/lib/schedule/get-student-activity'
+import { ScheduleClient } from '@/components/schedule/schedule-client'
 
 // ─── 데이터 패칭 ──────────────────────────────────────────────────────────────
 async function getScheduleData(userId: string, academyId: string) {
-  const [myClasses, publishedTests, pendingCount] = await Promise.all([
+  const [myClasses, publishedTests, pendingCount, myStudents] = await Promise.all([
     prisma.class.findMany({
       where: { teacherId: userId, isActive: true, academyId },
       select: {
@@ -35,7 +36,14 @@ async function getScheduleData(userId: string, academyId: string) {
     prisma.testSession.count({
       where: { test: { createdBy: userId }, status: 'COMPLETED' },
     }),
+
+    prisma.student.findMany({
+      where: { class: { teacherId: userId, academyId }, status: 'ACTIVE' },
+      select: { id: true },
+    }),
   ])
+
+  const activities = await getStudentActivityEvents(myStudents.map((s) => s.id))
 
   return {
     classes: myClasses.map((c) => ({
@@ -53,6 +61,7 @@ async function getScheduleData(userId: string, academyId: string) {
       createdAt: t.createdAt.toISOString(),
     })),
     pendingCount,
+    activities,
   }
 }
 
@@ -73,7 +82,7 @@ export default async function SchedulePage() {
   if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
 
   const dataStart = performance.now()
-  const { classes, tests, pendingCount } = await getCachedScheduleData(user.id, user.academyId)
+  const { classes, tests, pendingCount, activities } = await getCachedScheduleData(user.id, user.academyId)
   console.log(`  [쿼리2] getCachedScheduleData: ${(performance.now() - dataStart).toFixed(0)}ms`)
 
   const totalTime = performance.now() - pageStart
@@ -86,6 +95,7 @@ export default async function SchedulePage() {
       classes={classes}
       tests={tests}
       pendingCount={pendingCount}
+      activities={activities}
     />
   )
 }

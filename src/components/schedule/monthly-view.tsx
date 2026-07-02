@@ -5,8 +5,12 @@ import {
   ClassData,
   TestEvent,
   PersonalEvent,
+  ActivityEvent,
   CLASS_COLORS,
   EVENT_TYPE_COLORS,
+  ACTIVITY_TYPE_COLORS,
+  ACTIVITY_TYPE_LABELS,
+  ACTIVITY_TYPE_ICONS,
   parseScheduleJson,
   formatDateStr,
   personalEventMatchesDate,
@@ -15,10 +19,11 @@ import {
 const DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
 
 type DayEvent = {
-  kind: 'class' | 'test' | 'personal'
+  kind: 'class' | 'test' | 'personal' | 'activity'
   label: string
   color: string
   light: string
+  title?: string
 }
 
 type Props = {
@@ -26,10 +31,18 @@ type Props = {
   classes: ClassData[]
   tests: TestEvent[]
   personalEvents: PersonalEvent[]
+  activities?: ActivityEvent[]
   onDayClick: (date: string) => void
 }
 
-export function MonthlyView({ currentDate, classes, tests, personalEvents, onDayClick }: Props) {
+export function MonthlyView({
+  currentDate,
+  classes,
+  tests,
+  personalEvents,
+  activities = [],
+  onDayClick,
+}: Props) {
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth() // 0-indexed
 
@@ -104,8 +117,23 @@ export function MonthlyView({ currentDate, classes, tests, personalEvents, onDay
       })
     }
 
+    // 학생 활동 이력 (날짜별 kind 하나씩 집계된 상태로 전달됨)
+    activities.forEach((activity) => {
+      const d = new Date(activity.date)
+      if (d.getFullYear() === year && d.getMonth() === month) {
+        const color = ACTIVITY_TYPE_COLORS[activity.kind]
+        addEvent(activity.date, {
+          kind: 'activity',
+          label: `${ACTIVITY_TYPE_LABELS[activity.kind]} ${activity.count}`,
+          color: color.bg,
+          light: color.light,
+          title: `${ACTIVITY_TYPE_LABELS[activity.kind]} ${activity.count}건 (${activity.studentNames.join(', ')})`,
+        })
+      }
+    })
+
     return map
-  }, [classes, tests, personalEvents, year, month, daysInMonth])
+  }, [classes, tests, personalEvents, activities, year, month, daysInMonth])
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
@@ -182,6 +210,7 @@ export function MonthlyView({ currentDate, classes, tests, personalEvents, onDay
                     key={eIdx}
                     className="flex items-center gap-1 rounded px-1 py-0.5"
                     style={{ backgroundColor: event.light }}
+                    title={event.title}
                   >
                     <div
                       className="h-1.5 w-1.5 shrink-0 rounded-full"
@@ -191,7 +220,11 @@ export function MonthlyView({ currentDate, classes, tests, personalEvents, onDay
                       className="min-w-0 flex-1 truncate text-[10px] font-medium leading-tight"
                       style={{ color: event.color }}
                     >
-                      {event.kind === 'test' ? `📝 ${event.label}` : event.label}
+                      {event.kind === 'test'
+                        ? `📝 ${event.label}`
+                        : event.kind === 'activity'
+                          ? `🎯 ${event.label}`
+                          : event.label}
                     </span>
                   </div>
                 ))}
@@ -226,6 +259,19 @@ export function MonthlyView({ currentDate, classes, tests, personalEvents, onDay
             <span className="text-xs text-gray-600">출제 테스트</span>
           </div>
         )}
+        {(['WORD_STUDY', 'WORD_TEST', 'TEST'] as const)
+          .filter((kind) => activities.some((a) => a.kind === kind))
+          .map((kind) => (
+            <div key={kind} className="flex items-center gap-1.5">
+              <div
+                className="h-2.5 w-2.5 shrink-0 rounded-sm"
+                style={{ backgroundColor: ACTIVITY_TYPE_COLORS[kind].bg }}
+              />
+              <span className="text-xs text-gray-600">
+                {ACTIVITY_TYPE_ICONS[kind]} {ACTIVITY_TYPE_LABELS[kind]}
+              </span>
+            </div>
+          ))}
       </div>
     </div>
   )

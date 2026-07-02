@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle2, Circle, ClipboardList, CalendarDays } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { PersonalEvent, personalEventMatchesDate, EVENT_TYPE_LABELS } from '@/app/(dashboard)/teacher/schedule/_components/types'
+import { PersonalEvent, personalEventMatchesDate, EVENT_TYPE_LABELS } from '@/components/schedule/types'
 
 interface TodoItem {
   id: string

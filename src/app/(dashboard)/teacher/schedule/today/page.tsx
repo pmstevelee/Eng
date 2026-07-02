@@ -15,7 +15,7 @@ import { prisma } from '@/lib/prisma/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { TodayTodoList } from './_components/today-client'
-import { parseScheduleJson, CLASS_COLORS, TEST_TYPE_LABELS } from '../_components/types'
+import { parseScheduleJson, CLASS_COLORS, TEST_TYPE_LABELS } from '@/components/schedule/types'
 
 // ─── 데이터 패칭 ──────────────────────────────────────────────────────────────
 async function getTodayData(userId: string, academyId: string) {

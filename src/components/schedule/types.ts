@@ -75,6 +75,35 @@ export const TEST_TYPE_LABELS: Record<string, string> = {
   PRACTICE:   '연습테스트',
 }
 
+// ─── 학생 활동 이력 (단어학습/단어시험/테스트응시) ─────────────────────────────
+export type ActivityKind = 'WORD_STUDY' | 'WORD_TEST' | 'TEST'
+
+/** 특정 날짜에 발생한 학생 활동 요약 (하루 단위 집계) */
+export type ActivityEvent = {
+  date: string // "YYYY-MM-DD"
+  kind: ActivityKind
+  count: number           // 해당일 발생 건수
+  studentNames: string[]  // 참여 학생 이름 (중복 제거, 최대 10명)
+}
+
+export const ACTIVITY_TYPE_COLORS: Record<ActivityKind, { bg: string; light: string; text: string }> = {
+  WORD_STUDY: { bg: '#7854F7', light: '#F3EFFF', text: '#7854F7' }, // accent-purple
+  WORD_TEST:  { bg: '#0FBFAD', light: '#E6FAF8', text: '#0B8A81' }, // accent-teal
+  TEST:       { bg: '#E91E8A', light: '#FDEAF5', text: '#B8156D' }, // domain-listening
+}
+
+export const ACTIVITY_TYPE_LABELS: Record<ActivityKind, string> = {
+  WORD_STUDY: '단어학습',
+  WORD_TEST:  '단어시험',
+  TEST:       '테스트 응시',
+}
+
+export const ACTIVITY_TYPE_ICONS: Record<ActivityKind, string> = {
+  WORD_STUDY: '📚',
+  WORD_TEST:  '✏️',
+  TEST:       '📊',
+}
+
 // ─── 유틸리티 ─────────────────────────────────────────────────────────────────
 
 /** schedule_json (unknown) → ScheduleItem[] 파싱 (유효하지 않으면 빈 배열) */

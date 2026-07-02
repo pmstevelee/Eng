@@ -7,10 +7,14 @@ import {
   ClassData,
   TestEvent,
   PersonalEvent,
+  ActivityEvent,
   ScheduleItem,
   CLASS_COLORS,
   EVENT_TYPE_COLORS,
   TEST_TYPE_LABELS,
+  ACTIVITY_TYPE_COLORS,
+  ACTIVITY_TYPE_LABELS,
+  ACTIVITY_TYPE_ICONS,
   parseScheduleJson,
   formatDateStr,
   getWeekStart,
@@ -32,6 +36,8 @@ type Props = {
   classes: ClassData[]
   tests: TestEvent[]
   personalEvents: PersonalEvent[]
+  activities?: ActivityEvent[]
+  basePath?: string
   onDeleteEvent: (id: string) => void
   onDayClick: (date: string) => void
 }
@@ -53,6 +59,8 @@ export function WeeklyView({
   classes,
   tests,
   personalEvents,
+  activities = [],
+  basePath = '/teacher',
   onDeleteEvent,
   onDayClick,
 }: Props) {
@@ -112,6 +120,17 @@ export function WeeklyView({
     return blocks
   }, [tests, weekDates])
 
+  // 이번 주 학생 활동 이력 (날짜별)
+  const activitiesByDate = useMemo(() => {
+    const map = new Map<string, ActivityEvent[]>()
+    activities.forEach((a) => {
+      const list = map.get(a.date) ?? []
+      list.push(a)
+      map.set(a.date, list)
+    })
+    return map
+  }, [activities])
+
   const hours = Array.from({ length: TOTAL_HOURS }, (_, i) => HOUR_START + i)
 
   return (
@@ -128,6 +147,7 @@ export function WeeklyView({
           const dateStr = formatDateStr(date)
           const isToday = dateStr === todayStr
           const dayTests = testBlocks.filter((b) => b.dateStr === dateStr)
+          const dayActivities = activitiesByDate.get(dateStr) ?? []
           return (
             <button
               key={i}
@@ -167,6 +187,20 @@ export function WeeklyView({
                   📝 {b.test.title.length > 5 ? b.test.title.slice(0, 5) + '…' : b.test.title}
                 </div>
               ))}
+              {/* 학생 활동 배지 */}
+              {dayActivities.map((a) => {
+                const color = ACTIVITY_TYPE_COLORS[a.kind]
+                return (
+                  <div
+                    key={a.kind}
+                    className="mt-1 mx-0.5 truncate rounded-full px-1.5 py-0.5 text-[9px] font-medium"
+                    style={{ backgroundColor: color.light, color: color.text }}
+                    title={`${ACTIVITY_TYPE_LABELS[a.kind]} ${a.count}건 (${a.studentNames.join(', ')})`}
+                  >
+                    {ACTIVITY_TYPE_ICONS[a.kind]} {ACTIVITY_TYPE_LABELS[a.kind]} {a.count}
+                  </div>
+                )
+              })}
             </button>
           )
         })}
@@ -230,7 +264,7 @@ export function WeeklyView({
                   return (
                     <Link
                       key={`${block.cls.id}-${idx}`}
-                      href={`/teacher/students?classId=${block.cls.id}`}
+                      href={`${basePath}/students?classId=${block.cls.id}`}
                       className="absolute left-1 right-1 rounded-lg overflow-hidden hover:opacity-90 transition-opacity z-10 cursor-pointer"
                       style={{
                         ...style,
@@ -345,9 +379,9 @@ export function WeeklyView({
       </div>{/* overflow-x-auto */}
 
       {/* ── 범례 ── */}
-      {classes.length > 0 && (
+      {(classes.length > 0 || activities.length > 0) && (
         <div className="flex flex-wrap items-center gap-3 border-t border-gray-100 bg-gray-50 px-4 py-2.5">
-          <span className="text-xs text-gray-400">담당 반</span>
+          {classes.length > 0 && <span className="text-xs text-gray-400">담당 반</span>}
           {classes.map((cls, idx) => {
             const color = CLASS_COLORS[idx % CLASS_COLORS.length]
             return (
@@ -361,6 +395,22 @@ export function WeeklyView({
               </div>
             )
           })}
+          {activities.length > 0 && (
+            <>
+              <span className="ml-2 text-xs text-gray-400">학생 활동</span>
+              {(['WORD_STUDY', 'WORD_TEST', 'TEST'] as const)
+                .filter((kind) => activities.some((a) => a.kind === kind))
+                .map((kind) => (
+                  <div key={kind} className="flex items-center gap-1.5">
+                    <div
+                      className="h-2.5 w-2.5 rounded-sm flex-shrink-0"
+                      style={{ backgroundColor: ACTIVITY_TYPE_COLORS[kind].bg }}
+                    />
+                    <span className="text-xs text-gray-600">{ACTIVITY_TYPE_LABELS[kind]}</span>
+                  </div>
+                ))}
+            </>
+          )}
         </div>
       )}
     </div>
