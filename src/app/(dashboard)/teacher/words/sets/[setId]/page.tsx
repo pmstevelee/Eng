@@ -51,10 +51,13 @@ export default async function TeacherWordSetPage({ params }: Props) {
   const wordIds = wordSet.items.map((i) => i.word.id)
   const totalWords = wordSet.items.length
 
-  // 이 세트의 단어에 대한 학생 진행 현황 집계
+  // 이 세트의 단어에 대한 학생 진행 현황 집계 (같은 학원 학생만)
   const progressRows = totalWords > 0
     ? await prisma.wordProgress.findMany({
-        where: { wordId: { in: wordIds } },
+        where: {
+          wordId: { in: wordIds },
+          student: { user: { academyId: user.academyId, isDeleted: false } },
+        },
         include: {
           student: {
             include: { user: { select: { name: true } } },
