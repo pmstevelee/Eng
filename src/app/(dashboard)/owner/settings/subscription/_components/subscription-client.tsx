@@ -158,8 +158,8 @@ export function SubscriptionClient({ currentPlan, academyName, pendingSubscripti
   function handleSelectPlan(plan: Plan) {
     if (plan === currentPlan || plan === 'FREE') return
     if (plan === 'STARTER') {
-      // 스타터는 카드 결제 페이지로 이동
-      router.push('/owner/billing/plans')
+      // 스타터는 카드 결제 페이지로 바로 이동
+      router.push('/owner/billing/checkout?plan=STARTER&cycle=MONTHLY')
       return
     }
     setSelectedPlan(plan === selectedPlan ? null : plan)
