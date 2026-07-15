@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation'
+import { revalidateTag, revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import { issueBillingKey, payWithBillingKey, cancelPayment, TossServerError } from '@/lib/tosspayments/server'
 import { PLAN_DISPLAY_NAMES, BILLING_CYCLE_DISPLAY_NAMES } from '@/lib/pricing'
+import { academyPlanSync } from '@/lib/billing/sync-academy'
 
 interface PageProps {
   searchParams: Promise<{ customerKey?: string; authKey?: string }>
@@ -135,7 +137,15 @@ export default async function TossSuccessPage({ searchParams }: PageProps) {
           cancelAtPeriodEnd: false,
         },
       })
+
+      await tx.academy.update({
+        where: { id: dbUser.academyId! },
+        data: academyPlanSync(subscription.plan, 'ACTIVE', periodEnd),
+      })
     })
+
+    revalidateTag(`academy-${dbUser.academyId}-subscription`)
+    revalidatePath('/owner/settings/subscription')
 
     redirect(`/owner/billing/success?plan=${subscription.plan}&cycle=${subscription.billingCycle}`)
   } catch (err) {

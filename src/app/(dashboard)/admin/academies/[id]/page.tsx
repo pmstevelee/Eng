@@ -23,12 +23,16 @@ const STATUS_CLASS: Record<SubscriptionStatus, string> = {
   CANCELED: 'bg-gray-100 text-gray-500',
 }
 const PLAN_LABEL: Record<PlanType, string> = {
+  FREE: '무료',
+  STARTER: '스타터',
   BASIC: '기본',
   STANDARD: '표준',
   PREMIUM: '프리미엄',
   ENTERPRISE: '엔터프라이즈',
 }
 const PLAN_CLASS: Record<PlanType, string> = {
+  FREE: 'bg-gray-100 text-gray-600',
+  STARTER: 'bg-primary-100 text-primary-700',
   BASIC: 'bg-gray-100 text-gray-600',
   STANDARD: 'bg-primary-100 text-primary-700',
   PREMIUM: 'bg-accent-purple-light text-accent-purple',
@@ -300,6 +304,8 @@ export default async function AcademyDetailPage({ params }: PageProps) {
               defaultValue={academy.subscriptionPlan}
               className="w-full h-9 px-3 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:outline-none focus:border-primary-700"
             >
+              <option value="FREE">무료</option>
+              <option value="STARTER">스타터</option>
               <option value="BASIC">기본</option>
               <option value="STANDARD">표준</option>
               <option value="PREMIUM">프리미엄</option>

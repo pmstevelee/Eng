@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma/client'
 import { payWithBillingKey, PortOneServerError } from '@/lib/portone/server'
 import { PLANS, PLAN_DISPLAY_NAMES } from '@/lib/pricing'
 import { Plan, BillingCycle } from '@/generated/prisma'
+import { academyPlanSync } from '@/lib/billing/sync-academy'
+import { revalidateTag, revalidatePath } from 'next/cache'
 
 export async function POST(req: NextRequest) {
   try {
@@ -168,14 +170,23 @@ export async function POST(req: NextRequest) {
       }
 
       // 플랜 즉시 업데이트
-      await prisma.subscription.update({
-        where: { id: subscription.id },
-        data: {
-          plan: validNewPlan,
-          billingCycle: validNewCycle,
-          cancelAtPeriodEnd: false,
-        },
-      })
+      await prisma.$transaction([
+        prisma.subscription.update({
+          where: { id: subscription.id },
+          data: {
+            plan: validNewPlan,
+            billingCycle: validNewCycle,
+            cancelAtPeriodEnd: false,
+          },
+        }),
+        prisma.academy.update({
+          where: { id: dbUser.academyId },
+          data: academyPlanSync(validNewPlan, 'ACTIVE', subscription.currentPeriodEnd),
+        }),
+      ])
+
+      revalidateTag(`academy-${dbUser.academyId}-subscription`)
+      revalidatePath('/owner/settings/subscription')
 
       return NextResponse.json({
         success: true,

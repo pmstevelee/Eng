@@ -8,6 +8,8 @@ import type { PlanType } from '@/generated/prisma'
 
 // 플랜별 정원 (회원가입 PLAN_LIMITS와 동일 기준 + ENTERPRISE)
 const PLAN_LIMITS: Record<PlanType, { maxStudents: number; maxTeachers: number }> = {
+  FREE: { maxStudents: 10, maxTeachers: 1 },
+  STARTER: { maxStudents: 20, maxTeachers: 2 },
   BASIC: { maxStudents: 30, maxTeachers: 3 },
   STANDARD: { maxStudents: 100, maxTeachers: 10 },
   PREMIUM: { maxStudents: 300, maxTeachers: 30 },
@@ -66,7 +68,7 @@ export async function changePlan(formData: FormData) {
   const plan = formData.get('plan') as string
   if (!academyId || !plan) return
 
-  const validPlans = ['BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE']
+  const validPlans = ['FREE', 'STARTER', 'BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE']
   if (!validPlans.includes(plan)) return
 
   const newPlan = plan as PlanType

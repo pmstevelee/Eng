@@ -16,6 +16,8 @@ datasource db {
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
 enum PlanType {
+  FREE
+  STARTER
   BASIC
   STANDARD
   PREMIUM

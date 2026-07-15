@@ -24,12 +24,16 @@ const PAYMENT_CLASS: Record<PaymentStatus, string> = {
   PARTIAL_CANCELED: 'bg-accent-gold-light text-accent-gold',
 }
 const PLAN_LABEL: Record<PlanType, string> = {
+  FREE: '무료',
+  STARTER: '스타터',
   BASIC: '기본',
   STANDARD: '표준',
   PREMIUM: '프리미엄',
   ENTERPRISE: '엔터프라이즈',
 }
 const PLAN_CLASS: Record<PlanType, string> = {
+  FREE: 'bg-gray-100 text-gray-600',
+  STARTER: 'bg-primary-100 text-primary-700',
   BASIC: 'bg-gray-100 text-gray-600',
   STANDARD: 'bg-primary-100 text-primary-700',
   PREMIUM: 'bg-accent-purple-light text-accent-purple',
@@ -228,6 +232,8 @@ function SubscriptionRow({
   rowClass: string
 }) {
   const PLAN_LABEL_MAP: Record<PlanType, string> = {
+    FREE: '무료',
+    STARTER: '스타터',
     BASIC: '기본',
     STANDARD: '표준',
     PREMIUM: '프리미엄',

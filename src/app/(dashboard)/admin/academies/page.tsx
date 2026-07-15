@@ -22,6 +22,8 @@ const STATUS_CLASS: Record<SubscriptionStatus, string> = {
 }
 
 const PLAN_LABEL: Record<PlanType, string> = {
+  FREE: '무료',
+  STARTER: '스타터',
   BASIC: '기본',
   STANDARD: '표준',
   PREMIUM: '프리미엄',
@@ -29,6 +31,8 @@ const PLAN_LABEL: Record<PlanType, string> = {
 }
 
 const PLAN_CLASS: Record<PlanType, string> = {
+  FREE: 'bg-gray-100 text-gray-600',
+  STARTER: 'bg-primary-100 text-primary-700',
   BASIC: 'bg-gray-100 text-gray-600',
   STANDARD: 'bg-primary-100 text-primary-700',
   PREMIUM: 'bg-accent-purple-light text-accent-purple',
@@ -36,7 +40,7 @@ const PLAN_CLASS: Record<PlanType, string> = {
 }
 
 const ALL_STATUSES: SubscriptionStatus[] = ['TRIAL', 'ACTIVE', 'EXPIRED', 'CANCELLED']
-const ALL_PLANS: PlanType[] = ['BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE']
+const ALL_PLANS: PlanType[] = ['FREE', 'STARTER', 'BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE']
 
 interface PageProps {
   searchParams: {

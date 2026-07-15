@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma/client'
 import { Plan, BillingCycle, PaymentStatus, PaymentType, SubscriptionStatus } from '@/generated/prisma'
 import { payWithBillingKey, TossServerError } from '@/lib/tosspayments/server'
 import { PLANS, STUDENT_OVERAGE, getOverageAmount } from '@/lib/pricing'
+import { academyPlanSync } from '@/lib/billing/sync-academy'
+import { revalidateTag } from 'next/cache'
 import {
   sendPaymentSuccess,
   sendPaymentFailed,
@@ -169,7 +171,13 @@ export async function processRecurringPayment(
           status: SubscriptionStatus.ACTIVE,
         },
       }),
+      prisma.academy.update({
+        where: { id: subscription.academyId },
+        data: academyPlanSync(subscription.plan, SubscriptionStatus.ACTIVE, nextPeriodEnd),
+      }),
     ])
+
+    revalidateTag(`academy-${subscription.academyId}-subscription`)
 
     const paidPayment = await prisma.payment.findUnique({ where: { id: payment.id } })
     if (paidPayment) {

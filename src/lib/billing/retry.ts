@@ -8,6 +8,8 @@ import {
   Plan,
 } from '@/generated/prisma'
 import { payWithBillingKey, PortOneServerError } from '@/lib/portone/server'
+import { academyPlanSync } from '@/lib/billing/sync-academy'
+import { revalidateTag } from 'next/cache'
 import {
   sendPaymentFailed,
   sendDowngradeWarning,
@@ -29,6 +31,7 @@ type PendingSchedule = {
     id: string
     academyId: string
     plan: Plan
+    currentPeriodEnd: Date
     billingKey: {
       portoneBillingKey: string
     } | null
@@ -112,7 +115,13 @@ export async function processRetry(schedule: PendingSchedule): Promise<void> {
         where: { id: subscription.id },
         data: { status: SubscriptionStatus.ACTIVE },
       }),
+      prisma.academy.update({
+        where: { id: subscription.academyId },
+        data: academyPlanSync(subscription.plan, SubscriptionStatus.ACTIVE, subscription.currentPeriodEnd),
+      }),
     ])
+
+    revalidateTag(`academy-${subscription.academyId}-subscription`)
   } catch (err) {
     const failureReason =
       err instanceof PortOneServerError ? err.message : '알 수 없는 오류'
@@ -164,7 +173,7 @@ export async function downgradeExpiredSubscriptions(): Promise<{
       status: SubscriptionStatus.PAST_DUE,
       updatedAt: { lte: cutoff },
     },
-    select: { id: true, academyId: true },
+    select: { id: true, academyId: true, currentPeriodEnd: true },
   })
 
   if (expiredSubscriptions.length === 0) {
@@ -174,12 +183,21 @@ export async function downgradeExpiredSubscriptions(): Promise<{
   const ids = expiredSubscriptions.map((s) => s.id)
   const academyIds = expiredSubscriptions.map((s) => s.academyId)
 
-  await prisma.subscription.updateMany({
-    where: { id: { in: ids } },
-    data: { status: SubscriptionStatus.EXPIRED, plan: Plan.FREE },
-  })
+  await prisma.$transaction([
+    prisma.subscription.updateMany({
+      where: { id: { in: ids } },
+      data: { status: SubscriptionStatus.EXPIRED, plan: Plan.FREE },
+    }),
+    ...expiredSubscriptions.map((sub) =>
+      prisma.academy.update({
+        where: { id: sub.academyId },
+        data: academyPlanSync(Plan.FREE, SubscriptionStatus.EXPIRED, sub.currentPeriodEnd),
+      }),
+    ),
+  ])
 
   for (const academyId of academyIds) {
+    revalidateTag(`academy-${academyId}-subscription`)
     await sendDowngradeExecuted(academyId)
   }
 
