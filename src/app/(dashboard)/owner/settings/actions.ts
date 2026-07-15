@@ -258,7 +258,17 @@ export async function sendPasswordResetEmail(): Promise<{ error?: string; succes
   const { error } = await supabase.auth.resetPasswordForEmail(authUser.email!, {
     redirectTo,
   })
-  if (error) return { error: '이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.' }
+  if (error) {
+    const isRateLimit =
+      error.status === 429 ||
+      error.code === 'over_email_send_rate_limit' ||
+      /rate limit|security purposes/i.test(error.message)
+    return {
+      error: isRateLimit
+        ? '요청이 너무 잦습니다. 잠시(약 1분) 후 다시 시도해주세요.'
+        : '이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.',
+    }
+  }
 
   return { success: true }
 }

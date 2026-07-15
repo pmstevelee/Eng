@@ -86,7 +86,15 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
         redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
       })
       if (error) {
-        setForgotMessage('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.')
+        const isRateLimit =
+          error.status === 429 ||
+          error.code === 'over_email_send_rate_limit' ||
+          /rate limit|security purposes/i.test(error.message)
+        setForgotMessage(
+          isRateLimit
+            ? '요청이 너무 잦습니다. 잠시(약 1분) 후 다시 시도해 주세요.'
+            : '오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'
+        )
       } else {
         setForgotMessage('비밀번호 재설정 링크를 이메일로 전송했습니다.')
       }
