@@ -1457,8 +1457,8 @@ function QuestionFormModal({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">최대 단어 수</label>
               <div className="flex items-center gap-3 h-11">
-                <input type="range" min={50} max={500} step={50} value={wordLimit} onChange={(e) => setWordLimit(Number(e.target.value))} className="w-full accent-primary-700" />
-                <span className="text-sm font-bold text-gray-700 w-12">{wordLimit}자</span>
+                <input type="range" min={50} max={10000} step={50} value={wordLimit} onChange={(e) => setWordLimit(Number(e.target.value))} className="w-full accent-primary-700" />
+                <span className="text-sm font-bold text-gray-700 w-16">{wordLimit}단어</span>
               </div>
             </div>
           )}
