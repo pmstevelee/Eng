@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 // ── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -18,6 +19,15 @@ export type PublicQuestionRow = {
   qualityScore: number | null
   usageCount: number
   createdAt: string
+}
+
+export type PublicQuestionFetchParams = {
+  page: number
+  pageSize: number
+  search?: string
+  domain?: string
+  difficulty?: number
+  source?: string
 }
 
 // ── 상수 ─────────────────────────────────────────────────────────────────────
@@ -71,27 +81,71 @@ function QualityBadge({ score }: { score: number | null }) {
 // ── 메인 컴포넌트 ──────────────────────────────────────────────────────────────
 
 type Props = {
-  questions: PublicQuestionRow[]
+  initialRows: PublicQuestionRow[]
+  initialTotal: number
+  pageSize?: number
+  actFetchPage: (params: PublicQuestionFetchParams) => Promise<{ rows: PublicQuestionRow[]; total: number }>
 }
 
-export default function PublicQuestionList({ questions }: Props) {
+export default function PublicQuestionList({ initialRows, initialTotal, pageSize = 20, actFetchPage }: Props) {
   const [search, setSearch] = useState('')
   const [filterDomain, setFilterDomain] = useState('')
   const [filterDifficulty, setFilterDifficulty] = useState('')
   const [filterSource, setFilterSource] = useState('')
 
-  const filtered = useMemo(() => {
-    return questions.filter((q) => {
-      if (filterDomain && q.domain !== filterDomain) return false
-      if (filterDifficulty && q.difficulty !== Number(filterDifficulty)) return false
-      if (filterSource && q.source !== filterSource) return false
-      if (search) {
-        const s = search.toLowerCase()
-        if (!q.questionText.toLowerCase().includes(s)) return false
-      }
-      return true
-    })
-  }, [questions, search, filterDomain, filterDifficulty, filterSource])
+  const [rows, setRows] = useState(initialRows)
+  const [total, setTotal] = useState(initialTotal)
+  const [page, setPage] = useState(1)
+  const [isFetching, setIsFetching] = useState(false)
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const loadPage = useCallback(async (
+    nextPage: number,
+    overrides: Partial<{ search: string; filterDomain: string; filterDifficulty: string; filterSource: string }> = {},
+  ) => {
+    setIsFetching(true)
+    try {
+      const domain = overrides.filterDomain ?? filterDomain
+      const difficulty = overrides.filterDifficulty ?? filterDifficulty
+      const source = overrides.filterSource ?? filterSource
+      const res = await actFetchPage({
+        page: nextPage,
+        pageSize,
+        search: overrides.search ?? search,
+        domain: domain || undefined,
+        difficulty: difficulty ? Number(difficulty) : undefined,
+        source: source || undefined,
+      })
+      setRows(res.rows)
+      setTotal(res.total)
+      setPage(nextPage)
+    } finally {
+      setIsFetching(false)
+    }
+  }, [actFetchPage, pageSize, search, filterDomain, filterDifficulty, filterSource])
+
+  const handleSearchChange = (v: string) => {
+    setSearch(v)
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    searchDebounceRef.current = setTimeout(() => loadPage(1, { search: v }), 350)
+  }
+
+  const handleDomainChange = (v: string) => {
+    setFilterDomain(v)
+    loadPage(1, { filterDomain: v })
+  }
+
+  const handleDifficultyChange = (v: string) => {
+    setFilterDifficulty(v)
+    loadPage(1, { filterDifficulty: v })
+  }
+
+  const handleSourceChange = (v: string) => {
+    setFilterSource(v)
+    loadPage(1, { filterSource: v })
+  }
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
@@ -109,7 +163,7 @@ export default function PublicQuestionList({ questions }: Props) {
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <Input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="문제 검색..."
             className="pl-8 h-9 text-sm"
           />
@@ -117,7 +171,7 @@ export default function PublicQuestionList({ questions }: Props) {
 
         <select
           value={filterDomain}
-          onChange={(e) => setFilterDomain(e.target.value)}
+          onChange={(e) => handleDomainChange(e.target.value)}
           className="h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 bg-white"
         >
           <option value="">전체 영역</option>
@@ -128,7 +182,7 @@ export default function PublicQuestionList({ questions }: Props) {
 
         <select
           value={filterDifficulty}
-          onChange={(e) => setFilterDifficulty(e.target.value)}
+          onChange={(e) => handleDifficultyChange(e.target.value)}
           className="h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 bg-white"
         >
           <option value="">전체 난이도</option>
@@ -139,7 +193,7 @@ export default function PublicQuestionList({ questions }: Props) {
 
         <select
           value={filterSource}
-          onChange={(e) => setFilterSource(e.target.value)}
+          onChange={(e) => handleSourceChange(e.target.value)}
           className="h-9 rounded-lg border border-gray-200 px-3 text-sm text-gray-700 bg-white"
         >
           <option value="">전체 출처</option>
@@ -148,7 +202,9 @@ export default function PublicQuestionList({ questions }: Props) {
           ))}
         </select>
 
-        <span className="text-xs text-gray-400 ml-auto">{filtered.length}개</span>
+        <span className="text-xs text-gray-400 ml-auto">
+          {total}개{isFetching && ' · 불러오는 중...'}
+        </span>
       </div>
 
       {/* 테이블 */}
@@ -165,14 +221,14 @@ export default function PublicQuestionList({ questions }: Props) {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 && (
+            {rows.length === 0 && (
               <tr>
                 <td colSpan={6} className="py-12 text-center text-sm text-gray-400">
                   문제가 없습니다.
                 </td>
               </tr>
             )}
-            {filtered.map((q) => (
+            {rows.map((q) => (
               <tr key={q.id} className="border-b border-gray-50 hover:bg-gray-50">
                 <td className="py-3 px-4">
                   <span
@@ -206,6 +262,31 @@ export default function PublicQuestionList({ questions }: Props) {
           </tbody>
         </table>
       </div>
+
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 py-4 border-t border-gray-100">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => loadPage(page - 1)}
+            disabled={page <= 1 || isFetching}
+          >
+            이전
+          </Button>
+          <span className="text-sm text-gray-500">
+            <strong className="text-gray-900">{page}</strong> / {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => loadPage(page + 1)}
+            disabled={page >= totalPages || isFetching}
+          >
+            다음
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useTransition, useCallback, useRef } from 'react'
+import { useState, useTransition, useCallback, useRef } from 'react'
 import {
   Plus,
   Search,
@@ -99,6 +99,17 @@ type CreateInput = {
 }
 
 type UpdateInput = CreateInput & { id: string }
+
+export type QuestionBankFetchParams = {
+  scope: 'academy' | 'all'
+  page: number
+  pageSize: number
+  search?: string
+  domain?: QuestionDomainType | 'ALL'
+  questionType?: string
+  cefrLevel?: string
+  difficulty?: number
+}
 
 // ── 상수 ──────────────────────────────────────────────────────────────────────
 
@@ -1802,13 +1813,21 @@ function SimilarQuestionsModal({
 // ── 메인 내보내기 ─────────────────────────────────────────────────────────────
 
 export default function QuestionBankClient({
-  questions: initialQuestions,
+  scope,
+  initialRows,
+  initialTotal,
+  pageSize = 20,
+  actFetchPage,
   actCreate,
   actUpdate,
   actDelete,
   actGetDetail,
 }: {
-  questions: QuestionRow[]
+  scope: 'academy' | 'all'
+  initialRows: QuestionRow[]
+  initialTotal: number
+  pageSize?: number
+  actFetchPage: (params: QuestionBankFetchParams) => Promise<{ rows: QuestionRow[]; total: number }>
   actCreate: (input: CreateInput) => Promise<{ error?: string; id?: string }>
   actUpdate: (input: UpdateInput) => Promise<{ error?: string }>
   actDelete: (id: string) => Promise<{ error?: string }>
@@ -1820,30 +1839,76 @@ export default function QuestionBankClient({
   const [filterCefr, setFilterCefr] = useState<string>('ALL')
   const [filterDifficulty, setFilterDifficulty] = useState<number>(0)
 
+  const [rows, setRows] = useState<QuestionRow[]>(initialRows)
+  const [total, setTotal] = useState(initialTotal)
+  const [page, setPage] = useState(1)
+  const [isFetching, setIsFetching] = useState(false)
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const [formModal, setFormModal] = useState<{ open: boolean; question: QuestionDetailRow | null }>({ open: false, question: null })
   const [previewQuestion, setPreviewQuestion] = useState<QuestionDetailRow | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<QuestionRow | null>(null)
   const [similarTarget, setSimilarTarget] = useState<QuestionDetailRow | null>(null)
 
-  const filtered = useMemo(() => {
-    return initialQuestions.filter((q) => {
-      if (filterDomain !== 'ALL' && q.domain !== filterDomain) return false
-      if (filterType !== 'ALL' && q.questionType !== filterType) return false
-      if (filterCefr !== 'ALL' && q.cefrLevel !== filterCefr) return false
-      if (filterDifficulty > 0 && q.difficulty !== filterDifficulty) return false
-      if (search) {
-        const s = search.toLowerCase()
-        return q.questionText.toLowerCase().includes(s) || (q.subCategory ?? '').toLowerCase().includes(s)
-      }
-      return true
-    })
-  }, [initialQuestions, filterDomain, filterType, filterCefr, filterDifficulty, search])
+  const loadPage = useCallback(async (
+    nextPage: number,
+    overrides: Partial<{ search: string; filterDomain: QuestionDomainType | 'ALL'; filterType: QuestionType | 'ALL'; filterCefr: string; filterDifficulty: number }> = {},
+  ) => {
+    setIsFetching(true)
+    try {
+      const res = await actFetchPage({
+        scope,
+        page: nextPage,
+        pageSize,
+        search: overrides.search ?? search,
+        domain: overrides.filterDomain ?? filterDomain,
+        questionType: overrides.filterType ?? filterType,
+        cefrLevel: overrides.filterCefr ?? filterCefr,
+        difficulty: overrides.filterDifficulty ?? filterDifficulty,
+      })
+      setRows(res.rows)
+      setTotal(res.total)
+      setPage(nextPage)
+    } finally {
+      setIsFetching(false)
+    }
+  }, [actFetchPage, scope, pageSize, search, filterDomain, filterType, filterCefr, filterDifficulty])
+
+  const handleSearchChange = useCallback((v: string) => {
+    setSearch(v)
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    searchDebounceRef.current = setTimeout(() => {
+      loadPage(1, { search: v })
+    }, 350)
+  }, [loadPage])
+
+  const handleDomainChange = useCallback((v: QuestionDomainType | 'ALL') => {
+    setFilterDomain(v)
+    loadPage(1, { filterDomain: v })
+  }, [loadPage])
+
+  const handleTypeChange = useCallback((v: QuestionType | 'ALL') => {
+    setFilterType(v)
+    loadPage(1, { filterType: v })
+  }, [loadPage])
+
+  const handleCefrChange = useCallback((v: string) => {
+    setFilterCefr(v)
+    loadPage(1, { filterCefr: v })
+  }, [loadPage])
+
+  const handleDifficultyChange = useCallback((v: number) => {
+    setFilterDifficulty(v)
+    loadPage(1, { filterDifficulty: v })
+  }, [loadPage])
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
   const detailCacheRef = useRef<Record<string, QuestionContentJson>>({})
   const [loadingDetailId, setLoadingDetailId] = useState<string | null>(null)
 
-  const loadDetail = useCallback(async (id: string): Promise<QuestionContentJson | null> => {
-    if (detailCacheRef.current[id]) return detailCacheRef.current[id]
+  const loadDetail = useCallback(async (id: string, opts?: { fresh?: boolean }): Promise<QuestionContentJson | null> => {
+    if (!opts?.fresh && detailCacheRef.current[id]) return detailCacheRef.current[id]
     const data = await actGetDetail(id)
     if (data) detailCacheRef.current[id] = data
     return data
@@ -1874,18 +1939,20 @@ export default function QuestionBankClient({
 
   const handleSaved = useCallback(() => {
     setFormModal({ open: false, question: null })
-    window.location.reload()
-  }, [])
+    detailCacheRef.current = {}
+    loadPage(page)
+  }, [loadPage, page])
 
   const handleDeleted = useCallback(() => {
     setDeleteTarget(null)
-    window.location.reload()
-  }, [])
+    const nextPage = rows.length <= 1 && page > 1 ? page - 1 : page
+    loadPage(nextPage)
+  }, [loadPage, page, rows.length])
 
   const handleSimilarSaved = useCallback(() => {
     setSimilarTarget(null)
-    window.location.reload()
-  }, [])
+    loadPage(page)
+  }, [loadPage, page])
 
   return (
     <div className="space-y-6">
@@ -1895,13 +1962,13 @@ export default function QuestionBankClient({
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
           <Input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="문제 본문 검색..."
             className="pl-9"
           />
         </div>
 
-        <StyledSelect value={filterDomain} onChange={(v) => setFilterDomain(v as QuestionDomainType | 'ALL')}>
+        <StyledSelect value={filterDomain} onChange={(v) => handleDomainChange(v as QuestionDomainType | 'ALL')}>
           <option value="ALL">전체 영역</option>
           <option value="GRAMMAR">문법</option>
           <option value="VOCABULARY">어휘</option>
@@ -1910,7 +1977,7 @@ export default function QuestionBankClient({
           <option value="LISTENING">듣기</option>
         </StyledSelect>
 
-        <StyledSelect value={filterType} onChange={(v) => setFilterType(v as QuestionType | 'ALL')}>
+        <StyledSelect value={filterType} onChange={(v) => handleTypeChange(v as QuestionType | 'ALL')}>
           <option value="ALL">전체 유형</option>
           <option value="multiple_choice">객관식</option>
           <option value="fill_blank">빈칸 채우기</option>
@@ -1918,12 +1985,12 @@ export default function QuestionBankClient({
           <option value="essay">서술형</option>
         </StyledSelect>
 
-        <StyledSelect value={filterCefr} onChange={setFilterCefr}>
+        <StyledSelect value={filterCefr} onChange={handleCefrChange}>
           <option value="ALL">전체 CEFR</option>
           {CEFR_LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
         </StyledSelect>
 
-        <StyledSelect value={String(filterDifficulty)} onChange={(v) => setFilterDifficulty(Number(v))}>
+        <StyledSelect value={String(filterDifficulty)} onChange={(v) => handleDifficultyChange(Number(v))}>
           <option value="0">전체 난이도</option>
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((d) => (
             <option key={d} value={d}>{'★'.repeat(d)} ({d})</option>
@@ -1940,12 +2007,13 @@ export default function QuestionBankClient({
 
       {/* 결과 카운트 */}
       <p className="text-sm text-gray-500">
-        전체 <strong className="text-gray-900">{initialQuestions.length}</strong>개 중{' '}
-        <strong className="text-gray-900">{filtered.length}</strong>개 표시
+        전체 <strong className="text-gray-900">{total}</strong>개 중{' '}
+        <strong className="text-gray-900">{rows.length}</strong>개 표시
+        {isFetching && <span className="ml-2 text-xs text-gray-400">불러오는 중...</span>}
       </p>
 
       {/* 문제 목록 */}
-      {filtered.length === 0 ? (
+      {rows.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
             <BookOpen size={28} className="text-gray-300" />
@@ -1975,7 +2043,7 @@ export default function QuestionBankClient({
 
           {/* 바디 */}
           <div className="divide-y divide-gray-200">
-            {filtered.map((q) => {
+            {rows.map((q) => {
               const domainColor = DOMAIN_COLOR[q.domain]
               const isLoadingThis = loadingDetailId === q.id
               return (
@@ -2052,6 +2120,31 @@ export default function QuestionBankClient({
               )
             })}
           </div>
+        </div>
+      )}
+
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => loadPage(page - 1)}
+            disabled={page <= 1 || isFetching}
+          >
+            이전
+          </Button>
+          <span className="text-sm text-gray-500">
+            <strong className="text-gray-900">{page}</strong> / {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => loadPage(page + 1)}
+            disabled={page >= totalPages || isFetching}
+          >
+            다음
+          </Button>
         </div>
       )}
 

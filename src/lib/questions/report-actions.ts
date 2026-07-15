@@ -152,6 +152,21 @@ export async function getOwnerQuestionReports(filters: {
   return fetchOwnerQuestionReports(user.academyId, filters.status)
 }
 
+// 대기중 신고 개수만 필요할 때 (탭 배지) — 전체 목록을 불러오지 않음
+export async function getOwnerPendingReportCount(): Promise<number> {
+  const user = await getAuthedUser()
+  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return 0
+
+  return fetchOwnerPendingReportCount(user.academyId)
+}
+
+const fetchOwnerPendingReportCount = (academyId: string) =>
+  unstable_cache(
+    () => prisma.questionReport.count({ where: { question: { academyId }, status: 'PENDING' } }),
+    ['owner-question-reports-pending-count', academyId],
+    { revalidate: 60, tags: [`academy-${academyId}-question-reports`] },
+  )()
+
 // 신고 목록 60초 캐싱 (신고 생성/처리 시 태그로 즉시 무효화)
 const fetchOwnerQuestionReports = (academyId: string, status?: QuestionReportStatus) =>
   unstable_cache(

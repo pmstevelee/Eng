@@ -4,61 +4,39 @@ import { Library } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import QuestionBankClient from '@/components/shared/question-bank-client'
-import type { QuestionRow } from '@/components/shared/question-bank-client'
 import PublicQuestionList from '@/components/shared/public-question-list'
-import type { PublicQuestionRow } from '@/components/shared/public-question-list'
-import { createQuestion, updateQuestion, deleteQuestion, getQuestionDetail } from './actions'
+import { createQuestion, updateQuestion, deleteQuestion, getQuestionDetail, getQuestionBankPage } from './actions'
+import { getPublicQuestionsPage } from '@/lib/questions/public-question-actions'
 
-// ── 캐시 쿼리 ──────────────────────────────────────────────────────────────────
+const PAGE_SIZE = 20
 
-const getCachedAcademyQuestions = (academyId: string) =>
+// ── 캐시 쿼리 (통계 전용, 목록은 서버 페이지네이션으로 조회) ─────────────────────
+
+const getCachedQuestionBankSummary = (academyId: string) =>
   unstable_cache(
     async () => {
-      const rows = await prisma.question.findMany({
-        where: { academyId },
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          domain: true,
-          subCategory: true,
-          difficulty: true,
-          cefrLevel: true,
-          contentJson: true,
-          statsJson: true,
-          createdAt: true,
-          creator: { select: { name: true } },
-        },
-      })
-      return rows.map((q) => ({ ...q, createdAt: q.createdAt.toISOString() }))
+      const [domainGroups, academyTotal, publicTotal] = await Promise.all([
+        prisma.question.groupBy({
+          by: ['domain'],
+          where: { academyId },
+          _count: { _all: true },
+        }),
+        prisma.question.count({ where: { academyId } }),
+        prisma.question.count({ where: { academyId: null, isActive: true } }),
+      ])
+      const domainCounts = {
+        GRAMMAR: 0,
+        VOCABULARY: 0,
+        READING: 0,
+        LISTENING: 0,
+        WRITING: 0,
+      }
+      for (const g of domainGroups) domainCounts[g.domain] = g._count._all
+      return { domainCounts, academyTotal, publicTotal }
     },
-    ['teacher-questions', academyId],
-    { revalidate: 60, tags: [`academy-${academyId}-questions`] },
+    ['teacher-question-bank-summary', academyId],
+    { revalidate: 60, tags: [`academy-${academyId}-questions`, 'question-bank'] },
   )()
-
-const getCachedPublicQuestions = unstable_cache(
-  async () => {
-    const rows = await prisma.question.findMany({
-      where: { academyId: null, isActive: true },
-      orderBy: [{ qualityScore: 'desc' }, { createdAt: 'desc' }],
-      take: 500,
-      select: {
-        id: true,
-        domain: true,
-        subCategory: true,
-        difficulty: true,
-        cefrLevel: true,
-        contentJson: true,
-        source: true,
-        qualityScore: true,
-        usageCount: true,
-        createdAt: true,
-      },
-    })
-    return rows.map((q) => ({ ...q, createdAt: q.createdAt.toISOString() }))
-  },
-  ['public-questions-list'],
-  { revalidate: 600, tags: ['question-bank'] },
-)
 
 // ── 페이지 컴포넌트 ────────────────────────────────────────────────────────────
 
@@ -70,63 +48,25 @@ export default async function TeacherQuestionsPage({ searchParams }: { searchPar
 
   const { tab = 'academy' } = await searchParams
 
-  const [rawAcademy, rawPublic] = await Promise.all([
-    getCachedAcademyQuestions(user.academyId),
-    tab === 'academy' ? Promise.resolve([]) : getCachedPublicQuestions(),
+  const [summary, firstPage, firstPublicPage] = await Promise.all([
+    getCachedQuestionBankSummary(user.academyId),
+    tab === 'public'
+      ? Promise.resolve({ rows: [], total: 0 })
+      : getQuestionBankPage({ scope: 'academy', page: 1, pageSize: PAGE_SIZE }),
+    tab === 'public' ? getPublicQuestionsPage({ page: 1, pageSize: PAGE_SIZE }) : Promise.resolve({ rows: [], total: 0 }),
   ])
 
-  const academyQuestions: QuestionRow[] = rawAcademy.map((q) => {
-    const content = q.contentJson as { type: string; question_text?: string }
-    return {
-      id: q.id,
-      domain: q.domain,
-      subCategory: q.subCategory,
-      difficulty: q.difficulty,
-      cefrLevel: q.cefrLevel,
-      questionType: (content.type ?? 'multiple_choice') as QuestionRow['questionType'],
-      questionText: content.question_text ?? '',
-      statsJson: q.statsJson as QuestionRow['statsJson'],
-      createdAt: q.createdAt,
-      creator: q.creator,
-    }
-  })
-
-  const publicQuestions: PublicQuestionRow[] = rawPublic.map((q) => {
-    const content = q.contentJson as { type?: string; question_text?: string }
-    return {
-      id: q.id,
-      domain: q.domain,
-      subCategory: q.subCategory,
-      difficulty: q.difficulty,
-      cefrLevel: q.cefrLevel,
-      questionType: content.type ?? 'multiple_choice',
-      questionText: content.question_text ?? '',
-      source: q.source,
-      qualityScore: q.qualityScore,
-      usageCount: q.usageCount,
-      createdAt: q.createdAt,
-    }
-  })
-
-  const domainCounts = {
-    GRAMMAR: academyQuestions.filter((q) => q.domain === 'GRAMMAR').length,
-    VOCABULARY: academyQuestions.filter((q) => q.domain === 'VOCABULARY').length,
-    READING: academyQuestions.filter((q) => q.domain === 'READING').length,
-    LISTENING: academyQuestions.filter((q) => q.domain === 'LISTENING').length,
-    WRITING: academyQuestions.filter((q) => q.domain === 'WRITING').length,
-  }
-
   const statCards = [
-    { label: '문법', count: domainCounts.GRAMMAR, color: '#1865F2' },
-    { label: '어휘', count: domainCounts.VOCABULARY, color: '#7854F7' },
-    { label: '읽기', count: domainCounts.READING, color: '#0FBFAD' },
-    { label: '듣기', count: domainCounts.LISTENING, color: '#E91E8A' },
-    { label: '쓰기', count: domainCounts.WRITING, color: '#E35C20' },
+    { label: '문법', count: summary.domainCounts.GRAMMAR, color: '#1865F2' },
+    { label: '어휘', count: summary.domainCounts.VOCABULARY, color: '#7854F7' },
+    { label: '읽기', count: summary.domainCounts.READING, color: '#0FBFAD' },
+    { label: '듣기', count: summary.domainCounts.LISTENING, color: '#E91E8A' },
+    { label: '쓰기', count: summary.domainCounts.WRITING, color: '#E35C20' },
   ]
 
   const tabs = [
-    { key: 'academy', label: '우리 학원 문제', count: academyQuestions.length },
-    { key: 'public', label: '공용 문제', count: publicQuestions.length || null },
+    { key: 'academy', label: '우리 학원 문제', count: summary.academyTotal },
+    { key: 'public', label: '공용 문제', count: summary.publicTotal || null },
   ]
 
   return (
@@ -181,10 +121,19 @@ export default async function TeacherQuestionsPage({ searchParams }: { searchPar
 
       {/* 탭 콘텐츠 */}
       {tab === 'public' ? (
-        <PublicQuestionList questions={publicQuestions} />
+        <PublicQuestionList
+          initialRows={firstPublicPage.rows}
+          initialTotal={firstPublicPage.total}
+          pageSize={PAGE_SIZE}
+          actFetchPage={getPublicQuestionsPage}
+        />
       ) : (
         <QuestionBankClient
-          questions={academyQuestions}
+          scope="academy"
+          initialRows={firstPage.rows}
+          initialTotal={firstPage.total}
+          pageSize={PAGE_SIZE}
+          actFetchPage={getQuestionBankPage}
           actCreate={createQuestion}
           actUpdate={updateQuestion}
           actDelete={deleteQuestion}

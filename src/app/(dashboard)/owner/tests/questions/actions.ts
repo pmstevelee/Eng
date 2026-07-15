@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { shareQuestionToPublicPool } from '@/lib/questions/share-to-pool'
+import type { Prisma } from '@/generated/prisma'
+import type { QuestionRow, QuestionDomainType, QuestionType } from '@/components/shared/question-bank-client'
 
 type QuestionDomain = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
 
@@ -157,5 +159,92 @@ export async function deleteQuestion(id: string): Promise<{ error?: string }> {
     return {}
   } catch {
     return { error: '문제 삭제에 실패했습니다.' }
+  }
+}
+
+// ── 문제 뱅크 목록 (서버 페이지네이션) ────────────────────────────────────────
+
+export type QuestionBankPageParams = {
+  scope: 'academy' | 'all'
+  page: number
+  pageSize: number
+  search?: string
+  domain?: QuestionDomainType | 'ALL'
+  questionType?: string
+  cefrLevel?: string
+  difficulty?: number
+}
+
+export async function getQuestionBankPage(
+  params: QuestionBankPageParams,
+): Promise<{ rows: QuestionRow[]; total: number }> {
+  const user = await getAuthedOwner()
+  if (!user) return { rows: [], total: 0 }
+
+  const scopeFilter: Prisma.QuestionWhereInput =
+    params.scope === 'all'
+      ? { OR: [{ academyId: user.academyId }, { academyId: null, isActive: true }] }
+      : { academyId: user.academyId }
+
+  const AND: Prisma.QuestionWhereInput[] = [scopeFilter]
+
+  if (params.domain && params.domain !== 'ALL') AND.push({ domain: params.domain })
+  if (params.cefrLevel && params.cefrLevel !== 'ALL') AND.push({ cefrLevel: params.cefrLevel })
+  if (params.difficulty) AND.push({ difficulty: params.difficulty })
+  if (params.questionType && params.questionType !== 'ALL') {
+    AND.push({ contentJson: { path: ['type'], equals: params.questionType } })
+  }
+  if (params.search?.trim()) {
+    const search = params.search.trim()
+    AND.push({
+      OR: [
+        { contentJson: { path: ['question_text'], string_contains: search, mode: 'insensitive' } },
+        { subCategory: { contains: search, mode: 'insensitive' } },
+      ],
+    })
+  }
+
+  const where: Prisma.QuestionWhereInput = { AND }
+  const pageSize = Math.min(Math.max(params.pageSize, 1), 100)
+  const page = Math.max(params.page, 1)
+
+  const [rows, total] = await Promise.all([
+    prisma.question.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true,
+        domain: true,
+        subCategory: true,
+        difficulty: true,
+        cefrLevel: true,
+        contentJson: true,
+        statsJson: true,
+        createdAt: true,
+        creator: { select: { name: true } },
+      },
+    }),
+    prisma.question.count({ where }),
+  ])
+
+  return {
+    rows: rows.map((q) => {
+      const content = q.contentJson as { type?: string; question_text?: string }
+      return {
+        id: q.id,
+        domain: q.domain as QuestionDomainType,
+        subCategory: q.subCategory,
+        difficulty: q.difficulty,
+        cefrLevel: q.cefrLevel,
+        questionType: (content.type ?? 'multiple_choice') as QuestionType,
+        questionText: content.question_text ?? '',
+        statsJson: q.statsJson as QuestionRow['statsJson'],
+        createdAt: q.createdAt.toISOString(),
+        creator: q.creator,
+      }
+    }),
+    total,
   }
 }
