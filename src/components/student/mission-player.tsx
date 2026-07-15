@@ -244,6 +244,7 @@ export function MissionPlayer({
         mission={mission}
         result={missionResult}
         dailyMissionId={dailyMissionId}
+        missionIndex={missionIndex}
         typeConfig={typeConfig}
         onNextMission={(idx) =>
           router.push(`/student/missions/${dailyMissionId}?m=${idx}`)
@@ -798,6 +799,7 @@ function MissionCompleteScreen({
   mission,
   result,
   dailyMissionId,
+  missionIndex,
   typeConfig,
   onNextMission,
   onHome,
@@ -805,6 +807,7 @@ function MissionCompleteScreen({
   mission: MissionInfo
   result: MissionResult
   dailyMissionId: string
+  missionIndex: number
   typeConfig: (typeof MISSION_TYPE_CONFIG)[string]
   onNextMission: (idx: number) => void
   onHome: () => void
@@ -913,6 +916,12 @@ function MissionCompleteScreen({
             <ChevronRight className="h-4 w-4" />
           </button>
         )}
+        <a
+          href={`/student/missions/${dailyMissionId}/result?m=${missionIndex}`}
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#1865F2]/30 text-sm font-semibold text-[#1865F2] transition-colors hover:bg-[#1865F2]/5"
+        >
+          문제 결과 및 해설 보기
+        </a>
         <button
           onClick={onHome}
           className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"

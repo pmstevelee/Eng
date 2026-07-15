@@ -77,6 +77,27 @@ export function DailyMissionCard({ mission }: { mission: MissionData }) {
             </Link>
           </div>
         </div>
+
+        {items.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {items.map((item, idx) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between rounded-xl border border-green-100 bg-white/70 px-4 py-2.5"
+              >
+                <span className="truncate text-xs font-medium text-gray-500">
+                  {idx + 1}. {item.title} ({item.correctCount}/{item.questionCount} 정답)
+                </span>
+                <Link
+                  href={`/student/missions/${mission.id}/result?m=${idx}`}
+                  className="flex-shrink-0 text-xs font-semibold text-[#1865F2] hover:underline"
+                >
+                  결과 보기 →
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     )
   }
@@ -145,6 +166,12 @@ function MissionItemRow({
           <span className="text-[10px] text-gray-400">
             {item.correctCount}/{item.questionCount} 정답
           </span>
+          <Link
+            href={`/student/missions/${missionId}/result?m=${idx}`}
+            className="text-[10px] font-semibold text-[#1865F2] hover:underline"
+          >
+            결과 보기 →
+          </Link>
         </div>
       </div>
     )
