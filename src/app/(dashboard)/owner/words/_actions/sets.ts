@@ -165,6 +165,54 @@ export async function createOwnerWordSet(
   redirect(`/owner/words/sets/${newSet.id}`)
 }
 
+// ─── 세트 수정 ───────────────────────────────────────────────────────────────
+
+const UpdateOwnerSetSchema = z.object({
+  title: z.string().min(1, '세트 이름을 입력하세요.').max(100),
+  description: z.string().max(300).optional(),
+  cefrLevel: z.coerce.number().int().min(1).max(10),
+  wordIds: z
+    .array(z.string().uuid())
+    .min(1, '단어를 1개 이상 추가하세요.')
+    .max(1000, '한 세트에는 단어를 최대 1,000개까지 담을 수 있습니다.'),
+})
+
+export async function updateOwnerWordSet(
+  setId: string,
+  input: z.infer<typeof UpdateOwnerSetSchema>,
+): Promise<{ error?: string }> {
+  const owner = await getAuthedOwner()
+  if (!owner) return { error: '인증이 필요합니다.' }
+
+  const parsed = UpdateOwnerSetSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
+
+  const existing = await prisma.wordSet.findFirst({
+    where: { id: setId, academyId: owner.academyId! },
+    select: { id: true, source: true },
+  })
+  if (!existing) return { error: '세트를 찾을 수 없습니다.' }
+  if (existing.source === 'PUBLISHER') return { error: '시스템 기본 세트는 수정할 수 없습니다.' }
+
+  const { title, description, cefrLevel, wordIds } = parsed.data
+  const uniqueWordIds = wordIds.filter((id, idx) => wordIds.indexOf(id) === idx)
+
+  await prisma.$transaction([
+    prisma.wordSet.update({
+      where: { id: setId },
+      data: { title, description: description ?? null, cefrLevel },
+    }),
+    prisma.wordSetItem.deleteMany({ where: { setId } }),
+    prisma.wordSetItem.createMany({
+      data: uniqueWordIds.map((wordId, i) => ({ setId, wordId, order: i })),
+    }),
+  ])
+
+  revalidatePath('/owner/words')
+  revalidatePath(`/owner/words/sets/${setId}`)
+  redirect(`/owner/words/sets/${setId}`)
+}
+
 // ─── 일자별 세트 자동 생성 ────────────────────────────────────────────────────
 
 const AutoCreateDailySetsSchema = z.object({
@@ -267,4 +315,43 @@ export async function deleteOwnerWordSet(
 
   revalidatePath('/owner/words')
   return {}
+}
+
+// ─── 세트 일괄 삭제 ───────────────────────────────────────────────────────────
+
+const DeleteWordSetsSchema = z.object({
+  setIds: z.array(z.string().uuid()).min(1, '삭제할 세트를 선택하세요.'),
+})
+
+export async function deleteOwnerWordSets(
+  setIds: string[],
+): Promise<{ error?: string; deletedCount?: number; skippedTitles?: string[] }> {
+  const owner = await getAuthedOwner()
+  if (!owner) return { error: '인증이 필요합니다.' }
+
+  const parsed = DeleteWordSetsSchema.safeParse({ setIds })
+  if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
+
+  const sets = await prisma.wordSet.findMany({
+    where: { id: { in: parsed.data.setIds }, academyId: owner.academyId!, source: { not: 'PUBLISHER' } },
+    select: { id: true, title: true, _count: { select: { wordTestAssignments: true } } },
+  })
+  if (sets.length === 0) return { error: '삭제할 수 있는 세트가 없습니다.' }
+
+  // 시험에 이미 출제된 세트는 삭제에서 제외 (FK 제약)
+  const deletable = sets.filter((s) => s._count.wordTestAssignments === 0)
+  const skippedTitles = sets.filter((s) => s._count.wordTestAssignments > 0).map((s) => s.title)
+
+  if (deletable.length === 0) {
+    return { error: '선택한 세트가 모두 시험에 출제되어 삭제할 수 없습니다.' }
+  }
+
+  const deletableIds = deletable.map((s) => s.id)
+  await prisma.$transaction([
+    prisma.wordSetItem.deleteMany({ where: { setId: { in: deletableIds } } }),
+    prisma.wordSet.deleteMany({ where: { id: { in: deletableIds } } }),
+  ])
+
+  revalidatePath('/owner/words')
+  return { deletedCount: deletableIds.length, skippedTitles: skippedTitles.length > 0 ? skippedTitles : undefined }
 }

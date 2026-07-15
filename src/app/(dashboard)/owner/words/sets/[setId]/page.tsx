@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Pencil } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { DeleteSetButton } from './_components/delete-set-button'
 
 interface Props {
@@ -47,7 +48,17 @@ export default async function OwnerWordSetPage({ params }: Props) {
             <h1 className="text-2xl font-bold text-gray-900">{wordSet.title}</h1>
             <p className="text-sm text-gray-400 mt-1">{wordSet.items.length}개 단어</p>
           </div>
-          {canDelete && <DeleteSetButton setId={setId} setTitle={wordSet.title} />}
+          {canDelete && (
+            <div className="flex items-center gap-2 shrink-0">
+              <Link href={`/owner/words/sets/${setId}/edit`}>
+                <Button variant="outline" size="sm" className="h-9 text-gray-600 border-gray-200">
+                  <Pencil className="w-3.5 h-3.5 mr-1" />
+                  수정
+                </Button>
+              </Link>
+              <DeleteSetButton setId={setId} setTitle={wordSet.title} />
+            </div>
+          )}
         </div>
       </div>
 

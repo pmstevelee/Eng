@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input'
 import {
   searchWordsForOwner,
   createOwnerWordSet,
+  updateOwnerWordSet,
   autoCreateOwnerDailySets,
   getAvailableWordCountForOwner,
 } from '@/app/(dashboard)/owner/words/_actions/sets'
@@ -86,12 +87,29 @@ interface SelectedWord extends WordSearchResult {
   addedAt: number
 }
 
-export function OwnerSetBuilderClient() {
-  const router = useRouter()
+interface OwnerSetBuilderClientProps {
+  mode?: 'create' | 'edit'
+  setId?: string
+  initialTitle?: string
+  initialDescription?: string
+  initialCefrLevel?: number
+  initialWords?: WordSearchResult[]
+}
 
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [cefrLevel, setCefrLevel] = useState(4)
+export function OwnerSetBuilderClient({
+  mode = 'create',
+  setId,
+  initialTitle = '',
+  initialDescription = '',
+  initialCefrLevel = 4,
+  initialWords = [],
+}: OwnerSetBuilderClientProps) {
+  const router = useRouter()
+  const isEdit = mode === 'edit'
+
+  const [title, setTitle] = useState(initialTitle)
+  const [description, setDescription] = useState(initialDescription)
+  const [cefrLevel, setCefrLevel] = useState(initialCefrLevel)
 
   const [query, setQuery] = useState('')
   const [filterCefr, setFilterCefr] = useState<string>('')
@@ -100,7 +118,9 @@ export function OwnerSetBuilderClient() {
   const [searchPage, setSearchPage] = useState(1)
   const [isSearching, startSearch] = useTransition()
 
-  const [selectedWords, setSelectedWords] = useState<SelectedWord[]>([])
+  const [selectedWords, setSelectedWords] = useState<SelectedWord[]>(() =>
+    initialWords.map((w, i) => ({ ...w, addedAt: i })),
+  )
   const selectedIds = new Set(selectedWords.map((w) => w.id))
 
   const today = toDateInput(new Date())
@@ -249,12 +269,15 @@ export function OwnerSetBuilderClient() {
       return
     }
     startSave(async () => {
-      const result = await createOwnerWordSet({
+      const payload = {
         title: title.trim(),
         description: description.trim() || undefined,
         cefrLevel,
         wordIds: selectedWords.map((w) => w.id),
-      })
+      }
+      const result = isEdit
+        ? await updateOwnerWordSet(setId!, payload)
+        : await createOwnerWordSet(payload)
       if (result?.error) {
         setSaveError(result.error)
       }
@@ -307,7 +330,8 @@ export function OwnerSetBuilderClient() {
         </div>
       </div>
 
-      {/* 자동 생성 조건 */}
+      {/* 자동 생성 조건 (수정 모드에서는 숨김) */}
+      {!isEdit && (
       <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-5">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-[#7854F7]" />
@@ -519,6 +543,7 @@ export function OwnerSetBuilderClient() {
           )}
         </Button>
       </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* 단어 검색 패널 */}
@@ -740,6 +765,8 @@ export function OwnerSetBuilderClient() {
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               저장 중...
             </>
+          ) : isEdit ? (
+            `수정 저장 (${selectedWords.length}단어)`
           ) : (
             `세트 저장 (${selectedWords.length}단어)`
           )}
