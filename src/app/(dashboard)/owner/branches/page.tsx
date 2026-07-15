@@ -1,9 +1,46 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { getOwnerBranches } from '@/lib/branch'
 import { PLANS } from '@/lib/pricing'
 import { BranchesClient } from './_components/branches-client'
+
+// 본원+지점 통계를 단일 병렬 웨이브(4쿼리)로 조회하고 60초 캐싱한다.
+// (기존: 지점별 count 쿼리를 순차 웨이브로 실행해 원격 DB에서 4초 이상 소요)
+const getCachedBranchStats = (ownerId: string, allIds: string[]) =>
+  unstable_cache(
+    async () => {
+      const [studentGroups, teacherGroups, classGroups, academyDetails] = await Promise.all([
+        // 학원별 활성 학생 수
+        prisma.user.groupBy({
+          by: ['academyId'],
+          where: { academyId: { in: allIds }, student: { status: 'ACTIVE' } },
+          _count: { id: true },
+        }),
+        // 학원별 교사 수
+        prisma.user.groupBy({
+          by: ['academyId'],
+          where: { academyId: { in: allIds }, role: 'TEACHER', isDeleted: false },
+          _count: { id: true },
+        }),
+        // 학원별 활성 반 수
+        prisma.class.groupBy({
+          by: ['academyId'],
+          where: { academyId: { in: allIds }, isActive: true },
+          _count: { id: true },
+        }),
+        // 주소/전화번호
+        prisma.academy.findMany({
+          where: { id: { in: allIds } },
+          select: { id: true, address: true, phone: true },
+        }),
+      ])
+      return { studentGroups, teacherGroups, classGroups, academyDetails }
+    },
+    ['owner-branch-stats', ownerId, allIds.join(',')],
+    { revalidate: 60, tags: [`owner-${ownerId}-branches`] },
+  )()
 
 export default async function BranchesPage() {
   const user = await getCurrentUser()
@@ -15,54 +52,35 @@ export default async function BranchesPage() {
   const { hq, branches, plan, canManage } = branchData
   const planConfig = PLANS[plan]
 
-  // 본원 통계
-  const [hqStudents, hqTeachers, hqClasses] = await Promise.all([
-    prisma.student.count({ where: { user: { academyId: hq.id }, status: 'ACTIVE' } }),
-    prisma.user.count({ where: { academyId: hq.id, role: 'TEACHER', isDeleted: false } }),
-    prisma.class.count({ where: { academyId: hq.id, isActive: true } }),
-  ])
+  const allIds = [hq.id, ...branches.map((b) => b.id)]
+  const { studentGroups, teacherGroups, classGroups, academyDetails } =
+    await getCachedBranchStats(user.id, allIds)
 
-  // 지점별 통계
-  const branchesWithStats = await Promise.all(
-    branches.map(async (b) => {
-      const [studentCount, teacherCount, classes] = await Promise.all([
-        prisma.student.count({ where: { user: { academyId: b.id }, status: 'ACTIVE' } }),
-        prisma.user.count({ where: { academyId: b.id, role: 'TEACHER', isDeleted: false } }),
-        prisma.class.count({ where: { academyId: b.id, isActive: true } }),
-      ])
-      return {
-        id: b.id,
-        name: b.name,
-        branchName: b.branchName,
-        address: null as string | null,
-        phone: null as string | null,
-        _count: { users: 0, classes },
-        studentCount,
-        teacherCount,
-      }
-    }),
-  )
-
-  // 지점 주소/전화번호 보완
-  if (branches.length > 0) {
-    const details = await prisma.academy.findMany({
-      where: { id: { in: branches.map((b) => b.id) } },
-      select: { id: true, address: true, phone: true },
+  const countByAcademy = (groups: { academyId: string | null; _count: { id: number } }[]) => {
+    const map = new Map<string, number>()
+    groups.forEach((g) => {
+      if (g.academyId) map.set(g.academyId, g._count.id)
     })
-    details.forEach((d) => {
-      const idx = branchesWithStats.findIndex((b) => b.id === d.id)
-      if (idx !== -1) {
-        branchesWithStats[idx].address = d.address
-        branchesWithStats[idx].phone = d.phone
-      }
-    })
+    return map
   }
+  const studentMap = countByAcademy(studentGroups)
+  const teacherMap = countByAcademy(teacherGroups)
+  const classMap = countByAcademy(classGroups)
+  const detailMap = new Map(academyDetails.map((d) => [d.id, d]))
 
-  const hqDetail = await prisma.academy.findUnique({
-    where: { id: hq.id },
-    select: { address: true, phone: true },
-  })
+  const branchesWithStats = branches.map((b) => ({
+    id: b.id,
+    name: b.name,
+    branchName: b.branchName,
+    address: detailMap.get(b.id)?.address ?? null,
+    phone: detailMap.get(b.id)?.phone ?? null,
+    _count: { users: 0, classes: classMap.get(b.id) ?? 0 },
+    studentCount: studentMap.get(b.id) ?? 0,
+    teacherCount: teacherMap.get(b.id) ?? 0,
+  }))
 
+  const hqStudents = studentMap.get(hq.id) ?? 0
+  const hqTeachers = teacherMap.get(hq.id) ?? 0
   const totalStudents = hqStudents + branchesWithStats.reduce((s, b) => s + b.studentCount, 0)
   const totalTeachers = hqTeachers + branchesWithStats.reduce((s, b) => s + b.teacherCount, 0)
 
@@ -79,9 +97,9 @@ export default async function BranchesPage() {
         hq={{
           id: hq.id,
           name: hq.name,
-          address: hqDetail?.address ?? null,
-          phone: hqDetail?.phone ?? null,
-          _count: { users: 0, classes: hqClasses },
+          address: detailMap.get(hq.id)?.address ?? null,
+          phone: detailMap.get(hq.id)?.phone ?? null,
+          _count: { users: 0, classes: classMap.get(hq.id) ?? 0 },
           studentCount: hqStudents,
           teacherCount: hqTeachers,
         }}

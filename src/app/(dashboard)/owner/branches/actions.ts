@@ -58,6 +58,7 @@ export async function createBranch(formData: {
 
   revalidatePath('/owner/branches')
   revalidateTag(`user-${ctx.user.id}`)
+  revalidateTag(`owner-${ctx.user.id}-branches`)
   return { success: true }
 }
 
@@ -89,6 +90,7 @@ export async function updateBranch(
   })
 
   revalidatePath('/owner/branches')
+  revalidateTag(`owner-${ctx.user.id}-branches`)
   return { success: true }
 }
 
@@ -117,6 +119,7 @@ export async function deleteBranch(branchId: string): Promise<{ error?: string; 
   })
 
   revalidatePath('/owner/branches')
+  revalidateTag(`owner-${ctx.user.id}-branches`)
   return { success: true }
 }
 

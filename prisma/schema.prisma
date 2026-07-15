@@ -1,7 +1,10 @@
 generator client {
-  provider      = "prisma-client-js"
-  output        = "../src/generated/prisma"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
+  // 중첩 relation 조회를 단일 SQL(LATERAL JOIN)로 실행해 DB 왕복 횟수를 줄인다.
+  // (기존: relation 단계마다 별도 쿼리 → 원격 DB 환경에서 페이지당 수 초 소요)
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {

@@ -1,24 +1,18 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { getCurrentUser } from '@/lib/auth'
+import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache'
 import type { QuestionReportType, QuestionReportStatus } from '@/generated/prisma'
 
 // ── 인증 헬퍼 ──────────────────────────────────────────────────────────────────
 
+// getCurrentUser()는 토큰/유저 캐시가 적용되어 있어 매 호출마다
+// Supabase 네트워크 검증 + DB 조회를 반복하지 않는다.
 async function getAuthedUser() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return null
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
-  return user
+  const user = await getCurrentUser()
+  if (!user) return null
+  return { id: user.id, role: user.role, academyId: user.academyId }
 }
 
 // ── 문제 오류 신고 ─────────────────────────────────────────────────────────────
@@ -41,7 +35,7 @@ export async function reportQuestion(
     // 문제 존재 여부 확인
     const question = await prisma.question.findUnique({
       where: { id: input.questionId },
-      select: { id: true },
+      select: { id: true, academyId: true },
     })
     if (!question) return { error: '문제를 찾을 수 없습니다.' }
 
@@ -64,6 +58,8 @@ export async function reportQuestion(
         status: 'PENDING',
       },
     })
+
+    if (question.academyId) revalidateTag(`academy-${question.academyId}-question-reports`)
 
     return {}
   } catch {
@@ -92,16 +88,7 @@ export type QuestionReportRow = {
 export async function getAdminQuestionReports(filters: {
   status?: QuestionReportStatus
 }): Promise<QuestionReportRow[]> {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return []
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true },
-  })
+  const user = await getAuthedUser()
   if (!user || user.role !== 'SUPER_ADMIN') return []
 
   const where: Record<string, unknown> = {
@@ -159,22 +146,28 @@ export async function getAdminQuestionReports(filters: {
 export async function getOwnerQuestionReports(filters: {
   status?: QuestionReportStatus
 }): Promise<QuestionReportRow[]> {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return []
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
+  const user = await getAuthedUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return []
 
+  return fetchOwnerQuestionReports(user.academyId, filters.status)
+}
+
+// 신고 목록 60초 캐싱 (신고 생성/처리 시 태그로 즉시 무효화)
+const fetchOwnerQuestionReports = (academyId: string, status?: QuestionReportStatus) =>
+  unstable_cache(
+    () => queryOwnerQuestionReports(academyId, status),
+    ['owner-question-reports', academyId, status ?? 'all'],
+    { revalidate: 60, tags: [`academy-${academyId}-question-reports`] },
+  )()
+
+async function queryOwnerQuestionReports(
+  academyId: string,
+  status?: QuestionReportStatus,
+): Promise<QuestionReportRow[]> {
   const where: Record<string, unknown> = {
-    question: { academyId: user.academyId },
+    question: { academyId },
   }
-  if (filters.status) where.status = filters.status
+  if (status) where.status = status
 
   const reports = await prisma.questionReport.findMany({
     where,
@@ -268,6 +261,9 @@ export async function resolveQuestionReport(
       revalidatePath('/admin/question-bank')
     } else {
       revalidatePath('/owner/tests/questions')
+    }
+    if (report.question.academyId) {
+      revalidateTag(`academy-${report.question.academyId}-question-reports`)
     }
 
     return {}

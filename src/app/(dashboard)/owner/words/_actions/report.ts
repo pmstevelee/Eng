@@ -1,5 +1,6 @@
 'use server'
 
+import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import { getCurrentUser } from '@/lib/auth'
 
@@ -31,30 +32,57 @@ export type OwnerWordStats = {
   classComparison: ClassWordComparison[]
 }
 
-export async function getOwnerWordStats(): Promise<OwnerWordStats | null> {
-  const owner = await getAuthedOwner()
-  if (!owner) return null
+// 통계 계산은 자주 바뀌지 않으므로 60초 캐싱 (두 쿼리는 병렬 실행)
+const computeOwnerWordStats = (academyId: string) =>
+  unstable_cache(
+    async (): Promise<OwnerWordStats> => {
+      const sevenDaysAgo = new Date()
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
-  const academyId = owner.academyId!
-  const sevenDaysAgo = new Date()
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      const [students, classes] = await Promise.all([
+        prisma.student.findMany({
+          where: { user: { academyId, isDeleted: false }, status: 'ACTIVE' },
+          select: {
+            id: true,
+            classId: true,
+            wordProgress: {
+              select: {
+                stage: true,
+                wrongCount: true,
+                correctCount: true,
+                lastStudiedAt: true,
+              },
+            },
+          },
+        }),
+        prisma.class.findMany({
+          where: { academyId, isActive: true },
+          select: { id: true, name: true },
+        }),
+      ])
 
-  const students = await prisma.student.findMany({
-    where: { user: { academyId, isDeleted: false }, status: 'ACTIVE' },
-    select: {
-      id: true,
-      classId: true,
-      wordProgress: {
-        select: {
-          stage: true,
-          wrongCount: true,
-          correctCount: true,
-          lastStudiedAt: true,
-        },
-      },
+      return buildOwnerWordStats(students, classes, sevenDaysAgo)
     },
-  })
+    ['owner-word-stats', academyId],
+    { revalidate: 60, tags: [`owner-words-${academyId}`] },
+  )()
 
+type StudentWithProgress = {
+  id: string
+  classId: string | null
+  wordProgress: {
+    stage: string
+    wrongCount: number
+    correctCount: number
+    lastStudiedAt: Date | null
+  }[]
+}
+
+function buildOwnerWordStats(
+  students: StudentWithProgress[],
+  classes: { id: string; name: string }[],
+  sevenDaysAgo: Date,
+): OwnerWordStats {
   const totalStudents = students.length
   const activeStudents = students.filter((s) =>
     s.wordProgress.some((p) => p.lastStudiedAt && p.lastStudiedAt >= sevenDaysAgo),
@@ -68,11 +96,6 @@ export async function getOwnerWordStats(): Promise<OwnerWordStats | null> {
   const masterRate = totalLearned > 0 ? Math.round((totalMastered / totalLearned) * 100) : 0
 
   // 반별 비교
-  const classes = await prisma.class.findMany({
-    where: { academyId, isActive: true },
-    select: { id: true, name: true },
-  })
-
   const classComparison: ClassWordComparison[] = classes.map((cls) => {
     const classStudents = students.filter((s) => s.classId === cls.id)
     const count = classStudents.length
@@ -100,4 +123,10 @@ export async function getOwnerWordStats(): Promise<OwnerWordStats | null> {
     summary: { totalStudents, activeStudents, totalLearned, totalMastered, masterRate },
     classComparison,
   }
+}
+
+export async function getOwnerWordStats(): Promise<OwnerWordStats | null> {
+  const owner = await getAuthedOwner()
+  if (!owner) return null
+  return computeOwnerWordStats(owner.academyId!)
 }
