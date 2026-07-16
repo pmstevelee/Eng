@@ -1,0 +1,82 @@
+=== Oxford 3000 unparsed ===
+a, an indefinite article
+another det./pron.
+both det./pron.
+each det./pron./adv.
+eight number
+eighteen number
+eighty number
+eleven number
+few det./adj., pron.
+fifteen number
+fifth number
+fifty number
+first det./number, adv.
+five number
+forty number
+four number
+fourteen number
+fourth number
+goodbye exclam./n.
+half n., det./pron.
+hello exclam./n.
+hundred number
+little adj., det./pron.
+many det./pron.
+million number
+more det./pron., adv.
+most det./pron., adv.
+much det./pron., adv.
+nine number
+nineteen number
+ninety number
+OK exclam., adj./adv.
+one number/det., pron.
+other adj./pron.
+out adv./prep.
+own adj./pron.
+second1 (next after the first) det./
+number
+seven number
+seventeen number
+seventy number
+six number
+sixteen number
+sixty number
+ten number
+the definite article
+third number
+thirteen number
+thirty number
+this det./pron.
+thousand number
+three number
+to prep., infinitive marker
+twelve number
+twenty number
+two number
+until conj./prep.
+what pron./det.
+which pron./det.
+all right adj./adv., exclam.
+alone adj./adv.
+billion number
+either det./pron., adv.
+least det./pron., adv.
+less det./pron., adv.
+neither det./pron.
+per cent n., adj./adv.
+several det./pron.
+such det./pron.
+whose det./pron.
+zero number
+nor conj./adv.
+throughout prep./adv.
+till conj./prep.
+whatever det./pron.
+
+=== Oxford 5000 unparsed ===
+full-time adj./adv.
+part-time adj./adv.
+trillion number
+reverse v. , n., adj.
