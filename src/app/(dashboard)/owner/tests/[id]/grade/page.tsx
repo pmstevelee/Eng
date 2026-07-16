@@ -46,7 +46,7 @@ export default async function OwnerTestGradePage({
     orderBy: { completedAt: 'asc' },
     include: {
       student: {
-        select: { user: { select: { name: true } } },
+        select: { user: { select: { name: true } }, currentLevel: true },
       },
       questionResponses: {
         where: { questionId: { in: Array.from(essayQuestionIds) } },
@@ -68,6 +68,7 @@ export default async function OwnerTestGradePage({
   type StudentSession = {
     sessionId: string
     studentName: string
+    studentLevel: number
     submittedAt: string
     writingQuestions: {
       responseId: string
@@ -82,6 +83,7 @@ export default async function OwnerTestGradePage({
     .map((s) => ({
       sessionId: s.id,
       studentName: s.student.user.name,
+      studentLevel: s.student.currentLevel,
       submittedAt: s.completedAt?.toISOString() ?? s.startedAt.toISOString(),
       writingQuestions: s.questionResponses.map((r) => {
         const q = questionMap.get(r.questionId)

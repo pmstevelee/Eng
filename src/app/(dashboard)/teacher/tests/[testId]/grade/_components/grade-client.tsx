@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { Loader2, Sparkles, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getAiAnalysis, gradeSession } from '../actions'
-import type { WritingGrade } from '../actions'
+import type { WritingGrade, WritingAiReport } from '../actions'
 
 type WritingQuestion = {
   responseId: string
@@ -16,6 +16,7 @@ type WritingQuestion = {
 type StudentSession = {
   sessionId: string
   studentName: string
+  studentLevel: number
   submittedAt: string
   writingQuestions: WritingQuestion[]
 }
@@ -26,8 +27,15 @@ type GradeState = {
   vocabularyScore: number
   expressionScore: number
   teacherComment: string
-  aiAnalysis: string | null
+  aiReport: WritingAiReport | null
 }
+
+const REPORT_SECTIONS: { key: 'organization' | 'grammar' | 'vocabulary' | 'expression'; label: string }[] = [
+  { key: 'organization', label: '구성' },
+  { key: 'grammar', label: '문법' },
+  { key: 'vocabulary', label: '어휘' },
+  { key: 'expression', label: '표현력' },
+]
 
 export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
   const [expandedSession, setExpandedSession] = useState<string | null>(
@@ -46,7 +54,7 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
       vocabularyScore: 20,
       expressionScore: 20,
       teacherComment: '',
-      aiAnalysis: null,
+      aiReport: null,
     }
   }
 
@@ -62,21 +70,23 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
     return g.grammarScore + g.structureScore + g.vocabularyScore + g.expressionScore
   }
 
-  const handleAiAnalysis = async (q: WritingQuestion) => {
+  const handleAiAnalysis = async (q: WritingQuestion, studentLevel: number) => {
     setAiLoading((prev) => ({ ...prev, [q.responseId]: true }))
-    const result = await getAiAnalysis(q.questionText, q.essayText)
+    const result = await getAiAnalysis(q.questionText, q.essayText, studentLevel)
     setAiLoading((prev) => ({ ...prev, [q.responseId]: false }))
 
     if (result.result) {
+      const r = result.result
       setGrades((prev) => ({
         ...prev,
         [q.responseId]: {
           ...getGrade(q.responseId),
-          grammarScore: result.result!.grammarScore,
-          structureScore: result.result!.structureScore,
-          vocabularyScore: result.result!.vocabularyScore,
-          expressionScore: result.result!.expressionScore,
-          aiAnalysis: result.result!.feedback,
+          grammarScore: r.grammar.score,
+          structureScore: r.organization.score,
+          vocabularyScore: r.vocabulary.score,
+          expressionScore: r.expression.score,
+          teacherComment: getGrade(q.responseId).teacherComment || r.summary,
+          aiReport: r,
         },
       }))
     }
@@ -96,6 +106,7 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
           expressionScore: g.expressionScore,
           teacherScore: getTotal(q.responseId),
           teacherComment: g.teacherComment,
+          aiReportJson: g.aiReport,
         }
       })
 
@@ -175,7 +186,7 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
                         <button
                           type="button"
                           disabled={isAiLoading || !q.essayText}
-                          onClick={() => handleAiAnalysis(q)}
+                          onClick={() => handleAiAnalysis(q, session.studentLevel)}
                           className="flex items-center gap-1.5 rounded-lg border border-[#7854F7] px-3 py-1.5 text-xs font-medium text-[#7854F7] hover:bg-purple-50 disabled:opacity-50"
                         >
                           {isAiLoading ? (
@@ -183,7 +194,7 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
                           ) : (
                             <Sparkles className="h-3.5 w-3.5" />
                           )}
-                          AI 분석
+                          AI 리포트 생성
                         </button>
                       </div>
 
@@ -201,14 +212,58 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
                         </p>
                       </div>
 
-                      {/* AI 분석 결과 */}
-                      {g.aiAnalysis && (
-                        <div className="rounded-lg border border-purple-100 bg-purple-50 p-3">
-                          <div className="flex items-center gap-1.5 mb-2">
-                            <Sparkles className="h-4 w-4 text-[#7854F7]" />
-                            <p className="text-xs font-medium text-[#7854F7]">AI 분석 결과</p>
+                      {/* AI 쓰기 평가 리포트 */}
+                      {g.aiReport && (
+                        <div className="rounded-lg border border-purple-100 bg-purple-50 p-4 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                              <Sparkles className="h-4 w-4 text-[#7854F7]" />
+                              <p className="text-xs font-medium text-[#7854F7]">
+                                AI 쓰기 평가 리포트 (Level {g.aiReport.overallLevel} · {g.aiReport.overallCefr})
+                              </p>
+                            </div>
+                            <span className="text-sm font-bold text-[#7854F7]">
+                              {g.aiReport.totalScore}점
+                            </span>
                           </div>
-                          <p className="text-sm text-purple-800">{g.aiAnalysis}</p>
+
+                          <p className="text-sm text-purple-900">{g.aiReport.summary}</p>
+
+                          <div className="space-y-3">
+                            {REPORT_SECTIONS.map(({ key, label }) => {
+                              const section = g.aiReport![key]
+                              return (
+                                <div key={key} className="rounded-lg bg-white/70 p-3">
+                                  <div className="mb-1.5 flex items-center justify-between">
+                                    <p className="text-xs font-semibold text-gray-800">
+                                      {label} · Level {section.level} ({section.cefr})
+                                    </p>
+                                    <span className="text-xs font-bold text-[#7854F7]">
+                                      {section.score}/25
+                                    </span>
+                                  </div>
+                                  <p className="text-sm text-gray-700 mb-2">{section.feedback}</p>
+                                  {section.strengths.length > 0 && (
+                                    <div className="mb-1 text-xs text-[#1FAF54]">
+                                      <span className="font-medium">잘한 점: </span>
+                                      {section.strengths.join(' · ')}
+                                    </div>
+                                  )}
+                                  {section.improvements.length > 0 && (
+                                    <div className="text-xs text-[#1865F2]">
+                                      <span className="font-medium">개선 방법: </span>
+                                      {section.improvements.join(' · ')}
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
+
+                          <div className="rounded-lg border border-[#FFB100]/30 bg-[#FFB100]/10 p-3">
+                            <p className="text-xs font-semibold text-[#8a6200] mb-1">다음 글쓰기 팁</p>
+                            <p className="text-sm text-[#8a6200]">{g.aiReport.nextStepTip}</p>
+                          </div>
                         </div>
                       )}
 
