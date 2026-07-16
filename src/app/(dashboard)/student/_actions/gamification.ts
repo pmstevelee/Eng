@@ -349,10 +349,23 @@ export async function getDailyMissionWithQuestions() {
 
 // ─── Submit mission answers ───────────────────────────────────────────────────
 
+export type MissionAnswerResult = {
+  questionId: string
+  studentAnswer: string
+  isCorrect: boolean
+  correctAnswer?: string
+  explanation?: string
+}
+
 export async function submitMissionAnswers(
   missionId: string,
   answers: { questionId: string; answer: string }[],
-): Promise<{ error?: string; newBadges?: string[]; score?: number }> {
+): Promise<{
+  error?: string
+  newBadges?: string[]
+  score?: number
+  results?: MissionAnswerResult[]
+}> {
   const auth = await getAuthedStudent()
   if (!auth) return { error: '권한이 없습니다.' }
   const { studentId } = auth
@@ -371,21 +384,39 @@ export async function submitMissionAnswers(
   type ContentJson = {
     type: string
     correct_answer?: string
+    explanation?: string
   }
 
   let correct = 0
   let total = 0
+  const results: MissionAnswerResult[] = []
 
-  for (const q of questions) {
+  // 문제 순서(questionIds) 보장을 위해 정렬
+  const orderedQuestions = questionIds
+    .map((id) => questions.find((q) => q.id === id))
+    .filter(Boolean) as typeof questions
+
+  for (const q of orderedQuestions) {
     const content = q.contentJson as ContentJson
-    if (content.type === 'essay') continue
-    if (!content.correct_answer) continue
+    const studentAnswer = answers.find((a) => a.questionId === q.id)?.answer ?? ''
+
+    if (content.type === 'essay' || !content.correct_answer) {
+      results.push({ questionId: q.id, studentAnswer, isCorrect: false, explanation: content.explanation })
+      continue
+    }
 
     total++
-    const studentAnswer = answers.find((a) => a.questionId === q.id)?.answer ?? ''
-    if (studentAnswer.toLowerCase().trim() === content.correct_answer.toLowerCase().trim()) {
-      correct++
-    }
+    const isCorrect =
+      studentAnswer.toLowerCase().trim() === content.correct_answer.toLowerCase().trim()
+    if (isCorrect) correct++
+
+    results.push({
+      questionId: q.id,
+      studentAnswer,
+      isCorrect,
+      correctAnswer: content.correct_answer,
+      explanation: content.explanation,
+    })
 
     // Record skill assessment
     await prisma.skillAssessment.create({
@@ -393,7 +424,7 @@ export async function submitMissionAnswers(
         studentId,
         domain: q.domain,
         level: 1,
-        score: studentAnswer.toLowerCase().trim() === content.correct_answer.toLowerCase().trim() ? 100 : 0,
+        score: isCorrect ? 100 : 0,
         notes: '오늘의 미션',
       },
     })
@@ -445,10 +476,23 @@ export async function submitMissionAnswers(
     }
   }
 
-  // 미션 완료 → 대시보드 캐시 즉시 무효화
-  revalidateTag(`student-${studentId}-dashboard`)
+  // 대시보드 캐시 무효화는 결과 화면 확인 후 완료 버튼 클릭 시 처리
+  // (여기서 즉시 무효화하면 Server Action 후 자동 리프레시로 결과 화면이 사라짐)
 
-  return { newBadges: toAward as string[], score }
+  return { newBadges: toAward as string[], score, results }
+}
+
+// ─── 결과 화면 확인 후 대시보드 캐시 무효화 ────────────────────────────────────
+//
+// submitMissionAnswers에서 즉시 revalidateTag를 호출하면 Next.js가 현재 라우트를
+// 자동으로 리프레시하면서 미션 완료 여부가 바뀐 서버 컴포넌트가 결과 화면을
+// 곧바로 덮어써버린다. 학생이 결과를 확인하고 완료 버튼을 눌러 페이지를
+// 벗어날 때 별도로 호출한다.
+
+export async function revalidateMissionDashboard() {
+  const auth = await getAuthedStudent()
+  if (!auth) return
+  revalidateTag(`student-${auth.studentId}-dashboard`)
 }
 
 // ─── 대시보드 전체 데이터 캐싱 (30초) ────────────────────────────────────────

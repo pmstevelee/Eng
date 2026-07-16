@@ -2,9 +2,13 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, ChevronRight, ChevronLeft, Zap, Target, Volume2 } from 'lucide-react'
+import { CheckCircle2, XCircle, ChevronRight, ChevronLeft, Zap, Target, Volume2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { submitMissionAnswers } from '@/app/(dashboard)/student/_actions/gamification'
+import {
+  submitMissionAnswers,
+  revalidateMissionDashboard,
+  type MissionAnswerResult,
+} from '@/app/(dashboard)/student/_actions/gamification'
 
 type ContentJson = {
   type: string
@@ -55,7 +59,11 @@ export function MissionClient({ mission, questions }: Props) {
   const [currentIdx, setCurrentIdx] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
-  const [result, setResult] = useState<{ score: number; newBadges: string[] } | null>(null)
+  const [result, setResult] = useState<{
+    score: number
+    newBadges: string[]
+    results: MissionAnswerResult[]
+  } | null>(null)
   const [loading, setLoading] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
@@ -83,8 +91,13 @@ export function MissionClient({ mission, questions }: Props) {
       alert(res.error)
       return
     }
-    setResult({ score: res.score ?? 0, newBadges: res.newBadges ?? [] })
+    setResult({ score: res.score ?? 0, newBadges: res.newBadges ?? [], results: res.results ?? [] })
     setSubmitted(true)
+  }
+
+  const handleComplete = async () => {
+    await revalidateMissionDashboard()
+    router.push('/student')
   }
 
   if (submitted && result) {
@@ -92,9 +105,12 @@ export function MissionClient({ mission, questions }: Props) {
       <MissionResult
         score={result.score}
         newBadges={result.newBadges}
+        results={result.results}
+        questions={questions}
+        answers={answers}
         total={total}
         correct={Math.round((result.score / 100) * total)}
-        onGoHome={() => router.push('/student')}
+        onComplete={handleComplete}
         onViewBadges={() =>
           router.push(
             result.newBadges.length > 0
@@ -293,19 +309,33 @@ export function MissionClient({ mission, questions }: Props) {
 
 // ─── Result screen ────────────────────────────────────────────────────────────
 
+const LETTERS = ['A', 'B', 'C', 'D']
+
+function optionText(content: ContentJson, letter: string): string | null {
+  const idx = LETTERS.indexOf(letter)
+  if (idx === -1) return null
+  return content.options?.[idx] ?? null
+}
+
 function MissionResult({
   score,
   newBadges,
+  results,
+  questions,
+  answers,
   total,
   correct,
-  onGoHome,
+  onComplete,
   onViewBadges,
 }: {
   score: number
   newBadges: string[]
+  results: MissionAnswerResult[]
+  questions: Question[]
+  answers: Record<string, string>
   total: number
   correct: number
-  onGoHome: () => void
+  onComplete: () => void
   onViewBadges: () => void
 }) {
   const emoji = score >= 80 ? '🎉' : score >= 60 ? '👍' : '💪'
@@ -317,8 +347,8 @@ function MissionResult({
         : '아직 배울 게 있어요. 매일 연습해봐요!'
 
   return (
-    <div className="max-w-md mx-auto text-center space-y-6">
-      <div className="rounded-2xl border border-gray-200 bg-white p-8 space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="rounded-2xl border border-gray-200 bg-white p-8 space-y-6 text-center">
         <div className="text-6xl">{emoji}</div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-1">미션 완료!</h2>
@@ -355,7 +385,7 @@ function MissionResult({
         {/* New badges */}
         {newBadges.length > 0 && (
           <div className="bg-[#FFB100]/10 rounded-xl p-4 border border-[#FFB100]/30">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 justify-center">
               <Zap size={16} className="text-[#FFB100]" />
               <span className="text-sm font-bold text-gray-800">새 배지 획득!</span>
             </div>
@@ -364,19 +394,90 @@ function MissionResult({
         )}
       </div>
 
+      {/* 문제별 정답 여부 */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-bold text-gray-900 px-1">문제별 결과</h3>
+        {questions.map((q, idx) => {
+          const content = q.contentJson as ContentJson
+          const r = results.find((res) => res.questionId === q.id)
+          const isEssay = content.type === 'essay'
+          const studentAnswer = answers[q.id] ?? r?.studentAnswer ?? ''
+          const isCorrect = r?.isCorrect ?? false
+
+          return (
+            <div
+              key={q.id}
+              className={`rounded-xl border p-4 space-y-2 ${
+                isEssay
+                  ? 'border-gray-200 bg-white'
+                  : isCorrect
+                    ? 'border-[#1FAF54]/30 bg-[#F0FBF4]'
+                    : 'border-[#D92916]/20 bg-red-50'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-gray-400">문제 {idx + 1}</span>
+                {!isEssay &&
+                  (isCorrect ? (
+                    <span className="flex items-center gap-1 text-xs font-semibold text-[#1FAF54]">
+                      <CheckCircle2 size={14} />
+                      정답
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs font-semibold text-[#D92916]">
+                      <XCircle size={14} />
+                      오답
+                    </span>
+                  ))}
+              </div>
+
+              <p className="text-sm text-gray-900 whitespace-pre-line">{content.question_text}</p>
+
+              {isEssay ? (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                  <p className="mb-1 text-xs font-medium text-gray-400">내 답안</p>
+                  <p className="whitespace-pre-wrap text-sm text-gray-700">
+                    {studentAnswer || '(미응답)'}
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-lg bg-white/70 p-3 space-y-1 text-sm">
+                  <div>
+                    <span className="font-semibold text-gray-500">내 답: </span>
+                    <span className={`font-bold ${isCorrect ? 'text-[#1FAF54]' : 'text-[#D92916]'}`}>
+                      {studentAnswer || '(미응답)'}
+                      {optionText(content, studentAnswer) ? ` — ${optionText(content, studentAnswer)}` : ''}
+                    </span>
+                  </div>
+                  {!isCorrect && r?.correctAnswer && (
+                    <div>
+                      <span className="font-semibold text-gray-500">정답: </span>
+                      <span className="font-bold text-[#1FAF54]">
+                        {r.correctAnswer}
+                        {optionText(content, r.correctAnswer) ? ` — ${optionText(content, r.correctAnswer)}` : ''}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {r?.explanation && (
+                <div className="rounded-lg border border-[#1865F2]/20 bg-[#1865F2]/5 p-3">
+                  <p className="mb-1 text-xs font-semibold text-[#1865F2]">해설</p>
+                  <p className="text-sm text-[#1865F2]/80">{r.explanation}</p>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
       <div className="flex gap-3">
-        <Button
-          variant="outline"
-          onClick={onGoHome}
-          className="flex-1 min-h-[44px]"
-        >
-          홈으로
+        <Button onClick={onComplete} className="flex-1 min-h-[44px] bg-[#1865F2] hover:bg-[#1558d6]">
+          완료
         </Button>
         {newBadges.length > 0 && (
-          <Button
-            onClick={onViewBadges}
-            className="flex-1 min-h-[44px] bg-[#1865F2] hover:bg-[#1558d6]"
-          >
+          <Button variant="outline" onClick={onViewBadges} className="flex-1 min-h-[44px]">
             배지 확인
           </Button>
         )}
