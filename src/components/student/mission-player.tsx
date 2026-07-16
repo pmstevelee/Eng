@@ -311,7 +311,9 @@ export function MissionPlayer({
 
       {/* ── 문제 영역 ── */}
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-4 py-6">
+        <div
+          className={`mx-auto px-4 py-6 ${content.type === 'essay' ? 'max-w-5xl' : 'max-w-3xl'}`}
+        >
           {/* 도메인 배지 */}
           <div className="mb-4 flex items-center gap-2">
             <span
@@ -666,7 +668,7 @@ function EssayQuestion({
           value={answer}
           onChange={(e) => onAnswer(e.target.value)}
           placeholder="답변을 작성하세요..."
-          rows={7}
+          rows={14}
           className={`w-full resize-none rounded-xl border px-4 py-3 text-sm leading-relaxed text-gray-900 outline-none transition-all focus:ring-2 focus:ring-[#1865F2]/20 ${
             isOverLimit
               ? 'border-[#D92916] focus:border-[#D92916]'

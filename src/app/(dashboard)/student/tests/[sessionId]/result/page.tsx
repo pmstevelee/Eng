@@ -205,6 +205,51 @@ export default async function TestResultPage({
       ? displayScore - prevSession.score
       : null
 
+  // ── 서술형 채점 대기 중: 상세 결과 대신 안내 화면만 표시 ──────────────────
+  if (hasWriting && !isFullyGraded) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-5 px-4 py-8">
+        <a
+          href="/student/tests"
+          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          테스트 목록
+        </a>
+
+        <div className="flex flex-col items-center rounded-xl border border-gray-200 bg-white px-6 py-16 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#FFB100]/10">
+            <Clock className="h-8 w-8 text-[#FFB100]" />
+          </div>
+          <span className="mb-3 rounded-full bg-[#FFB100]/10 px-2.5 py-0.5 text-xs font-medium text-[#FFB100]">
+            쓰기 채점 대기 중
+          </span>
+          <h1 className="text-xl font-bold text-gray-900">
+            {session.test.title} — 제출 완료
+          </h1>
+          {session.completedAt && (
+            <p className="mt-1 text-sm text-gray-500">
+              제출: {new Date(session.completedAt).toLocaleString('ko-KR')}
+            </p>
+          )}
+          <p className="mt-4 max-w-sm text-sm leading-relaxed text-gray-500">
+            서술형 문제는 선생님의 채점이 필요합니다. 채점이 완료되면 이 페이지에서 전체 결과를
+            확인하실 수 있어요.
+          </p>
+        </div>
+
+        <div className="flex justify-center pb-4">
+          <a
+            href="/student/tests"
+            className="inline-flex min-h-[44px] items-center rounded-xl bg-[#1865F2] px-8 py-3 text-sm font-semibold text-white hover:bg-[#1558d6]"
+          >
+            테스트 목록으로
+          </a>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-4 py-8">
       {/* 브레드크럼 */}

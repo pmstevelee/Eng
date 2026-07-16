@@ -43,7 +43,7 @@ async function getTestsPageData(viewIds: string[]) {
   const testIds = tests.map((t) => t.id)
 
   // 2단계: 세션 집계 — 전체 row 로딩 없이 DB 레벨에서 count/avg 계산
-  const [totalCounts, completedStats] = await Promise.all([
+  const [totalCounts, completedStats, needsGradingCounts] = await Promise.all([
     prisma.testSession.groupBy({
       by: ['testId'],
       where: { testId: { in: testIds } },
@@ -55,6 +55,11 @@ async function getTestsPageData(viewIds: string[]) {
       _count: { id: true },
       _avg: { score: true },
     }),
+    prisma.testSession.groupBy({
+      by: ['testId'],
+      where: { testId: { in: testIds }, status: 'COMPLETED' },
+      _count: { id: true },
+    }),
   ])
 
   // unstable_cache는 JSON 직렬화를 거치므로 Map 대신 Record, Date는 string으로 변환
@@ -64,9 +69,12 @@ async function getTestsPageData(viewIds: string[]) {
   const completedMap: Record<string, { count: number; avg: number | null }> = {}
   for (const r of completedStats) completedMap[r.testId] = { count: r._count.id, avg: r._avg.score }
 
+  const needsGradingMap: Record<string, number> = {}
+  for (const r of needsGradingCounts) needsGradingMap[r.testId] = r._count.id
+
   const serializedTests = tests.map((t) => ({ ...t, createdAt: t.createdAt.toISOString() }))
 
-  return { tests: serializedTests, classes, teachers, totalMap, completedMap }
+  return { tests: serializedTests, classes, teachers, totalMap, completedMap, needsGradingMap }
 }
 
 // 테스트 목록 + 세션 통계를 30초 캐싱 (데이터 변경 시 tag로 즉시 무효화)
@@ -90,11 +98,8 @@ export default async function OwnerTestsPage() {
   const branchKey = viewIds.join(',')
 
   const dataStart = performance.now()
-  const { tests, classes, teachers, totalMap, completedMap } = await getCachedTestsPageData(
-    user.academyId,
-    viewIds,
-    branchKey,
-  )
+  const { tests, classes, teachers, totalMap, completedMap, needsGradingMap } =
+    await getCachedTestsPageData(user.academyId, viewIds, branchKey)
   console.log(`  [쿼리2] getCachedTestsPageData: ${(performance.now() - dataStart).toFixed(0)}ms`)
 
   const totalTime = performance.now() - pageStart
@@ -125,6 +130,7 @@ export default async function OwnerTestsPage() {
       completedCount,
       avgScore,
       responseRate,
+      needsGradingCount: needsGradingMap[t.id] ?? 0,
     }
   })
 

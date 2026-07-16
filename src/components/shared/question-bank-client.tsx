@@ -549,7 +549,7 @@ function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onCl
                   className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-primary-700 focus:outline-none resize-none"
                 />
                 {content.word_limit && (
-                  <p className="mt-1 text-xs text-gray-500">최대 {content.word_limit}단어</p>
+                  <p className="mt-1 text-xs text-gray-500">최대 {content.word_limit}자</p>
                 )}
               </div>
             )}
@@ -1452,13 +1452,13 @@ function QuestionFormModal({
             </div>
           )}
 
-          {/* 단어 수 제한 (서술형) */}
+          {/* 글자 수 제한 (서술형) */}
           {qType === 'essay' && domain !== 'LISTENING' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">최대 단어 수</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">최대 글자 수</label>
               <div className="flex items-center gap-3 h-11">
                 <input type="range" min={50} max={10000} step={50} value={wordLimit} onChange={(e) => setWordLimit(Number(e.target.value))} className="w-full accent-primary-700" />
-                <span className="text-sm font-bold text-gray-700 w-16">{wordLimit}단어</span>
+                <span className="text-sm font-bold text-gray-700 w-16">{wordLimit}자</span>
               </div>
             </div>
           )}

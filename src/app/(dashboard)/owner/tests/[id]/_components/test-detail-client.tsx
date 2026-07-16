@@ -15,7 +15,7 @@ import {
   PolarAngleAxis,
   Legend,
 } from 'recharts'
-import { Users, Clock, BookOpen, TrendingUp, AlertTriangle, FileDown } from 'lucide-react'
+import { Users, Clock, BookOpen, TrendingUp, AlertTriangle, FileDown, PenLine } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -168,6 +168,7 @@ export default function TestDetailClient({ test }: { test: TestDetailData }) {
   )
   const notStartedSessions = test.sessions.filter((s) => s.status === 'NOT_STARTED')
   const completionRate = totalSessions > 0 ? Math.round((completedSessions.length / totalSessions) * 100) : 0
+  const needsGradingCount = test.sessions.filter((s) => s.status === 'COMPLETED').length
 
   const scoredSessions = test.sessions.filter((s) => s.score !== null)
   const avgScore =
@@ -206,15 +207,26 @@ export default function TestDetailClient({ test }: { test: TestDetailData }) {
             </div>
             <h1 className="text-xl font-bold text-gray-900">{test.title}</h1>
           </div>
-          <a
-            href={`/report/test/${test.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 h-9 text-sm font-medium text-primary-700 border border-primary-700 hover:bg-primary-50 rounded-xl transition-colors shrink-0"
-          >
-            <FileDown size={15} />
-            리포트 출력
-          </a>
+          <div className="flex items-center gap-2 shrink-0">
+            {needsGradingCount > 0 && (
+              <a
+                href={`/owner/tests/${test.id}/grade`}
+                className="flex items-center gap-1.5 px-3 h-9 text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-colors"
+              >
+                <PenLine size={15} />
+                채점하기 ({needsGradingCount})
+              </a>
+            )}
+            <a
+              href={`/report/test/${test.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 h-9 text-sm font-medium text-primary-700 border border-primary-700 hover:bg-primary-50 rounded-xl transition-colors"
+            >
+              <FileDown size={15} />
+              리포트 출력
+            </a>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-100">

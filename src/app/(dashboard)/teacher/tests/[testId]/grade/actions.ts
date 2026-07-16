@@ -124,7 +124,7 @@ export async function gradeSession(
       grammarScore: true,
       vocabularyScore: true,
       readingScore: true,
-      test: { select: { academyId: true, createdBy: true } },
+      test: { select: { id: true, academyId: true, createdBy: true } },
     },
   })
 
@@ -217,7 +217,11 @@ export async function gradeSession(
     })
 
     revalidatePath(`/teacher/tests`)
+    revalidatePath(`/owner/tests`)
+    revalidatePath(`/owner/tests/${session.test.id}`)
     revalidateTag(`owner-${auth.academyId}-dashboard`)
+    revalidateTag(`academy-${auth.academyId}-tests`)
+    revalidateTag(`test-${session.test.id}`)
     return {}
   } catch {
     return { error: '채점 저장에 실패했습니다.' }

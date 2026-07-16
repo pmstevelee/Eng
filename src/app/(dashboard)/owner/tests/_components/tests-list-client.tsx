@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Search, Send, BookOpen, ChevronRight, X } from 'lucide-react'
+import { Search, Send, BookOpen, ChevronRight, X, PenLine } from 'lucide-react'
 import { deployExistingTest, getStudentsForDeploy } from '../actions'
 
 type TestItem = {
@@ -22,6 +22,7 @@ type TestItem = {
   completedCount: number
   avgScore: number | null
   responseRate: number | null
+  needsGradingCount: number
 }
 
 type FilterClass = { id: string; name: string }
@@ -371,6 +372,15 @@ export default function TestsListClient({
                             <Send size={11} />
                             배포
                           </button>
+                        )}
+                        {test.needsGradingCount > 0 && (
+                          <Link
+                            href={`/owner/tests/${test.id}/grade`}
+                            className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                          >
+                            <PenLine size={11} />
+                            채점하기
+                          </Link>
                         )}
                         <Link
                           href={`/owner/tests/${test.id}`}
