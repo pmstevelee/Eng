@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
-import { BookOpen, Plus, BarChart2, Pencil } from 'lucide-react'
-import { DeleteSetButton } from './_components/delete-set-button'
+import { BookOpen, Plus, BarChart2 } from 'lucide-react'
+import { TeacherSetsList } from './_components/teacher-sets-list'
 
 const SOURCE_LABEL: Record<string, string> = {
   PUBLISHER: '시스템',
@@ -82,44 +82,7 @@ export default async function TeacherWordsPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-2">
-            {teacherSets.map((set) => (
-              <div
-                key={set.id}
-                className="rounded-xl border border-gray-200 bg-white px-5 py-4 flex items-center gap-4"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-xs font-medium text-[#7854F7] bg-[#7854F7]/10 px-2 py-0.5 rounded-full">
-                      {SOURCE_LABEL[set.source] ?? set.source}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {CEFR_MAP[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
-                    </span>
-                  </div>
-                  <p className="font-semibold text-gray-900 truncate">{set.title}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {set._count.items}단어 · 시험 출제 {set._count.wordTestAssignments}회
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <DeleteSetButton setId={set.id} setTitle={set.title} />
-                  <Link href={`/teacher/words/sets/${set.id}`}>
-                    <Button variant="outline" size="sm" className="h-9 text-gray-600 border-gray-200">
-                      <Pencil className="w-3.5 h-3.5 mr-1" />
-                      보기
-                    </Button>
-                  </Link>
-                  <Link href={`/teacher/words/sets/${set.id}/test/new`}>
-                    <Button size="sm" className="h-9 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white">
-                      <Plus className="w-3.5 h-3.5 mr-1" />
-                      시험 출제
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
+          <TeacherSetsList sets={teacherSets} />
         )}
       </section>
 

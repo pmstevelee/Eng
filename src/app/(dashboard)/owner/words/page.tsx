@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Users, Star, TrendingUp, Activity, Plus, Pencil } from 'lucide-react'
+import { BookOpen, Users, Star, TrendingUp, Activity, Plus } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
 import { getOwnerWordStats } from './_actions/report'
 import { ClassComparisonChart } from './_components/owner-word-charts'
+import { OwnerSetsList } from './_components/owner-sets-list'
 
 interface Props {
   searchParams: Promise<{ tab?: string }>
@@ -233,33 +234,7 @@ async function SetsTab({ academyId }: { academyId: string }) {
             </Link>
           </div>
         ) : (
-          <div className="space-y-2">
-            {customSets.map((set) => (
-              <div
-                key={set.id}
-                className="rounded-xl border border-gray-200 bg-white px-5 py-4 flex items-center gap-4"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-xs font-medium text-[#7854F7] bg-[#7854F7]/10 px-2 py-0.5 rounded-full">
-                      {SOURCE_LABEL[set.source] ?? set.source}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {CEFR_MAP[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
-                    </span>
-                  </div>
-                  <p className="font-semibold text-gray-900 truncate">{set.title}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{set._count.items}단어</p>
-                </div>
-                <Link href={`/owner/words/sets/${set.id}`}>
-                  <Button variant="outline" size="sm" className="h-9 text-gray-600 border-gray-200 shrink-0">
-                    <Pencil className="w-3.5 h-3.5 mr-1" />
-                    보기
-                  </Button>
-                </Link>
-              </div>
-            ))}
-          </div>
+          <OwnerSetsList sets={customSets} />
         )}
       </section>
 

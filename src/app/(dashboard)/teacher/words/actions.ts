@@ -374,6 +374,50 @@ export async function deleteTeacherWordSet(
   return {}
 }
 
+// ─── 세트 일괄 삭제 ──────────────────────────────────────────────────────────────
+
+const DeleteWordSetsSchema = z.object({
+  setIds: z.array(z.string().uuid()).min(1, '삭제할 세트를 선택하세요.'),
+})
+
+export async function deleteTeacherWordSets(
+  setIds: string[],
+): Promise<{ error?: string; deletedCount?: number; skippedTitles?: string[] }> {
+  const teacher = await getAuthedTeacher()
+  if (!teacher) return { error: '인증이 필요합니다.' }
+
+  const parsed = DeleteWordSetsSchema.safeParse({ setIds })
+  if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
+
+  const sets = await prisma.wordSet.findMany({
+    where: {
+      id: { in: parsed.data.setIds },
+      academyId: teacher.academyId!,
+      ownerId: teacher.id,
+      source: { not: 'PUBLISHER' },
+    },
+    select: { id: true, title: true, _count: { select: { wordTestAssignments: true } } },
+  })
+  if (sets.length === 0) return { error: '삭제할 수 있는 세트가 없습니다.' }
+
+  // 시험에 이미 출제된 세트는 삭제에서 제외 (FK 제약)
+  const deletable = sets.filter((s) => s._count.wordTestAssignments === 0)
+  const skippedTitles = sets.filter((s) => s._count.wordTestAssignments > 0).map((s) => s.title)
+
+  if (deletable.length === 0) {
+    return { error: '선택한 세트가 모두 시험에 출제되어 삭제할 수 없습니다.' }
+  }
+
+  const deletableIds = deletable.map((s) => s.id)
+  await prisma.$transaction([
+    prisma.wordSetItem.deleteMany({ where: { setId: { in: deletableIds } } }),
+    prisma.wordSet.deleteMany({ where: { id: { in: deletableIds } } }),
+  ])
+
+  revalidatePath('/teacher/words')
+  return { deletedCount: deletableIds.length, skippedTitles: skippedTitles.length > 0 ? skippedTitles : undefined }
+}
+
 // ─── 보충 세트 생성 (오답 단어만) ────────────────────────────────────────────────
 
 export async function createSupplementarySet(
