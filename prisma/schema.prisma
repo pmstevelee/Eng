@@ -1260,6 +1260,23 @@ model WordTestStudentAssignment {
   @@map("word_test_student_assignments")
 }
 
+/// 구독자(학원장/교사/학생) 주요 기능 사용 로그 - 관리자 활동 분석용
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  role      Role
+  academyId String?  @map("academy_id")
+  action    String   // ACTIVITY_ACTIONS 상수 참고 (예: LOGIN, TEST_SUBMIT, PRACTICE_SUBMIT)
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([academyId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
 /// 학생 응시 결과
 model WordTestAttempt {
   id             String    @id @default(uuid())

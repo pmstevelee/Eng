@@ -3,6 +3,8 @@
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
+import { logActivity } from '@/lib/activity-log'
+import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 
 async function getAuthedTeacherOrOwner() {
   const supabase = await createClient()
@@ -222,6 +224,13 @@ export async function gradeSession(
     revalidateTag(`owner-${auth.academyId}-dashboard`)
     revalidateTag(`academy-${auth.academyId}-tests`)
     revalidateTag(`test-${session.test.id}`)
+    logActivity({
+      userId: auth.id,
+      role: auth.role,
+      academyId: auth.academyId,
+      action: ACTIVITY_ACTIONS.TEST_GRADE,
+      metadata: { sessionId, testId: session.test.id },
+    }).catch(console.error)
     return {}
   } catch {
     return { error: '채점 저장에 실패했습니다.' }

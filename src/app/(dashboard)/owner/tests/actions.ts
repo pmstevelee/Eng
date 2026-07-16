@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 import { getUsedLevelTestQuestions } from '@/lib/questions/usage-tracker'
+import { logActivity } from '@/lib/activity-log'
+import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 
 async function getAuthedOwner() {
   const supabase = await createClient()
@@ -156,6 +158,13 @@ export async function createAndDeployTest(
 
     revalidateTag(`academy-${user.academyId}-tests`)
     revalidatePath('/owner/tests')
+    logActivity({
+      userId: user.id,
+      role: 'ACADEMY_OWNER',
+      academyId: user.academyId,
+      action: ACTIVITY_ACTIONS.TEST_DEPLOY,
+      metadata: { testId: test.id, type: input.type, studentCount: students.length },
+    }).catch(console.error)
     return { id: test.id }
   } catch (e) {
     console.error(e)
@@ -218,6 +227,13 @@ export async function deployExistingTest(
 
     revalidateTag(`academy-${user.academyId}-tests`)
     revalidatePath('/owner/tests')
+    logActivity({
+      userId: user.id,
+      role: 'ACADEMY_OWNER',
+      academyId: user.academyId,
+      action: ACTIVITY_ACTIONS.TEST_DEPLOY,
+      metadata: { testId, studentCount: students.length },
+    }).catch(console.error)
     return {}
   } catch (e) {
     console.error(e)

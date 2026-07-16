@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import { primeAuthCache, invalidateAuthCache } from '@/lib/auth'
+import { logActivity } from '@/lib/activity-log'
+import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import type { Role } from '@/types'
 
 const ROLE_REDIRECT: Record<Role, string> = {
@@ -34,10 +36,11 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
   }
 
   let role: Role | null = null
+  let academyId: string | null = null
   try {
     const user = await prisma.user.findUnique({
       where: { id: authUserId },
-      select: { role: true },
+      select: { role: true, academyId: true },
     })
 
     if (!user) {
@@ -46,6 +49,7 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
     }
 
     role = user.role as Role
+    academyId = user.academyId
   } catch (err) {
     console.error('[signIn] DB 연결 오류:', err)
     await supabase.auth.signOut()
@@ -64,6 +68,8 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
   // 인증 캐시를 미리 채워서 다음 요청(/student 등)에서
   // supabase.auth.getUser() 네트워크 호출(~300-500ms)을 스킵한다.
   if (accessToken) primeAuthCache(accessToken, authUserId)
+
+  await logActivity({ userId: authUserId, role, academyId, action: ACTIVITY_ACTIONS.LOGIN })
 
   redirect(ROLE_REDIRECT[role])
 }

@@ -7,6 +7,8 @@ import { updateStreak } from '@/lib/missions/streak-manager'
 import { awardXP, BADGE_XP } from '@/lib/missions/xp-manager'
 import { BadgeType, QuestionDomain } from '@/generated/prisma'
 import { checkPromotionStatus } from '@/lib/assessment/promotion-engine'
+import { logActivity } from '@/lib/activity-log'
+import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -70,7 +72,7 @@ async function getAuthedStudent() {
     select: { student: { select: { id: true } } },
   })
   if (!dbUser?.student) return null
-  return { studentId: dbUser.student.id }
+  return { studentId: dbUser.student.id, userId: user.id, academyId: user.academyId }
 }
 
 const DOMAIN_LABEL: Record<string, string> = {
@@ -451,6 +453,13 @@ export async function completeMission(
   // 오늘의 미션 완료일 수가 변경되어 학습 활동량 조건 재계산 필요
   if (isAllComplete) {
     checkPromotionStatus(studentId).catch(console.error)
+    logActivity({
+      userId: auth.userId,
+      role: 'STUDENT',
+      academyId: auth.academyId,
+      action: ACTIVITY_ACTIONS.MISSION_COMPLETE,
+      metadata: { dailyMissionId },
+    }).catch(console.error)
   }
 
   // 대시보드 캐시 무효화

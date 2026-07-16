@@ -1,0 +1,21 @@
+export const ACTIVITY_ACTIONS = {
+  LOGIN: 'LOGIN',
+  TEST_SUBMIT: 'TEST_SUBMIT',
+  PRACTICE_SUBMIT: 'PRACTICE_SUBMIT',
+  MISSION_COMPLETE: 'MISSION_COMPLETE',
+  TEST_DEPLOY: 'TEST_DEPLOY',
+  TEST_GRADE: 'TEST_GRADE',
+  ACADEMY_SETTINGS_UPDATE: 'ACADEMY_SETTINGS_UPDATE',
+} as const
+
+export type ActivityAction = (typeof ACTIVITY_ACTIONS)[keyof typeof ACTIVITY_ACTIONS]
+
+export const ACTIVITY_ACTION_LABELS: Record<string, string> = {
+  LOGIN: '로그인',
+  TEST_SUBMIT: '테스트 제출',
+  PRACTICE_SUBMIT: '연습문제 제출',
+  MISSION_COMPLETE: '오늘의 미션 완료',
+  TEST_DEPLOY: '테스트 출제',
+  TEST_GRADE: '채점 완료',
+  ACADEMY_SETTINGS_UPDATE: '학원 설정 변경',
+}

@@ -6,6 +6,8 @@ import { redirect } from 'next/navigation'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { randomBytes } from 'crypto'
 import { headers } from 'next/headers'
+import { logActivity } from '@/lib/activity-log'
+import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 
 export async function withdrawAcademy(
   formData: FormData,
@@ -146,6 +148,13 @@ export async function updateAcademyInfo(
   revalidateTag(`user-${authUser.id}`)
   revalidatePath('/owner/settings/academy')
   revalidatePath('/owner')
+  logActivity({
+    userId: user.id,
+    role: 'ACADEMY_OWNER',
+    academyId: user.academyId,
+    action: ACTIVITY_ACTIONS.ACADEMY_SETTINGS_UPDATE,
+    metadata: { field: 'academy_info' },
+  }).catch(console.error)
   return { success: true }
 }
 

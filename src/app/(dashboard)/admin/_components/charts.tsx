@@ -12,6 +12,8 @@ import {
   Pie,
   Cell,
   Legend,
+  BarChart,
+  Bar,
 } from 'recharts'
 
 export type MonthlyData = { month: string; count: number }
@@ -56,6 +58,42 @@ export function MonthlySignupChart({ data }: { data: MonthlyData[] }) {
           name="신규 학원"
         />
       </LineChart>
+    </ResponsiveContainer>
+  )
+}
+
+export type ActionFrequencyData = { action: string; label: string; count: number }
+
+export function ActionFrequencyChart({ data }: { data: ActionFrequencyData[] }) {
+  return (
+    <ResponsiveContainer width="100%" height={Math.max(160, data.length * 40)}>
+      <BarChart
+        data={data}
+        layout="vertical"
+        margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="#E3E5EA" horizontal={false} />
+        <XAxis
+          type="number"
+          tick={{ fontSize: 12, fill: '#6B6F7A' }}
+          axisLine={false}
+          tickLine={false}
+          allowDecimals={false}
+        />
+        <YAxis
+          type="category"
+          dataKey="label"
+          tick={{ fontSize: 12, fill: '#21242C' }}
+          axisLine={false}
+          tickLine={false}
+          width={110}
+        />
+        <Tooltip
+          formatter={(value) => [`${value}건`]}
+          contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #E3E5EA' }}
+        />
+        <Bar dataKey="count" fill="#1865F2" radius={[0, 4, 4, 0]} name="사용 건수" />
+      </BarChart>
     </ResponsiveContainer>
   )
 }

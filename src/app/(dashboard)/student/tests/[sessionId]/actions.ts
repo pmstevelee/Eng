@@ -9,6 +9,8 @@ import { recordLevelTestUsage } from '@/lib/questions/usage-tracker'
 import { updateQuestionQuality } from '@/lib/questions/quality-updater'
 import { checkPromotionStatus } from '@/lib/assessment/promotion-engine'
 import { difficultyWeightedScore, scoreToLevel, getGradeLevelCap } from '@/lib/constants/levels'
+import { logActivity } from '@/lib/activity-log'
+import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 
 async function getAuthedStudent() {
   const supabase = await createClient()
@@ -365,6 +367,15 @@ export async function submitTest(
     for (const qId of questionIds) {
       updateQuestionQuality(qId).catch(console.error)
     }
+
+    // 활동 로그 (비동기, 관리자 활동 분석용)
+    logActivity({
+      userId: auth.userId,
+      role: 'STUDENT',
+      academyId: session.test.academyId,
+      action: ACTIVITY_ACTIONS.TEST_SUBMIT,
+      metadata: { testType: session.test.type, score },
+    }).catch(console.error)
 
     revalidateTag(`student-${auth.studentId}-tests`)
     revalidateTag(`student-${auth.studentId}-grades`)

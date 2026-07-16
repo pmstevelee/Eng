@@ -9,6 +9,8 @@ import { getStudentProfile } from '@/lib/ai/student-analyzer'
 import { updateQuestionQuality } from '@/lib/questions/quality-updater'
 import { selectAdaptiveQuestions, selectSmartDomainQuestions } from '@/lib/ai/question-selector'
 import { LEVEL_TO_CEFR } from '@/lib/constants/levels'
+import { logActivity } from '@/lib/activity-log'
+import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import type {
   QuestionContentJson,
   QuestionDomainType,
@@ -691,6 +693,17 @@ export async function savePracticeSession(params: {
       resultsJson: results,
     },
   })
+
+  const user = await getCurrentUser()
+  if (user) {
+    logActivity({
+      userId: user.id,
+      role: 'STUDENT',
+      academyId: user.academyId,
+      action: ACTIVITY_ACTIONS.PRACTICE_SUBMIT,
+      metadata: { mode, domain, score },
+    }).catch(console.error)
+  }
 }
 
 // ── 답변 채점 (클라이언트에서 호출) ──────────────────────────────────────────
