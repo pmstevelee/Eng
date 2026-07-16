@@ -608,7 +608,7 @@ function QuestionRenderer({
 }: QuestionRendererProps) {
   const content = question.contentJson
 
-  if (content.type === 'essay') {
+  if (content.type === 'essay' || question.domain === 'WRITING') {
     return <EssayQuestion content={content} answer={answer} onAnswer={onAnswer} />
   }
 
