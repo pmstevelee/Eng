@@ -1,0 +1,1350 @@
+{
+  "B6b": {
+    "label": "Clauses (Intermediate / Upper-Intermediate) - Part 2 (Q159-280)",
+    "count": 122,
+    "questions": [
+      {
+        "number": 159,
+        "question_text": "He forgot to get the tickets, _______.",
+        "options": {
+          "A": "whose wife got very angry with him",
+          "B": "his wife had booked yesterday",
+          "C": "where his wife wanted to see",
+          "D": "which annoyed his wife very much"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 160,
+        "question_text": "It is nuclear war, which could exterminate mankind, _______.",
+        "options": {
+          "A": "which is a great danger",
+          "B": "its power is unquestionable",
+          "C": "that we must avoid",
+          "D": "everybody knows it is dangerous"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 161,
+        "question_text": "The book was ______ boring ______ I only could read two chapters.",
+        "options": {
+          "A": "such / that",
+          "B": "so / that",
+          "C": "very / that",
+          "D": "too / that"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 162,
+        "question_text": "It was ______ a boring book ______ I only could read two chapters.",
+        "options": {
+          "A": "such / that",
+          "B": "so / that",
+          "C": "too / as",
+          "D": "very / as"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 163,
+        "question_text": "_______ you talk to him, _______ you like him.",
+        "options": {
+          "A": "Much / the more",
+          "B": "The more / the less",
+          "C": "More / more",
+          "D": "The most / the most"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 164,
+        "question_text": "_______ I didn’t know anybody at the reception, I had a good time.",
+        "options": {
+          "A": "In spite of that",
+          "B": "Even so",
+          "C": "Even if",
+          "D": "Even though"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 165,
+        "question_text": "_____ I’ve finished “A Tale of Two Cities, I’ll read “Oliver Twist”.",
+        "options": {
+          "A": "Therefore",
+          "B": "Even if",
+          "C": "Though",
+          "D": "Now that"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 166,
+        "question_text": "No sooner had I opened the door _______ the telephone rang.",
+        "options": {
+          "A": "when",
+          "B": "before",
+          "C": "than",
+          "D": "as soon as"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 167,
+        "question_text": "_______ you’re happy about it, I have no objection.",
+        "options": {
+          "A": "As long as",
+          "B": "Whatever",
+          "C": "Therefore",
+          "D": "Even so"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 168,
+        "question_text": "He didn’t have any money, _______ he couldn’t buy a ticket.",
+        "options": {
+          "A": "moreover",
+          "B": "however",
+          "C": "because",
+          "D": "consequently"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 169,
+        "question_text": "He had enough money to buy a ticket, _____, he decided not to go.",
+        "options": {
+          "A": "consequently",
+          "B": "nevertheless",
+          "C": "moreover",
+          "D": "because"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 170,
+        "question_text": "He wanted to go with us; _______ he packed his suitcase.",
+        "options": {
+          "A": "so",
+          "B": "nevertheless",
+          "C": "moreover",
+          "D": "but"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 171,
+        "question_text": "It is late; _______, it is raining cats and dogs.",
+        "options": {
+          "A": "therefore",
+          "B": "nevertheless",
+          "C": "because",
+          "D": "moreover"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 172,
+        "question_text": "I didn’t have enough time; _______, I couldn’t go.",
+        "options": {
+          "A": "nevertheless",
+          "B": "moreover",
+          "C": "therefore",
+          "D": "however"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 173,
+        "question_text": "She’s been working for eight hours; _______, she is tired.",
+        "options": {
+          "A": "consequently",
+          "B": "however",
+          "C": "nevertheless",
+          "D": "because"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 174,
+        "question_text": "I’ll finish this. Then I’ll join you. When I _______ this, I’ll join you.",
+        "options": {
+          "A": "was finished",
+          "B": "will finish",
+          "C": "finished",
+          "D": "have finished"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 175,
+        "question_text": "She dressed the child in a heavy overcoat, _______ he should catch cold.",
+        "options": {
+          "A": "because",
+          "B": "therefore",
+          "C": "however",
+          "D": "lest"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 176,
+        "question_text": "I’ve written it down for her, _______ she forgets it.",
+        "options": {
+          "A": "so as to",
+          "B": "therefore",
+          "C": "in case",
+          "D": "in order to"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 177,
+        "question_text": "I will go home for vacation as soon as I _______ my exams.",
+        "options": {
+          "A": "will finish",
+          "B": "finish",
+          "C": "am finishing",
+          "D": "finished"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 178,
+        "question_text": "When she arrived, I was pretty fed up, because I _______ since eight o’clock.",
+        "options": {
+          "A": "had been waiting",
+          "B": "have waited",
+          "C": "have been waiting",
+          "D": "had waited"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 179,
+        "question_text": "We left early _______ avoid the traffic.",
+        "options": {
+          "A": "because",
+          "B": "so as not to",
+          "C": "so as to",
+          "D": "not to"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 180,
+        "question_text": "They tiptoed up the stairs _______ wake the children.",
+        "options": {
+          "A": "in order to",
+          "B": "so as not to",
+          "C": "so as to",
+          "D": "because of"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 181,
+        "question_text": "We won’t go unless the weather _______ fine.",
+        "options": {
+          "A": "will be",
+          "B": "is",
+          "C": "won’t be",
+          "D": "isn’t"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 182,
+        "question_text": "I was on vacation; _______, I didn’t get your letter.",
+        "options": {
+          "A": "therefore",
+          "B": "however",
+          "C": "even if",
+          "D": "although"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 183,
+        "question_text": "Dr. King gives interesting lectures; _______, he is very popular with his students.",
+        "options": {
+          "A": "however",
+          "B": "consequently",
+          "C": "but also",
+          "D": "not only"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 184,
+        "question_text": "Robert didn’t study for the test; _______ he did very veil.",
+        "options": {
+          "A": "consequently",
+          "B": "therefore",
+          "C": "moreover",
+          "D": "nevertheless"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 185,
+        "question_text": "James wants to buy a new car, _____ he doesn’t have enough money.",
+        "options": {
+          "A": "however",
+          "B": "therefore",
+          "C": "moreover",
+          "D": "consequently"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 186,
+        "question_text": "He found everything rather strange, as he _______ abroad before.",
+        "options": {
+          "A": "would never",
+          "B": "had never been",
+          "C": "has never been",
+          "D": "will never be"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 187,
+        "question_text": "_______ coal reserves are abundant, taking advantage of them requires an active program of development.",
+        "options": {
+          "A": "Even though",
+          "B": "Therefore",
+          "C": "So that",
+          "D": "Nevertheless"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 188,
+        "question_text": "_______ the price of petrol is so high, I can’t afford to run a car any more.",
+        "options": {
+          "A": "However",
+          "B": "Now that",
+          "C": "So that",
+          "D": "Even though"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 189,
+        "question_text": "_______ the bans remained in force, Turkey could not claim to be fully democratic.",
+        "options": {
+          "A": "Unless",
+          "B": "Provided",
+          "C": "As long as",
+          "D": "Because of"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 190,
+        "question_text": "Doctors often use X-rays _____ they can pass through skin and flesh.",
+        "options": {
+          "A": "so that",
+          "B": "as long as",
+          "C": "provided",
+          "D": "nevertheless"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 191,
+        "question_text": "Within another hundred years we will have to find alternative sources of energy, _______ the world’s reserves of oil will not last that long.",
+        "options": {
+          "A": "so that",
+          "B": "since",
+          "C": "unless",
+          "D": "while"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 192,
+        "question_text": "An airline pilot and a racing driver are similar _______ they must possess good judgment and the ability to react quickly in a crisis.",
+        "options": {
+          "A": "however",
+          "B": "so that",
+          "C": "in that",
+          "D": "even if"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 193,
+        "question_text": "They built a high fence around the building _______ no one could get out.",
+        "options": {
+          "A": "as",
+          "B": "so that",
+          "C": "since",
+          "D": "because"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 194,
+        "question_text": "The old woman had to stand all the way _______ no one let her sit down on the bus.",
+        "options": {
+          "A": "so",
+          "B": "so that",
+          "C": "since",
+          "D": "although"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 195,
+        "question_text": "He stole the money _______ I warned him not to.",
+        "options": {
+          "A": "due to",
+          "B": "in case",
+          "C": "because",
+          "D": "although"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 196,
+        "question_text": "We were _______ late _______ we missed the plane to Istanbul.",
+        "options": {
+          "A": "so / that",
+          "B": "such / than",
+          "C": "very / then",
+          "D": "too / to"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 197,
+        "question_text": "I had to work until midnight _______ I was very tired.",
+        "options": {
+          "A": "although",
+          "B": "so that",
+          "C": "in case",
+          "D": "provided that"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 198,
+        "question_text": "_______ I took an aspirin, I still have a headache.",
+        "options": {
+          "A": "Even though",
+          "B": "Nevertheless",
+          "C": "Because",
+          "D": "As"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 199,
+        "question_text": "A: You studied hard. Did you pass the test? B: No, _______ I studied hard, I didn’t pass the test.",
+        "options": {
+          "A": "because",
+          "B": "as",
+          "C": "even though",
+          "D": "unless"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 200,
+        "question_text": "It was cold; _______ we went on a picnic.",
+        "options": {
+          "A": "even though",
+          "B": "nevertheless",
+          "C": "so",
+          "D": "while"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 201,
+        "question_text": "_______ he had a broken leg, he continued to go to class.",
+        "options": {
+          "A": "Nevertheless",
+          "B": "In spite of the fact that",
+          "C": "In spite of",
+          "D": "Because of"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 202,
+        "question_text": "Some people are fat, _______ others are thin.",
+        "options": {
+          "A": "because",
+          "B": "in spite of",
+          "C": "despite of",
+          "D": "whereas"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 203,
+        "question_text": "_______ some students think physics is easy, others find it difficult.",
+        "options": {
+          "A": "As",
+          "B": "even",
+          "C": "Nevertheless",
+          "D": "While"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 204,
+        "question_text": "Do you want to walk? The rain has stopped. _______ the rain’s stopped, do you want to walk?",
+        "options": {
+          "A": "In spite of",
+          "B": "As long as",
+          "C": "Now that",
+          "D": "Due to"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 205,
+        "question_text": "_______ it’s raining, I think I’ll stay at home.",
+        "options": {
+          "A": "As long as",
+          "B": "Because of",
+          "C": "Despite of",
+          "D": "On the other hand"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 206,
+        "question_text": "_______ Monday is a national holiday, all government offices will be closed.",
+        "options": {
+          "A": "Whereas",
+          "B": "Since",
+          "C": "While",
+          "D": "Because of"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 207,
+        "question_text": "I’ll eat lunch with you _______ there is enough for both of us.",
+        "options": {
+          "A": "provided",
+          "B": "so as",
+          "C": "therefore",
+          "D": "whereas"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 208,
+        "question_text": "We’ll get along just fine _______ he minds his own business.",
+        "options": {
+          "A": "as",
+          "B": "therefore",
+          "C": "as long as",
+          "D": "so that"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 209,
+        "question_text": "Apparently Betty is jealous ______ I get better grades than she does.",
+        "options": {
+          "A": "in spite of",
+          "B": "in case",
+          "C": "moreover",
+          "D": "because"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 210,
+        "question_text": "_______ I apologized, he looked as if he wanted to strangle me.",
+        "options": {
+          "A": "In spite of",
+          "B": "Even though",
+          "C": "Because",
+          "D": "Therefore"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 211,
+        "question_text": "The government puts up taxes _______ get more money from us.",
+        "options": {
+          "A": "in order to",
+          "B": "as",
+          "C": "because",
+          "D": "so that"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 212,
+        "question_text": "I wrote down the address _______ I wouldn’t forget it.",
+        "options": {
+          "A": "because",
+          "B": "so as to",
+          "C": "so that",
+          "D": "as"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 213,
+        "question_text": "Roy talks _______ nonsense that no one listens to him any more.",
+        "options": {
+          "A": "although",
+          "B": "as if",
+          "C": "like",
+          "D": "such"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 214,
+        "question_text": "She doesn’t mind working overtime _______ she’s paid for it.",
+        "options": {
+          "A": "provided that",
+          "B": "so that",
+          "C": "as a result",
+          "D": "in case"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 215,
+        "question_text": "We have to do the job _______ we like it or not.",
+        "options": {
+          "A": "if",
+          "B": "whether",
+          "C": "unless",
+          "D": "provided that"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 216,
+        "question_text": "I did my homework _______ our teacher had instructed.",
+        "options": {
+          "A": "as",
+          "B": "in order that",
+          "C": "for fear that",
+          "D": "so that"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 217,
+        "question_text": "I’ll give you my telephone number _______ you want to get in touch with me again.",
+        "options": {
+          "A": "although",
+          "B": "in case",
+          "C": "so that",
+          "D": "as if"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 218,
+        "question_text": "I obeyed her _______ she should be angry.",
+        "options": {
+          "A": "provided that",
+          "B": "but",
+          "C": "unless",
+          "D": "lest"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 219,
+        "question_text": "Please turn down the TV. I want to be able to get to sleep. Please turn down the TV so that _______.",
+        "options": {
+          "A": "I am getting to sleep",
+          "B": "I’ll be able to sleep",
+          "C": "I could get to sleep",
+          "D": "I can get to sleep"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 220,
+        "question_text": "Please be quiet so that _______.",
+        "options": {
+          "A": "the teacher will get angry",
+          "B": "I can hear what the teacher is saying",
+          "C": "I heard what the teacher said",
+          "D": "to hear what the teacher is saying"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 221,
+        "question_text": "Mike decided to become an anthropologist _______.",
+        "options": {
+          "A": "so he can study the life of a primitive tribe",
+          "B": "that’s why he will watch the documentary film on a primitive tribe",
+          "C": "after he saw a documentary film on a primitive tribe",
+          "D": "due to the fact that the film is- on a primitive tribe"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 222,
+        "question_text": "“Having seen that film before, she wants to see a different one.” means: _______",
+        "options": {
+          "A": "As she has seen a different film before, she can see this film.",
+          "B": "Because she’s seen that film before, she wants to go to different one.",
+          "C": "As she’d seen that film before, she wanted to see a different one.",
+          "D": "Because she wants to see that film, she can watch it."
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 223,
+        "question_text": "“Having worked all day, I was tired last night.” means: _______.",
+        "options": {
+          "A": "As I had worked all day, I was feeling tired last night.",
+          "B": "I worked tiringly hard all day yesterday.",
+          "C": "Since I’ve worked all day, I am tired now.",
+          "D": "Because I was tired last night, I worked all day."
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 224,
+        "question_text": "“I got to the airport at 9.15. My plane left ten minutes later.” means: _______.",
+        "options": {
+          "A": "My plane had left ten minutes ago.",
+          "B": "Before I got to the airport, my plane had taken off.",
+          "C": "I got to the airport just before my plane left.",
+          "D": "I couldn’t catch my plane."
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 225,
+        "question_text": "Since he’s not interested in classical music, he _______.",
+        "options": {
+          "A": "hasn’t gone to the concert",
+          "B": "would have gone to the concert",
+          "C": "had decided not to go to the concert",
+          "D": "was supposed to go to the concert"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 226,
+        "question_text": "_______ the semester is finished, I’m going to rest a few days and then take a trip.",
+        "options": {
+          "A": "Whenever",
+          "B": "Now that",
+          "C": "In spite of",
+          "D": "In order to"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 227,
+        "question_text": "This is _______ book that I don’t think I’ll finish it.",
+        "options": {
+          "A": "such a boring",
+          "B": "very boring",
+          "C": "such boring",
+          "D": "so boring"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 228,
+        "question_text": "I can’t repair the dishwasher myself _______.",
+        "options": {
+          "A": "that it has broken down",
+          "B": "because I had it repaired",
+          "C": "so I will get someone to do it for me",
+          "D": "unless the repairman had helped me"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 229,
+        "question_text": "I’ve gained _______ weight that I can’t wear any of my old clothes.",
+        "options": {
+          "A": "so many",
+          "B": "too many",
+          "C": "so much",
+          "D": "too much"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 230,
+        "question_text": "I’ve met _______ people in the last few days that I can’t possibly remember all of their names.",
+        "options": {
+          "A": "so many",
+          "B": "too many",
+          "C": "so much",
+          "D": "too much"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 231,
+        "question_text": "Ever since I was a child, I _______ afraid of dogs.",
+        "options": {
+          "A": "am",
+          "B": "was",
+          "C": "have been",
+          "D": "will be"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 232,
+        "question_text": "Janet’s contact lens popped out while she _______.",
+        "options": {
+          "A": "was playing",
+          "B": "is playing",
+          "C": "has been playing",
+          "D": "played"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 233,
+        "question_text": "Be sure to reread your composition for errors before you _______ it in to the teacher tomorrow.",
+        "options": {
+          "A": "are handed",
+          "B": "hand",
+          "C": "having handed",
+          "D": "handed"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 234,
+        "question_text": "By the time I leave this city, I _______ here for ten years.",
+        "options": {
+          "A": "have lived",
+          "B": "would have lived",
+          "C": "will live",
+          "D": "will have lived"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 235,
+        "question_text": "“We can’t leave now. We have to wait Peggy.” means: _______.",
+        "options": {
+          "A": "We can’t leave because Peggy isn’t here.",
+          "B": "We must leave now, because Peggy is waiting for us.",
+          "C": "Peggy is waiting; we can’t leave.",
+          "D": "We must stay here until Peggy arrives."
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 236,
+        "question_text": "“_______ the terrible weather, we enjoyed ourselves.",
+        "options": {
+          "A": "In spite of",
+          "B": "Because",
+          "C": "Although",
+          "D": "However"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 237,
+        "question_text": "“My roommate walked into the room. Immediately, I knew that something was wrong.” means: _______ I knew that something was wrong.",
+        "options": {
+          "A": "As soon as my roommate entered the room,",
+          "B": "Before my roommate walked into the room,",
+          "C": "By the time my roommate came into the room,",
+          "D": "After my roommate came into the room,"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 238,
+        "question_text": "_______ the harm she’s done him, he still loves her.",
+        "options": {
+          "A": "In spite of",
+          "B": "Although",
+          "C": "Because",
+          "D": "Even though"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 239,
+        "question_text": "_______ hard I try, I still can’t do it.",
+        "options": {
+          "A": "In spite of",
+          "B": "Although",
+          "C": "Therefore",
+          "D": "However"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 240,
+        "question_text": "_______ quickly you work, you’ll never catch up.",
+        "options": {
+          "A": "Although",
+          "B": "even though",
+          "C": "Moreover",
+          "D": "However"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 241,
+        "question_text": "You’d better leave now. _______, you’ll have to get a taxi home.",
+        "options": {
+          "A": "otherwise",
+          "B": "in case",
+          "C": "yet",
+          "D": "still"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 242,
+        "question_text": "He left school at sixteen, _______ he has had no real education.",
+        "options": {
+          "A": "because",
+          "B": "for",
+          "C": "so",
+          "D": "even though"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 243,
+        "question_text": "She didn’t seem to recognize me _______ we had never met.",
+        "options": {
+          "A": "like",
+          "B": "as if",
+          "C": "although",
+          "D": "yet"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 244,
+        "question_text": "The food may be good at the Harvard but it’s _______ expensive.",
+        "options": {
+          "A": "very much",
+          "B": "far too",
+          "C": "even so",
+          "D": "quite a lot"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 245,
+        "question_text": "People normally treat you just_______ you treat them.",
+        "options": {
+          "A": "the same",
+          "B": "as if",
+          "C": "as though",
+          "D": "as"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 246,
+        "question_text": "He acted strangely, _______ he was frightened,",
+        "options": {
+          "A": "otherwise",
+          "B": "like",
+          "C": "as though",
+          "D": "the way"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 247,
+        "question_text": "The weather was _______ bad _______ we didn’t go to the seaside.",
+        "options": {
+          "A": "such / then",
+          "B": "very / that",
+          "C": "so / that",
+          "D": "too / that"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 248,
+        "question_text": "It was hot, _______ I didn’t need my coat.",
+        "options": {
+          "A": "because",
+          "B": "so",
+          "C": "however",
+          "D": "although"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 249,
+        "question_text": "She doesn’t like phones in living rooms, and _____ does her sister.",
+        "options": {
+          "A": "so",
+          "B": "but",
+          "C": "neither",
+          "D": "too"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 250,
+        "question_text": "____ everybody seemed to be out of cigarettes, I passed mine round.",
+        "options": {
+          "A": "As",
+          "B": "So",
+          "C": "So that",
+          "D": "In order that"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 251,
+        "question_text": "____ she had sung, the whole audience stood and applauded loudly.",
+        "options": {
+          "A": "Although",
+          "B": "After",
+          "C": "Now that",
+          "D": "So long as"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 252,
+        "question_text": "_______ he is very rich, he lives very simply.",
+        "options": {
+          "A": "After",
+          "B": "While",
+          "C": "As",
+          "D": "Although"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 253,
+        "question_text": "_______ you say to her, she still keeps smiling.",
+        "options": {
+          "A": "However",
+          "B": "Moreover",
+          "C": "Whatever",
+          "D": "Whenever"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 254,
+        "question_text": "You shouldn’t be rude, _______ you’re very angry.",
+        "options": {
+          "A": "even if",
+          "B": "however",
+          "C": "as if",
+          "D": "therefore"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 255,
+        "question_text": "You can phone me _______ you like.",
+        "options": {
+          "A": "whichever",
+          "B": "in case",
+          "C": "whatever",
+          "D": "whenever"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 256,
+        "question_text": "He speaks English much _______ he writes it.",
+        "options": {
+          "A": "better than",
+          "B": "worse",
+          "C": "clearer than",
+          "D": "a lot worse"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 257,
+        "question_text": "Mr. Taylor, I’m here just in case _______.",
+        "options": {
+          "A": "they will come earlier",
+          "B": "anything out of the ordinary happens",
+          "C": "they telephoned to meet them at the airport",
+          "D": "you might need my help"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 258,
+        "question_text": "I’m in a difficult situation in that _______.",
+        "options": {
+          "A": "I’ve been offered two jobs and they both sound interesting",
+          "B": "I had better study, harder",
+          "C": "I don’t want to get disillusioned",
+          "D": "there was some misunderstanding"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 259,
+        "question_text": "He feels himself to be dependent in that_______.",
+        "options": {
+          "A": "he is not free to question decisions affecting his daily life",
+          "B": "he isn’t in good health and spirits",
+          "C": "the company collapsed within six months",
+          "D": "early retirement is a means of reducing the workforce"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 260,
+        "question_text": "Be clear and factual in order that _______.",
+        "options": {
+          "A": "to protect the employee’s rights",
+          "B": "there will be many exciting opportunities in the future",
+          "C": "agriculture and rural industry are flourishing",
+          "D": "there may be no misunderstanding"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 261,
+        "question_text": "I’d have married her even _______.",
+        "options": {
+          "A": "her parents had given their consent",
+          "B": "she’d rather I had married her",
+          "C": "she had been penniless",
+          "D": "she was in love with another man"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 262,
+        "question_text": "He grabbed me and shook me till _______.",
+        "options": {
+          "A": "my teeth rattled",
+          "B": "the police have arrived",
+          "C": "I’d apologized to him",
+          "D": "he would have noticed I had a gun"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 263,
+        "question_text": "Long before you return _______.",
+        "options": {
+          "A": "everybody has already left",
+          "B": "we’d sold out of your size",
+          "C": "she will have forgotten you",
+          "D": "I’d finished all the work"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 264,
+        "question_text": "I had no sooner checked in to the hotel_______.",
+        "options": {
+          "A": "when two gunmen ordered me to open my briefcase",
+          "B": "than he arrived with the appropriate documents",
+          "C": "a young lady approached me with a smile",
+          "D": "before all rooms have been reserved"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 265,
+        "question_text": "Hardly had he uttered the words _______.",
+        "options": {
+          "A": "than we left the room",
+          "B": "when he began laughing",
+          "C": "as soon as everybody sat down",
+          "D": "the manager came in"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 266,
+        "question_text": "Nobody gets anything unless _______.",
+        "options": {
+          "A": "they ask for it",
+          "B": "he has enough money",
+          "C": "they don’t work harder",
+          "D": "he isn’t very determined"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 267,
+        "question_text": "I get an electrician to check all my electrical appliances every autumn whether or not _______.",
+        "options": {
+          "A": "they are giving trouble",
+          "B": "they don’t need checking",
+          "C": "he is very good at it",
+          "D": "he charges me a lot"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 268,
+        "question_text": "“They built a statue of him lest people should forget what he had done.” means: _______.",
+        "options": {
+          "A": "They built a statue of him so that people would not forget what he had done.",
+          "B": "They built a statue of him because people wouldn’t forget what he had done",
+          "C": "As people would forget what he had done one day, they built a statue of him",
+          "D": "Believing that it was necessary for people not to forget what he had done, they had a statue of him built"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 269,
+        "question_text": "Tourism is a good thing inasmuch as _______.",
+        "options": {
+          "A": "if we are to pay our debts",
+          "B": "foreign exchange is concerned",
+          "C": "foreign trade is essential",
+          "D": "it brings people into contact with other nations"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 270,
+        "question_text": "I used to love listening to her, even though _______.",
+        "options": {
+          "A": "she has nothing interesting to mention",
+          "B": "we didn’t have a radio to listen to",
+          "C": "she was a good friend of mine",
+          "D": "I could only understand about half of what she said"
+        },
+        "correct_answer": "D"
+      },
+      {
+        "number": 271,
+        "question_text": "Nobody said a thing except that _______.",
+        "options": {
+          "A": "one or two asked me if I was better",
+          "B": "I would tell them everything in detail",
+          "C": "they had already told everything in their mind",
+          "D": "a man who has been involved in the accident"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 272,
+        "question_text": "In Turkey, _______ you come across ceremonies.",
+        "options": {
+          "A": "which is rich in history",
+          "B": "I’m sure you’ll enjoy it",
+          "C": "wherever you go",
+          "D": "its people are very hospitable"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 273,
+        "question_text": "I was never allowed to do the things_______.",
+        "options": {
+          "A": "the way I wanted to do them",
+          "B": "I’ve always thought of realizing",
+          "C": "I’m very keen on carrying out",
+          "D": "nevertheless I am very determined to solve"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 274,
+        "question_text": "She felt as if _______.",
+        "options": {
+          "A": "she is a stranger",
+          "B": "the fur coat was very nice",
+          "C": "she had a fever",
+          "D": "she is in a crowded stadium"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 275,
+        "question_text": "His hair looked as if _______.",
+        "options": {
+          "A": "it has just been dyed",
+          "B": "it had been combed with his fingers",
+          "C": "it hasn’t been cut for ages",
+          "D": "it needs cutting"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 276,
+        "question_text": "I felt as if _______.",
+        "options": {
+          "A": "I’m going to get selected",
+          "B": "I’ve done my best for the realization of the project",
+          "C": "I were the center of the universe",
+          "D": "I would have fainted"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 277,
+        "question_text": "He behaved as though _______.",
+        "options": {
+          "A": "it was nothing to be ashamed of",
+          "B": "he is a millionaire",
+          "C": "he has come to a garden party",
+          "D": "he lost all his money"
+        },
+        "correct_answer": "A"
+      },
+      {
+        "number": 278,
+        "question_text": "Our aim is to recruit the most qualified person, _______.",
+        "options": {
+          "A": "unless there are some really good ones",
+          "B": "whether or not we liked them",
+          "C": "no matter where he is from",
+          "D": "whichever way you looked at it"
+        },
+        "correct_answer": "C"
+      },
+      {
+        "number": 279,
+        "question_text": "I’d do anything to get that contract, but it is highly unlikely _______.",
+        "options": {
+          "A": "my firm would get it",
+          "B": "that my firm will get it",
+          "C": "for my firm getting it",
+          "D": "if my firm can get it"
+        },
+        "correct_answer": "B"
+      },
+      {
+        "number": 280,
+        "question_text": "They decided to postpone the match, _______ the weather conditions were better than they had expected.",
+        "options": {
+          "A": "yet",
+          "B": "nevertheless",
+          "C": "even though",
+          "D": "because"
+        },
+        "correct_answer": "C"
+      }
+    ]
+  }
+}
