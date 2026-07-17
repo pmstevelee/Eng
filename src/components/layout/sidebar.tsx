@@ -64,6 +64,18 @@ function isPathActive(pathname: string, href: string) {
   return pathname.startsWith(href + '/')
 }
 
+// 여러 메뉴가 동시에 매칭될 경우(예: /owner/tests, /owner/tests/questions)
+// 가장 구체적인(긴 href) 메뉴 하나만 활성화
+function getActiveHref(pathname: string, navItems: NavItem[]) {
+  let active: string | null = null
+  for (const item of navItems) {
+    if (isPathActive(pathname, item.href) && (!active || item.href.length > active.length)) {
+      active = item.href
+    }
+  }
+  return active
+}
+
 export function Sidebar({
   navItems,
   isCollapsed,
@@ -78,6 +90,7 @@ export function Sidebar({
   onCloseMobile,
 }: SidebarProps) {
   const pathname = usePathname()
+  const activeHref = getActiveHref(pathname, navItems)
 
   // 로고에 표시할 이름: businessName > academyName > '위고업잉글리시'
   const displayName = businessName || academyName || '위고업잉글리시'
@@ -174,7 +187,7 @@ export function Sidebar({
               key={item.href}
               item={item}
               collapsed={isCollapsed}
-              isActive={isPathActive(pathname, item.href)}
+              isActive={item.href === activeHref}
             />
           ))}
         </nav>
@@ -254,7 +267,7 @@ export function Sidebar({
               key={item.href}
               item={item}
               collapsed={false}
-              isActive={isPathActive(pathname, item.href)}
+              isActive={item.href === activeHref}
               onClick={onCloseMobile}
             />
           ))}
