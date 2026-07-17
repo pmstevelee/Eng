@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -14,6 +14,7 @@ import {
   Flame,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import {
   getRecallOptions,
   recordProgress,
@@ -415,6 +416,7 @@ function DoneScreen({
   badges: BadgeType[]
 }) {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const [showBadgeModal, setShowBadgeModal] = useState(badges.length > 0)
   const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0
   const perfect = accuracy === 100
@@ -424,6 +426,7 @@ function DoneScreen({
       {showBadgeModal && badges.length > 0 && (
         <BadgeModal badges={badges} onClose={() => setShowBadgeModal(false)} />
       )}
+      <LoadingOverlay show={isPending} />
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
         <motion.div
           initial={{ scale: 0.6, opacity: 0 }}
@@ -483,14 +486,16 @@ function DoneScreen({
 
         <div className="flex flex-col gap-3 w-full max-w-xs">
           <Button
-            onClick={() => router.push('/student/words')}
+            onClick={() => startTransition(() => router.push('/student/words'))}
+            disabled={isPending}
             className="h-14 bg-[#7854F7] hover:bg-[#7854F7]/90 text-white rounded-xl font-semibold text-base"
           >
             새 단어 시작하기<ArrowRight className="w-4 h-4 ml-2" />
           </Button>
           <Button
             variant="ghost"
-            onClick={() => router.push('/student')}
+            onClick={() => startTransition(() => router.push('/student'))}
+            disabled={isPending}
             className="text-gray-500 h-10"
           >
             홈으로

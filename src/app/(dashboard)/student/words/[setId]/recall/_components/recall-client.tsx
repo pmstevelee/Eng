@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Target } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import { getRecallOptions, recordProgress } from '@/app/(dashboard)/student/words/_actions'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
@@ -269,12 +270,14 @@ function RoundDone({
   onRetry: () => void
 }) {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const accuracy = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0
   const passed = accuracy >= 80
   const canRetry = wrongCount > 0 && retryCount < 2
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
+      <LoadingOverlay show={isPending} />
       <div
         className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black ${
           passed ? 'bg-[#1FAF54]/10 text-[#1FAF54]' : 'bg-[#D92916]/10 text-[#D92916]'
@@ -294,7 +297,8 @@ function RoundDone({
       <div className="flex flex-col gap-3 w-full max-w-xs">
         {passed ? (
           <Button
-            onClick={() => router.push(`/student/words/${setId}/spell`)}
+            onClick={() => startTransition(() => router.push(`/student/words/${setId}/spell`))}
+            disabled={isPending}
             className="h-14 bg-[#1FAF54] hover:bg-[#1FAF54]/90 text-white rounded-xl font-semibold text-base"
           >
             스펠 단계로
@@ -303,6 +307,7 @@ function RoundDone({
         ) : canRetry ? (
           <Button
             onClick={onRetry}
+            disabled={isPending}
             className="h-14 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white rounded-xl font-semibold text-base"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
@@ -310,7 +315,8 @@ function RoundDone({
           </Button>
         ) : (
           <Button
-            onClick={() => router.push(`/student/words/${setId}/spell`)}
+            onClick={() => startTransition(() => router.push(`/student/words/${setId}/spell`))}
+            disabled={isPending}
             className="h-14 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white rounded-xl font-semibold text-base"
           >
             스펠 단계로
@@ -319,7 +325,8 @@ function RoundDone({
         )}
         <Button
           variant="ghost"
-          onClick={() => router.push('/student/words')}
+          onClick={() => startTransition(() => router.push('/student/words'))}
+          disabled={isPending}
           className="text-gray-500 h-10"
         >
           단어 허브로 돌아가기

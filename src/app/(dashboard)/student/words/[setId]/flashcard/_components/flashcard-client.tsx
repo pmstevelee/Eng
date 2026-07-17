@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import { Volume2, ChevronLeft, ChevronRight, RotateCcw, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import { recordProgress } from '@/app/(dashboard)/student/words/_actions'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
@@ -192,9 +193,11 @@ function RoundDone({
   onRetry: () => void
 }) {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
+      <LoadingOverlay show={isPending} />
       <div className="w-16 h-16 rounded-full bg-[#7854F7]/10 flex items-center justify-center">
         <RotateCcw className="w-8 h-8 text-[#7854F7]" />
       </div>
@@ -214,6 +217,7 @@ function RoundDone({
         {unknownCards.length > 0 && (
           <Button
             onClick={onRetry}
+            disabled={isPending}
             variant="outline"
             className="h-14 border-[#7854F7] text-[#7854F7] hover:bg-[#7854F7]/5 rounded-xl"
           >
@@ -222,7 +226,8 @@ function RoundDone({
           </Button>
         )}
         <Button
-          onClick={() => router.push(`/student/words/${setId}/recall`)}
+          onClick={() => startTransition(() => router.push(`/student/words/${setId}/recall`))}
+          disabled={isPending}
           className="h-14 bg-[#7854F7] hover:bg-[#7854F7]/90 text-white rounded-xl"
         >
           리콜 단계로
@@ -230,7 +235,8 @@ function RoundDone({
         </Button>
         <Button
           variant="ghost"
-          onClick={() => router.push('/student/words')}
+          onClick={() => startTransition(() => router.push('/student/words'))}
+          disabled={isPending}
           className="text-gray-500 h-10"
         >
           단어 허브로 돌아가기
@@ -243,6 +249,8 @@ function RoundDone({
 // ─── 메인 클라이언트 컴포넌트 ─────────────────────────────────────────────────
 
 export function FlashcardClient({ setId, initialCards, totalWords, masteredWords: initialMastered }: Props) {
+  const router = useRouter()
+  const [isNavigating, startNavigating] = useTransition()
   const [deck, setDeck] = useState<WordCard[]>(initialCards)
   const [index, setIndex] = useState(0)
   const [unknownCards, setUnknownCards] = useState<WordCard[]>([])
@@ -340,11 +348,13 @@ export function FlashcardClient({ setId, initialCards, totalWords, masteredWords
             <h2 className="text-xl font-bold text-gray-900">세트 완료!</h2>
             <p className="text-gray-500 text-sm">이 세트의 모든 단어를 마스터했습니다.</p>
             <Button
-              onClick={() => window.location.href = '/student/words'}
+              onClick={() => startNavigating(() => router.push('/student/words'))}
+              disabled={isNavigating}
               className="h-12 bg-[#7854F7] hover:bg-[#7854F7]/90 text-white rounded-xl px-8"
             >
               단어 허브로 돌아가기
             </Button>
+            <LoadingOverlay show={isNavigating} />
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center px-4">

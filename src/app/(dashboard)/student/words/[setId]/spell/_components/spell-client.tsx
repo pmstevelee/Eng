@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, ArrowRight, RotateCcw, Lightbulb, SkipForward, Volume2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import { checkSpell, recordProgress } from '@/app/(dashboard)/student/words/_actions'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
@@ -134,12 +135,14 @@ function RoundDone({
   onRetry: () => void
 }) {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const accuracy = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0
   const mastered = accuracy >= 90
   const canRetry = wrongCount > 0 && retryCount < 2
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
+      <LoadingOverlay show={isPending} />
       <div
         className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black ${
           mastered ? 'bg-[#1FAF54]/10 text-[#1FAF54]' : 'bg-[#D92916]/10 text-[#D92916]'
@@ -160,6 +163,7 @@ function RoundDone({
         {canRetry && !mastered ? (
           <Button
             onClick={onRetry}
+            disabled={isPending}
             className="h-14 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white rounded-xl font-semibold text-base"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
@@ -167,7 +171,8 @@ function RoundDone({
           </Button>
         ) : (
           <Button
-            onClick={() => router.push('/student/words')}
+            onClick={() => startTransition(() => router.push('/student/words'))}
+            disabled={isPending}
             className="h-14 bg-[#1FAF54] hover:bg-[#1FAF54]/90 text-white rounded-xl font-semibold text-base"
           >
             단어 허브로
@@ -176,7 +181,8 @@ function RoundDone({
         )}
         <Button
           variant="ghost"
-          onClick={() => router.push('/student/words')}
+          onClick={() => startTransition(() => router.push('/student/words'))}
+          disabled={isPending}
           className="text-gray-500 h-10"
         >
           단어 허브로 돌아가기

@@ -8,6 +8,7 @@ import {
 } from '@/lib/words/access-guard'
 import { getLevelInfo } from '@/lib/constants/levels'
 import { DailyReviewWidget } from '@/components/words/daily-review-widget'
+import { NavLinkWithLoading } from '@/components/shared/nav-link-with-loading'
 
 async function getWordsHubData(studentId: string, userId: string) {
   const user = await prisma.user.findUnique({
@@ -187,13 +188,14 @@ export default async function WordsHubPage() {
             플래시카드로 어휘를 체계적으로 학습하세요.
           </p>
         </div>
-        <Link
+        <NavLinkWithLoading
           href="/student/words/report"
           className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:border-gray-300 transition-colors"
+          loadingLabel="리포트로 이동 중..."
         >
           <Layers className="w-4 h-4" />
           내 리포트
-        </Link>
+        </NavLinkWithLoading>
       </div>
 
       {/* 오늘의 현황 카드 */}
@@ -229,10 +231,11 @@ export default async function WordsHubPage() {
               </div>
               <div className="divide-y divide-[#FFB100]/10">
                 {pendingTests.map((test) => (
-                  <Link
+                  <NavLinkWithLoading
                     key={test.id}
                     href={`/student/words/test/${test.id}`}
                     className="flex items-center gap-3 px-4 py-3 hover:bg-[#FFB100]/10"
+                    loadingLabel="테스트 준비 중..."
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{test.title}</p>
@@ -242,7 +245,7 @@ export default async function WordsHubPage() {
                       </p>
                     </div>
                     <ChevronRight className="w-4 h-4 text-[#FFB100] shrink-0" />
-                  </Link>
+                  </NavLinkWithLoading>
                 ))}
               </div>
             </div>
@@ -277,11 +280,12 @@ export default async function WordsHubPage() {
             {recommendedSets.map((set) => {
               const style = cefrBadgeStyle(set.cefrLevel, studentLevel)
               return (
-                <Link
+                <NavLinkWithLoading
                   key={set.id}
                   href={`/student/words/${set.id}/flashcard`}
                   className="flex items-center justify-between rounded-xl border bg-white p-4 transition-all hover:border-violet-300 hover:shadow-sm"
                   style={{ borderColor: '#E5E7EB' }}
+                  loadingLabel="단어 세트로 이동 중..."
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -303,7 +307,7 @@ export default async function WordsHubPage() {
                     )}
                   </div>
                   <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 ml-3" />
-                </Link>
+                </NavLinkWithLoading>
               )
             })}
           </div>
@@ -318,11 +322,12 @@ export default async function WordsHubPage() {
             {otherSets.map((set) => {
               const style = cefrBadgeStyle(set.cefrLevel, studentLevel)
               return (
-                <Link
+                <NavLinkWithLoading
                   key={set.id}
                   href={`/student/words/${set.id}/flashcard`}
                   className="flex items-center justify-between rounded-xl border bg-white p-4 transition-all hover:border-violet-300 hover:shadow-sm"
                   style={{ borderColor: '#E5E7EB' }}
+                  loadingLabel="단어 세트로 이동 중..."
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -344,7 +349,7 @@ export default async function WordsHubPage() {
                     )}
                   </div>
                   <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 ml-3" />
-                </Link>
+                </NavLinkWithLoading>
               )
             })}
           </div>
