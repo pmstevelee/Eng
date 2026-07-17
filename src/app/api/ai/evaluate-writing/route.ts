@@ -5,6 +5,12 @@ import { prisma } from '@/lib/prisma/client'
 import type { DomainLevels } from '@/lib/ai/domain-level-calculator'
 import { checkAiUsageLimit, trackAiUsage } from '@/lib/usage/tracker'
 import { queueOverageCharge } from '@/lib/usage/overage'
+import type {
+  GrammarErrorSummaryItem,
+  SpellingErrorSummaryItem,
+  WritingCategoryScores,
+  WritingError,
+} from '@/lib/ai/writing-grading'
 
 // ── 타입 정의 ──────────────────────────────────────────────────────────────────
 
@@ -103,6 +109,14 @@ export interface WritingEvaluationResult {
     wordCount: number
     levelFeatures: string[]
   }
+  // 문법/철자/어휘/문장구조/응집성/과제수행도 6영역 상세 오류분석 (교사 채점 리포트와 공통 스키마)
+  categoryScores: WritingCategoryScores
+  strengths: string[]
+  errors: WritingError[]
+  spellingErrorSummary: SpellingErrorSummaryItem[]
+  grammarErrorSummary: GrammarErrorSummaryItem[]
+  improvedVersion: string
+  nextStepRecommendation: string
 }
 
 type StudentProfileInput = {
@@ -134,7 +148,16 @@ const SYSTEM_PROMPT = `너는 20년 경력의 영어 교육 평가 전문가야.
 2. 10단계 레벨 체계(Level 1~10)를 사용해.
 3. 학생의 문법/어휘/읽기 레벨과 쓰기 레벨의 격차를 분석해.
 4. 격차를 줄이는 구체적 전략을 제시해.
-5. 반드시 JSON으로만 응답해. 한국어로 작성해.`
+5. 반드시 JSON으로만 응답해. 한국어로 작성해.
+
+## 오류 상세 분석 원칙 (errors, categoryScores 등)
+6. 문법(Grammar), 철자(Spelling), 어휘(Vocabulary), 문장 구조(Sentence Structure), 과제 수행도(Task Achievement), 응집성(Coherence) 6개 영역을 categoryScores로 각각 0~100점 채점해.
+7. 모든 오류는 원문에서 정확한 위치(원본 텍스트 그대로)를 인용하고, 수정안과 "왜 틀렸는지"에 대한 한국어 설명을 함께 제공해. 설명은 학생 레벨에 맞는 문법 용어 난이도를 사용해.
+8. 오류를 지적할 때 비난조가 아닌 격려하는 톤을 유지해. 잘 쓴 표현이나 시도는 반드시 최소 1개 이상 구체적으로 칭찬해 (strengths).
+9. 철자 오류(spelling: 단어 표기 자체가 틀림)와 문법 오류(grammar: 시제/수일치/관사/전치사/어순 등)를 명확히 구분해.
+10. 같은 오류가 반복되면 처음 1회만 상세 설명하고, 이후 반복은 occurrenceCount로 묶어서 표시해.
+11. 원어민 관점의 자연스러움과 학습자 영어의 허용 범위를 구분해. 문법적으로 틀리지 않았지만 어색한 표현은 "minor" 심각도의 vocabulary 오류로 분류하고 실제 문법 규칙 위반과 섞지 마.
+12. 절대 원문에 없는 문장을 임의로 추가하여 오류로 지적하지 마.`
 
 // ── 프롬프트 빌더 ──────────────────────────────────────────────────────────────
 
@@ -320,12 +343,38 @@ ${essay}
     "text": "같은 주제로 Level ${targetLevel}에 맞는 모범 답안 (영어, ${minWords}~${maxWords}단어 기준으로 약간 더 길어도 됨)",
     "wordCount": 모범 답안 단어 수,
     "levelFeatures": ["Level ${targetLevel} 특징 1", "특징 2", "특징 3", "특징 4", "특징 5"]
-  }
+  },
+
+  "categoryScores": {
+    "grammar": 0-100, "spelling": 0-100, "vocabulary": 0-100,
+    "sentenceStructure": 0-100, "coherence": 0-100, "taskAchievement": 0-100
+  },
+  "strengths": ["학생이 잘한 점 구체적 서술 (한국어, 1~3개)"],
+  "errors": [
+    {
+      "type": "grammar | spelling | vocabulary | punctuation | sentenceStructure",
+      "subType": "예: 시제, 수일치, 관사, 전치사, 철자, 어순, collocation 등",
+      "original": "원문에서 오류가 포함된 부분",
+      "corrected": "수정된 표현",
+      "explanationKo": "왜 오류인지, 어떻게 고치는지 한국어로 설명",
+      "severity": "minor | moderate | major",
+      "occurrenceCount": 동일 오류가 반복된 횟수 (기본 1)
+    }
+  ],
+  "spellingErrorSummary": [
+    { "misspelled": "틀린 단어", "correct": "올바른 철자", "occurrenceCount": 횟수 }
+  ],
+  "grammarErrorSummary": [
+    { "category": "시제 | 수일치 | 관사 | 전치사 | 어순 | 기타", "count": 개수, "examples": ["대표 예시 1~2개"] }
+  ],
+  "improvedVersion": "학생 원문의 의도와 어휘 수준은 최대한 유지하되, 지적한 오류만 수정한 전체 버전 (Before/After 비교용)",
+  "nextStepRecommendation": "학생에게 줄 다음 학습 추천 (예: 관사 집중 연습, 특정 word set 복습 등)"
 }
 
 주의사항:
 - corrections는 실제 오류가 있는 경우만 포함 (최대 5개). 오류가 없으면 빈 배열 [].
-- Level 1~3는 corrections를 1~2개만 제시하고 칭찬 위주로.
+- errors는 corrections보다 세밀한 오류 목록으로, 발견된 모든 오류를 포함 (반복 오류는 occurrenceCount로 묶음).
+- Level 1~3는 corrections/errors를 적게 제시하고 칭찬 위주로.
 - modelEssay.text는 반드시 영어로 작성 (해설은 levelFeatures에 한국어로).
 - JSON 외 다른 텍스트 절대 금지.`
 }
@@ -435,6 +484,13 @@ export async function POST(req: NextRequest) {
                 corrections: result.corrections,
                 levelUpStrategy: result.levelUpStrategy,
                 modelEssay: result.modelEssay,
+                categoryScores: result.categoryScores,
+                strengths: result.strengths,
+                errors: result.errors,
+                spellingErrorSummary: result.spellingErrorSummary,
+                grammarErrorSummary: result.grammarErrorSummary,
+                improvedVersion: result.improvedVersion,
+                nextStepRecommendation: result.nextStepRecommendation,
                 // 이전 형식 호환용
                 percentage: writingScore,
               },

@@ -79,6 +79,7 @@ export default async function TestGradePage({
       questionId: string
       questionText: string
       essayText: string
+      wordLimit: number | null
     }[]
   }
 
@@ -97,6 +98,7 @@ export default async function TestGradePage({
           questionId: r.questionId,
           questionText: content?.question_text ?? '',
           essayText: r.answer ?? '',
+          wordLimit: content?.word_limit ?? null,
         }
       }),
     }))

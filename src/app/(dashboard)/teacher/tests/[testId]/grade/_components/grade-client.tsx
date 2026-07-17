@@ -4,13 +4,16 @@ import { useState, useTransition } from 'react'
 import { Loader2, Sparkles, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getAiAnalysis, gradeSession } from '../actions'
-import type { WritingGrade, WritingAiReport } from '../actions'
+import type { WritingGrade, WritingGradingReport } from '../actions'
+import type { WritingCategoryScores } from '@/lib/ai/writing-grading'
+import { WritingGradingReportCard } from '@/components/shared/writing-grading-report-card'
 
 type WritingQuestion = {
   responseId: string
   questionId: string
   questionText: string
   essayText: string
+  wordLimit: number | null
 }
 
 type StudentSession = {
@@ -22,20 +25,28 @@ type StudentSession = {
 }
 
 type GradeState = {
-  grammarScore: number
-  structureScore: number
-  vocabularyScore: number
-  expressionScore: number
+  categoryScores: WritingCategoryScores
   teacherComment: string
-  aiReport: WritingAiReport | null
+  aiReport: WritingGradingReport | null
 }
 
-const REPORT_SECTIONS: { key: 'organization' | 'grammar' | 'vocabulary' | 'expression'; label: string }[] = [
-  { key: 'organization', label: '구성' },
+const CATEGORY_FIELDS: { key: keyof WritingCategoryScores; label: string }[] = [
   { key: 'grammar', label: '문법' },
+  { key: 'spelling', label: '철자' },
   { key: 'vocabulary', label: '어휘' },
-  { key: 'expression', label: '표현력' },
+  { key: 'sentenceStructure', label: '문장 구조' },
+  { key: 'coherence', label: '응집성' },
+  { key: 'taskAchievement', label: '과제 수행도' },
 ]
+
+const DEFAULT_CATEGORY_SCORES: WritingCategoryScores = {
+  grammar: 70,
+  spelling: 70,
+  vocabulary: 70,
+  sentenceStructure: 70,
+  coherence: 70,
+  taskAchievement: 70,
+}
 
 export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
   const [expandedSession, setExpandedSession] = useState<string | null>(
@@ -49,30 +60,37 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
 
   const getGrade = (responseId: string): GradeState => {
     return grades[responseId] ?? {
-      grammarScore: 20,
-      structureScore: 20,
-      vocabularyScore: 20,
-      expressionScore: 20,
+      categoryScores: { ...DEFAULT_CATEGORY_SCORES },
       teacherComment: '',
       aiReport: null,
     }
   }
 
-  const updateGrade = (responseId: string, field: keyof GradeState, value: number | string | null) => {
+  const updateGradeField = (responseId: string, field: 'teacherComment', value: string) => {
     setGrades((prev) => ({
       ...prev,
       [responseId]: { ...getGrade(responseId), [field]: value },
     }))
   }
 
+  const updateCategoryScore = (responseId: string, key: keyof WritingCategoryScores, value: number) => {
+    setGrades((prev) => {
+      const current = getGrade(responseId)
+      return {
+        ...prev,
+        [responseId]: { ...current, categoryScores: { ...current.categoryScores, [key]: value } },
+      }
+    })
+  }
+
   const getTotal = (responseId: string) => {
-    const g = getGrade(responseId)
-    return g.grammarScore + g.structureScore + g.vocabularyScore + g.expressionScore
+    const scores = Object.values(getGrade(responseId).categoryScores)
+    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
   }
 
   const handleAiAnalysis = async (q: WritingQuestion, studentLevel: number) => {
     setAiLoading((prev) => ({ ...prev, [q.responseId]: true }))
-    const result = await getAiAnalysis(q.questionText, q.essayText, studentLevel)
+    const result = await getAiAnalysis(q.questionText, q.essayText, studentLevel, q.wordLimit)
     setAiLoading((prev) => ({ ...prev, [q.responseId]: false }))
 
     if (result.result) {
@@ -81,11 +99,8 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
         ...prev,
         [q.responseId]: {
           ...getGrade(q.responseId),
-          grammarScore: r.grammar.score,
-          structureScore: r.organization.score,
-          vocabularyScore: r.vocabulary.score,
-          expressionScore: r.expression.score,
-          teacherComment: getGrade(q.responseId).teacherComment || r.summary,
+          categoryScores: { ...r.categoryScores },
+          teacherComment: getGrade(q.responseId).teacherComment || r.teacherNote,
           aiReport: r,
         },
       }))
@@ -100,10 +115,7 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
         return {
           responseId: q.responseId,
           questionId: q.questionId,
-          grammarScore: g.grammarScore,
-          structureScore: g.structureScore,
-          vocabularyScore: g.vocabularyScore,
-          expressionScore: g.expressionScore,
+          categoryScores: g.categoryScores,
           teacherScore: getTotal(q.responseId),
           teacherComment: g.teacherComment,
           aiReportJson: g.aiReport,
@@ -214,78 +226,23 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
 
                       {/* AI 쓰기 평가 리포트 */}
                       {g.aiReport && (
-                        <div className="rounded-lg border border-purple-100 bg-purple-50 p-4 space-y-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1.5">
-                              <Sparkles className="h-4 w-4 text-[#7854F7]" />
-                              <p className="text-xs font-medium text-[#7854F7]">
-                                AI 쓰기 평가 리포트 (Level {g.aiReport.overallLevel} · {g.aiReport.overallCefr})
-                              </p>
-                            </div>
-                            <span className="text-sm font-bold text-[#7854F7]">
-                              {g.aiReport.totalScore}점
-                            </span>
-                          </div>
-
-                          <p className="text-sm text-purple-900">{g.aiReport.summary}</p>
-
-                          <div className="space-y-3">
-                            {REPORT_SECTIONS.map(({ key, label }) => {
-                              const section = g.aiReport![key]
-                              return (
-                                <div key={key} className="rounded-lg bg-white/70 p-3">
-                                  <div className="mb-1.5 flex items-center justify-between">
-                                    <p className="text-xs font-semibold text-gray-800">
-                                      {label} · Level {section.level} ({section.cefr})
-                                    </p>
-                                    <span className="text-xs font-bold text-[#7854F7]">
-                                      {section.score}/25
-                                    </span>
-                                  </div>
-                                  <p className="text-sm text-gray-700 mb-2">{section.feedback}</p>
-                                  {section.strengths.length > 0 && (
-                                    <div className="mb-1 text-xs text-[#1FAF54]">
-                                      <span className="font-medium">잘한 점: </span>
-                                      {section.strengths.join(' · ')}
-                                    </div>
-                                  )}
-                                  {section.improvements.length > 0 && (
-                                    <div className="text-xs text-[#1865F2]">
-                                      <span className="font-medium">개선 방법: </span>
-                                      {section.improvements.join(' · ')}
-                                    </div>
-                                  )}
-                                </div>
-                              )
-                            })}
-                          </div>
-
-                          <div className="rounded-lg border border-[#FFB100]/30 bg-[#FFB100]/10 p-3">
-                            <p className="text-xs font-semibold text-[#8a6200] mb-1">다음 글쓰기 팁</p>
-                            <p className="text-sm text-[#8a6200]">{g.aiReport.nextStepTip}</p>
-                          </div>
-                        </div>
+                        <WritingGradingReportCard report={g.aiReport} showTeacherNote />
                       )}
 
                       {/* 항목별 점수 입력 */}
                       <div>
-                        <p className="mb-3 text-sm font-medium text-gray-700">항목별 점수 (각 25점 만점)</p>
-                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                          {[
-                            { label: '문법', field: 'grammarScore' as const, val: g.grammarScore },
-                            { label: '구성', field: 'structureScore' as const, val: g.structureScore },
-                            { label: '어휘', field: 'vocabularyScore' as const, val: g.vocabularyScore },
-                            { label: '표현력', field: 'expressionScore' as const, val: g.expressionScore },
-                          ].map((item) => (
-                            <div key={item.field} className="space-y-1">
+                        <p className="mb-3 text-sm font-medium text-gray-700">항목별 점수 (각 100점 만점)</p>
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                          {CATEGORY_FIELDS.map((item) => (
+                            <div key={item.key} className="space-y-1">
                               <label className="text-xs font-medium text-gray-500">{item.label}</label>
                               <input
                                 type="number"
                                 min={0}
-                                max={25}
-                                value={item.val}
+                                max={100}
+                                value={g.categoryScores[item.key]}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                  updateGrade(q.responseId, item.field, Math.min(25, Math.max(0, Number(e.target.value))))
+                                  updateCategoryScore(q.responseId, item.key, Math.min(100, Math.max(0, Number(e.target.value))))
                                 }
                                 className="min-h-[44px] w-full rounded-lg border border-gray-300 px-3 py-2 text-center text-sm font-medium focus:border-[#7854F7] focus:outline-none focus:ring-1 focus:ring-[#7854F7]"
                               />
@@ -293,7 +250,7 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
                           ))}
                         </div>
                         <div className="mt-3 flex items-center justify-between rounded-lg bg-gray-50 px-4 py-2">
-                          <span className="text-sm font-medium text-gray-700">총점</span>
+                          <span className="text-sm font-medium text-gray-700">총점 (평균)</span>
                           <span
                             className={`text-xl font-bold ${total >= 60 ? 'text-green-600' : total >= 40 ? 'text-amber-600' : 'text-red-500'}`}
                           >
@@ -308,7 +265,7 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
                         <textarea
                           value={g.teacherComment}
                           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                            updateGrade(q.responseId, 'teacherComment', e.target.value)
+                            updateGradeField(q.responseId, 'teacherComment', e.target.value)
                           }
                           placeholder="학생에게 전달할 피드백을 입력해 주세요."
                           rows={3}

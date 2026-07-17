@@ -21,6 +21,8 @@ import {
 } from 'lucide-react'
 import type { WritingEvaluationResult } from '@/app/api/ai/evaluate-writing/route'
 import type { DomainLevels } from '@/lib/ai/domain-level-calculator'
+import type { WritingGradingReport } from '@/lib/ai/writing-grading'
+import { WritingGradingReportCard } from '@/components/shared/writing-grading-report-card'
 
 // ── 타입 ──────────────────────────────────────────────────────────────────────
 
@@ -758,6 +760,21 @@ function FeedbackDisplay({
   const assessedLevel = writingLevelAssessment.assessedLevel
   const maxGap = domainLevels?.gaps.maxGap ?? 0
 
+  // 6영역 상세 오류분석 카드용 어댑터 (교사 채점 리포트와 공통 컴포넌트 재사용)
+  const detailedGradingReport: WritingGradingReport = {
+    overallScore: detailedScores.totalScore,
+    cefrEstimate: writingLevelAssessment.assessedCefr,
+    categoryScores: feedback.categoryScores,
+    wordCount: essay.trim().split(/\s+/).filter(Boolean).length,
+    strengths: feedback.strengths,
+    errors: feedback.errors,
+    spellingErrorSummary: feedback.spellingErrorSummary,
+    grammarErrorSummary: feedback.grammarErrorSummary,
+    improvedVersion: feedback.improvedVersion,
+    teacherNote: '',
+    nextStepRecommendation: feedback.nextStepRecommendation,
+  }
+
   // 쓰기 레벨 판정 색상
   const levelColor =
     assessedLevel >= 8 ? '#1FAF54' : assessedLevel >= 5 ? '#FFB100' : '#D92916'
@@ -916,7 +933,10 @@ function FeedbackDisplay({
         )}
       </div>
 
-      {/* ⑤ 교정 사항 */}
+      {/* ⑤ 상세 오류 분석 (문법/철자/어휘/문장구조/응집성/과제수행도) */}
+      <WritingGradingReportCard report={detailedGradingReport} />
+
+      {/* ⑥ 교정 사항 */}
       {corrections.length > 0 && (
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <div className="mb-3 flex items-center gap-2">

@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma/client'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 import { ResultRadarChart } from './_components/result-radar-chart'
 import { PlacementResultView } from './_components/placement-result-view'
+import { WritingGradingReportCard } from '@/components/shared/writing-grading-report-card'
+import type { WritingCategoryScores, WritingGradingReport } from '@/lib/ai/writing-grading'
 import {
   CheckCircle2,
   XCircle,
@@ -38,42 +40,20 @@ const TEST_TYPE_LABELS: Record<string, string> = {
   PRACTICE: '연습 테스트',
 }
 
-type WritingAiReportSection = {
-  score: number
-  level: number
-  cefr: string
-  feedback: string
-  strengths: string[]
-  improvements: string[]
-}
-
-type WritingAiReport = {
-  totalScore: number
-  overallLevel: number
-  overallCefr: string
-  summary: string
-  organization: WritingAiReportSection
-  grammar: WritingAiReportSection
-  vocabulary: WritingAiReportSection
-  expression: WritingAiReportSection
-  nextStepTip: string
-}
-
 type WritingAnswerJson = {
   teacherScore?: number
   teacherComment?: string
-  grammarScore?: number
-  structureScore?: number
-  vocabularyScore?: number
-  expressionScore?: number
-  aiReport?: WritingAiReport | null
+  categoryScores?: WritingCategoryScores
+  aiReport?: WritingGradingReport | null
 }
 
-const WRITING_REPORT_SECTIONS: { key: 'organization' | 'grammar' | 'vocabulary' | 'expression'; label: string }[] = [
-  { key: 'organization', label: '구성' },
+const CATEGORY_FIELDS: { key: keyof WritingCategoryScores; label: string }[] = [
   { key: 'grammar', label: '문법' },
+  { key: 'spelling', label: '철자' },
   { key: 'vocabulary', label: '어휘' },
-  { key: 'expression', label: '표현력' },
+  { key: 'sentenceStructure', label: '문장 구조' },
+  { key: 'coherence', label: '응집성' },
+  { key: 'taskAchievement', label: '과제 수행도' },
 ]
 
 function ScoreDiffBadge({ diff }: { diff: number }) {
@@ -651,20 +631,15 @@ export default async function TestResultPage({
                             {writingData?.teacherScore}점
                           </span>
                         </div>
-                        <div className="grid grid-cols-4 gap-2">
-                          {[
-                            { label: '문법', val: writingData?.grammarScore },
-                            { label: '구성', val: writingData?.structureScore },
-                            { label: '어휘', val: writingData?.vocabularyScore },
-                            { label: '표현력', val: writingData?.expressionScore },
-                          ].map((item) => (
+                        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                          {CATEGORY_FIELDS.map((item) => (
                             <div
-                              key={item.label}
+                              key={item.key}
                               className="rounded-lg bg-white/60 py-2 text-center"
                             >
-                              <p className="text-xs text-gray-500">{item.label}</p>
+                              <p className="text-[11px] text-gray-500">{item.label}</p>
                               <p className="text-sm font-bold text-[#7854F7]">
-                                {item.val ?? '—'}
+                                {writingData?.categoryScores?.[item.key] ?? '—'}
                               </p>
                             </div>
                           ))}
@@ -680,54 +655,7 @@ export default async function TestResultPage({
 
                     {/* AI 쓰기 평가 리포트 */}
                     {isWritingGraded && writingData?.aiReport && (
-                      <div className="rounded-lg border border-purple-100 bg-purple-50 p-4 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs font-semibold text-[#7854F7]">
-                            AI 쓰기 평가 리포트 (Level {writingData.aiReport.overallLevel} · {writingData.aiReport.overallCefr})
-                          </p>
-                          <span className="text-sm font-bold text-[#7854F7]">
-                            {writingData.aiReport.totalScore}점
-                          </span>
-                        </div>
-
-                        <p className="text-sm text-purple-900">{writingData.aiReport.summary}</p>
-
-                        <div className="space-y-3">
-                          {WRITING_REPORT_SECTIONS.map(({ key, label }) => {
-                            const section = writingData.aiReport![key]
-                            return (
-                              <div key={key} className="rounded-lg bg-white/70 p-3">
-                                <div className="mb-1.5 flex items-center justify-between">
-                                  <p className="text-xs font-semibold text-gray-800">
-                                    {label} · Level {section.level} ({section.cefr})
-                                  </p>
-                                  <span className="text-xs font-bold text-[#7854F7]">
-                                    {section.score}/25
-                                  </span>
-                                </div>
-                                <p className="text-sm text-gray-700 mb-2">{section.feedback}</p>
-                                {section.strengths.length > 0 && (
-                                  <div className="mb-1 text-xs text-[#1FAF54]">
-                                    <span className="font-medium">잘한 점: </span>
-                                    {section.strengths.join(' · ')}
-                                  </div>
-                                )}
-                                {section.improvements.length > 0 && (
-                                  <div className="text-xs text-[#1865F2]">
-                                    <span className="font-medium">개선 방법: </span>
-                                    {section.improvements.join(' · ')}
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-
-                        <div className="rounded-lg border border-[#FFB100]/30 bg-[#FFB100]/10 p-3">
-                          <p className="text-xs font-semibold text-[#8a6200] mb-1">다음 글쓰기 팁</p>
-                          <p className="text-sm text-[#8a6200]">{writingData.aiReport.nextStepTip}</p>
-                        </div>
-                      </div>
+                      <WritingGradingReportCard report={writingData.aiReport} />
                     )}
                   </div>
                 )}
