@@ -3,6 +3,16 @@
 import { useEffect, useState, useRef } from 'react'
 import { Printer, Sparkles, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import type { TestSessionAnalysis } from '@/app/api/ai/analyze-test-session/route'
+import type { WritingCategoryScores } from '@/lib/ai/writing-grading'
+
+const WRITING_CATEGORY_FIELDS: { key: keyof WritingCategoryScores; label: string }[] = [
+  { key: 'grammar', label: '문법' },
+  { key: 'spelling', label: '철자' },
+  { key: 'vocabulary', label: '어휘' },
+  { key: 'sentenceStructure', label: '문장 구조' },
+  { key: 'coherence', label: '응집성' },
+  { key: 'taskAchievement', label: '과제 수행도' },
+]
 
 type AcademyInfo = {
   name: string
@@ -24,10 +34,7 @@ type QuestionResult = {
   writingData: {
     teacherScore?: number
     teacherComment?: string
-    grammarScore?: number
-    structureScore?: number
-    vocabularyScore?: number
-    expressionScore?: number
+    categoryScores?: WritingCategoryScores
   } | null
 }
 
@@ -463,16 +470,13 @@ export function SessionReportPrint({
                   {/* 서술형 채점 결과 */}
                   {isEssay && isWritingGraded && (
                     <div className="mt-2 rounded-lg border border-[#7854F7]/20 bg-[#7854F7]/5 p-2.5">
-                      <div className="grid grid-cols-4 gap-2 text-center text-xs">
-                        {[
-                          { label: '문법', val: q.writingData?.grammarScore },
-                          { label: '구성', val: q.writingData?.structureScore },
-                          { label: '어휘', val: q.writingData?.vocabularyScore },
-                          { label: '표현', val: q.writingData?.expressionScore },
-                        ].map((item) => (
-                          <div key={item.label} className="rounded bg-white/70 py-1">
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                        {WRITING_CATEGORY_FIELDS.map((item) => (
+                          <div key={item.key} className="rounded bg-white/70 py-1">
                             <p className="text-gray-400">{item.label}</p>
-                            <p className="font-bold text-[#7854F7]">{item.val ?? '—'}</p>
+                            <p className="font-bold text-[#7854F7]">
+                              {q.writingData?.categoryScores?.[item.key] ?? '—'}
+                            </p>
                           </div>
                         ))}
                       </div>

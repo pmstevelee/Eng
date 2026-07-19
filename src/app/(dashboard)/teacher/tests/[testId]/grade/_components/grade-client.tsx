@@ -24,8 +24,10 @@ type StudentSession = {
   writingQuestions: WritingQuestion[]
 }
 
+type PartialCategoryScores = Partial<WritingCategoryScores>
+
 type GradeState = {
-  categoryScores: WritingCategoryScores
+  categoryScores: PartialCategoryScores
   teacherComment: string
   aiReport: WritingGradingReport | null
 }
@@ -39,15 +41,6 @@ const CATEGORY_FIELDS: { key: keyof WritingCategoryScores; label: string }[] = [
   { key: 'taskAchievement', label: '과제 수행도' },
 ]
 
-const DEFAULT_CATEGORY_SCORES: WritingCategoryScores = {
-  grammar: 70,
-  spelling: 70,
-  vocabulary: 70,
-  sentenceStructure: 70,
-  coherence: 70,
-  taskAchievement: 70,
-}
-
 export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
   const [expandedSession, setExpandedSession] = useState<string | null>(
     sessions.length === 1 ? sessions[0].sessionId : null
@@ -60,7 +53,7 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
 
   const getGrade = (responseId: string): GradeState => {
     return grades[responseId] ?? {
-      categoryScores: { ...DEFAULT_CATEGORY_SCORES },
+      categoryScores: {},
       teacherComment: '',
       aiReport: null,
     }
@@ -73,18 +66,26 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
     }))
   }
 
-  const updateCategoryScore = (responseId: string, key: keyof WritingCategoryScores, value: number) => {
+  const updateCategoryScore = (responseId: string, key: keyof WritingCategoryScores, value: number | null) => {
     setGrades((prev) => {
       const current = getGrade(responseId)
       return {
         ...prev,
-        [responseId]: { ...current, categoryScores: { ...current.categoryScores, [key]: value } },
+        [responseId]: { ...current, categoryScores: { ...current.categoryScores, [key]: value ?? undefined } },
       }
     })
   }
 
-  const getTotal = (responseId: string) => {
-    const scores = Object.values(getGrade(responseId).categoryScores)
+  const isFullyScored = (responseId: string) => {
+    const scores = getGrade(responseId).categoryScores
+    return CATEGORY_FIELDS.every((item) => typeof scores[item.key] === 'number')
+  }
+
+  const getTotal = (responseId: string): number | null => {
+    const scores = Object.values(getGrade(responseId).categoryScores).filter(
+      (v): v is number => typeof v === 'number'
+    )
+    if (scores.length === 0) return null
     return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
   }
 
@@ -109,14 +110,21 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
 
   const handleSubmit = (session: StudentSession) => {
     setErrors((prev) => ({ ...prev, [session.sessionId]: '' }))
+
+    const incomplete = session.writingQuestions.some((q) => !isFullyScored(q.responseId))
+    if (incomplete) {
+      setErrors((prev) => ({ ...prev, [session.sessionId]: '모든 문제의 항목별 점수를 입력해 주세요.' }))
+      return
+    }
+
     startSubmitting(async () => {
       const writingGrades: WritingGrade[] = session.writingQuestions.map((q) => {
         const g = getGrade(q.responseId)
         return {
           responseId: q.responseId,
           questionId: q.questionId,
-          categoryScores: g.categoryScores,
-          teacherScore: getTotal(q.responseId),
+          categoryScores: g.categoryScores as WritingCategoryScores,
+          teacherScore: getTotal(q.responseId) as number,
           teacherComment: g.teacherComment,
           aiReportJson: g.aiReport,
         }
@@ -240,10 +248,16 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
                                 type="number"
                                 min={0}
                                 max={100}
-                                value={g.categoryScores[item.key]}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                  updateCategoryScore(q.responseId, item.key, Math.min(100, Math.max(0, Number(e.target.value))))
-                                }
+                                placeholder="-"
+                                value={g.categoryScores[item.key] ?? ''}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                  const raw = e.target.value
+                                  updateCategoryScore(
+                                    q.responseId,
+                                    item.key,
+                                    raw === '' ? null : Math.min(100, Math.max(0, Number(raw)))
+                                  )
+                                }}
                                 className="min-h-[44px] w-full rounded-lg border border-gray-300 px-3 py-2 text-center text-sm font-medium focus:border-[#7854F7] focus:outline-none focus:ring-1 focus:ring-[#7854F7]"
                               />
                             </div>
@@ -252,9 +266,9 @@ export function GradeClient({ sessions }: { sessions: StudentSession[] }) {
                         <div className="mt-3 flex items-center justify-between rounded-lg bg-gray-50 px-4 py-2">
                           <span className="text-sm font-medium text-gray-700">총점 (평균)</span>
                           <span
-                            className={`text-xl font-bold ${total >= 60 ? 'text-green-600' : total >= 40 ? 'text-amber-600' : 'text-red-500'}`}
+                            className={`text-xl font-bold ${total === null ? 'text-gray-400' : total >= 60 ? 'text-green-600' : total >= 40 ? 'text-amber-600' : 'text-red-500'}`}
                           >
-                            {total} / 100
+                            {total !== null ? `${total} / 100` : '미입력'}
                           </span>
                         </div>
                       </div>

@@ -66,7 +66,35 @@ type SelectResult = {
 
 const ALL_DOMAINS: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
 
+// 오늘의 미션은 문법 + 단어(어휘) 문제로만 구성한다
+const MISSION_DOMAINS: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY']
+
 // ── Internal helpers ───────────────────────────────────────────────────────────
+
+// Fisher-Yates 셔플 (sort(() => Math.random() - 0.5)는 분포가 균등하지 않음)
+function shuffle<T>(array: T[]): T[] {
+  const result = [...array]
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
+
+// 최근 days일 내 학생에게 출제된(정답 여부 무관) 문제 ID 집합
+function idsUsedWithinDays(
+  history: { missionDate: Date; questionIds: unknown }[],
+  days: number,
+): string[] {
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - days)
+  const ids = new Set<string>()
+  for (const m of history) {
+    if (m.missionDate < cutoff) continue
+    for (const id of (m.questionIds as string[] | null) ?? []) ids.add(id)
+  }
+  return Array.from(ids)
+}
 
 async function fetchQuestions(params: {
   domain?: QuestionDomain
@@ -74,16 +102,12 @@ async function fetchQuestions(params: {
   minDifficulty: number
   maxDifficulty: number
   contentType?: string
-  studentId: string
   excludeIds: string[]
   take: number
-  excludeDays?: number
 }): Promise<string[]> {
-  const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - (params.excludeDays ?? 30))
-
   const rows = await prisma.question.findMany({
     where: {
+      isActive: true,
       ...(params.domain ? { domain: params.domain } : {}),
       ...(params.subCategory ? { subCategory: params.subCategory } : {}),
       difficulty: { gte: params.minDifficulty, lte: params.maxDifficulty },
@@ -91,21 +115,11 @@ async function fetchQuestions(params: {
         ? { contentJson: { path: ['type'], equals: params.contentType } }
         : {}),
       ...(params.excludeIds.length > 0 ? { id: { notIn: params.excludeIds } } : {}),
-      NOT: {
-        responses: {
-          some: {
-            isCorrect: true,
-            createdAt: { gte: cutoff },
-            session: { studentId: params.studentId },
-          },
-        },
-      },
     },
     select: { id: true },
-    take: params.take * 4,
   })
 
-  return [...rows].sort(() => Math.random() - 0.5).slice(0, params.take).map((r) => r.id)
+  return shuffle(rows.map((r) => r.id)).slice(0, params.take)
 }
 
 function missionTitle(type: MissionType, subCategory: string | null): string {
@@ -207,12 +221,13 @@ export async function analyzeStudentWeakness(studentId: string): Promise<Weaknes
     writing: domainAvg['WRITING'],
   }
 
+  // 오늘의 미션은 문법/단어 문제로만 구성하므로 가중치 비교도 두 영역으로 한정
   let weakestDomain: QuestionDomain = 'GRAMMAR'
   let strongestDomain: QuestionDomain = 'GRAMMAR'
   let lowestScore = Infinity
   let highestScore = -Infinity
 
-  for (const domain of ALL_DOMAINS) {
+  for (const domain of MISSION_DOMAINS) {
     const score = domainAvg[domain]
     if (score < lowestScore) {
       lowestScore = score
@@ -245,7 +260,7 @@ export async function analyzeStudentWeakness(studentId: string): Promise<Weaknes
   }
 
   const weakCategories = Array.from(catMap.values())
-    .filter((c) => c.total >= 2)
+    .filter((c) => c.total >= 2 && MISSION_DOMAINS.includes(c.domain))
     .map((c) => ({
       domain: c.domain,
       category: c.category,
@@ -265,7 +280,7 @@ export async function analyzeStudentWeakness(studentId: string): Promise<Weaknes
 
 /**
  * 미션 유형별 문제 선별
- * 공통: 최근 30일 내 정답 처리한 문제 제외 (부족 시 60일로 완화)
+ * 공통: 최근 30일 내 출제된 문제 제외 (부족 시 최근 7일만 제외하도록 완화)
  */
 export async function selectMissionQuestions(
   studentId: string,
@@ -273,10 +288,11 @@ export async function selectMissionQuestions(
   missionType: MissionType,
   count: number,
   usedIds: string[] = [],
+  recentIds: { strict: string[]; relaxed: string[] } = { strict: [], relaxed: [] },
 ): Promise<SelectResult> {
   const { currentLevel, weakCategories, weakestDomain, strongestDomain } = analysis
 
-  // REVIEW_MISSION: 스페이스드 리피티션 기반
+  // REVIEW_MISSION: 스페이스드 리피티션 기반 (문법/단어 영역만, 복습 목적상 최근 출제 제외는 적용하지 않음)
   if (missionType === 'REVIEW_MISSION') {
     const now = new Date()
     const responses = await prisma.questionResponse.findMany({
@@ -284,6 +300,7 @@ export async function selectMissionQuestions(
         isMastered: false,
         reviewDueAt: { lte: now },
         session: { studentId },
+        question: { domain: { in: MISSION_DOMAINS } },
       },
       select: { question: { select: { id: true } } },
       orderBy: { reviewDueAt: 'asc' },
@@ -321,24 +338,21 @@ export async function selectMissionQuestions(
         subCategory: weakCat.category,
         minDifficulty: Math.max(1, currentLevel - 1),
         maxDifficulty: currentLevel,
-        studentId,
-        excludeIds: [...usedIds, ...questionIds],
+        excludeIds: [...usedIds, ...questionIds, ...recentIds.strict],
         take: perCat,
       })
       questionIds.push(...ids)
     }
 
-    // Fallback: subCategory 없이 weakest domain, 60일로 완화
+    // Fallback: subCategory 없이 weakest domain, 최근 출제 제외 범위를 7일로 완화
     if (questionIds.length < count) {
       const domain = topWeak[0]?.domain ?? weakestDomain
       const ids = await fetchQuestions({
         domain,
         minDifficulty: Math.max(1, currentLevel - 1),
         maxDifficulty: currentLevel,
-        studentId,
-        excludeIds: [...usedIds, ...questionIds],
+        excludeIds: [...usedIds, ...questionIds, ...recentIds.relaxed],
         take: count - questionIds.length,
-        excludeDays: 60,
       })
       questionIds.push(...ids)
     }
@@ -360,17 +374,16 @@ export async function selectMissionQuestions(
     }
   }
 
-  // BALANCE_PRACTICE: 각 영역에서 1개씩
+  // BALANCE_PRACTICE: 각 영역(문법/단어)에서 1개씩
   if (missionType === 'BALANCE_PRACTICE') {
     const questionIds: string[] = []
-    for (const domain of ALL_DOMAINS) {
+    for (const domain of MISSION_DOMAINS) {
       if (questionIds.length >= count) break
       const ids = await fetchQuestions({
         domain,
         minDifficulty: currentLevel,
         maxDifficulty: currentLevel,
-        studentId,
-        excludeIds: [...usedIds, ...questionIds],
+        excludeIds: [...usedIds, ...questionIds, ...recentIds.strict],
         take: 1,
       })
       questionIds.push(...ids)
@@ -395,21 +408,18 @@ export async function selectMissionQuestions(
       domain: strongestDomain,
       minDifficulty: targetLevel,
       maxDifficulty: targetLevel,
-      studentId,
-      excludeIds: usedIds,
+      excludeIds: [...usedIds, ...recentIds.strict],
       take: count,
     })
 
-    // Fallback: 60일로 완화
+    // Fallback: 최근 출제 제외 범위를 7일로 완화
     if (questionIds.length < count) {
       const more = await fetchQuestions({
         domain: strongestDomain,
         minDifficulty: targetLevel,
         maxDifficulty: targetLevel,
-        studentId,
-        excludeIds: [...usedIds, ...questionIds],
+        excludeIds: [...usedIds, ...questionIds, ...recentIds.relaxed],
         take: count - questionIds.length,
-        excludeDays: 60,
       })
       questionIds = [...questionIds, ...more]
     }
@@ -433,21 +443,18 @@ export async function selectMissionQuestions(
       minDifficulty: currentLevel,
       maxDifficulty: currentLevel,
       contentType: 'multiple_choice',
-      studentId,
-      excludeIds: usedIds,
+      excludeIds: [...usedIds, ...recentIds.strict],
       take: count,
     })
 
-    // Fallback: type 필터 제거, 60일 완화, 난이도 범위 확장
+    // Fallback: type 필터 제거, 난이도 범위 확장, 최근 출제 제외 범위를 7일로 완화
     if (questionIds.length < count) {
       const more = await fetchQuestions({
         domain: 'VOCABULARY',
         minDifficulty: Math.max(1, currentLevel - 1),
         maxDifficulty: Math.min(10, currentLevel + 1),
-        studentId,
-        excludeIds: [...usedIds, ...questionIds],
+        excludeIds: [...usedIds, ...questionIds, ...recentIds.relaxed],
         take: count - questionIds.length,
-        excludeDays: 60,
       })
       questionIds = [...questionIds, ...more]
     }
@@ -470,8 +477,7 @@ export async function selectMissionQuestions(
       domain: 'WRITING',
       minDifficulty: Math.max(1, currentLevel - 1),
       maxDifficulty: Math.min(10, currentLevel + 1),
-      studentId,
-      excludeIds: usedIds,
+      excludeIds: [...usedIds, ...recentIds.strict],
       take: count,
     })
     if (questionIds.length < count) {
@@ -573,13 +579,12 @@ export async function buildDailyMissions(studentId: string) {
       )
     }
   } else if (currentLevel <= 8) {
-    // Level 7~8 (중급~중상급): 5미션, 9문제
+    // Level 7~8 (중급~중상급): 4미션, 9문제 (문법/단어 집중)
     missionConfigs = [
       { type: 'REVIEW_MISSION', count: 2, xpReward: 30 },
-      { type: 'WEAKNESS_DRILL', count: 3, xpReward: 30 },
+      { type: 'WEAKNESS_DRILL', count: 4, xpReward: 40 },
       { type: 'BALANCE_PRACTICE', count: 2, xpReward: 20 },
       { type: 'CHALLENGE', count: 1, xpReward: 25 },
-      { type: 'MINI_WRITING', count: 1, xpReward: 30 },
     ]
     if (reviewDueCount === 0) {
       missionConfigs = missionConfigs.map((c) =>
@@ -587,19 +592,30 @@ export async function buildDailyMissions(studentId: string) {
       )
     }
   } else {
-    // Level 9~10 (상급): 5미션, 10문제+에세이
+    // Level 9~10 (상급): 4미션, 10문제 (문법/단어 집중)
     missionConfigs = [
       { type: 'REVIEW_MISSION', count: 2, xpReward: 30 },
-      { type: 'WEAKNESS_DRILL', count: 3, xpReward: 30 },
+      { type: 'WEAKNESS_DRILL', count: 4, xpReward: 40 },
       { type: 'BALANCE_PRACTICE', count: 2, xpReward: 20 },
       { type: 'CHALLENGE', count: 2, xpReward: 30 },
-      { type: 'MINI_WRITING', count: 1, xpReward: 35 },
     ]
     if (reviewDueCount === 0) {
       missionConfigs = missionConfigs.map((c) =>
         c.type === 'REVIEW_MISSION' ? { ...c, type: 'BALANCE_PRACTICE' as MissionType } : c,
       )
     }
+  }
+
+  // 최근 60일간 학생에게 실제로 출제된 문제 이력 (정답 여부와 무관하게 반복 출제 방지에 사용)
+  const sixtyDaysAgo = new Date()
+  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
+  const missionHistory = await prisma.dailyMission.findMany({
+    where: { studentId, missionDate: { gte: sixtyDaysAgo } },
+    select: { missionDate: true, questionIds: true },
+  })
+  const recentIds = {
+    strict: idsUsedWithinDays(missionHistory, 30),
+    relaxed: idsUsedWithinDays(missionHistory, 7),
   }
 
   const usedIds: string[] = []
@@ -613,6 +629,7 @@ export async function buildDailyMissions(studentId: string) {
       config.type,
       config.count,
       usedIds,
+      recentIds,
     )
     usedIds.push(...result.questionIds)
 

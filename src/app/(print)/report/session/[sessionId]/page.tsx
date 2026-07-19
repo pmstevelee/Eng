@@ -4,14 +4,12 @@ import { prisma } from '@/lib/prisma/client'
 import { SessionReportPrint } from './_components/session-report-print'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 import type { TestSessionAnalysis } from '@/app/api/ai/analyze-test-session/route'
+import type { WritingCategoryScores } from '@/lib/ai/writing-grading'
 
 type WritingAnswerJson = {
   teacherScore?: number
   teacherComment?: string
-  grammarScore?: number
-  structureScore?: number
-  vocabularyScore?: number
-  expressionScore?: number
+  categoryScores?: WritingCategoryScores
 }
 
 export default async function SessionReportPage({
