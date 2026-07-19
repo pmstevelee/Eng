@@ -207,6 +207,12 @@ export async function getFlashcards(setId: string, _stage?: 'FLASHCARD' | 'RECAL
         .slice(0, limits.dailyNewWords)
     }
 
+    // 세트의 모든 단어를 이미 마스터한 경우에도 학습을 완전히 막지 않고
+    // 복습할 수 있도록 마스터한 단어 전체를 배치로 제공한다.
+    if (batchItems.length === 0 && startedItems.length > 0) {
+      batchItems = startedItems
+    }
+
     const cards = batchItems.map((item) => ({
       word: {
         id: item.word.id,
