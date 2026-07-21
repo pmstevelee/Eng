@@ -5,13 +5,20 @@ import { prisma } from '@/lib/prisma/client'
 interface Props {
   studentId: string
   newWordHref?: string
+  /** 부모가 이미 조회한 복습 대상 개수. 전달되면 DB 조회를 생략한다. */
+  dueCount?: number
 }
 
-export async function DailyReviewWidget({ studentId, newWordHref = '/student/words' }: Props) {
-  const now = new Date()
-  const dueCount = await prisma.wordProgress.count({
-    where: { studentId, nextReviewAt: { lte: now } },
-  })
+export async function DailyReviewWidget({
+  studentId,
+  newWordHref = '/student/words',
+  dueCount: dueCountProp,
+}: Props) {
+  const dueCount =
+    dueCountProp ??
+    (await prisma.wordProgress.count({
+      where: { studentId, nextReviewAt: { lte: new Date() } },
+    }))
 
   if (dueCount === 0) {
     return (

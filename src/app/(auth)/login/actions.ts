@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
-import { primeAuthCache, invalidateAuthCache } from '@/lib/auth'
+import { primeAuthCache, invalidateAuthCache, getUserRecordCached } from '@/lib/auth'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import type { Role } from '@/types'
@@ -35,13 +35,16 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
     return { error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
   }
 
+  // 인증 캐시를 미리 채워서 다음 요청(/student 등)에서
+  // supabase.auth.getUser() 네트워크 호출(~300-500ms)을 스킵한다.
+  if (accessToken) primeAuthCache(accessToken, authUserId)
+
   let role: Role | null = null
   let academyId: string | null = null
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: authUserId },
-      select: { role: true, academyId: true },
-    })
+    // getCurrentUser와 같은 캐시를 사용해 로그인 시 조회 결과를
+    // 이어지는 대시보드 렌더에서 그대로 재사용한다 (DB 왕복 1회 절약).
+    const user = await getUserRecordCached(authUserId)
 
     if (!user) {
       await supabase.auth.signOut()
@@ -65,11 +68,8 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
     maxAge: 60 * 60 * 24 * 7, // 7일
   })
 
-  // 인증 캐시를 미리 채워서 다음 요청(/student 등)에서
-  // supabase.auth.getUser() 네트워크 호출(~300-500ms)을 스킵한다.
-  if (accessToken) primeAuthCache(accessToken, authUserId)
-
-  await logActivity({ userId: authUserId, role, academyId, action: ACTIVITY_ACTIONS.LOGIN })
+  // 로그인 응답을 막지 않도록 비동기로 기록 (logActivity는 실패를 자체 처리)
+  void logActivity({ userId: authUserId, role, academyId, action: ACTIVITY_ACTIONS.LOGIN })
 
   redirect(ROLE_REDIRECT[role])
 }

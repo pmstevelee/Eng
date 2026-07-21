@@ -42,6 +42,9 @@ export function invalidateAuthCache(accessToken: string) {
  * unstable_cache로 감싸서 요청 간에도 DB 조회 결과를 재사용합니다.
  * 로그인한 유저 정보(role, name, academyId)는 자주 바뀌지 않으므로
  * 60초 TTL 캐시가 안전하며, 로그아웃 시 태그로 즉시 무효화할 수 있습니다.
+ *
+ * student.id까지 함께 조회해 학생 페이지에서 별도의 student-record
+ * DB 왕복 없이 studentId를 바로 사용할 수 있게 한다.
  */
 const getCachedDbUser = (userId: string) =>
   unstable_cache(
@@ -55,11 +58,19 @@ const getCachedDbUser = (userId: string) =>
           role: true,
           academyId: true,
           academy: { select: { name: true, businessName: true } },
+          student: { select: { id: true } },
         },
       }),
-    ['current-user', userId],
+    ['current-user-v2', userId],
     { revalidate: 60, tags: [`user-${userId}`] },
   )()
+
+/**
+ * 로그인 직후 유저 캐시를 미리 채우기 위한 헬퍼.
+ * 로그인 액션에서 호출하면 이어지는 대시보드 렌더에서
+ * getCurrentUser의 DB 조회가 캐시 히트로 처리된다.
+ */
+export const getUserRecordCached = getCachedDbUser
 
 /**
  * React cache()로 감싸서 같은 요청(렌더링 트리) 안에서

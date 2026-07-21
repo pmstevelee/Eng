@@ -12,26 +12,12 @@ import { getPromotionProgress } from '@/lib/assessment/promotion-engine'
 
 // ─── Auth helper ─────────────────────────────────────────────────────────────
 
-// 학생 record(studentId) 30초 캐싱 — getCurrentUser의 user-${userId} 태그와 동일하게 연동
-const getCachedStudentRecord = (userId: string) =>
-  unstable_cache(
-    () =>
-      prisma.user.findUnique({
-        where: { id: userId, isDeleted: false },
-        select: { id: true, role: true, student: { select: { id: true } } },
-      }),
-    ['student-record', userId],
-    { revalidate: 60, tags: [`user-${userId}`] },
-  )()
-
 async function getAuthedStudent() {
-  // getCurrentUser: getSession(쿠키 로컬 검증) + unstable_cache(30s) → ~1ms
+  // getCurrentUser: getSession(쿠키 로컬 검증) + 인메모리/unstable_cache → ~1ms
+  // studentId는 user 캐시에 포함되어 별도 DB 왕복 없음
   const user = await getCurrentUser()
-  if (!user || user.role !== 'STUDENT') return null
-  // getCachedStudentRecord: studentId를 60초 캐싱 → 두 번째 요청부터 DB 왕복 없음
-  const dbUser = await getCachedStudentRecord(user.id)
-  if (!dbUser?.student) return null
-  return { userId: user.id, studentId: dbUser.student.id }
+  if (!user || user.role !== 'STUDENT' || !user.student) return null
+  return { userId: user.id, studentId: user.student.id }
 }
 
 // ─── Main dashboard data ──────────────────────────────────────────────────────
@@ -510,21 +496,37 @@ const getCachedDashboardData = (studentId: string) =>
       weekStart.setHours(0, 0, 0, 0)
 
       // ── 미션 확인 (없으면 새 엔진으로 생성) ─────────────────────────────
-      let mission = await prisma.dailyMission.findFirst({
-        where: { studentId, missionDate: { gte: todayStart } },
-      })
-      if (!mission) {
-        try {
-          mission = await buildDailyMissions(studentId)
-        } catch {
-          mission = await prisma.dailyMission.findFirst({
-            where: { studentId, missionDate: { gte: todayStart } },
-          })
+      const missionPromise = (async () => {
+        let mission = await prisma.dailyMission.findFirst({
+          where: { studentId, missionDate: { gte: todayStart } },
+        })
+        if (!mission) {
+          try {
+            mission = await buildDailyMissions(studentId)
+          } catch {
+            mission = await prisma.dailyMission.findFirst({
+              where: { studentId, missionDate: { gte: todayStart } },
+            })
+          }
         }
-      }
+        return mission
+      })()
 
-      // ── 배치 1: 핵심 지표 ─────────────────────────────────────────────────
-      const [streak, student, weeklyCount] = await Promise.all([
+      // ── 나머지 전체를 미션 조회와 동시에 단일 웨이브로 병렬 실행 ─────────
+      // (원격 DB RTT가 병목이므로 순차 웨이브를 만들지 않는다)
+      const [
+        mission,
+        streak,
+        student,
+        weeklyCount,
+        completedSessions,
+        badgeEarnings,
+        assessments,
+        upcomingSessions,
+        completedMissions,
+        dueWordCount,
+      ] = await Promise.all([
+        missionPromise,
         prisma.studentStreak.findUnique({
           where: { studentId },
           select: { currentStreak: true, longestStreak: true, lastActivityDate: true, totalDays: true },
@@ -542,53 +544,54 @@ const getCachedDashboardData = (studentId: string) =>
             },
           },
         }),
+        prisma.testSession.findMany({
+          where: { studentId, status: { in: ['COMPLETED', 'GRADED'] }, completedAt: { not: null } },
+          select: { id: true, score: true, completedAt: true, test: { select: { title: true } } },
+          orderBy: { completedAt: 'desc' },
+          take: 5,
+        }),
+        prisma.badgeEarning.findMany({
+          where: { studentId },
+          select: { id: true, earnedAt: true, badge: { select: { name: true, iconUrl: true } } },
+          orderBy: { earnedAt: 'desc' },
+          take: 5,
+        }),
+        prisma.skillAssessment.findMany({
+          where: { studentId },
+          orderBy: { assessedAt: 'desc' },
+          take: 50,
+          select: { domain: true, score: true },
+        }),
+        prisma.testSession.findMany({
+          where: { studentId, status: 'NOT_STARTED' },
+          select: {
+            id: true,
+            timeLimitMin: true,
+            test: { select: { title: true, isActive: true, totalScore: true } },
+          },
+          orderBy: { startedAt: 'asc' },
+          take: 3,
+        }),
+        prisma.dailyMission.findMany({
+          where: { studentId, isCompleted: true },
+          select: { id: true, domainFocus: true, questionIds: true, completedAt: true },
+          orderBy: { completedAt: 'desc' },
+          take: 5,
+        }),
+        prisma.wordProgress.count({
+          where: { studentId, nextReviewAt: { lte: new Date() } },
+        }),
       ])
 
-      // ── 배치 2: 세션·배지·스킬·미션·문제 미리보기 (한 번에 병렬) ─────────
+      // 미션 문제 미리보기 (미완료 미션이 있을 때만 1회 추가 조회)
       const missionIds = !mission?.isCompleted ? (mission?.questionIds as string[] | undefined) ?? [] : []
-      const [completedSessions, badgeEarnings, assessments, upcomingSessions, completedMissions, missionQuestions] =
-        await Promise.all([
-          prisma.testSession.findMany({
-            where: { studentId, status: { in: ['COMPLETED', 'GRADED'] }, completedAt: { not: null } },
-            select: { id: true, score: true, completedAt: true, test: { select: { title: true } } },
-            orderBy: { completedAt: 'desc' },
-            take: 5,
-          }),
-          prisma.badgeEarning.findMany({
-            where: { studentId },
-            select: { id: true, earnedAt: true, badge: { select: { name: true, iconUrl: true } } },
-            orderBy: { earnedAt: 'desc' },
-            take: 5,
-          }),
-          prisma.skillAssessment.findMany({
-            where: { studentId },
-            orderBy: { assessedAt: 'desc' },
-            take: 50,
-            select: { domain: true, score: true },
-          }),
-          prisma.testSession.findMany({
-            where: { studentId, status: 'NOT_STARTED' },
-            select: {
-              id: true,
-              timeLimitMin: true,
-              test: { select: { title: true, isActive: true, totalScore: true } },
-            },
-            orderBy: { startedAt: 'asc' },
-            take: 3,
-          }),
-          prisma.dailyMission.findMany({
-            where: { studentId, isCompleted: true },
-            select: { id: true, domainFocus: true, questionIds: true, completedAt: true },
-            orderBy: { completedAt: 'desc' },
-            take: 5,
-          }),
-          missionIds.length > 0
-            ? prisma.question.findMany({
-                where: { id: { in: missionIds } },
-                select: { id: true, domain: true, difficulty: true },
-              })
-            : Promise.resolve([]),
-        ])
+      const missionQuestions =
+        missionIds.length > 0
+          ? await prisma.question.findMany({
+              where: { id: { in: missionIds } },
+              select: { id: true, domain: true, difficulty: true },
+            })
+          : []
 
       // Date → ISO 문자열 직렬화
       return {
@@ -622,6 +625,7 @@ const getCachedDashboardData = (studentId: string) =>
         missionQuestions: missionIds.map((id) => missionQuestions.find((q) => q.id === id)).filter(
           (q): q is { id: string; domain: QuestionDomain; difficulty: number } => Boolean(q),
         ),
+        dueWordCount,
       }
     },
     ['student-dashboard', studentId],
@@ -651,6 +655,7 @@ export async function getStudentDashboardData() {
       upcomingSessions,
       completedMissions: rawMissions,
       missionQuestions,
+      dueWordCount,
     },
     promotionProgress,
   ] = await Promise.all([
@@ -767,6 +772,7 @@ export async function getStudentDashboardData() {
     recentActivities: activities.slice(0, 3),
     missionQuestions,
     promotionProgress,
+    dueWordCount,
   }
 }
 

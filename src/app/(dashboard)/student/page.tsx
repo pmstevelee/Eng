@@ -33,6 +33,7 @@ export default async function StudentDashboardPage() {
     upcomingSessions,
     recentActivities,
     promotionProgress,
+    dueWordCount,
   } = data
 
   const firstName = user.name.split(' ')[0]
@@ -224,7 +225,7 @@ export default async function StudentDashboardPage() {
       {mission && <DailyMissionCard mission={mission} />}
 
       {/* ── 단어 복습 위젯 ──────────────────────────────────────────────── */}
-      <DailyReviewWidget studentId={studentId} />
+      <DailyReviewWidget studentId={studentId} dueCount={dueWordCount} />
 
       {/* ── 예정된 테스트 카드 ───────────────────────────────────────────── */}
       {upcomingSessions.length > 0 && (

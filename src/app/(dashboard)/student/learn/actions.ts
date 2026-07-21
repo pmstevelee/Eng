@@ -122,24 +122,11 @@ export type SessionAdvice = {
 
 // ── 내부 헬퍼 ─────────────────────────────────────────────────────────────────
 
-// gamification.ts의 getCachedStudentRecord와 동일한 캐시 키 → 같은 캐시 엔트리 공유
-const getCachedStudentRecord = (userId: string) =>
-  unstable_cache(
-    () =>
-      prisma.user.findUnique({
-        where: { id: userId, isDeleted: false },
-        select: { id: true, role: true, student: { select: { id: true } } },
-      }),
-    ['student-record', userId],
-    { revalidate: 60, tags: [`user-${userId}`] },
-  )()
-
 async function requireStudentId(): Promise<string> {
+  // studentId는 getCurrentUser의 user 캐시에 포함되어 별도 DB 왕복 없음
   const user = await getCurrentUser()
-  if (!user || user.role !== 'STUDENT') redirect('/login')
-  const dbUser = await getCachedStudentRecord(user.id)
-  if (!dbUser?.student) redirect('/login')
-  return dbUser.student.id
+  if (!user || user.role !== 'STUDENT' || !user.student) redirect('/login')
+  return user.student.id
 }
 
 function sanitizeQuestion(q: {
