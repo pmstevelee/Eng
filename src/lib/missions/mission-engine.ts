@@ -654,10 +654,16 @@ export async function buildDailyMissions(studentId: string) {
 
   const allQuestionIds = missionsJson.flatMap((m) => m.questionIds)
 
+  // missionDate는 자정으로 정규화한다. 동시 요청으로 buildDailyMissions가 중복
+  // 호출되어도 (studentId, missionDate) 유니크 제약이 실제로 충돌을 감지해
+  // getOrCreateTodayMission의 fallback 재조회 로직이 정상 동작하도록 한다.
+  const missionDate = new Date()
+  missionDate.setHours(0, 0, 0, 0)
+
   return prisma.dailyMission.create({
     data: {
       studentId,
-      missionDate: new Date(),
+      missionDate,
       questionIds: allQuestionIds,
       domainFocus: analysis.weakestDomain,
       isCompleted: false,

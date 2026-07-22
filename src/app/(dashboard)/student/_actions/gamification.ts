@@ -351,6 +351,7 @@ export async function submitMissionAnswers(
   newBadges?: string[]
   score?: number
   results?: MissionAnswerResult[]
+  xpEarned?: number
 }> {
   const auth = await getAuthedStudent()
   if (!auth) return { error: '권한이 없습니다.' }
@@ -418,10 +419,60 @@ export async function submitMissionAnswers(
 
   const score = total > 0 ? Math.round((correct / total) * 100) : 100
 
+  // ── XP 적립 ────────────────────────────────────────────────────────────────
+  // missionsJson에 저장된 서브미션별 xpReward를 문제별로 환산해 적립한다.
+  // (missionsJson이 없는 구버전 미션은 문제당 5XP로 대체)
+  type MissionItemRaw = {
+    questionIds: string[]
+    questionCount: number
+    xpReward: number
+    status: string
+    completedAt: string | null
+    correctCount: number
+  }
+  const missionsJson = (mission.missionsJson ?? []) as MissionItemRaw[]
+  const perQuestionXp = new Map<string, number>()
+  if (missionsJson.length > 0) {
+    for (const item of missionsJson) {
+      const xp = item.questionCount > 0 ? Math.floor(item.xpReward / item.questionCount) : 0
+      for (const qId of item.questionIds) perQuestionXp.set(qId, xp)
+    }
+  } else {
+    for (const qId of questionIds) perQuestionXp.set(qId, 5)
+  }
+
+  let xpEarned = 0
+  for (const r of results) {
+    if (r.isCorrect) xpEarned += perQuestionXp.get(r.questionId) ?? 0
+  }
+  if (xpEarned > 0) {
+    await awardXP(studentId, xpEarned, 'MISSION_ANSWER', missionId)
+  }
+
+  const completedMissionsJson = missionsJson.map((item) => ({
+    ...item,
+    status: 'COMPLETED',
+    completedAt: new Date().toISOString(),
+    correctCount: item.questionIds.filter(
+      (qId) => results.find((r) => r.questionId === qId)?.isCorrect,
+    ).length,
+  }))
+
   // Mark mission complete
   await prisma.dailyMission.update({
     where: { id: missionId },
-    data: { isCompleted: true, completedAt: new Date() },
+    data: {
+      isCompleted: true,
+      completedAt: new Date(),
+      ...(missionsJson.length > 0
+        ? {
+            missionsJson: completedMissionsJson as object[],
+            completedMissions: completedMissionsJson.length,
+            xpEarned: { increment: xpEarned },
+            streakCounted: true,
+          }
+        : {}),
+    },
   })
 
   // Update streak
@@ -465,7 +516,7 @@ export async function submitMissionAnswers(
   // 대시보드 캐시 무효화는 결과 화면 확인 후 완료 버튼 클릭 시 처리
   // (여기서 즉시 무효화하면 Server Action 후 자동 리프레시로 결과 화면이 사라짐)
 
-  return { newBadges: toAward as string[], score, results }
+  return { newBadges: toAward as string[], score, results, xpEarned }
 }
 
 // ─── 결과 화면 확인 후 대시보드 캐시 무효화 ────────────────────────────────────

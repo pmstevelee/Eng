@@ -65,6 +65,7 @@ export function MissionClient({ mission, questions }: Props) {
     score: number
     newBadges: string[]
     results: MissionAnswerResult[]
+    xpEarned: number
   } | null>(null)
   const [loading, setLoading] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -105,7 +106,12 @@ export function MissionClient({ mission, questions }: Props) {
       alert(res.error)
       return
     }
-    setResult({ score: res.score ?? 0, newBadges: res.newBadges ?? [], results: res.results ?? [] })
+    setResult({
+      score: res.score ?? 0,
+      newBadges: res.newBadges ?? [],
+      results: res.results ?? [],
+      xpEarned: res.xpEarned ?? 0,
+    })
     setSubmitted(true)
   }
 
@@ -119,6 +125,7 @@ export function MissionClient({ mission, questions }: Props) {
       <MissionResult
         score={result.score}
         newBadges={result.newBadges}
+        xpEarned={result.xpEarned}
         results={result.results}
         questions={questions}
         answers={answers}
@@ -372,6 +379,7 @@ function optionText(content: ContentJson, letter: string): string | null {
 function MissionResult({
   score,
   newBadges,
+  xpEarned,
   results,
   questions,
   answers,
@@ -382,6 +390,7 @@ function MissionResult({
 }: {
   score: number
   newBadges: string[]
+  xpEarned: number
   results: MissionAnswerResult[]
   questions: Question[]
   answers: Record<string, string>
@@ -433,6 +442,12 @@ function MissionResult({
         <p className="text-sm text-gray-600">
           {total}문제 중 <strong>{correct}문제</strong> 정답
         </p>
+
+        {xpEarned > 0 && (
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#1865F2]/10 px-3 py-1.5 text-sm font-bold text-[#1865F2]">
+            <Zap size={14} />+{xpEarned} XP 획득!
+          </div>
+        )}
 
         {/* New badges */}
         {newBadges.length > 0 && (
