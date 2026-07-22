@@ -262,7 +262,7 @@ export async function sendPasswordResetEmail(): Promise<{ error?: string; succes
   const headersList = await headers()
   const host = headersList.get('x-forwarded-host') ?? headersList.get('host') ?? 'localhost:3000'
   const protocol = headersList.get('x-forwarded-proto') ?? 'http'
-  const redirectTo = `${protocol}://${host}/auth/reset-password`
+  const redirectTo = `${protocol}://${host}/auth/callback?next=/reset-password`
 
   const { error } = await supabase.auth.resetPasswordForEmail(authUser.email!, {
     redirectTo,
