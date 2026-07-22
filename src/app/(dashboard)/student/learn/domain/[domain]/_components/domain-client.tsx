@@ -608,6 +608,19 @@ export function DomainClient({
               />
             )}
 
+          {/* 서술형 입력창 (쓰기 영역 DB 문제) */}
+          {!isChainQuestion &&
+            (questions[currentIdx]?.content.type === 'essay' ||
+              questions[currentIdx]?.content.type === 'writing_prompt' ||
+              (!questions[currentIdx]?.content.type &&
+                !(questions[currentIdx]?.content.options ?? []).length)) && (
+            <EssayInput
+              value={selectedAnswer}
+              onChange={setSelectedAnswer}
+              disabled={subPhase === 'feedback'}
+            />
+          )}
+
           {/* 피드백 패널 */}
           {subPhase === 'feedback' && gradeResult && (
             <div
@@ -1396,6 +1409,30 @@ function AudioPlayer({ audioUrl, playCount }: { audioUrl: string; playCount: num
 }
 
 // ── 단답형 입력창 ─────────────────────────────────────────────────────────────
+
+function EssayInput({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string
+  onChange: (v: string) => void
+  disabled: boolean
+}) {
+  return (
+    <div className="mt-1">
+      <label className="mb-1.5 block text-sm font-medium text-gray-700">답변 작성</label>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        placeholder="영어로 답변을 작성하세요..."
+        rows={8}
+        className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm leading-relaxed text-gray-900 outline-none transition-all focus:border-[#E35C20] focus:ring-2 focus:ring-[#E35C20]/20 disabled:bg-gray-50"
+      />
+    </div>
+  )
+}
 
 function ShortAnswerInput({
   value,

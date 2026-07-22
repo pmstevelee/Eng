@@ -25,7 +25,7 @@ import Image from 'next/image'
 // ── 타입 정의 ─────────────────────────────────────────────────────────────────
 
 export type QuestionDomainType = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
-export type QuestionType = 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank' | 'question_set' | 'sentence_order'
+export type QuestionType = 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'writing_prompt' | 'word_bank' | 'question_set' | 'sentence_order'
 
 export type WordBankSentence = {
   label: string
@@ -142,6 +142,7 @@ const TYPE_LABEL: Record<QuestionType, string> = {
   fill_blank: '빈칸 채우기',
   short_answer: '단답형',
   essay: '서술형',
+  writing_prompt: '서술형(작문)',
   word_bank: '단어박스형',
   question_set: '복합 문제',
   sentence_order: '순서맞추기',
@@ -541,7 +542,7 @@ function PreviewModal({ question, onClose }: { question: QuestionDetailRow; onCl
               </div>
             )}
 
-            {content.type === 'essay' && (
+            {(content.type === 'essay' || content.type === 'writing_prompt') && (
               <div className="mt-4">
                 <textarea
                   placeholder="서술형 답변을 작성하세요"

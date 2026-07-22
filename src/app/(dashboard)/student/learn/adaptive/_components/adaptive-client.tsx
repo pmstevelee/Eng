@@ -379,6 +379,16 @@ function AdaptivePractice({
               onAnswer={setSelectedAnswer}
               gradeResult={gradeResult}
             />
+          ) : currentQuestion.content.type === 'essay' ||
+            currentQuestion.content.type === 'writing_prompt' ||
+            (!currentQuestion.content.type &&
+              !(currentQuestion.content.options ?? []).length) ? (
+            <EssayQuestion
+              content={currentQuestion.content}
+              answer={selectedAnswer}
+              onAnswer={setSelectedAnswer}
+              gradeResult={gradeResult}
+            />
           ) : (
             <MultipleChoiceQuestion
               content={currentQuestion.content}
@@ -817,6 +827,39 @@ function FillBlankQuestion({
           disabled={isSubmitted}
           placeholder="답을 입력하세요"
           className="h-11 w-full rounded-xl border border-gray-200 px-4 text-sm text-gray-900 outline-none transition-all focus:border-[#1865F2] focus:ring-2 focus:ring-[#1865F2]/20 disabled:bg-gray-50"
+        />
+      </div>
+    </div>
+  )
+}
+
+function EssayQuestion({
+  content,
+  answer,
+  onAnswer,
+  gradeResult,
+}: {
+  content: PracticeQuestion['content']
+  answer: string
+  onAnswer: (v: string) => void
+  gradeResult: GradeResult | null
+}) {
+  const isSubmitted = gradeResult !== null
+  return (
+    <div>
+      <p className="mb-4 text-base leading-relaxed text-gray-900">{content.question_text}</p>
+      {content.question_text_ko && (
+        <p className="mb-4 text-sm leading-relaxed text-gray-500">{content.question_text_ko}</p>
+      )}
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700">답변 작성</label>
+        <textarea
+          value={answer}
+          onChange={(e) => !isSubmitted && onAnswer(e.target.value)}
+          disabled={isSubmitted}
+          placeholder="영어로 답변을 작성하세요..."
+          rows={8}
+          className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm leading-relaxed text-gray-900 outline-none transition-all focus:border-[#1865F2] focus:ring-2 focus:ring-[#1865F2]/20 disabled:bg-gray-50"
         />
       </div>
     </div>

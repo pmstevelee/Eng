@@ -711,7 +711,12 @@ export async function gradeAnswer(
 
   const content = question.contentJson as QuestionContentJson
 
-  if (content.type === 'essay') {
+  const isEssayLike =
+    content.type === 'essay' ||
+    content.type === 'writing_prompt' ||
+    (!content.type && !(content.options && content.options.length > 0))
+
+  if (isEssayLike) {
     const studentId = await requireStudentId()
     prisma.questionResponse.updateMany({
       where: { questionId, isCorrect: false, isMastered: false, session: { studentId } },
