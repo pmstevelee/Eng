@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, ArrowRight, RotateCcw, Lightbulb, SkipForward, Volume2 } from 'lucide-react'
+import { CheckCircle2, ArrowRight, RotateCcw, Lightbulb, SkipForward, Volume2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import { checkSpell, recordProgress } from '@/app/(dashboard)/student/words/_actions'
@@ -203,6 +203,7 @@ export function SpellClient({ setId, initialCards }: Props) {
   const [correctTerm, setCorrectTerm] = useState('')
   const [usedHint, setUsedHint] = useState(false)
   const [showHint, setShowHint] = useState(false)
+  const [isGrading, setIsGrading] = useState(false)
 
   const [correctCount, setCorrectCount] = useState(0)
   const [totalAnswered, setTotalAnswered] = useState(0)
@@ -210,7 +211,6 @@ export function SpellClient({ setId, initialCards }: Props) {
   const [retryCount, setRetryCount] = useState(0)
 
   const inputRef = useRef<HTMLInputElement>(null)
-  const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isSubmittingRef = useRef(false)
   // 현재 문제가 이미 처리됐는지 추적 (handleSubmit + handleSkip 중복 실행 방지)
   const isAnsweredRef = useRef(false)
@@ -225,10 +225,6 @@ export function SpellClient({ setId, initialCards }: Props) {
   }, [qIndex, phase, answerState])
 
   const advance = useCallback(() => {
-    if (autoAdvanceRef.current) {
-      clearTimeout(autoAdvanceRef.current)
-      autoAdvanceRef.current = null
-    }
     const nextIndex = qIndex + 1
     if (nextIndex >= deck.length) {
       setPhase('round-done')
@@ -247,14 +243,20 @@ export function SpellClient({ setId, initialCards }: Props) {
     if (isSubmittingRef.current) return
     if (isAnsweredRef.current) return
     isSubmittingRef.current = true
+    setIsGrading(true)
 
-    const res = await checkSpell({
-      wordId: currentCard.word.id,
-      userAnswer: input,
-      usedHint,
-    })
+    const minDelay = new Promise((resolve) => setTimeout(resolve, 600))
+    const [res] = await Promise.all([
+      checkSpell({
+        wordId: currentCard.word.id,
+        userAnswer: input,
+        usedHint,
+      }),
+      minDelay,
+    ])
 
     isSubmittingRef.current = false
+    setIsGrading(false)
 
     if (!res.ok) return
 
@@ -291,11 +293,6 @@ export function SpellClient({ setId, initialCards }: Props) {
       isCorrect: correct || nearlyCorrect,
       userAnswer: input,
     })
-
-    // 1.5초 후 자동 진행
-    autoAdvanceRef.current = setTimeout(() => {
-      advance()
-    }, 1500)
   }
 
   function handleSkip() {
@@ -313,11 +310,6 @@ export function SpellClient({ setId, initialCards }: Props) {
       isCorrect: false,
       userAnswer: '',
     })
-    if (autoAdvanceRef.current) {
-      clearTimeout(autoAdvanceRef.current)
-      autoAdvanceRef.current = null
-    }
-    autoAdvanceRef.current = setTimeout(() => advance(), 1500)
   }
 
   function handleHint() {
@@ -332,7 +324,6 @@ export function SpellClient({ setId, initialCards }: Props) {
       if (e.key === 'Enter') {
         e.preventDefault()
         if (answerState !== 'idle') {
-          if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current)
           advance()
         } else {
           handleSubmit()
@@ -345,10 +336,6 @@ export function SpellClient({ setId, initialCards }: Props) {
   }, [phase, answerState, input, advance])
 
   function handleRetry() {
-    if (autoAdvanceRef.current) {
-      clearTimeout(autoAdvanceRef.current)
-      autoAdvanceRef.current = null
-    }
     isAnsweredRef.current = false
     isSubmittingRef.current = false
     const newDeck = [...wrongCards]
@@ -471,15 +458,14 @@ export function SpellClient({ setId, initialCards }: Props) {
               type="text"
               value={input}
               onChange={(e) => {
-                if (!isAnswered) setInput(e.target.value)
+                if (!isAnswered && !isGrading) setInput(e.target.value)
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault()
                   if (isAnswered) {
-                    if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current)
                     advance()
-                  } else {
+                  } else if (!isGrading) {
                     handleSubmit()
                   }
                 }
@@ -491,7 +477,7 @@ export function SpellClient({ setId, initialCards }: Props) {
               spellCheck={false}
               inputMode="text"
               placeholder="영어 단어 입력..."
-              disabled={isAnswered}
+              disabled={isAnswered || isGrading}
               className={`w-full h-14 rounded-xl border-2 px-4 text-lg font-mono tracking-widest text-center transition-colors outline-none
                 ${
                   isAnswered
@@ -548,16 +534,25 @@ export function SpellClient({ setId, initialCards }: Props) {
               <>
                 <Button
                   onClick={handleSubmit}
-                  disabled={input.trim() === ''}
+                  disabled={input.trim() === '' || isGrading}
                   className="h-14 rounded-xl bg-[#7854F7] hover:bg-[#7854F7]/90 text-white font-semibold text-base disabled:opacity-40"
                 >
-                  확인
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  {isGrading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      채점 중...
+                    </>
+                  ) : (
+                    <>
+                      확인
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
                 </Button>
                 <div className="flex gap-2">
                   <Button
                     onClick={handleHint}
-                    disabled={showHint}
+                    disabled={showHint || isGrading}
                     variant="outline"
                     className="flex-1 h-11 rounded-xl border-2 text-[#FFB100] border-[#FFB100]/30 hover:bg-[#FFB100]/5 disabled:opacity-30 font-medium"
                   >
@@ -566,8 +561,9 @@ export function SpellClient({ setId, initialCards }: Props) {
                   </Button>
                   <Button
                     onClick={handleSkip}
+                    disabled={isGrading}
                     variant="outline"
-                    className="flex-1 h-11 rounded-xl border-2 text-gray-500 border-gray-200 hover:bg-gray-50 dark:border-gray-700 font-medium"
+                    className="flex-1 h-11 rounded-xl border-2 text-gray-500 border-gray-200 hover:bg-gray-50 dark:border-gray-700 font-medium disabled:opacity-30"
                   >
                     <SkipForward className="w-4 h-4 mr-1.5" />
                     건너뛰기
@@ -576,10 +572,7 @@ export function SpellClient({ setId, initialCards }: Props) {
               </>
             ) : (
               <Button
-                onClick={() => {
-                  if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current)
-                  advance()
-                }}
+                onClick={advance}
                 className={`h-14 rounded-xl font-semibold text-base text-white ${
                   isCorrectish
                     ? 'bg-[#1FAF54] hover:bg-[#1FAF54]/90'
