@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Users, Star, TrendingUp, Activity, Plus } from 'lucide-react'
+import { BookOpen, Users, Star, TrendingUp, Activity, Plus, BarChart2 } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
@@ -40,14 +40,22 @@ export default async function OwnerWordsPage({ searchParams }: Props) {
           <h1 className="text-xl font-bold text-gray-900">단어학습 관리</h1>
           <p className="text-sm text-gray-400 mt-0.5">학원 전체 단어학습 현황 및 세트 관리</p>
         </div>
-        {activeTab === 'sets' && (
-          <Link href="/owner/words/sets/new">
-            <Button size="sm" className="h-9 gap-2 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white">
-              <Plus className="w-4 h-4" />
-              세트 만들기
+        <div className="flex items-center gap-2">
+          <Link href="/owner/words/report">
+            <Button variant="outline" size="sm" className="h-9 gap-2 text-[#1865F2] border-[#1865F2]/30 hover:bg-[#EFF4FE]">
+              <BarChart2 className="w-4 h-4" />
+              학습 리포트
             </Button>
           </Link>
-        )}
+          {activeTab === 'sets' && (
+            <Link href="/owner/words/sets/new">
+              <Button size="sm" className="h-9 gap-2 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white">
+                <Plus className="w-4 h-4" />
+                세트 만들기
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* 탭 */}
