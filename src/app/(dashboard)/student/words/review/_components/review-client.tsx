@@ -12,6 +12,7 @@ import {
   Volume2,
   Zap,
   Flame,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LoadingOverlay } from '@/components/shared/loading-overlay'
@@ -248,21 +249,27 @@ function SpellCard({
   const [correctTerm, setCorrectTerm] = useState('')
   const [showHint, setShowHint] = useState(false)
   const [usedHint, setUsedHint] = useState(false)
+  const [isGrading, setIsGrading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     setInput('')
     setAnswerState('idle')
     setShowHint(false)
     setUsedHint(false)
+    setIsGrading(false)
     inputRef.current?.focus()
-    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
   }, [card.word.id])
 
   async function handleSubmit() {
     if (answerState !== 'idle' || input.trim() === '') return
-    const res = await checkSpell({ wordId: card.word.id, userAnswer: input, usedHint })
+    setIsGrading(true)
+    const minDelay = new Promise((resolve) => setTimeout(resolve, 600))
+    const [res] = await Promise.all([
+      checkSpell({ wordId: card.word.id, userAnswer: input, usedHint }),
+      minDelay,
+    ])
+    setIsGrading(false)
     if (!res.ok) return
     const { correct, nearlyCorrect, quality, correctTerm: ct } = res.data as {
       correct: boolean; nearlyCorrect: boolean; quality: number; correctTerm: string
@@ -272,15 +279,13 @@ function SpellCard({
     setAnswerState(correct ? 'correct' : nearlyCorrect ? 'nearly' : 'wrong')
     if (isCorrectish) playAudio(ct, card.word.audioUrl)
     recordProgress({ wordId: card.word.id, stage: 'SPELL', quality: quality as 0|1|2|3|4|5, isCorrect: isCorrectish, userAnswer: input })
-    timerRef.current = setTimeout(() => onResult(isCorrectish), 1200)
   }
 
   function handleSkip() {
-    if (answerState !== 'idle') return
+    if (answerState !== 'idle' || isGrading) return
     setCorrectTerm(card.word.term)
     setAnswerState('wrong')
     recordProgress({ wordId: card.word.id, stage: 'SPELL', quality: 2, isCorrect: false, userAnswer: '' })
-    timerRef.current = setTimeout(() => onResult(false), 1200)
   }
 
   const isAnswered = answerState !== 'idle'
@@ -321,10 +326,16 @@ function SpellCard({
         ref={inputRef}
         type="text"
         value={input}
-        onChange={(e) => { if (!isAnswered) setInput(e.target.value) }}
-        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSubmit() } }}
+        onChange={(e) => { if (!isAnswered && !isGrading) setInput(e.target.value) }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            if (isAnswered) onResult(isCorrectish)
+            else if (!isGrading) handleSubmit()
+          }
+        }}
         autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false}
-        disabled={isAnswered}
+        disabled={isAnswered || isGrading}
         placeholder="영어 단어 입력..."
         className={`w-full h-14 rounded-xl border-2 px-4 text-lg font-mono tracking-widest text-center transition-colors outline-none mb-3 ${
           isAnswered
@@ -365,19 +376,27 @@ function SpellCard({
         )}
       </AnimatePresence>
 
-      {!isAnswered && (
+      {!isAnswered ? (
         <div className="flex flex-col gap-2">
           <Button
             onClick={handleSubmit}
-            disabled={input.trim() === ''}
+            disabled={input.trim() === '' || isGrading}
             className="h-14 rounded-xl bg-[#7854F7] hover:bg-[#7854F7]/90 text-white font-semibold text-base disabled:opacity-40"
           >
-            확인<ArrowRight className="w-4 h-4 ml-2" />
+            {isGrading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />채점 중...
+              </>
+            ) : (
+              <>
+                확인<ArrowRight className="w-4 h-4 ml-2" />
+              </>
+            )}
           </Button>
           <div className="flex gap-2">
             <Button
               onClick={() => { setUsedHint(true); setShowHint(true) }}
-              disabled={showHint}
+              disabled={showHint || isGrading}
               variant="outline"
               className="flex-1 h-11 rounded-xl border-2 text-[#FFB100] border-[#FFB100]/30 hover:bg-[#FFB100]/5 disabled:opacity-30 font-medium"
             >
@@ -385,13 +404,23 @@ function SpellCard({
             </Button>
             <Button
               onClick={handleSkip}
+              disabled={isGrading}
               variant="outline"
-              className="flex-1 h-11 rounded-xl border-2 text-gray-500 border-gray-200 hover:bg-gray-50 dark:border-gray-700 font-medium"
+              className="flex-1 h-11 rounded-xl border-2 text-gray-500 border-gray-200 hover:bg-gray-50 dark:border-gray-700 font-medium disabled:opacity-30"
             >
               <SkipForward className="w-4 h-4 mr-1.5" />건너뛰기
             </Button>
           </div>
         </div>
+      ) : (
+        <Button
+          onClick={() => onResult(isCorrectish)}
+          className={`h-14 rounded-xl font-semibold text-base text-white ${
+            isCorrectish ? 'bg-[#1FAF54] hover:bg-[#1FAF54]/90' : 'bg-[#1865F2] hover:bg-[#1865F2]/90'
+          }`}
+        >
+          다음<ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
       )}
     </div>
   )
