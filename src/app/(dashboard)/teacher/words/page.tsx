@@ -25,7 +25,10 @@ export default async function TeacherWordsPage() {
 
   const wordSets = await prisma.wordSet.findMany({
     where: {
-      OR: [{ academyId: user.academyId }, { isPublic: true }, { ownerId: user.id }],
+      AND: [
+        { OR: [{ academyId: user.academyId }, { isPublic: true }, { ownerId: user.id }] },
+        { source: { notIn: ['OXFORD_3000', 'OXFORD_5000'] } },
+      ],
     },
     select: {
       id: true,

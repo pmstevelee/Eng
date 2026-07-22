@@ -70,9 +70,14 @@ async function ensureSystemWordSets() {
 async function getWordSets(academyId: string | null, studentLevel: number) {
   return prisma.wordSet.findMany({
     where: {
-      OR: [
-        { isPublic: true },
-        ...(academyId ? [{ academyId }] : []),
+      AND: [
+        {
+          OR: [
+            { isPublic: true },
+            ...(academyId ? [{ academyId }] : []),
+          ],
+        },
+        { source: { notIn: ['OXFORD_3000', 'OXFORD_5000'] } },
       ],
     },
     select: {

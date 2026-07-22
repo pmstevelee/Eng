@@ -197,7 +197,10 @@ async function StatsTab() {
 async function SetsTab({ academyId }: { academyId: string }) {
   const wordSets = await prisma.wordSet.findMany({
     where: {
-      OR: [{ academyId }, { isPublic: true }],
+      AND: [
+        { OR: [{ academyId }, { isPublic: true }] },
+        { source: { notIn: ['OXFORD_3000', 'OXFORD_5000'] } },
+      ],
     },
     select: {
       id: true,
