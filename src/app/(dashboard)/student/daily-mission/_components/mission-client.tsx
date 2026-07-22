@@ -2,13 +2,15 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, XCircle, ChevronRight, ChevronLeft, Zap, Target, Volume2 } from 'lucide-react'
+import { CheckCircle2, XCircle, ChevronRight, ChevronLeft, Zap, Target, Volume2, Flag, HelpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   submitMissionAnswers,
   revalidateMissionDashboard,
   type MissionAnswerResult,
 } from '@/app/(dashboard)/student/_actions/gamification'
+import { reportQuestion } from '@/lib/questions/report-actions'
+import type { QuestionReportType } from '@/generated/prisma'
 
 type ContentJson = {
   type: string
@@ -66,14 +68,26 @@ export function MissionClient({ mission, questions }: Props) {
   } | null>(null)
   const [loading, setLoading] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [reportSubmitting, setReportSubmitting] = useState(false)
+  const [reportDone, setReportDone] = useState(false)
 
   const currentQ = questions[currentIdx]
   const content = currentQ?.contentJson as ContentJson
   const total = questions.length
-  const progress = (Object.keys(answers).length / total) * 100
+  const answeredCount = Object.keys(answers).length
+  const progress = (answeredCount / total) * 100
+  const isCurrentAnswered = currentQ.id in answers
 
   const handleAnswer = (questionId: string, answer: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }))
+  }
+
+  const handleDontKnow = () => {
+    setAnswers((prev) => ({ ...prev, [currentQ.id]: '' }))
+    if (currentIdx < total - 1) {
+      setCurrentIdx((i) => i + 1)
+    }
   }
 
   const handleSubmit = async () => {
@@ -153,12 +167,25 @@ export function MissionClient({ mission, questions }: Props) {
 
       {/* Question card */}
       <div className="rounded-xl border border-gray-200 bg-white p-6 space-y-5">
-        {/* Domain badge */}
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${DOMAIN_COLORS[currentQ.domain] ?? ''}`}
-        >
-          {DOMAIN_LABELS[currentQ.domain]}
-        </span>
+        {/* Domain badge + 오류 신고 */}
+        <div className="flex items-center justify-between gap-2">
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${DOMAIN_COLORS[currentQ.domain] ?? ''}`}
+          >
+            {DOMAIN_LABELS[currentQ.domain]}
+          </span>
+          <button
+            onClick={() => {
+              setShowReportModal(true)
+              setReportDone(false)
+            }}
+            className="flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1 text-xs text-gray-400 transition-colors hover:border-orange-300 hover:text-orange-500"
+            title="오류 신고"
+          >
+            <Flag className="h-3 w-3" />
+            오류 신고
+          </button>
+        </div>
 
         {/* Audio player (listening) */}
         {content.audio_url && (
@@ -258,6 +285,15 @@ export function MissionClient({ mission, questions }: Props) {
               className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-[#1865F2] focus:outline-none text-sm transition-colors"
             />
           )}
+
+        {/* 정답을 모를 때 */}
+        <button
+          onClick={handleDontKnow}
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 py-2.5 text-sm font-medium text-gray-500 transition-colors hover:border-gray-400 hover:bg-gray-50"
+        >
+          <HelpCircle size={15} />
+          모르겠어요
+        </button>
       </div>
 
       {/* Navigation */}
@@ -275,7 +311,7 @@ export function MissionClient({ mission, questions }: Props) {
         {currentIdx < total - 1 ? (
           <Button
             onClick={() => setCurrentIdx((i) => i + 1)}
-            disabled={!answers[currentQ.id]}
+            disabled={!isCurrentAnswered}
             className="min-h-[44px] bg-[#1865F2] hover:bg-[#1558d6]"
           >
             다음
@@ -284,7 +320,7 @@ export function MissionClient({ mission, questions }: Props) {
         ) : (
           <Button
             onClick={handleSubmit}
-            disabled={Object.keys(answers).length < total || loading}
+            disabled={answeredCount < total || loading}
             className="min-h-[44px] bg-[#1FAF54] hover:bg-[#189944] text-white"
           >
             {loading ? (
@@ -301,8 +337,24 @@ export function MissionClient({ mission, questions }: Props) {
 
       {/* Answer count indicator */}
       <p className="text-center text-xs text-gray-400">
-        {Object.keys(answers).length}/{total}문제 답변 완료
+        {answeredCount}/{total}문제 답변 완료
       </p>
+
+      {/* 오류 신고 모달 */}
+      {showReportModal && (
+        <ReportModal
+          onClose={() => setShowReportModal(false)}
+          isSubmitting={reportSubmitting}
+          isDone={reportDone}
+          onSubmit={async (type, desc) => {
+            setReportSubmitting(true)
+            const res = await reportQuestion({ questionId: currentQ.id, reportType: type, description: desc })
+            setReportSubmitting(false)
+            if (!res.error) setReportDone(true)
+            return res
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -481,6 +533,119 @@ function MissionResult({
             배지 확인
           </Button>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ─── 오류 신고 모달 ────────────────────────────────────────────────────────────
+
+const REPORT_TYPES: { value: QuestionReportType; label: string }[] = [
+  { value: 'WRONG_ANSWER', label: '정답 오류' },
+  { value: 'TYPO', label: '오탈자' },
+  { value: 'UNCLEAR', label: '문제 불명확' },
+  { value: 'AUDIO_ERROR', label: '음원 오류' },
+  { value: 'OTHER', label: '기타' },
+]
+
+function ReportModal({
+  onClose,
+  isSubmitting,
+  isDone,
+  onSubmit,
+}: {
+  onClose: () => void
+  isSubmitting: boolean
+  isDone: boolean
+  onSubmit: (type: QuestionReportType, desc: string) => Promise<{ error?: string }>
+}) {
+  const [selectedType, setSelectedType] = useState<QuestionReportType>('WRONG_ANSWER')
+  const [description, setDescription] = useState('')
+  const [error, setError] = useState('')
+
+  async function handleSubmit() {
+    setError('')
+    const res = await onSubmit(selectedType, description)
+    if (res.error) setError(res.error)
+  }
+
+  if (isDone) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-sm text-center">
+          <div className="mb-4 mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-50">
+            <Flag className="h-6 w-6 text-[#1FAF54]" />
+          </div>
+          <h3 className="text-base font-bold text-gray-900 mb-2">신고가 접수되었습니다</h3>
+          <p className="text-sm text-gray-500 mb-6">검토 후 반영하겠습니다. 감사합니다.</p>
+          <button
+            onClick={onClose}
+            className="w-full rounded-xl bg-[#1865F2] py-3 text-sm font-semibold text-white"
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-50">
+            <Flag className="h-5 w-5 text-orange-500" />
+          </div>
+          <h3 className="text-base font-bold text-gray-900">문제 오류 신고</h3>
+        </div>
+
+        <p className="text-xs text-gray-500 mb-4">오류 유형을 선택하고 내용을 입력해 주세요.</p>
+
+        {/* 신고 유형 */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          {REPORT_TYPES.map((t) => (
+            <button
+              key={t.value}
+              onClick={() => setSelectedType(t.value)}
+              className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
+                selectedType === t.value
+                  ? 'border-orange-400 bg-orange-50 text-orange-600'
+                  : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* 설명 */}
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="오류 내용을 자세히 설명해 주세요. (선택)"
+          rows={3}
+          maxLength={500}
+          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm resize-none outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+        />
+
+        {error && <p className="mt-2 text-xs text-[#D92916]">{error}</p>}
+
+        <div className="mt-4 flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-60"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="flex-1 rounded-xl bg-orange-500 py-3 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
+          >
+            {isSubmitting ? '신고 중...' : '신고하기'}
+          </button>
+        </div>
       </div>
     </div>
   )
