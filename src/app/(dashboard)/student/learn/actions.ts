@@ -17,7 +17,8 @@ import type {
 } from '@/components/shared/question-bank-client'
 import type { QuestionTag } from '@/lib/ai/question-selector'
 
-const DOMAINS: QuestionDomainType[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
+// 쓰기(WRITING)는 별도의 '쓰기 연습'(에세이) 기능만 사용하며, 이 영역별/맞춤형 문제 출제 대상에서는 제외
+const DOMAINS: QuestionDomainType[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING']
 
 // ── 공개 타입 ──────────────────────────────────────────────────────────────────
 

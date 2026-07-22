@@ -69,7 +69,8 @@ async function fetchCandidates(params: {
     | 'WRITING'
     | 'LISTENING'
 
-  if (!domainEnum) return []
+  // 쓰기(WRITING)는 AI 맞춤형 학습/영역별 연습에서 출제하지 않음
+  if (!domainEnum || domainEnum === 'WRITING') return []
 
   const rows = await prisma.question.findMany({
     where: {

@@ -29,14 +29,6 @@ const DOMAIN_CARDS = [
     href: '/student/learn/domain/reading',
   },
   {
-    key: 'WRITING',
-    label: '쓰기',
-    color: '#E35C20',
-    bg: '#FFF3EE',
-    border: '#FDBA74',
-    href: '/student/learn/domain/writing',
-  },
-  {
     key: 'LISTENING',
     label: '듣기',
     color: '#0EA5E9',

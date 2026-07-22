@@ -193,7 +193,8 @@ export async function getStudentProfile(studentId: string): Promise<StudentProfi
 
   // ── 가장 약한/강한 영역 ─────────────────────────────────────────────────────
 
-  const domainKeys = ['grammar', 'vocabulary', 'reading', 'listening', 'writing'] as const
+  // 쓰기(writing)는 AI 맞춤형 학습의 약점/강점 영역 선정에서 제외 (문제 출제 안 함)
+  const domainKeys = ['grammar', 'vocabulary', 'reading', 'listening'] as const
   const scored = domainKeys.filter((d) => {
     const info = domainScores[d]
     return info !== null && info.avg !== null

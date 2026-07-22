@@ -29,13 +29,6 @@ const DOMAIN_CONFIG: Record<string, { label: string; color: string; bg: string; 
     border: '#A7F3D0',
     desc: '영어 지문을 읽고 이해하는 능력을 키웁니다',
   },
-  WRITING: {
-    label: '쓰기',
-    color: '#E35C20',
-    bg: '#FFF3EE',
-    border: '#FDBA74',
-    desc: '영어로 생각을 글로 표현하는 능력을 키웁니다',
-  },
   LISTENING: {
     label: '듣기',
     color: '#0EA5E9',
@@ -45,7 +38,7 @@ const DOMAIN_CONFIG: Record<string, { label: string; color: string; bg: string; 
   },
 }
 
-const VALID_DOMAINS = ['grammar', 'vocabulary', 'reading', 'writing', 'listening']
+const VALID_DOMAINS = ['grammar', 'vocabulary', 'reading', 'listening']
 
 export default async function DomainPracticePage({
   params,
