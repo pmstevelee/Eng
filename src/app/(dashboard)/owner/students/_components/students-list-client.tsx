@@ -18,6 +18,7 @@ type Student = {
   status: 'ACTIVE' | 'ON_LEAVE' | 'WITHDRAWN'
   createdAt: string
   grade?: string | null
+  lastLoginAt: string | null
 }
 
 type ClassOption = {
@@ -190,6 +191,7 @@ export default function StudentsListClient({
       <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">레벨</th>
       <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">상태</th>
       <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">가입일</th>
+      <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">마지막 로그인</th>
       <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">관리</th>
     </tr>
   )
@@ -296,6 +298,7 @@ export default function StudentsListClient({
                       <td className="px-4 py-3"><div className="h-3.5 w-10 bg-gray-200 rounded" /></td>
                       <td className="px-4 py-3"><div className="h-5 w-12 bg-gray-200 rounded-full" /></td>
                       <td className="px-4 py-3"><div className="h-3.5 w-24 bg-gray-200 rounded" /></td>
+                      <td className="px-4 py-3"><div className="h-3.5 w-24 bg-gray-200 rounded" /></td>
                       <td className="px-4 py-3"><div className="h-7 w-7 bg-gray-200 rounded-lg ml-auto" /></td>
                     </tr>
                   ))}
@@ -392,6 +395,21 @@ export default function StudentsListClient({
                             month: '2-digit',
                             day: '2-digit',
                           })}
+                        </span>
+                      </td>
+
+                      {/* 마지막 로그인 */}
+                      <td className="px-4 py-3">
+                        <span className="text-sm text-gray-500">
+                          {student.lastLoginAt
+                            ? new Date(student.lastLoginAt).toLocaleString('ko-KR', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })
+                            : '-'}
                         </span>
                       </td>
 

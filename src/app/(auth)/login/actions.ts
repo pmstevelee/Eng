@@ -70,6 +70,10 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
 
   // 로그인 응답을 막지 않도록 비동기로 기록 (logActivity는 실패를 자체 처리)
   void logActivity({ userId: authUserId, role, academyId, action: ACTIVITY_ACTIONS.LOGIN })
+  void prisma.user.update({
+    where: { id: authUserId },
+    data: { lastLoginAt: new Date() },
+  }).catch((err) => console.error('[signIn] lastLoginAt 업데이트 실패:', err))
 
   redirect(ROLE_REDIRECT[role])
 }

@@ -97,11 +97,18 @@ const getDynamicStudentsData = (
             classId: true,
             grade: true,
             class: { select: { id: true, name: true } },
-            user: { select: { name: true, email: true } },
+            user: { select: { name: true, email: true, lastLoginAt: true } },
           },
         }),
       ])
-      return [count, rows.map((s) => ({ ...s, createdAt: s.createdAt.toISOString() }))] as const
+      return [
+        count,
+        rows.map((s) => ({
+          ...s,
+          createdAt: s.createdAt.toISOString(),
+          user: { ...s.user, lastLoginAt: s.user.lastLoginAt?.toISOString() ?? null },
+        })),
+      ] as const
     },
     ['owner-students-list', branchKey, query, classIdFilter, statusFilter, String(page)],
     { revalidate: 15, tags: [`academy-${branchKey}-students`] },
@@ -152,6 +159,7 @@ export default async function OwnerStudentsPage({
     status: s.status,
     createdAt: s.createdAt,
     grade: s.grade,
+    lastLoginAt: s.user.lastLoginAt,
   }))
 
   const classData = classes.map((c) => ({ id: c.id, name: c.name }))
