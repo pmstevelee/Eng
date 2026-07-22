@@ -10,7 +10,7 @@ import type { QuestionRow, QuestionDomainType, QuestionType } from '@/components
 type QuestionDomain = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING'
 
 export type QuestionContentJson = {
-  type: 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'word_bank' | 'question_set' | 'sentence_order'
+  type: 'multiple_choice' | 'fill_blank' | 'short_answer' | 'essay' | 'writing_prompt' | 'word_bank' | 'question_set' | 'sentence_order'
   question_text: string
   question_text_ko?: string
   options?: string[]
