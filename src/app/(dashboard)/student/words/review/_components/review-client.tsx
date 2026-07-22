@@ -21,6 +21,7 @@ import {
   checkSpell,
   completeReviewSession,
 } from '@/app/(dashboard)/student/words/_actions'
+import { speakEnglish } from '@/lib/words/speech'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -110,11 +111,7 @@ function playAudio(term: string, audioUrl: string | null) {
     new Audio(audioUrl).play().catch(() => null)
     return
   }
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    const u = new SpeechSynthesisUtterance(term)
-    u.lang = 'en-US'
-    window.speechSynthesis.speak(u)
-  }
+  void speakEnglish(term)
 }
 
 // ─── 진행바 ───────────────────────────────────────────────────────────────────

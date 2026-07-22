@@ -155,8 +155,6 @@ export async function getFlashcards(setId: string, _stage?: 'FLASHCARD' | 'RECAL
     const { setId: validSetId } = GetFlashcardsSchema.parse({ setId })
     const { studentId, academyId } = await getAuthContext()
 
-    const limits = await getWordLearningLimits(academyId)
-
     const wordSet = await prisma.wordSet.findFirst({
       where: {
         id: validSetId,
@@ -181,9 +179,6 @@ export async function getFlashcards(setId: string, _stage?: 'FLASHCARD' | 'RECAL
 
     if (!wordSet) return err('NOT_FOUND', '단어 세트를 찾을 수 없습니다.')
 
-    const todayStart = new Date()
-    todayStart.setHours(0, 0, 0, 0)
-
     const totalWords = wordSet.items.length
     const masteredWords = wordSet.items.filter(
       (item) => item.word.wordProgress[0]?.stage === 'MASTERED',
@@ -192,20 +187,15 @@ export async function getFlashcards(setId: string, _stage?: 'FLASHCARD' | 'RECAL
     // 진도가 시작된 단어만 대상
     const startedItems = wordSet.items.filter((item) => item.word.wordProgress.length > 0)
 
-    // 오늘의 학습 배치 = 오늘 새로 시작한 단어.
+    // 오늘의 학습 배치 = 오늘 새로 시작한 단어 + 이전에 시작했지만 아직 마스터하지 못한 단어.
     // 플래시카드·리콜·스펠 모두 "동일한" 배치를 사용해 단계별 단어 수가 일치하도록 한다.
     // (기존: 단계별로 stage 필터링 → 정답 단어만 다음 단계로 넘어가 30→7→3으로 줄어드는 funnel 버그)
+    // 주의: "오늘 시작"과 "이전에 시작해 미완료"를 양자택일로 두면 안 됨 —
+    // 오늘 새 단어가 하나라도 있으면 어제 이전에 끝내지 못한 단어가 세션에서 영구히 누락되어
+    // 설정된 개수만큼 학습되지 않는 버그가 있었음.
     let batchItems = startedItems.filter(
-      (item) => item.word.wordProgress[0].createdAt >= todayStart,
+      (item) => item.word.wordProgress[0].stage !== 'MASTERED',
     )
-
-    // 오늘 새로 시작한 단어가 없으면(일일 한도 소진 후 재진입 등)
-    // 아직 마스터하지 않은 진행 중 단어를 한도만큼 이어서 학습한다.
-    if (batchItems.length === 0) {
-      batchItems = startedItems
-        .filter((item) => item.word.wordProgress[0].stage !== 'MASTERED')
-        .slice(0, limits.dailyNewWords)
-    }
 
     // 세트의 모든 단어를 이미 마스터한 경우에도 학습을 완전히 막지 않고
     // 복습할 수 있도록 마스터한 단어 전체를 배치로 제공한다.

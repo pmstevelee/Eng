@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import { recordProgress } from '@/app/(dashboard)/student/words/_actions'
+import { speakEnglish } from '@/lib/words/speech'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -60,12 +61,7 @@ function FlashCard({
   }, [card.word.id, dragX])
 
   function speak() {
-    if (!('speechSynthesis' in window)) return
-    window.speechSynthesis.cancel()
-    const utt = new SpeechSynthesisUtterance(card.word.term)
-    utt.lang = 'en-US'
-    utt.rate = 0.9
-    window.speechSynthesis.speak(utt)
+    void speakEnglish(card.word.term)
   }
 
   function flip() {

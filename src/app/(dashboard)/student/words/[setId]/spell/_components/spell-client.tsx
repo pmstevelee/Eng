@@ -7,6 +7,7 @@ import { CheckCircle2, ArrowRight, RotateCcw, Lightbulb, SkipForward, Volume2, L
 import { Button } from '@/components/ui/button'
 import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import { checkSpell, recordProgress } from '@/app/(dashboard)/student/words/_actions'
+import { speakEnglish } from '@/lib/words/speech'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -40,11 +41,7 @@ function playAudio(term: string, audioUrl: string | null) {
     new Audio(audioUrl).play().catch(() => null)
     return
   }
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    const utter = new SpeechSynthesisUtterance(term)
-    utter.lang = 'en-US'
-    window.speechSynthesis.speak(utter)
-  }
+  void speakEnglish(term)
 }
 
 // ─── 글자 수 힌트 ("○ ○ ○") ──────────────────────────────────────────────────
