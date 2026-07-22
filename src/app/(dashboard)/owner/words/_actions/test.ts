@@ -26,15 +26,25 @@ export async function getClassesForOwner() {
   const owner = await getAuthedOwner()
   if (!owner) return []
 
-  return prisma.class.findMany({
+  const classes = await prisma.class.findMany({
     where: { academyId: owner.academyId!, isActive: true },
+    orderBy: { name: 'asc' },
     select: {
       id: true,
       name: true,
-      _count: { select: { students: true } },
+      students: {
+        where: { status: 'ACTIVE' },
+        orderBy: { user: { name: 'asc' } },
+        select: { id: true, user: { select: { name: true } } },
+      },
     },
-    orderBy: { name: 'asc' },
   })
+
+  return classes.map((c) => ({
+    id: c.id,
+    name: c.name,
+    students: c.students.map((s) => ({ id: s.id, name: s.user.name })),
+  }))
 }
 
 // ─── 단어 시험 생성 ─────────────────────────────────────────────────────────────

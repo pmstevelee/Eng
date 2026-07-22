@@ -12,7 +12,7 @@ interface Props {
   setId: string
   setTitle: string
   wordCount: number
-  classes: { id: string; name: string; _count: { students: number } }[]
+  classes: { id: string; name: string; students: { id: string; name: string }[] }[]
 }
 
 const MODE_LABELS: Record<string, string> = {
@@ -41,11 +41,20 @@ export function NewWordTestForm({ setId, setTitle, wordCount, classes }: Props) 
   const [passingScore, setPassingScore] = useState('80')
   const [startsAt, setStartsAt] = useState('')
   const [endsAt, setEndsAt] = useState('')
-  const [selectedClassIds, setSelectedClassIds] = useState<string[]>([])
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([])
 
-  function toggleClass(id: string) {
-    setSelectedClassIds((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
+  function toggleStudent(id: string) {
+    setSelectedStudentIds((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
+    )
+  }
+
+  function toggleClass(studentIds: string[]) {
+    const allSelected = studentIds.length > 0 && studentIds.every((id) => selectedStudentIds.includes(id))
+    setSelectedStudentIds((prev) =>
+      allSelected
+        ? prev.filter((id) => !studentIds.includes(id))
+        : Array.from(new Set([...prev, ...studentIds])),
     )
   }
 
@@ -53,8 +62,8 @@ export function NewWordTestForm({ setId, setTitle, wordCount, classes }: Props) 
     e.preventDefault()
     setError(null)
 
-    if (selectedClassIds.length === 0) {
-      setError('배정할 반을 하나 이상 선택해주세요.')
+    if (selectedStudentIds.length === 0) {
+      setError('배정할 학생을 한 명 이상 선택해주세요.')
       return
     }
 
@@ -68,7 +77,7 @@ export function NewWordTestForm({ setId, setTitle, wordCount, classes }: Props) 
         passingScore: Number(passingScore),
         startsAt: startsAt || undefined,
         endsAt: endsAt || undefined,
-        classIds: selectedClassIds,
+        studentIds: selectedStudentIds,
       })
 
       if (result.error) {
@@ -179,28 +188,47 @@ export function NewWordTestForm({ setId, setTitle, wordCount, classes }: Props) 
         </div>
       </div>
 
-      {/* 대상 반 */}
+      {/* 배정 대상 */}
       <div className="space-y-2">
-        <Label>배정 대상 반</Label>
+        <Label>배정 대상 (반 또는 학생 선택)</Label>
         {classes.length === 0 ? (
           <p className="text-sm text-gray-500">담당 반이 없습니다.</p>
         ) : (
-          <div className="rounded-xl border border-gray-200 divide-y">
-            {classes.map((cls) => (
-              <label
-                key={cls.id}
-                className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
-              >
-                <Checkbox
-                  checked={selectedClassIds.includes(cls.id)}
-                  onCheckedChange={() => toggleClass(cls.id)}
-                />
-                <span className="flex-1 text-sm font-medium text-gray-900">{cls.name}</span>
-                <span className="text-xs text-gray-400">{cls._count.students}명</span>
-              </label>
-            ))}
+          <div className="rounded-xl border border-gray-200 divide-y max-h-96 overflow-y-auto">
+            {classes.map((cls) => {
+              const classStudentIds = cls.students.map((s) => s.id)
+              const allSelected =
+                classStudentIds.length > 0 && classStudentIds.every((id) => selectedStudentIds.includes(id))
+              return (
+                <div key={cls.id} className="p-4">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <Checkbox checked={allSelected} onCheckedChange={() => toggleClass(classStudentIds)} />
+                    <span className="flex-1 text-sm font-semibold text-gray-900">{cls.name}</span>
+                    <span className="text-xs text-gray-400">{cls.students.length}명</span>
+                  </label>
+                  {cls.students.length > 0 ? (
+                    <div className="mt-2 ml-7 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                      {cls.students.map((s) => (
+                        <label key={s.id} className="flex items-center gap-2 cursor-pointer py-0.5">
+                          <Checkbox
+                            checked={selectedStudentIds.includes(s.id)}
+                            onCheckedChange={() => toggleStudent(s.id)}
+                          />
+                          <span className="text-sm text-gray-600">{s.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-1 ml-7 text-xs text-gray-400">학생이 없습니다.</p>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
+        <p className="text-sm text-gray-500">
+          선택된 학생: <span className="font-semibold text-gray-900">{selectedStudentIds.length}명</span>
+        </p>
       </div>
 
       {error && (
@@ -218,10 +246,10 @@ export function NewWordTestForm({ setId, setTitle, wordCount, classes }: Props) 
         </Button>
         <Button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || selectedStudentIds.length === 0}
           className="flex-1 h-12 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white font-semibold"
         >
-          {isPending ? '생성 중...' : '시험 출제하기'}
+          {isPending ? '생성 중...' : `${selectedStudentIds.length}명에게 시험 출제하기`}
         </Button>
       </div>
     </form>
