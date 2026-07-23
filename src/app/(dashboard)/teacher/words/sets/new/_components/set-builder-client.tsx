@@ -14,9 +14,11 @@ import {
   Minus,
   AlertTriangle,
   ListPlus,
+  ClipboardList,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   searchWords,
   createTeacherWordSet,
@@ -24,6 +26,20 @@ import {
   getAvailableWordCount,
 } from '@/app/(dashboard)/teacher/words/actions'
 import type { WordSearchResult } from '@/app/(dashboard)/teacher/words/actions'
+
+const TEST_MODE_LABELS: Record<string, string> = {
+  EN_TO_KO: '영어 → 한국어 (객관식)',
+  KO_TO_EN: '한국어 → 영어 (객관식)',
+  SPELL: '영어 스펠링 받아쓰기',
+  MIXED: '혼합 (영↔한 랜덤)',
+}
+
+const TEST_TIME_OPTIONS = [
+  { value: '20', label: '20초 (쉬움)' },
+  { value: '12', label: '12초 (보통)' },
+  { value: '8', label: '8초 (어려움)' },
+  { value: '5', label: '5초 (도전)' },
+]
 
 // ─── 상수 ─────────────────────────────────────────────────────────────────────
 
@@ -103,7 +119,17 @@ interface SelectedWord extends WordSearchResult {
 
 // ─── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
 
-export function SetBuilderClient() {
+interface ClassOption {
+  id: string
+  name: string
+  students: { id: string; name: string }[]
+}
+
+interface SetBuilderClientProps {
+  classes?: ClassOption[]
+}
+
+export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
   const router = useRouter()
 
   // 세트 메타데이터
@@ -145,6 +171,28 @@ export function SetBuilderClient() {
   // 저장
   const [isSaving, startSave] = useTransition()
   const [saveError, setSaveError] = useState<string | null>(null)
+
+  // 시험 출제 옵션 (세트 저장과 동시에 시험 배정)
+  const [enableTest, setEnableTest] = useState(false)
+  const [testTitle, setTestTitle] = useState('')
+  const [testMode, setTestMode] = useState('EN_TO_KO')
+  const [testTimePerQuestion, setTestTimePerQuestion] = useState('20')
+  const [testNumQuestions, setTestNumQuestions] = useState('20')
+  const [testPassingScore, setTestPassingScore] = useState('80')
+  const [testStartsAt, setTestStartsAt] = useState('')
+  const [testEndsAt, setTestEndsAt] = useState('')
+  const [testStudentIds, setTestStudentIds] = useState<string[]>([])
+
+  function toggleTestStudent(id: string) {
+    setTestStudentIds((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]))
+  }
+
+  function toggleTestClass(studentIds: string[]) {
+    const allSelected = studentIds.length > 0 && studentIds.every((id) => testStudentIds.includes(id))
+    setTestStudentIds((prev) =>
+      allSelected ? prev.filter((id) => !studentIds.includes(id)) : Array.from(new Set([...prev, ...studentIds])),
+    )
+  }
 
   const searchInputRef = useRef<HTMLInputElement>(null)
 
@@ -286,12 +334,34 @@ export function SetBuilderClient() {
       setSaveError('단어를 1개 이상 추가하세요.')
       return
     }
+    if (enableTest) {
+      if (testStudentIds.length === 0) {
+        setSaveError('시험을 배정할 학생을 한 명 이상 선택하세요.')
+        return
+      }
+      if (Number(testNumQuestions) > selectedWords.length) {
+        setSaveError(`시험 문항 수는 세트 단어 수(${selectedWords.length})를 넘을 수 없습니다.`)
+        return
+      }
+    }
     startSave(async () => {
       const result = await createTeacherWordSet({
         title: title.trim(),
         description: description.trim() || undefined,
         cefrLevel,
         wordIds: selectedWords.map((w) => w.id),
+        testAssignment: enableTest
+          ? {
+              title: testTitle.trim() || `${title.trim()} 단어 시험`,
+              mode: testMode as 'EN_TO_KO' | 'KO_TO_EN' | 'SPELL' | 'MIXED',
+              timePerQuestion: Number(testTimePerQuestion),
+              numQuestions: Number(testNumQuestions),
+              passingScore: Number(testPassingScore),
+              startsAt: testStartsAt || undefined,
+              endsAt: testEndsAt || undefined,
+              studentIds: testStudentIds,
+            }
+          : undefined,
       })
       if (result?.error) {
         setSaveError(result.error)
@@ -767,6 +837,155 @@ export function SetBuilderClient() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* 시험 출제 옵션 */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ClipboardList className="w-4 h-4 text-[#1865F2]" />
+            <h2 className="text-sm font-semibold text-gray-700">시험 출제 옵션</h2>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <span className="text-xs text-gray-500">세트 저장 후 바로 시험 출제</span>
+            <Checkbox checked={enableTest} onCheckedChange={(v) => setEnableTest(Boolean(v))} />
+          </label>
+        </div>
+
+        {enableTest && (
+          <div className="space-y-4 pt-2 border-t border-gray-100">
+            <div>
+              <label className="text-xs font-medium text-gray-500 mb-1 block">시험 제목</label>
+              <Input
+                value={testTitle}
+                onChange={(e) => setTestTitle(e.target.value)}
+                placeholder={`${title.trim() || '세트'} 단어 시험`}
+                maxLength={100}
+                className="h-11"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-gray-500 mb-1 block">문제 유형</label>
+              <select
+                value={testMode}
+                onChange={(e) => setTestMode(e.target.value)}
+                className="w-full h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:border-[#1865F2]"
+              >
+                {Object.entries(TEST_MODE_LABELS).map(([v, l]) => (
+                  <option key={v} value={v}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">문항당 제한시간</label>
+                <select
+                  value={testTimePerQuestion}
+                  onChange={(e) => setTestTimePerQuestion(e.target.value)}
+                  className="w-full h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:border-[#1865F2]"
+                >
+                  {TEST_TIME_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">
+                  문항 수 (최대 {selectedWords.length || 0})
+                </label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={selectedWords.length || 1}
+                  value={testNumQuestions}
+                  onChange={(e) => setTestNumQuestions(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-gray-500 mb-1 block">합격 기준 점수 (%)</label>
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                value={testPassingScore}
+                onChange={(e) => setTestPassingScore(e.target.value)}
+                className="h-11"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">시작일시 (선택)</label>
+                <input
+                  type="datetime-local"
+                  value={testStartsAt}
+                  onChange={(e) => setTestStartsAt(e.target.value)}
+                  className="w-full h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:border-[#1865F2]"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">마감일시 (선택)</label>
+                <input
+                  type="datetime-local"
+                  value={testEndsAt}
+                  onChange={(e) => setTestEndsAt(e.target.value)}
+                  className="w-full h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:border-[#1865F2]"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-gray-500 block">배정 대상 (반 또는 학생 선택)</label>
+              {classes.length === 0 ? (
+                <p className="text-sm text-gray-500">담당 반이 없습니다.</p>
+              ) : (
+                <div className="rounded-xl border border-gray-200 divide-y max-h-96 overflow-y-auto">
+                  {classes.map((cls) => {
+                    const classStudentIds = cls.students.map((s) => s.id)
+                    const allSelected =
+                      classStudentIds.length > 0 && classStudentIds.every((id) => testStudentIds.includes(id))
+                    return (
+                      <div key={cls.id} className="p-4">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <Checkbox checked={allSelected} onCheckedChange={() => toggleTestClass(classStudentIds)} />
+                          <span className="flex-1 text-sm font-semibold text-gray-900">{cls.name}</span>
+                          <span className="text-xs text-gray-400">{cls.students.length}명</span>
+                        </label>
+                        {cls.students.length > 0 ? (
+                          <div className="mt-2 ml-7 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                            {cls.students.map((s) => (
+                              <label key={s.id} className="flex items-center gap-2 cursor-pointer py-0.5">
+                                <Checkbox
+                                  checked={testStudentIds.includes(s.id)}
+                                  onCheckedChange={() => toggleTestStudent(s.id)}
+                                />
+                                <span className="text-sm text-gray-600">{s.name}</span>
+                              </label>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="mt-1 ml-7 text-xs text-gray-400">학생이 없습니다.</p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+              <p className="text-sm text-gray-500">
+                선택된 학생: <span className="font-semibold text-gray-900">{testStudentIds.length}명</span>
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 저장 에러 */}

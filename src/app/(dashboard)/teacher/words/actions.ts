@@ -222,6 +222,18 @@ function buildAutoWhere(cefrLevels: OxfordCefrValue[], excludeWordIds: string[])
 
 // ─── 교사 세트 생성 ──────────────────────────────────────────────────────────────
 
+const TestAssignmentOptionsSchema = z.object({
+  title: z.string().min(1, '시험 제목을 입력하세요.').max(100),
+  mode: z.enum(['EN_TO_KO', 'KO_TO_EN', 'SPELL', 'MIXED']),
+  timePerQuestion: z.coerce.number().int().min(1).max(60),
+  numQuestions: z.coerce.number().int().min(5).max(100),
+  passingScore: z.coerce.number().int().min(1).max(100),
+  startsAt: z.string().optional(),
+  endsAt: z.string().optional(),
+  classIds: z.array(z.string().uuid()).optional(),
+  studentIds: z.array(z.string().uuid()).min(1, '시험을 배정할 학생을 한 명 이상 선택하세요.'),
+})
+
 const CreateTeacherSetSchema = z.object({
   title: z.string().min(1, '세트 이름을 입력하세요.').max(100),
   description: z.string().max(300).optional(),
@@ -230,6 +242,7 @@ const CreateTeacherSetSchema = z.object({
     .array(z.string().uuid())
     .min(1, '단어를 1개 이상 추가하세요.')
     .max(1000, '한 세트에는 단어를 최대 1,000개까지 담을 수 있습니다.'),
+  testAssignment: TestAssignmentOptionsSchema.optional(),
 })
 
 export async function createTeacherWordSet(
@@ -241,12 +254,16 @@ export async function createTeacherWordSet(
   const parsed = CreateTeacherSetSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
 
-  const { title, description, cefrLevel, wordIds } = parsed.data
+  const { title, description, cefrLevel, wordIds, testAssignment } = parsed.data
 
   // 중복 wordId 제거 + 순서 보존
   const uniqueWordIds = wordIds.filter((id, idx) => wordIds.indexOf(id) === idx)
 
-  const newSet = await prisma.$transaction(async (tx) => {
+  if (testAssignment && testAssignment.numQuestions > uniqueWordIds.length) {
+    return { error: `시험 문항 수(${testAssignment.numQuestions})가 세트 단어 수(${uniqueWordIds.length})보다 많습니다.` }
+  }
+
+  const { set, assignmentId } = await prisma.$transaction(async (tx) => {
     const set = await tx.wordSet.create({
       data: {
         title,
@@ -261,11 +278,39 @@ export async function createTeacherWordSet(
     await tx.wordSetItem.createMany({
       data: uniqueWordIds.map((wordId, i) => ({ setId: set.id, wordId, order: i })),
     })
-    return set
+
+    let assignmentId: string | undefined
+    if (testAssignment) {
+      const assignment = await tx.wordTestAssignment.create({
+        data: {
+          teacherId: teacher.id,
+          academyId: teacher.academyId!,
+          setId: set.id,
+          title: testAssignment.title,
+          mode: testAssignment.mode as WordTestMode,
+          timePerQuestion: testAssignment.timePerQuestion,
+          numQuestions: testAssignment.numQuestions,
+          passingScore: testAssignment.passingScore,
+          startsAt: testAssignment.startsAt ? new Date(testAssignment.startsAt) : null,
+          endsAt: testAssignment.endsAt ? new Date(testAssignment.endsAt) : null,
+          classAssignments:
+            testAssignment.classIds && testAssignment.classIds.length > 0
+              ? { create: testAssignment.classIds.map((classId) => ({ classId })) }
+              : undefined,
+          studentAssignments: { create: testAssignment.studentIds.map((studentId) => ({ studentId })) },
+        },
+      })
+      assignmentId = assignment.id
+    }
+
+    return { set, assignmentId }
   })
 
   revalidatePath('/teacher/words')
-  redirect(`/teacher/words/sets/${newSet.id}`)
+  if (assignmentId) {
+    redirect(`/teacher/words/sets/${set.id}/test/${assignmentId}/results`)
+  }
+  redirect(`/teacher/words/sets/${set.id}`)
 }
 
 // ─── 자동 생성: 일자별 세트 일괄 생성 ────────────────────────────────────────────

@@ -3,10 +3,13 @@ import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { SetBuilderClient } from './_components/set-builder-client'
+import { getClassesForTeacher } from '@/app/(dashboard)/teacher/words/actions'
 
 export default async function NewWordSetPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
+
+  const classes = await getClassesForTeacher()
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -27,7 +30,7 @@ export default async function NewWordSetPage() {
         </p>
       </div>
 
-      <SetBuilderClient />
+      <SetBuilderClient classes={classes} />
     </div>
   )
 }
