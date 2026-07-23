@@ -105,9 +105,16 @@ export async function startWordSet(setId: string): Promise<Result<{ created: num
     const todayStart = new Date()
     todayStart.setHours(0, 0, 0, 0)
 
-    // 오늘 새로 시작한 신규 단어 수 (전역 일일 한도)
+    // 오늘 이 세트에서 새로 시작한 단어 수 (세트 단위 일일 한도)
+    // 한도를 전역(모든 세트 합산)으로 세면 같은 날 여러 세트를 열었을 때
+    // 뒤에 연 세트일수록 한도가 남지 않아 세트 일부만 시작되는 버그가 있었음 —
+    // 세트를 열면 그 세트만큼은 항상 온전히(한도 내에서) 시작되도록 세트별로 센다.
     const todayNewCount = await prisma.wordProgress.count({
-      where: { studentId, createdAt: { gte: todayStart } },
+      where: {
+        studentId,
+        createdAt: { gte: todayStart },
+        wordId: { in: wordSet.items.map((i) => i.wordId) },
+      },
     })
 
     const remaining = limits.dailyNewWords - todayNewCount
