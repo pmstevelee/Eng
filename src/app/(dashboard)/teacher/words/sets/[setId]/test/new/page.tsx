@@ -31,7 +31,7 @@ export default async function NewWordTestPage({ params }: Props) {
   if (!wordSet) redirect('/teacher/words')
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-8">
+    <div className="space-y-6">
       <div className="mb-6">
         <p className="text-sm text-gray-500 mb-1">단어 세트 · {wordSet.title}</p>
         <h1 className="text-2xl font-bold text-gray-900">단어 시험 출제</h1>

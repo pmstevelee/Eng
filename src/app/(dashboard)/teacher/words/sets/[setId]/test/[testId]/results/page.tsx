@@ -70,7 +70,7 @@ export default async function WordTestResultsPage({ params }: Props) {
   const passCount = assignment.attempts.filter((a) => a.isPassed).length
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+    <div className="space-y-6">
       {/* 헤더 */}
       <div>
         <p className="text-sm text-gray-500 mb-1">

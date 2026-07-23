@@ -12,7 +12,7 @@ export default async function OwnerWordSetNewPage() {
   const classes = await getClassesForOwner()
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+    <div className="space-y-6">
       <div>
         <Link
           href="/owner/words?tab=sets"

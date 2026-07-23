@@ -21,7 +21,7 @@ export default async function TeacherWordReportPage({
   const stats = selectedClassId ? await getClassWordStats(selectedClassId) : null
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+    <div className="space-y-6">
       {/* 헤더 */}
       <div className="flex items-center gap-3">
         <Link href="/teacher/words" className="text-gray-400 hover:text-gray-600 transition-colors">

@@ -89,7 +89,7 @@ export default async function TeacherWordSetPage({ params }: Props) {
     .sort((a, b) => b.masteredCount - a.masteredCount)
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm text-gray-500 mb-1">단어 세트</p>

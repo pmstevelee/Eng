@@ -33,7 +33,7 @@ export default async function OwnerWordsPage({ searchParams }: Props) {
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+    <div className="space-y-6">
       {/* 헤더 */}
       <div className="flex items-center justify-between">
         <div>

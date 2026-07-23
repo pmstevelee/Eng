@@ -52,7 +52,7 @@ export default async function OwnerWordSetPage({ params }: Props) {
   const canDelete = wordSet.source !== 'PUBLISHER' && wordSet.academyId === user.academyId
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+    <div className="space-y-6">
       <div>
         <Link
           href="/owner/words?tab=sets"

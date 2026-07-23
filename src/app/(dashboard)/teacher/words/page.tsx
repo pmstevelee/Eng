@@ -45,7 +45,7 @@ export default async function TeacherWordsPage() {
   const teacherSets = wordSets.filter((s) => s.source !== 'PUBLISHER')
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+    <div className="space-y-6">
       {/* 헤더 */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">단어 세트 관리</h1>
