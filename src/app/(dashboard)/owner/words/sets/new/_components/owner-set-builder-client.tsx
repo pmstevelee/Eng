@@ -70,6 +70,7 @@ function levelToOxfordCefr(level: number): AutoLevel {
 }
 
 const DURATION_PRESETS = [
+  { label: '당일', days: 1 },
   { label: '1주', days: 7 },
   { label: '2주', days: 14 },
   { label: '3주', days: 21 },
@@ -153,7 +154,7 @@ export function OwnerSetBuilderClient({
   const [startDate, setStartDate] = useState(today)
   const [endDate, setEndDate] = useState(addDays(today, 29))
   const [perDay, setPerDay] = useState(20)
-  const [autoOrder, setAutoOrder] = useState<'recommended' | 'random'>('recommended')
+  const [autoOrder, setAutoOrder] = useState<'alphabetical' | 'random'>('alphabetical')
   const [availableCount, setAvailableCount] = useState<number | null>(null)
   const [isAutoCreating, startAutoCreate] = useTransition()
   const [autoError, setAutoError] = useState<string | null>(null)
@@ -169,14 +170,20 @@ export function OwnerSetBuilderClient({
 
   // 시험 출제 옵션 (세트 저장과 동시에 시험 배정)
   const [enableTest, setEnableTest] = useState(false)
-  const [testTitle, setTestTitle] = useState('')
+  const [testTitle, setTestTitle] = useState(title)
+  const [testTitleEdited, setTestTitleEdited] = useState(false)
   const [testMode, setTestMode] = useState('EN_TO_KO')
   const [testTimePerQuestion, setTestTimePerQuestion] = useState('20')
   const [testNumQuestions, setTestNumQuestions] = useState('20')
   const [testPassingScore, setTestPassingScore] = useState('80')
-  const [testStartsAt, setTestStartsAt] = useState('')
-  const [testEndsAt, setTestEndsAt] = useState('')
+  const [testStartsAt, setTestStartsAt] = useState(`${today}T00:00`)
+  const [testEndsAt, setTestEndsAt] = useState(`${today}T23:59`)
   const [testStudentIds, setTestStudentIds] = useState<string[]>([])
+
+  // 시험 제목을 직접 수정하지 않았다면 세트 이름과 동일하게 유지
+  useEffect(() => {
+    if (!testTitleEdited) setTestTitle(title)
+  }, [title, testTitleEdited])
 
   function toggleTestStudent(id: string) {
     setTestStudentIds((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]))
@@ -571,7 +578,7 @@ export function OwnerSetBuilderClient({
           <div className="inline-flex p-1 rounded-xl bg-gray-100">
             {(
               [
-                { value: 'recommended', label: '추천순' },
+                { value: 'alphabetical', label: '알파벳순' },
                 { value: 'random', label: '무작위' },
               ] as const
             ).map((opt) => (
@@ -857,7 +864,10 @@ export function OwnerSetBuilderClient({
                 <label className="text-xs font-medium text-gray-500 mb-1 block">시험 제목</label>
                 <Input
                   value={testTitle}
-                  onChange={(e) => setTestTitle(e.target.value)}
+                  onChange={(e) => {
+                    setTestTitle(e.target.value)
+                    setTestTitleEdited(true)
+                  }}
                   placeholder={`${title.trim() || '세트'} 단어 시험`}
                   maxLength={100}
                   className="h-11"

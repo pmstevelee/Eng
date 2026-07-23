@@ -268,7 +268,7 @@ const AutoCreateDailySetsSchema = z.object({
   cefrLevels: z.array(z.enum(OXFORD_CEFR_VALUES)).default([]),
   perDay: z.coerce.number().int().min(1).max(200),
   totalDays: z.coerce.number().int().min(1).max(120),
-  order: z.enum(['recommended', 'random']).default('recommended'),
+  order: z.enum(['alphabetical', 'random']).default('alphabetical'),
   testAssignment: TestAssignmentOptionsSchema.optional(),
 })
 

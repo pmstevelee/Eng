@@ -322,7 +322,7 @@ const AutoCreateDailySetsSchema = z.object({
   cefrLevels: z.array(z.enum(OXFORD_CEFR_VALUES)).default([]),
   perDay: z.coerce.number().int().min(1).max(200),
   totalDays: z.coerce.number().int().min(1).max(120),
-  order: z.enum(['recommended', 'random']).default('recommended'),
+  order: z.enum(['alphabetical', 'random']).default('alphabetical'),
   testAssignment: TestAssignmentOptionsSchema.optional(),
 })
 
@@ -348,7 +348,7 @@ export async function autoCreateDailySets(
   const need = perDay * totalDays
   const where = buildAutoWhere(effectiveLevels, [])
 
-  // 필요한 만큼 단어 id 선택 (추천순 / 무작위)
+  // 필요한 만큼 단어 id 선택 (알파벳순 / 무작위)
   let wordIds: string[]
   if (order === 'random') {
     const ids = await prisma.word.findMany({ where, select: { id: true } })
