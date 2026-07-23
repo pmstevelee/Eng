@@ -51,6 +51,46 @@ export default async function OwnerWordSetPage({ params }: Props) {
 
   const canDelete = wordSet.source !== 'PUBLISHER' && wordSet.academyId === user.academyId
 
+  const wordIds = wordSet.items.map((i) => i.word.id)
+  const totalWords = wordSet.items.length
+
+  // 이 세트의 단어에 대한 학생 진행 현황 집계 (같은 학원 학생만)
+  const progressRows = totalWords > 0
+    ? await prisma.wordProgress.findMany({
+        where: {
+          wordId: { in: wordIds },
+          student: { user: { academyId: user.academyId, isDeleted: false } },
+        },
+        include: {
+          student: {
+            include: { user: { select: { name: true } } },
+          },
+        },
+      })
+    : []
+
+  // 학생별로 그룹화
+  const studentProgressMap = new Map<string, { name: string; masteredCount: number; totalCount: number; stages: Record<string, number> }>()
+  for (const row of progressRows) {
+    const sid = row.studentId
+    if (!studentProgressMap.has(sid)) {
+      studentProgressMap.set(sid, {
+        name: row.student.user.name ?? '(이름 없음)',
+        masteredCount: 0,
+        totalCount: 0,
+        stages: { FLASHCARD: 0, RECALL: 0, SPELL: 0, MASTERED: 0 },
+      })
+    }
+    const entry = studentProgressMap.get(sid)!
+    entry.totalCount++
+    if (row.stage === 'MASTERED') entry.masteredCount++
+    entry.stages[row.stage] = (entry.stages[row.stage] ?? 0) + 1
+  }
+
+  const studentProgress = Array.from(studentProgressMap.entries())
+    .map(([id, data]) => ({ id, ...data }))
+    .sort((a, b) => b.masteredCount - a.masteredCount)
+
   return (
     <div className="space-y-6">
       <div>
@@ -87,6 +127,50 @@ export default async function OwnerWordSetPage({ params }: Props) {
             )}
           </div>
         </div>
+      </div>
+
+      {/* 학생 학습 진행 현황 */}
+      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-gray-900">학생 학습 진행 현황</h2>
+          <span className="text-xs text-gray-400">{studentProgress.length}명 학습 중</span>
+        </div>
+        {studentProgress.length === 0 ? (
+          <div className="px-4 py-8 text-center text-sm text-gray-400">
+            아직 학습한 학생이 없습니다.
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {studentProgress.map((s) => {
+              const pct = totalWords > 0 ? Math.round((s.masteredCount / totalWords) * 100) : 0
+              return (
+                <div key={s.id} className="px-4 py-3 flex items-center gap-4">
+                  <div className="w-28 shrink-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{s.name}</p>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#1FAF54] rounded-full transition-all"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-semibold text-[#1FAF54] w-8 text-right">{pct}%</span>
+                    </div>
+                    <div className="flex gap-3 text-xs text-gray-400">
+                      <span>플래시카드 {s.stages['FLASHCARD'] ?? 0}</span>
+                      <span>리콜 {s.stages['RECALL'] ?? 0}</span>
+                      <span>스펠 {s.stages['SPELL'] ?? 0}</span>
+                      <span className="text-[#1FAF54] font-medium">마스터 {s.masteredCount}</span>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-400 shrink-0">{s.masteredCount}/{totalWords}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* 출제 이력 */}

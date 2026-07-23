@@ -123,6 +123,7 @@ export async function getClassWordStats(classId: string): Promise<ClassWordStats
     }))
 
   // 미응시 시험
+  const classStudentIds = enrollments.map((e) => e.student.id)
   const assignments = await prisma.wordTestAssignment.findMany({
     where: {
       academyId: teacher.academyId!,
@@ -132,8 +133,7 @@ export async function getClassWordStats(classId: string): Promise<ClassWordStats
       id: true,
       title: true,
       endsAt: true,
-      classAssignments: { where: { classId }, select: { classId: true } },
-      attempts: { select: { studentId: true } },
+      attempts: { where: { studentId: { in: classStudentIds } }, select: { studentId: true } },
     },
     orderBy: { createdAt: 'desc' },
     take: 10,
