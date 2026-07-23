@@ -323,6 +323,7 @@ const AutoCreateDailySetsSchema = z.object({
   perDay: z.coerce.number().int().min(1).max(200),
   totalDays: z.coerce.number().int().min(1).max(120),
   order: z.enum(['recommended', 'random']).default('recommended'),
+  testAssignment: TestAssignmentOptionsSchema.optional(),
 })
 
 /**
@@ -339,7 +340,7 @@ export async function autoCreateDailySets(
   const parsed = AutoCreateDailySetsSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
 
-  const { titleBase, description, cefrLevel, cefrLevels, perDay, totalDays, order } = parsed.data
+  const { titleBase, description, cefrLevel, cefrLevels, perDay, totalDays, order, testAssignment } = parsed.data
 
   // 레벨 칩을 선택하지 않았으면 세트의 위고업 단계에 맞춰 자동 보정
   const effectiveLevels = cefrLevels.length > 0 ? cefrLevels : [levelToOxfordCefr(cefrLevel)]
@@ -395,10 +396,39 @@ export async function autoCreateDailySets(
     chunk.map((wordId, i) => ({ setId: setsData[d].id, wordId, order: i })),
   )
 
-  await prisma.$transaction([
+  const dbOps = [
     prisma.wordSet.createMany({ data: setsData }),
     prisma.wordSetItem.createMany({ data: itemsData }),
-  ])
+  ]
+
+  if (testAssignment) {
+    const assignmentsData = chunks.map((chunk, d) => ({
+      id: randomUUID(),
+      teacherId: teacher.id,
+      academyId: teacher.academyId!,
+      setId: setsData[d].id,
+      title: multiDay ? `${testAssignment.title} ${d + 1}일차` : testAssignment.title,
+      mode: testAssignment.mode as WordTestMode,
+      timePerQuestion: testAssignment.timePerQuestion,
+      numQuestions: Math.min(testAssignment.numQuestions, chunk.length),
+      passingScore: testAssignment.passingScore,
+      startsAt: testAssignment.startsAt ? new Date(testAssignment.startsAt) : null,
+      endsAt: testAssignment.endsAt ? new Date(testAssignment.endsAt) : null,
+    }))
+    const studentAssignmentsData = assignmentsData.flatMap((a) =>
+      testAssignment.studentIds.map((studentId) => ({ assignmentId: a.id, studentId })),
+    )
+    dbOps.push(prisma.wordTestAssignment.createMany({ data: assignmentsData }))
+    dbOps.push(prisma.wordTestStudentAssignment.createMany({ data: studentAssignmentsData }))
+    if (testAssignment.classIds && testAssignment.classIds.length > 0) {
+      const classAssignmentsData = assignmentsData.flatMap((a) =>
+        testAssignment.classIds!.map((classId) => ({ assignmentId: a.id, classId })),
+      )
+      dbOps.push(prisma.wordTestClassAssignment.createMany({ data: classAssignmentsData }))
+    }
+  }
+
+  await prisma.$transaction(dbOps)
 
   revalidatePath('/teacher/words')
   redirect('/teacher/words')

@@ -305,6 +305,19 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
       setAutoError('학습 기간을 올바르게 설정하세요.')
       return
     }
+
+    const wantsTest = window.confirm(
+      '일자별 세트 생성과 함께 시험도 출제하시겠습니까?\n\n확인: 아래 "시험 출제 옵션"에 설정한 내용으로 생성되는 세트마다 시험을 함께 배정합니다.\n취소: 단어 세트만 생성합니다.',
+    )
+    if (wantsTest && !enableTest) {
+      setAutoError('시험도 함께 출제하려면 아래 "시험 출제 옵션"을 먼저 켜고 배정 대상을 설정하세요.')
+      return
+    }
+    if (wantsTest && testStudentIds.length === 0) {
+      setAutoError('시험을 배정할 학생을 한 명 이상 선택하세요.')
+      return
+    }
+
     startAutoCreate(async () => {
       const result = await autoCreateDailySets({
         titleBase: title.trim(),
@@ -314,6 +327,18 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
         perDay,
         totalDays,
         order: autoOrder,
+        testAssignment: wantsTest
+          ? {
+              title: testTitle.trim() || `${title.trim()} 단어 시험`,
+              mode: testMode as 'EN_TO_KO' | 'KO_TO_EN' | 'SPELL' | 'MIXED',
+              timePerQuestion: Number(testTimePerQuestion),
+              numQuestions: Number(testNumQuestions),
+              passingScore: Number(testPassingScore),
+              startsAt: testStartsAt || undefined,
+              endsAt: testEndsAt || undefined,
+              studentIds: testStudentIds,
+            }
+          : undefined,
       })
       if (result?.error) {
         setAutoError(result.error)
@@ -426,6 +451,7 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
         </div>
         <p className="text-sm text-gray-500 -mt-2">
           레벨·기간·하루 학습량을 정하면 일자별 단어 세트(1일차, 2일차…)를 한 번에 만들어 드려요.
+          이 버튼으로 생성하면 바로 저장되므로 아래 &quot;세트 저장&quot; 버튼은 누르지 않아도 됩니다.
         </p>
 
         {/* 레벨 (복수 선택) */}
@@ -993,6 +1019,12 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
         <div className="rounded-xl border border-[#D92916]/20 bg-[#D92916]/5 px-4 py-3 text-sm text-[#D92916]">
           {saveError}
         </div>
+      )}
+
+      {selectedWords.length === 0 && (
+        <p className="text-xs text-gray-400 text-right -mt-2">
+          단어를 직접 고르지 않았다면 위 &quot;자동 생성 조건&quot;의 생성 버튼을 사용하세요. 이 버튼은 단어를 직접 검색해 추가했을 때만 활성화됩니다.
+        </p>
       )}
 
       {/* 하단 액션 */}
