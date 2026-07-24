@@ -1,11 +1,10 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Users, Star, TrendingUp, Activity, Plus, BarChart2, ClipboardList } from 'lucide-react'
+import { BookOpen, Users, Star, Activity, Plus, BarChart2, ClipboardList } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
 import { getOwnerWordStats } from './_actions/report'
-import { ClassComparisonChart } from './_components/owner-word-charts'
 import { OwnerSetsList } from './_components/owner-sets-list'
 
 interface Props {
@@ -146,21 +145,6 @@ async function StatsTab() {
           sub={`마스터 ${summary.totalMastered.toLocaleString()}개`}
         />
       </div>
-
-      {/* 반별 비교 차트 */}
-      {classComparison.length > 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-4 h-4 text-[#1865F2]" />
-            <p className="text-sm font-semibold text-gray-700">반별 학습 비교</p>
-          </div>
-          <ClassComparisonChart data={classComparison} />
-        </div>
-      ) : (
-        <div className="rounded-xl border border-gray-200 bg-white p-10 text-center text-gray-400">
-          <p className="text-sm">등록된 반이 없습니다.</p>
-        </div>
-      )}
 
       {/* 반별 상세 테이블 */}
       {classComparison.length > 0 && (
