@@ -628,24 +628,6 @@ export function OwnerSetBuilderClient({
             {autoError}
           </div>
         )}
-
-        <Button
-          type="button"
-          onClick={handleAutoCreate}
-          disabled={isAutoCreating || neededCount < 1 || availableCount === 0}
-          className="w-full h-12 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white rounded-xl font-semibold"
-        >
-          {isAutoCreating ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              세트 생성 중...
-            </>
-          ) : totalDays > 1 ? (
-            `일자별 세트 ${expectedSets}개 자동 생성 (하루 ${perDay}개씩)`
-          ) : (
-            `단어 ${usableWords}개 세트 생성`
-          )}
-        </Button>
       </div>
       )}
 
@@ -1007,7 +989,7 @@ export function OwnerSetBuilderClient({
 
       {!isEdit && selectedWords.length === 0 && (
         <p className="text-xs text-gray-400 text-right -mt-2">
-          단어를 직접 고르지 않았다면 위 &quot;자동 생성 조건&quot;의 생성 버튼을 사용하세요. 이 버튼은 단어를 직접 검색해 추가했을 때만 활성화됩니다.
+          단어를 직접 고르지 않았다면 아래 &quot;자동 생성&quot; 버튼을 사용하세요. &quot;세트 저장&quot; 버튼은 단어를 직접 검색해 추가했을 때만 활성화됩니다.
         </p>
       )}
 
@@ -1020,22 +1002,44 @@ export function OwnerSetBuilderClient({
         >
           취소
         </Button>
-        <Button
-          onClick={handleSave}
-          disabled={isSaving || !title.trim() || selectedWords.length === 0}
-          className="h-11 px-8 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white rounded-xl font-semibold min-w-[120px]"
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              저장 중...
-            </>
-          ) : isEdit ? (
-            `수정 저장 (${selectedWords.length}단어)`
-          ) : (
-            `세트 저장 (${selectedWords.length}단어)`
+        <div className="flex items-center gap-3">
+          {!isEdit && (
+            <Button
+              type="button"
+              onClick={handleAutoCreate}
+              disabled={isAutoCreating || neededCount < 1 || availableCount === 0}
+              variant="outline"
+              className="h-11 px-6 rounded-xl font-semibold border-[#1865F2] text-[#1865F2] hover:bg-[#1865F2]/10"
+            >
+              {isAutoCreating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  세트 생성 중...
+                </>
+              ) : totalDays > 1 ? (
+                `일자별 세트 ${expectedSets}개 자동 생성`
+              ) : (
+                `단어 ${usableWords}개 세트 생성`
+              )}
+            </Button>
           )}
-        </Button>
+          <Button
+            onClick={handleSave}
+            disabled={isSaving || !title.trim() || selectedWords.length === 0}
+            className="h-11 px-8 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white rounded-xl font-semibold min-w-[120px]"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                저장 중...
+              </>
+            ) : isEdit ? (
+              `수정 저장 (${selectedWords.length}단어)`
+            ) : (
+              `세트 저장 (${selectedWords.length}단어)`
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   )
