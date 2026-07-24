@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
-import { BookOpen, Plus, BarChart2 } from 'lucide-react'
+import { BookOpen, Plus, BarChart2, ClipboardList } from 'lucide-react'
 import { TeacherSetsList } from './_components/teacher-sets-list'
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -50,6 +50,12 @@ export default async function TeacherWordsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">단어 세트 관리</h1>
         <div className="flex items-center gap-2">
+          <Link href="/teacher/words/tests">
+            <Button variant="outline" size="sm" className="h-9 gap-2 text-[#1865F2] border-[#1865F2]/30 hover:bg-[#EFF4FE]">
+              <ClipboardList className="w-4 h-4" />
+              출제한 시험
+            </Button>
+          </Link>
           <Link href="/teacher/words/report">
             <Button variant="outline" size="sm" className="h-9 gap-2 text-[#1865F2] border-[#1865F2]/30 hover:bg-[#EFF4FE]">
               <BarChart2 className="w-4 h-4" />

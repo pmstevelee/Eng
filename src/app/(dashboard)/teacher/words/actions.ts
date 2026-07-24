@@ -90,6 +90,118 @@ export async function createWordTestAssignment(input: CreateWordTestInput): Prom
   return { id: assignment.id }
 }
 
+// ─── 출제한 단어 시험 목록 ──────────────────────────────────────────────────────
+
+export async function getTeacherWordTestAssignments() {
+  const teacher = await getAuthedTeacher()
+  if (!teacher) return []
+
+  return prisma.wordTestAssignment.findMany({
+    where: { teacherId: teacher.id },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      title: true,
+      mode: true,
+      timePerQuestion: true,
+      numQuestions: true,
+      passingScore: true,
+      startsAt: true,
+      endsAt: true,
+      createdAt: true,
+      wordSet: { select: { id: true, title: true } },
+      _count: { select: { attempts: true, studentAssignments: true, classAssignments: true } },
+    },
+  })
+}
+
+// ─── 단어 시험 수정 ─────────────────────────────────────────────────────────────
+
+const UpdateWordTestSchema = z.object({
+  title: z.string().min(1).max(100),
+  mode: z.enum(['EN_TO_KO', 'KO_TO_EN', 'SPELL', 'MIXED']),
+  timePerQuestion: z.coerce.number().int().min(1).max(60),
+  numQuestions: z.coerce.number().int().min(5).max(100),
+  passingScore: z.coerce.number().int().min(1).max(100),
+  startsAt: z.string().optional(),
+  endsAt: z.string().optional(),
+  classIds: z.array(z.string().uuid()).optional(),
+  studentIds: z.array(z.string().uuid()).optional(),
+})
+
+export type UpdateWordTestInput = z.infer<typeof UpdateWordTestSchema>
+
+export async function updateWordTestAssignment(
+  id: string,
+  input: UpdateWordTestInput,
+): Promise<{ error?: string }> {
+  const teacher = await getAuthedTeacher()
+  if (!teacher) return { error: '인증이 필요합니다.' }
+
+  const parsed = UpdateWordTestSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
+
+  const { title, mode, timePerQuestion, numQuestions, passingScore, startsAt, endsAt, classIds, studentIds } =
+    parsed.data
+
+  const existing = await prisma.wordTestAssignment.findFirst({
+    where: { id, teacherId: teacher.id },
+    select: { id: true, setId: true, wordSet: { select: { _count: { select: { items: true } } } } },
+  })
+  if (!existing) return { error: '시험을 찾을 수 없습니다.' }
+  if (existing.wordSet._count.items < numQuestions) {
+    return { error: `단어 세트에 문항 수(${numQuestions})보다 단어가 부족합니다.` }
+  }
+
+  await prisma.$transaction([
+    prisma.wordTestClassAssignment.deleteMany({ where: { assignmentId: id } }),
+    prisma.wordTestStudentAssignment.deleteMany({ where: { assignmentId: id } }),
+    prisma.wordTestAssignment.update({
+      where: { id },
+      data: {
+        title,
+        mode: mode as WordTestMode,
+        timePerQuestion,
+        numQuestions,
+        passingScore,
+        startsAt: startsAt ? new Date(startsAt) : null,
+        endsAt: endsAt ? new Date(endsAt) : null,
+        classAssignments:
+          classIds && classIds.length > 0
+            ? { create: classIds.map((classId) => ({ classId })) }
+            : undefined,
+        studentAssignments:
+          studentIds && studentIds.length > 0
+            ? { create: studentIds.map((studentId) => ({ studentId })) }
+            : undefined,
+      },
+    }),
+  ])
+
+  revalidatePath(`/teacher/words/sets/${existing.setId}`)
+  revalidatePath('/teacher/words/tests')
+  return {}
+}
+
+// ─── 단어 시험 삭제 ─────────────────────────────────────────────────────────────
+
+export async function deleteWordTestAssignment(id: string): Promise<{ error?: string }> {
+  const teacher = await getAuthedTeacher()
+  if (!teacher) return { error: '인증이 필요합니다.' }
+
+  const existing = await prisma.wordTestAssignment.findFirst({
+    where: { id, teacherId: teacher.id },
+    select: { id: true, setId: true },
+  })
+  if (!existing) return { error: '시험을 찾을 수 없습니다.' }
+
+  await prisma.wordTestAssignment.delete({ where: { id } })
+
+  revalidatePath(`/teacher/words/sets/${existing.setId}`)
+  revalidatePath('/teacher/words/tests')
+  return {}
+}
+
 // ─── 학원 반 목록 ────────────────────────────────────────────────────────────────
 
 export async function getClassesForTeacher() {

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Users, Star, TrendingUp, Activity, Plus, BarChart2 } from 'lucide-react'
+import { BookOpen, Users, Star, TrendingUp, Activity, Plus, BarChart2, ClipboardList } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
@@ -41,6 +41,12 @@ export default async function OwnerWordsPage({ searchParams }: Props) {
           <p className="text-sm text-gray-400 mt-0.5">학원 전체 단어학습 현황 및 세트 관리</p>
         </div>
         <div className="flex items-center gap-2">
+          <Link href="/owner/words/tests">
+            <Button variant="outline" size="sm" className="h-9 gap-2 text-[#1865F2] border-[#1865F2]/30 hover:bg-[#EFF4FE]">
+              <ClipboardList className="w-4 h-4" />
+              출제한 시험
+            </Button>
+          </Link>
           <Link href="/owner/words/report">
             <Button variant="outline" size="sm" className="h-9 gap-2 text-[#1865F2] border-[#1865F2]/30 hover:bg-[#EFF4FE]">
               <BarChart2 className="w-4 h-4" />
