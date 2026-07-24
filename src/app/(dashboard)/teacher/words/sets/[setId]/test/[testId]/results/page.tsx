@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { SupplementaryButton } from './_components/supplementary-button'
@@ -24,7 +25,20 @@ export default async function WordTestResultsPage({ params }: Props) {
     where: { id: testId, teacherId: user.id },
     include: {
       wordSet: { select: { title: true } },
-      classAssignments: { include: { class: { select: { id: true, name: true } } } },
+      classAssignments: {
+        include: {
+          class: {
+            select: {
+              id: true,
+              name: true,
+              students: { where: { status: 'ACTIVE' }, include: { user: { select: { name: true } } } },
+            },
+          },
+        },
+      },
+      studentAssignments: {
+        include: { student: { include: { user: { select: { name: true } } } } },
+      },
       attempts: {
         include: {
           student: {
@@ -39,6 +53,38 @@ export default async function WordTestResultsPage({ params }: Props) {
   })
 
   if (!assignment) redirect(`/teacher/words/sets/${setId}`)
+
+  // 시험출제 대상 학생 (반 배정 + 개별 배정, 중복 제거)
+  const targetStudents = new Map<string, string>()
+  for (const sa of assignment.studentAssignments) {
+    targetStudents.set(sa.studentId, sa.student.user.name ?? '')
+  }
+  for (const ca of assignment.classAssignments) {
+    for (const st of ca.class.students) {
+      if (!targetStudents.has(st.id)) targetStudents.set(st.id, st.user.name ?? '')
+    }
+  }
+
+  const attemptsByStudentId = new Map(assignment.attempts.map((a) => [a.studentId, a]))
+
+  const rows = Array.from(targetStudents.entries())
+    .map(([studentId, name]) => {
+      const attempt = attemptsByStudentId.get(studentId) ?? null
+      const answers = attempt ? (attempt.answers as unknown as WordTestAnswerRecord[]) : null
+      return {
+        studentId,
+        name,
+        attempt,
+        correctCount: answers ? answers.filter((a) => a.isCorrect).length : null,
+        wrongCount: answers ? answers.filter((a) => !a.isCorrect).length : null,
+      }
+    })
+    .sort((a, b) => {
+      if (a.attempt && b.attempt) return a.attempt.takenAt.getTime() - b.attempt.takenAt.getTime()
+      if (a.attempt) return -1
+      if (b.attempt) return 1
+      return a.name.localeCompare(b.name)
+    })
 
   // 문항별 정답률 계산
   const wordStats = new Map<string, { term: string; meaning: string; correct: number; total: number }>()
@@ -93,7 +139,11 @@ export default async function WordTestResultsPage({ params }: Props) {
       </div>
 
       {/* 요약 카드 */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
+          <p className="text-xs text-gray-500 mb-1">대상 학생</p>
+          <p className="text-2xl font-bold text-gray-900">{rows.length}명</p>
+        </div>
         <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
           <p className="text-xs text-gray-500 mb-1">응시자</p>
           <p className="text-2xl font-bold text-gray-900">{assignment.attempts.length}명</p>
@@ -115,50 +165,81 @@ export default async function WordTestResultsPage({ params }: Props) {
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-gray-900">응시자 현황</h2>
         </div>
-        {assignment.attempts.length === 0 ? (
-          <div className="px-4 py-10 text-center text-sm text-gray-400">아직 응시한 학생이 없습니다.</div>
+        {rows.length === 0 ? (
+          <div className="px-4 py-10 text-center text-sm text-gray-400">배정된 학생이 없습니다.</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 text-gray-500 text-xs uppercase">
                 <th className="text-left px-4 py-2.5 font-medium">학생</th>
+                <th className="text-center px-4 py-2.5 font-medium">정답</th>
+                <th className="text-center px-4 py-2.5 font-medium">오답</th>
                 <th className="text-center px-4 py-2.5 font-medium">점수</th>
-                <th className="text-center px-4 py-2.5 font-medium">합격</th>
+                <th className="text-center px-4 py-2.5 font-medium">결과</th>
                 <th className="text-center px-4 py-2.5 font-medium">응시일</th>
                 <th className="text-right px-4 py-2.5 font-medium">오답 보충</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {assignment.attempts.map((attempt) => (
-                <tr key={attempt.id} className="hover:bg-gray-50">
+              {rows.map((row) => (
+                <tr key={row.studentId} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-900">
-                    {attempt.student.user.name}
+                    {row.attempt ? (
+                      <Link
+                        href={`/teacher/words/sets/${setId}/test/${testId}/results/${row.studentId}`}
+                        className="hover:underline hover:text-[#1865F2]"
+                      >
+                        {row.name}
+                      </Link>
+                    ) : (
+                      row.name
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center font-bold text-[#1FAF54]">
+                    {row.correctCount !== null ? `${row.correctCount}개` : '-'}
+                  </td>
+                  <td className="px-4 py-3 text-center font-bold text-[#D92916]">
+                    {row.wrongCount !== null ? `${row.wrongCount}개` : '-'}
                   </td>
                   <td className="px-4 py-3 text-center font-bold">
-                    <span className={attempt.isPassed ? 'text-[#1FAF54]' : 'text-[#D92916]'}>
-                      {attempt.score}점
-                    </span>
+                    {row.attempt ? (
+                      <span className={row.attempt.isPassed ? 'text-[#1FAF54]' : 'text-[#D92916]'}>
+                        {row.attempt.score}점
+                      </span>
+                    ) : (
+                      <span className="text-gray-300">-</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
-                        attempt.isPassed
-                          ? 'bg-[#1FAF54]/10 text-[#1FAF54]'
-                          : 'bg-[#D92916]/10 text-[#D92916]'
-                      }`}
-                    >
-                      {attempt.isPassed ? '합격' : '불합격'}
-                    </span>
+                    {row.attempt ? (
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
+                          row.attempt.isPassed
+                            ? 'bg-[#1FAF54]/10 text-[#1FAF54]'
+                            : 'bg-[#D92916]/10 text-[#D92916]'
+                        }`}
+                      >
+                        {row.attempt.isPassed ? '합격' : '불합격'}
+                      </span>
+                    ) : (
+                      <span className="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
+                        미응시
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-center text-gray-500">
-                    {attempt.takenAt.toLocaleDateString('ko-KR')}
+                    {row.attempt ? row.attempt.takenAt.toLocaleDateString('ko-KR') : '-'}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <SupplementaryButton
-                      assignmentId={assignment.id}
-                      studentId={attempt.studentId}
-                      studentName={attempt.student.user.name ?? ''}
-                    />
+                    {row.attempt && row.wrongCount ? (
+                      <SupplementaryButton
+                        assignmentId={assignment.id}
+                        studentId={row.studentId}
+                        studentName={row.name}
+                      />
+                    ) : (
+                      <span className="text-gray-300 text-xs">-</span>
+                    )}
                   </td>
                 </tr>
               ))}
