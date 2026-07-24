@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen, ChevronRight, Lock, Layers, ClipboardList } from 'lucide-react'
+import { BookOpen, ChevronRight, Lock, Layers, ClipboardList, Download } from 'lucide-react'
 import { requireStudent } from '@/lib/auth-student'
 import { prisma } from '@/lib/prisma/client'
 import {
@@ -285,34 +285,47 @@ export default async function WordsHubPage() {
             {recommendedSets.map((set) => {
               const style = cefrBadgeStyle(set.cefrLevel, studentLevel)
               return (
-                <NavLinkWithLoading
+                <div
                   key={set.id}
-                  href={`/student/words/${set.id}/flashcard`}
                   className="flex items-center justify-between rounded-xl border bg-white p-4 transition-all hover:border-violet-300 hover:shadow-sm"
                   style={{ borderColor: '#E5E7EB' }}
-                  loadingLabel="단어 세트로 이동 중..."
                 >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span
-                        className="rounded-full px-2 py-0.5 text-xs font-semibold"
-                        style={{
-                          backgroundColor: style.bg,
-                          color: style.text,
-                          border: `1px solid ${style.border}`,
-                        }}
-                      >
-                        {CEFR_LABEL[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
-                      </span>
-                      <span className="text-xs text-gray-400">{set._count.items}단어</span>
+                  <NavLinkWithLoading
+                    href={`/student/words/${set.id}/flashcard`}
+                    className="flex min-w-0 flex-1 items-center"
+                    loadingLabel="단어 세트로 이동 중..."
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span
+                          className="rounded-full px-2 py-0.5 text-xs font-semibold"
+                          style={{
+                            backgroundColor: style.bg,
+                            color: style.text,
+                            border: `1px solid ${style.border}`,
+                          }}
+                        >
+                          {CEFR_LABEL[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
+                        </span>
+                        <span className="text-xs text-gray-400">{set._count.items}단어</span>
+                      </div>
+                      <p className="font-semibold text-gray-900 truncate">{set.title}</p>
+                      {set.description && (
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">{set.description}</p>
+                      )}
                     </div>
-                    <p className="font-semibold text-gray-900 truncate">{set.title}</p>
-                    {set.description && (
-                      <p className="text-xs text-gray-500 mt-0.5 truncate">{set.description}</p>
-                    )}
-                  </div>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 ml-3" />
-                </NavLinkWithLoading>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 ml-3" />
+                  </NavLinkWithLoading>
+                  <Link
+                    href={`/words/${set.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="단어 목록 다운로드"
+                    className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-[#1865F2]"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Link>
+                </div>
               )
             })}
           </div>
@@ -327,34 +340,47 @@ export default async function WordsHubPage() {
             {otherSets.map((set) => {
               const style = cefrBadgeStyle(set.cefrLevel, studentLevel)
               return (
-                <NavLinkWithLoading
+                <div
                   key={set.id}
-                  href={`/student/words/${set.id}/flashcard`}
                   className="flex items-center justify-between rounded-xl border bg-white p-4 transition-all hover:border-violet-300 hover:shadow-sm"
                   style={{ borderColor: '#E5E7EB' }}
-                  loadingLabel="단어 세트로 이동 중..."
                 >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span
-                        className="rounded-full px-2 py-0.5 text-xs font-semibold"
-                        style={{
-                          backgroundColor: style.bg,
-                          color: style.text,
-                          border: `1px solid ${style.border}`,
-                        }}
-                      >
-                        {CEFR_LABEL[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
-                      </span>
-                      <span className="text-xs text-gray-400">{set._count.items}단어</span>
+                  <NavLinkWithLoading
+                    href={`/student/words/${set.id}/flashcard`}
+                    className="flex min-w-0 flex-1 items-center"
+                    loadingLabel="단어 세트로 이동 중..."
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span
+                          className="rounded-full px-2 py-0.5 text-xs font-semibold"
+                          style={{
+                            backgroundColor: style.bg,
+                            color: style.text,
+                            border: `1px solid ${style.border}`,
+                          }}
+                        >
+                          {CEFR_LABEL[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
+                        </span>
+                        <span className="text-xs text-gray-400">{set._count.items}단어</span>
+                      </div>
+                      <p className="font-semibold text-gray-900 truncate">{set.title}</p>
+                      {set.description && (
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">{set.description}</p>
+                      )}
                     </div>
-                    <p className="font-semibold text-gray-900 truncate">{set.title}</p>
-                    {set.description && (
-                      <p className="text-xs text-gray-500 mt-0.5 truncate">{set.description}</p>
-                    )}
-                  </div>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 ml-3" />
-                </NavLinkWithLoading>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 ml-3" />
+                  </NavLinkWithLoading>
+                  <Link
+                    href={`/words/${set.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="단어 목록 다운로드"
+                    className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-[#1865F2]"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Link>
+                </div>
               )
             })}
           </div>

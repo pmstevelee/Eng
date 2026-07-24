@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
-import { ChevronLeft, Pencil, Plus } from 'lucide-react'
+import { ChevronLeft, Download, Pencil, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DeleteSetButton } from './_components/delete-set-button'
 
@@ -108,6 +108,12 @@ export default async function OwnerWordSetPage({ params }: Props) {
             <p className="text-sm text-gray-400 mt-1">{wordSet.items.length}개 단어</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <Link href={`/words/${setId}`} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="sm" className="h-9 text-gray-600 border-gray-200">
+                <Download className="w-3.5 h-3.5 mr-1" />
+                다운로드
+              </Button>
+            </Link>
             <Link href={`/owner/words/sets/${setId}/test/new`}>
               <Button size="sm" className="h-9 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white">
                 <Plus className="w-3.5 h-3.5 mr-1" />

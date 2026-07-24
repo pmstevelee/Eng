@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Download, Plus } from 'lucide-react'
 
 interface Props {
   params: Promise<{ setId: string }>
@@ -96,12 +96,20 @@ export default async function TeacherWordSetPage({ params }: Props) {
           <h1 className="text-2xl font-bold text-gray-900">{wordSet.title}</h1>
           <p className="text-sm text-gray-400 mt-1">{wordSet.items.length}개 단어</p>
         </div>
-        <Link href={`/teacher/words/sets/${setId}/test/new`}>
-          <Button className="h-10 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white shrink-0">
-            <Plus className="w-4 h-4 mr-1.5" />
-            시험 출제
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link href={`/words/${setId}`} target="_blank" rel="noopener noreferrer">
+            <Button variant="outline" className="h-10 text-gray-600 border-gray-200">
+              <Download className="w-4 h-4 mr-1.5" />
+              다운로드
+            </Button>
+          </Link>
+          <Link href={`/teacher/words/sets/${setId}/test/new`}>
+            <Button className="h-10 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white">
+              <Plus className="w-4 h-4 mr-1.5" />
+              시험 출제
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* 학생 학습 진행 현황 */}
