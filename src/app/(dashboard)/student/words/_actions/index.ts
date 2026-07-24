@@ -194,21 +194,12 @@ export async function getFlashcards(setId: string, _stage?: 'FLASHCARD' | 'RECAL
     // 진도가 시작된 단어만 대상
     const startedItems = wordSet.items.filter((item) => item.word.wordProgress.length > 0)
 
-    // 오늘의 학습 배치 = 오늘 새로 시작한 단어 + 이전에 시작했지만 아직 마스터하지 못한 단어.
-    // 플래시카드·리콜·스펠 모두 "동일한" 배치를 사용해 단계별 단어 수가 일치하도록 한다.
-    // (기존: 단계별로 stage 필터링 → 정답 단어만 다음 단계로 넘어가 30→7→3으로 줄어드는 funnel 버그)
-    // 주의: "오늘 시작"과 "이전에 시작해 미완료"를 양자택일로 두면 안 됨 —
-    // 오늘 새 단어가 하나라도 있으면 어제 이전에 끝내지 못한 단어가 세션에서 영구히 누락되어
-    // 설정된 개수만큼 학습되지 않는 버그가 있었음.
-    let batchItems = startedItems.filter(
-      (item) => item.word.wordProgress[0].stage !== 'MASTERED',
-    )
-
-    // 세트의 모든 단어를 이미 마스터한 경우에도 학습을 완전히 막지 않고
-    // 복습할 수 있도록 마스터한 단어 전체를 배치로 제공한다.
-    if (batchItems.length === 0 && startedItems.length > 0) {
-      batchItems = startedItems
-    }
+    // 학습 배치 = 시작된 단어 전체. 마스터 여부로 걸러내지 않는다 —
+    // stage 기준으로 필터링하면 세트를 반복 학습할 때마다 이전 라운드에서
+    // 어떤 단어를 "안다/모른다"로 답했는지에 따라 배치에 남는 단어 수가
+    // 매번 들쭉날쭉해지는 버그가 있었다. 항상 세트 전체를 배치로 제공해
+    // 반복 학습 시에도 모든 단어가 다시 학습 대상이 되도록 한다.
+    const batchItems = startedItems
 
     const cards = batchItems.map((item) => ({
       word: {
