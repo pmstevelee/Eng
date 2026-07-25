@@ -4,6 +4,8 @@
  */
 
 import { prisma } from '@/lib/prisma/client'
+import { getAdaptivePoolMeta } from '@/lib/questions/cached-queries'
+import { pickAdaptiveQuestion } from './adaptive-selection'
 
 // ─── 타입 정의 ─────────────────────────────────────────────────────────────────
 
@@ -193,62 +195,41 @@ export function shouldEndDomain(
 
 // ─── 문제 선택 ─────────────────────────────────────────────────────────────────
 
+export {
+  pickAdaptiveQuestion,
+  type AdaptivePickCandidate,
+  type AdaptiveExclusions,
+} from './adaptive-selection'
+
 /**
  * 적응형 다음 문제 선택
+ * - 캐시된 영역별 문제 풀(메타데이터)에서 메모리 선정 후, 선택된 1건만 본문 조회
+ * - exclusions 미전달 시 세션 내 중복만 방지 (하위 호환)
  */
 export async function selectNextAdaptiveQuestion(
   domain: AdaptiveDomain,
   targetDifficulty: number,
   usedQuestionIds: string[],
   academyId: string | null,
+  options?: {
+    studentSeenIds?: string[]
+    academyUsedIds?: string[]
+  },
 ): Promise<NextQuestionResult | null> {
-  // 해당 난이도 문제 먼저 검색
-  const baseWhere = {
-    domain: domain as 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING',
-    isActive: true,
-    id: { notIn: usedQuestionIds.length > 0 ? usedQuestionIds : ['__none__'] },
-    OR: [
-      { academyId: null, isVerified: true },
-      ...(academyId ? [{ academyId }] : []),
-    ],
-  }
+  const pool = await getAdaptivePoolMeta(academyId, domain)
 
-  let question = await prisma.question.findFirst({
-    where: { ...baseWhere, difficulty: targetDifficulty },
-    orderBy: [{ qualityScore: 'desc' }, { usageCount: 'asc' }],
-    select: { id: true, difficulty: true, contentJson: true },
+  const picked = pickAdaptiveQuestion(pool, targetDifficulty, {
+    sessionUsedIds: new Set(usedQuestionIds),
+    studentSeenIds: new Set(options?.studentSeenIds ?? []),
+    academyUsedIds: new Set(options?.academyUsedIds ?? []),
   })
 
-  // 없으면 ±1 범위에서 검색
-  if (!question) {
-    question = await prisma.question.findFirst({
-      where: {
-        ...baseWhere,
-        difficulty: {
-          gte: Math.max(1, targetDifficulty - 1),
-          lte: Math.min(10, targetDifficulty + 1),
-        },
-      },
-      orderBy: [{ difficulty: 'asc' }, { qualityScore: 'desc' }],
-      select: { id: true, difficulty: true, contentJson: true },
-    })
-  }
+  if (!picked) return null
 
-  // 없으면 ±2 범위에서 검색 (극단 케이스)
-  if (!question) {
-    question = await prisma.question.findFirst({
-      where: {
-        ...baseWhere,
-        difficulty: {
-          gte: Math.max(1, targetDifficulty - 2),
-          lte: Math.min(10, targetDifficulty + 2),
-        },
-      },
-      orderBy: [{ qualityScore: 'desc' }],
-      select: { id: true, difficulty: true, contentJson: true },
-    })
-  }
-
+  const question = await prisma.question.findUnique({
+    where: { id: picked.id },
+    select: { id: true, difficulty: true, contentJson: true },
+  })
   if (!question) return null
 
   return {

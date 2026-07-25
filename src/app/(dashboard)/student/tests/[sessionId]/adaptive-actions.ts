@@ -18,7 +18,41 @@ import {
   type AdaptiveConfig,
 } from '@/lib/assessment/adaptive-test-engine'
 import { checkPromotionStatus } from '@/lib/assessment/promotion-engine'
+import { getUsedLevelTestQuestions, recordLevelTestUsage } from '@/lib/questions/usage-tracker'
+import { updateQuestionQuality } from '@/lib/questions/quality-updater'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
+
+// ─── 중복 출제 방지용 제외 목록 조회 ──────────────────────────────────────────
+
+/**
+ * 학생이 최근 6개월 내 이미 푼 문제 ID + 학원의 최근 1년 레벨테스트 사용 문제 ID.
+ * 같은 문제가 반복 출제되는 것을 막기 위해 문제 선택 시 우선 제외한다.
+ */
+async function getAdaptiveExclusions(
+  studentId: string,
+  academyId: string | null,
+): Promise<{ studentSeenIds: string[]; academyUsedIds: string[] }> {
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+
+  const [seenRows, academyUsedIds] = await Promise.all([
+    prisma.questionResponse.findMany({
+      where: {
+        session: { studentId },
+        createdAt: { gte: sixMonthsAgo },
+      },
+      select: { questionId: true },
+      distinct: ['questionId'],
+      take: 3000,
+    }),
+    academyId ? getUsedLevelTestQuestions(academyId) : Promise.resolve([]),
+  ])
+
+  return {
+    studentSeenIds: seenRows.map((r) => r.questionId),
+    academyUsedIds,
+  }
+}
 
 // ─── Auth 헬퍼 ────────────────────────────────────────────────────────────────
 
@@ -117,19 +151,22 @@ export async function startAdaptiveSession(sessionId: string): Promise<AdaptiveN
   if (!session) return { type: 'error', error: '세션을 찾을 수 없습니다.' }
   if (!session.test.isAdaptive) return { type: 'error', error: '적응형 테스트가 아닙니다.' }
 
-  // 상태 업데이트
-  if (session.status === 'NOT_STARTED') {
-    await prisma.testSession.update({
-      where: { id: sessionId },
-      data: { status: 'IN_PROGRESS', startedAt: new Date() },
-    })
-  }
-
   const config = (session.test.adaptiveConfig as AdaptiveConfig | null) ?? {
     questionsPerDomain: 8,
     startLevel: auth.currentLevel > 1 ? auth.currentLevel : 5,
     writingQuestions: 2,
   }
+
+  // 상태 업데이트와 제외 목록 조회를 병렬 실행
+  const [, exclusions] = await Promise.all([
+    session.status === 'NOT_STARTED'
+      ? prisma.testSession.update({
+          where: { id: sessionId },
+          data: { status: 'IN_PROGRESS', startedAt: new Date() },
+        })
+      : Promise.resolve(null),
+    getAdaptiveExclusions(auth.studentId, session.test.academyId),
+  ])
 
   const firstDomain: AdaptiveDomain = 'GRAMMAR'
   const question = await selectNextAdaptiveQuestion(
@@ -137,6 +174,7 @@ export async function startAdaptiveSession(sessionId: string): Promise<AdaptiveN
     config.startLevel,
     [],
     session.test.academyId,
+    exclusions,
   )
 
   if (!question) return { type: 'error', error: '문제를 찾을 수 없습니다.' }
@@ -172,21 +210,30 @@ export async function submitAdaptiveAnswer(
   const auth = await getAuthedStudent()
   if (!auth) return { type: 'error', error: '권한이 없습니다.' }
 
-  const session = await prisma.testSession.findUnique({
-    where: { id: sessionId, studentId: auth.studentId },
-    select: {
-      id: true,
-      status: true,
-      test: {
-        select: {
-          isAdaptive: true,
-          adaptiveConfig: true,
-          academyId: true,
-          createdBy: true,
+  // 세션·채점용 문제·중복 제외 목록을 병렬 조회 (RTT 절감)
+  const [session, question, exclusions] = await Promise.all([
+    prisma.testSession.findUnique({
+      where: { id: sessionId, studentId: auth.studentId },
+      select: {
+        id: true,
+        status: true,
+        testId: true,
+        test: {
+          select: {
+            isAdaptive: true,
+            adaptiveConfig: true,
+            academyId: true,
+            createdBy: true,
+          },
         },
       },
-    },
-  })
+    }),
+    prisma.question.findUnique({
+      where: { id: questionId },
+      select: { contentJson: true, domain: true },
+    }),
+    getAdaptiveExclusions(auth.studentId, auth.academyId),
+  ])
 
   if (!session || session.status !== 'IN_PROGRESS') {
     return { type: 'error', error: '유효하지 않은 세션입니다.' }
@@ -197,12 +244,6 @@ export async function submitAdaptiveAnswer(
     startLevel: 5,
     writingQuestions: 2,
   }
-
-  // 응답 저장 (isCorrect는 서버에서 직접 채점)
-  const question = await prisma.question.findUnique({
-    where: { id: questionId },
-    select: { contentJson: true, domain: true },
-  })
 
   let serverIsCorrect: boolean | null = isCorrect
   if (question) {
@@ -239,123 +280,133 @@ export async function submitAdaptiveAnswer(
     }
   }
 
-  // 응답 저장 (적응형은 각 문제당 한 번만 답변)
-  const existingResponse = await prisma.questionResponse.findFirst({
-    where: { sessionId, questionId },
-    select: { id: true },
-  })
-  if (existingResponse) {
-    await prisma.questionResponse.update({
-      where: { id: existingResponse.id },
-      data: { answer, isCorrect: serverIsCorrect },
+  // 응답 저장 (적응형은 각 문제당 한 번만 답변) — 다음 문제 선택과 병렬 실행
+  const saveResponsePromise = (async () => {
+    const existingResponse = await prisma.questionResponse.findFirst({
+      where: { sessionId, questionId },
+      select: { id: true },
     })
-  } else {
-    await prisma.questionResponse.create({
-      data: { sessionId, questionId, answer, isCorrect: serverIsCorrect },
-    })
-  }
-
-  // 현재 영역 이력 필터
-  const domainHistory = history.filter((h) => h.domain === currentDomain)
-
-  const domainOrder: AdaptiveDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
-  const currentDomainIdx = domainOrder.indexOf(currentDomain)
-
-  // 현재 영역 종료 여부 판단
-  if (shouldEndDomain(domainHistory, config, currentDomain)) {
-    // 다음 영역으로 이동
-    const nextDomainIdx = currentDomainIdx + 1
-    if (nextDomainIdx >= domainOrder.length) {
-      // 모든 영역 완료 → 최종 채점
-      return await finalizeAdaptiveTest(sessionId, auth, session.test, history, config)
+    if (existingResponse) {
+      await prisma.questionResponse.update({
+        where: { id: existingResponse.id },
+        data: { answer, isCorrect: serverIsCorrect },
+      })
+    } else {
+      await prisma.questionResponse.create({
+        data: { sessionId, questionId, answer, isCorrect: serverIsCorrect },
+      })
     }
+  })()
 
-    const nextDomain = domainOrder[nextDomainIdx]
+  const testInfo = { ...session.test, testId: session.testId }
 
-    // 쓰기 영역은 AI 프롬프트 방식
-    if (nextDomain === 'WRITING') {
-      const estimatedLevel = Math.round(
-        calculateOverallLevel(
-          domainOrder
-            .filter((d) => d !== 'WRITING')
-            .map((d) => calculateDomainLevel(history.filter((h) => h.domain === d), config.startLevel)),
-        ),
-      )
-      const writingPrompt = getWritingPromptByLevel(estimatedLevel)
+  const resolveNext = async (): Promise<AdaptiveNextResult> => {
+    // 현재 영역 이력 필터
+    const domainHistory = history.filter((h) => h.domain === currentDomain)
+
+    const domainOrder: AdaptiveDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
+    const currentDomainIdx = domainOrder.indexOf(currentDomain)
+
+    // 현재 영역 종료 여부 판단
+    if (shouldEndDomain(domainHistory, config, currentDomain)) {
+      // 다음 영역으로 이동
+      const nextDomainIdx = currentDomainIdx + 1
+      if (nextDomainIdx >= domainOrder.length) {
+        // 모든 영역 완료 → 최종 채점
+        return await finalizeAdaptiveTest(sessionId, auth, testInfo, history, config)
+      }
+
+      const nextDomain = domainOrder[nextDomainIdx]
+
+      // 쓰기 영역은 AI 프롬프트 방식
+      if (nextDomain === 'WRITING') {
+        const estimatedLevel = Math.round(
+          calculateOverallLevel(
+            domainOrder
+              .filter((d) => d !== 'WRITING')
+              .map((d) => calculateDomainLevel(history.filter((h) => h.domain === d), config.startLevel)),
+          ),
+        )
+        const writingPrompt = getWritingPromptByLevel(estimatedLevel)
+        return {
+          type: 'writing_prompt',
+          domain: 'WRITING',
+          promptText: writingPrompt.prompt,
+          wordRange: writingPrompt.wordRange,
+          questionIndex: 1,
+          isLastQuestion: config.writingQuestions === 1,
+        }
+      }
+
+      // 다음 영역 첫 문제
+      const usedIds = history.map((h) => h.questionId)
+      const estimate = estimateCurrentLevel(domainHistory, config.startLevel)
+      const targetDiff = Math.round(estimate)
+      const nextQ = await selectNextAdaptiveQuestion(nextDomain, targetDiff, usedIds, session.test.academyId, exclusions)
+
+      if (!nextQ) return { type: 'error', error: `${nextDomain} 영역 문제를 찾을 수 없습니다.` }
+
       return {
-        type: 'writing_prompt',
-        domain: 'WRITING',
-        promptText: writingPrompt.prompt,
-        wordRange: writingPrompt.wordRange,
-        questionIndex: 1,
-        isLastQuestion: config.writingQuestions === 1,
+        type: 'question',
+        questionId: nextQ.questionId,
+        domain: nextDomain,
+        difficulty: nextQ.difficulty,
+        contentJson: nextQ.contentJson as QuestionContentJson,
+        domainQuestionIndex: 1,
+        domainTotalEstimate: config.questionsPerDomain,
+        currentDomain: nextDomain,
+        domainOrder,
+        estimatedLevel: estimate,
       }
     }
 
-    // 다음 영역 첫 문제
-    const usedIds = history.map((h) => h.questionId)
+    // 같은 영역에서 다음 문제
     const estimate = estimateCurrentLevel(domainHistory, config.startLevel)
-    const targetDiff = Math.round(estimate)
-    const nextQ = await selectNextAdaptiveQuestion(nextDomain, targetDiff, usedIds, session.test.academyId)
+    const targetDiff = getTargetDifficulty(domainHistory, estimate)
+    const usedIds = history.map((h) => h.questionId)
 
-    if (!nextQ) return { type: 'error', error: `${nextDomain} 영역 문제를 찾을 수 없습니다.` }
+    const nextQ = await selectNextAdaptiveQuestion(currentDomain, targetDiff, usedIds, session.test.academyId, exclusions)
+    if (!nextQ) {
+      // 해당 영역 문제 소진 → 강제 다음 영역
+      const nextDomainIdx = currentDomainIdx + 1
+      if (nextDomainIdx >= domainOrder.length) {
+        return await finalizeAdaptiveTest(sessionId, auth, testInfo, history, config)
+      }
+      const nextDomain = domainOrder[nextDomainIdx]
+      const nextQ2 = await selectNextAdaptiveQuestion(nextDomain, config.startLevel, usedIds, session.test.academyId, exclusions)
+      if (!nextQ2) return { type: 'error', error: '더 이상 출제할 문제가 없습니다.' }
+
+      return {
+        type: 'question',
+        questionId: nextQ2.questionId,
+        domain: nextDomain,
+        difficulty: nextQ2.difficulty,
+        contentJson: nextQ2.contentJson as QuestionContentJson,
+        domainQuestionIndex: 1,
+        domainTotalEstimate: config.questionsPerDomain,
+        currentDomain: nextDomain,
+        domainOrder,
+        estimatedLevel: estimate,
+      }
+    }
 
     return {
       type: 'question',
       questionId: nextQ.questionId,
-      domain: nextDomain,
+      domain: currentDomain,
       difficulty: nextQ.difficulty,
       contentJson: nextQ.contentJson as QuestionContentJson,
-      domainQuestionIndex: 1,
+      domainQuestionIndex: domainHistory.length + 1,
       domainTotalEstimate: config.questionsPerDomain,
-      currentDomain: nextDomain,
+      currentDomain,
       domainOrder,
       estimatedLevel: estimate,
     }
   }
 
-  // 같은 영역에서 다음 문제
-  const estimate = estimateCurrentLevel(domainHistory, config.startLevel)
-  const targetDiff = getTargetDifficulty(domainHistory, estimate)
-  const usedIds = history.map((h) => h.questionId)
-
-  const nextQ = await selectNextAdaptiveQuestion(currentDomain, targetDiff, usedIds, session.test.academyId)
-  if (!nextQ) {
-    // 해당 영역 문제 소진 → 강제 다음 영역
-    const nextDomainIdx = currentDomainIdx + 1
-    if (nextDomainIdx >= domainOrder.length) {
-      return await finalizeAdaptiveTest(sessionId, auth, session.test, history, config)
-    }
-    const nextDomain = domainOrder[nextDomainIdx]
-    const nextQ2 = await selectNextAdaptiveQuestion(nextDomain, config.startLevel, usedIds, session.test.academyId)
-    if (!nextQ2) return { type: 'error', error: '더 이상 출제할 문제가 없습니다.' }
-
-    return {
-      type: 'question',
-      questionId: nextQ2.questionId,
-      domain: nextDomain,
-      difficulty: nextQ2.difficulty,
-      contentJson: nextQ2.contentJson as QuestionContentJson,
-      domainQuestionIndex: 1,
-      domainTotalEstimate: config.questionsPerDomain,
-      currentDomain: nextDomain,
-      domainOrder,
-      estimatedLevel: estimate,
-    }
-  }
-
-  return {
-    type: 'question',
-    questionId: nextQ.questionId,
-    domain: currentDomain,
-    difficulty: nextQ.difficulty,
-    contentJson: nextQ.contentJson as QuestionContentJson,
-    domainQuestionIndex: domainHistory.length + 1,
-    domainTotalEstimate: config.questionsPerDomain,
-    currentDomain,
-    domainOrder,
-    estimatedLevel: estimate,
-  }
+  // 다음 문제 선택과 응답 저장을 병렬로 대기
+  const [nextResult] = await Promise.all([resolveNext(), saveResponsePromise])
+  return nextResult
 }
 
 // ─── 쓰기 답변 제출 ────────────────────────────────────────────────────────────
@@ -378,6 +429,7 @@ export async function submitWritingAnswer(
     select: {
       id: true,
       status: true,
+      testId: true,
       test: {
         select: {
           isAdaptive: true,
@@ -441,15 +493,41 @@ export async function submitWritingAnswer(
   }
 
   // 쓰기까지 완료 → AI 채점 + 최종 결과
-  return await finalizeAdaptiveTestWithWriting(sessionId, auth, session.test, history, config, writingAnswers)
+  return await finalizeAdaptiveTestWithWriting(
+    sessionId,
+    auth,
+    { ...session.test, testId: session.testId },
+    history,
+    config,
+    writingAnswers,
+  )
 }
 
 // ─── 최종 채점 ─────────────────────────────────────────────────────────────────
 
+/**
+ * 출제된 문제의 사용 이력 기록 + 품질 통계 갱신 (비동기, 응답 지연 없음)
+ * - question_usage_log: 학원별 1년 중복 방지에 사용
+ * - usageCount/qualityScore: 문제 선택 시 순환·품질 판단에 사용
+ */
+function recordAdaptiveUsage(
+  academyId: string,
+  testId: string,
+  history: QuestionHistoryItem[],
+): void {
+  const questionIds = Array.from(new Set(history.map((h) => h.questionId)))
+  recordLevelTestUsage(academyId, testId, questionIds).catch((err) =>
+    console.error('[adaptive] 사용 이력 기록 실패:', err),
+  )
+  for (const qId of questionIds) {
+    updateQuestionQuality(qId).catch(console.error)
+  }
+}
+
 async function finalizeAdaptiveTest(
   sessionId: string,
   auth: { studentId: string; currentLevel: number; academyId: string | null },
-  test: { adaptiveConfig: unknown; academyId: string; createdBy: string },
+  test: { adaptiveConfig: unknown; academyId: string; createdBy: string; testId: string },
   history: QuestionHistoryItem[],
   config: AdaptiveConfig,
 ): Promise<AdaptiveNextResult> {
@@ -497,6 +575,9 @@ async function finalizeAdaptiveTest(
   // 조건 1 체크만 바로 실행; 조건 2·3는 이미 DB에 저장된 값 사용
   checkPromotionStatus(auth.studentId).catch(console.error)
 
+  // 출제 문제 사용 이력 기록 (학원별 중복 방지) + 품질 통계 갱신
+  recordAdaptiveUsage(test.academyId, test.testId, history)
+
   // 교사 알림
   await prisma.notification.create({
     data: {
@@ -519,7 +600,7 @@ async function finalizeAdaptiveTest(
 async function finalizeAdaptiveTestWithWriting(
   sessionId: string,
   auth: { studentId: string; currentLevel: number; academyId: string | null },
-  test: { adaptiveConfig: unknown; academyId: string; createdBy: string },
+  test: { adaptiveConfig: unknown; academyId: string; createdBy: string; testId: string },
   history: QuestionHistoryItem[],
   config: AdaptiveConfig,
   writingAnswers: string[],
@@ -580,6 +661,9 @@ async function finalizeAdaptiveTestWithWriting(
 
   // 승급 조건 체크 (쓰기 포함 버전도 동일하게 조건 1 업데이트)
   checkPromotionStatus(auth.studentId).catch(console.error)
+
+  // 출제 문제 사용 이력 기록 (학원별 중복 방지) + 품질 통계 갱신
+  recordAdaptiveUsage(test.academyId, test.testId, history)
 
   // 교사 알림 (쓰기 AI 채점 대기)
   await prisma.notification.create({

@@ -157,59 +157,41 @@ export const getHeatmapData = unstable_cache(
   { revalidate: 1800, tags: ['question-bank'] },
 )
 
-// ── 적응형 테스트 사전 로드 ──────────────────────────────────────────────────────
+// ── 적응형 테스트 문제 풀 메타데이터 캐시 (5분) ─────────────────────────────────
 
-type PreloadedQuestion = {
+export type AdaptivePoolItem = {
   id: string
   difficulty: number
-  subCategory: string | null
   qualityScore: number | null
-  contentJson: unknown
 }
 
 /**
- * 적응형 테스트 시작 시 해당 영역의 모든 난이도 문제를 한 번에 로드.
- * 이후 문제 선택은 메모리에서 즉시 처리 (DB 호출 없음).
+ * 적응형 테스트용 영역별 문제 풀 메타데이터 (id/난이도/품질점수만).
+ * 본문(contentJson)은 제외해 캐시를 가볍게 유지하고,
+ * 문제 선택은 메모리에서 처리 후 선택된 1건만 본문을 조회한다.
  */
-export async function preloadAdaptiveQuestions(
-  academyId: string,
+export function getAdaptivePoolMeta(
+  academyId: string | null,
   domain: string,
-): Promise<Map<number, PreloadedQuestion[]>> {
-  const allQuestions = await prisma.question.findMany({
-    where: {
-      OR: [{ academyId: null }, { academyId }],
-      domain: domain as QuestionDomain,
-      isActive: true,
-      isVerified: true,
+): Promise<AdaptivePoolItem[]> {
+  return unstable_cache(
+    async () => {
+      return prisma.question.findMany({
+        where: {
+          domain: domain as QuestionDomain,
+          isActive: true,
+          OR: [
+            { academyId: null, isVerified: true },
+            ...(academyId ? [{ academyId }] : []),
+          ],
+        },
+        select: { id: true, difficulty: true, qualityScore: true },
+      })
     },
-    select: {
-      id: true,
-      difficulty: true,
-      subCategory: true,
-      qualityScore: true,
-      contentJson: true,
-    },
-    orderBy: { qualityScore: 'desc' },
-  })
-
-  const byDifficulty = new Map<number, PreloadedQuestion[]>()
-  for (const q of allQuestions) {
-    const list = byDifficulty.get(q.difficulty) ?? []
-    list.push(q)
-    byDifficulty.set(q.difficulty, list)
-  }
-
-  return byDifficulty
+    ['adaptive-pool-meta', academyId ?? 'public', domain],
+    { revalidate: 300, tags: ['question-bank'] },
+  )()
 }
 
-/**
- * 사전 로드된 문제 맵에서 즉시 문제 선택 (DB 호출 없음).
- */
-export function selectFromPreloaded(
-  preloaded: Map<number, PreloadedQuestion[]>,
-  difficulty: number,
-  excludeIds: string[],
-): PreloadedQuestion | undefined {
-  const candidates = preloaded.get(difficulty) ?? []
-  return candidates.find((q) => !excludeIds.includes(q.id))
-}
+// 적응형 테스트 사전 로드는 getAdaptivePoolMeta (위 섹션)로 대체됨.
+// 과거 preloadAdaptiveQuestions/selectFromPreloaded는 호출부 없이 방치되던 죽은 코드였음.

@@ -147,6 +147,9 @@
 - 통계 캐시: `question_bank_stats` 테이블 (도메인×난이도별 집계, `updateQuestionBankStatsForDomain()`)
 - 캐시 레이어: `src/lib/questions/cached-queries.ts` (`unstable_cache`, tag: `question-bank`)
 - 캐시 무효화: `revalidateTag('question-bank')` 문제 추가/수정/삭제 시
-- 적응형 테스트 최적화: `preloadAdaptiveQuestions()` → 영역별 전체 로드 후 메모리에서 선택
+- 적응형 테스트 최적화: `getAdaptivePoolMeta()`(`src/lib/questions/cached-queries.ts`, 5분 캐시, id/난이도/qualityScore만)로 영역별 문제 풀 메타데이터를 로드 → `pickAdaptiveQuestion()`(`src/lib/assessment/adaptive-selection.ts`)이 메모리에서 즉시 선정 → 선택된 1건만 본문(contentJson) DB 조회
+- 적응형 문제 선정 규칙(`pickAdaptiveQuestion`): 목표 난이도 정확 일치 → ±1 → ±2 순으로 후보 탐색, 품질 상위 30%(최소 3개) 그룹에서 무작위 추첨(같은 문제 반복 배치 방지)
+- 적응형 중복 방지 3단계(`AdaptiveExclusions`): ① 세션 내 출제분(절대 제외) ② 학생 최근 6개월 풀이 이력(우선 제외, 풀 소진 시 완화) ③ 학원 최근 1년 레벨테스트 사용 이력(`question_usage_log`, 선호도만 하향)
+- 적응형 테스트 완료 시 `recordLevelTestUsage()` + `updateQuestionQuality()` 호출로 사용 이력·품질점수 갱신 (`src/app/(dashboard)/student/tests/[sessionId]/adaptive-actions.ts`의 `recordAdaptiveUsage()`)
 - 관리자 대시보드: `/admin/question-bank` (히트맵, AI 자동 생성, 품질 관리)
 - 출처(source): SYSTEM / AI_GENERATED / AI_SHARED / TEACHER_CREATED
