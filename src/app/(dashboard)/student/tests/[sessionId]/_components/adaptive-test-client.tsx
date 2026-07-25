@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useTransition, useRef, useEffect } from 'react'
-import { ChevronRight, Loader2, BookOpen, PenLine, AlertCircle, Maximize2, Minimize2 } from 'lucide-react'
+import { ChevronRight, Loader2, BookOpen, PenLine, AlertCircle, Maximize2, Minimize2, Volume2 } from 'lucide-react'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 import {
   startAdaptiveSession,
@@ -192,6 +192,66 @@ function ShortAnswerQuestion({
       className="w-full h-11 px-4 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1865F2]/30 focus:border-[#1865F2]"
       autoFocus
     />
+  )
+}
+
+// 듣기 음성 플레이어 (문제당 최대 2회 재생 — 일반 테스트 정책과 동일)
+// questionId를 key로 remount하여 문제마다 재생 횟수가 초기화됨.
+function ListeningAudio({ audioUrl, maxPlayCount = 2 }: { audioUrl: string; maxPlayCount?: number }) {
+  const [playCount, setPlayCount] = useState(0)
+  const remaining = maxPlayCount - playCount
+  const isExhausted = remaining <= 0
+
+  return (
+    <div
+      className="rounded-lg border p-4"
+      style={{ borderColor: '#F9A8D4', backgroundColor: '#FDE7F3' }}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+            style={{ backgroundColor: '#E91E8A' }}
+          >
+            <Volume2 size={14} className="text-white" />
+          </div>
+          <span className="text-sm font-semibold" style={{ color: '#E91E8A' }}>
+            음성을 들어보세요
+          </span>
+        </div>
+        <span
+          className="text-xs font-semibold px-2 py-0.5 rounded-full"
+          style={{
+            backgroundColor: isExhausted ? '#FEE2E2' : remaining <= 1 ? '#FFF8E6' : '#E91E8A15',
+            color: isExhausted ? '#D92916' : remaining <= 1 ? '#FFB100' : '#E91E8A',
+          }}
+        >
+          재생 {playCount}/{maxPlayCount}회
+        </span>
+      </div>
+
+      {isExhausted ? (
+        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 font-medium text-center">
+          재생 횟수를 모두 사용했습니다
+        </div>
+      ) : (
+        <audio
+          controls
+          className="w-full"
+          controlsList="nodownload"
+          onPlay={() => setPlayCount((prev) => prev + 1)}
+        >
+          <source src={audioUrl} />
+          브라우저가 오디오를 지원하지 않습니다.
+        </audio>
+      )}
+
+      {!isExhausted && (
+        <p className="text-xs mt-2" style={{ color: '#E91E8A99' }}>
+          {remaining === 1 ? '⚠️ 재생 횟수가 1회 남았습니다' : `재생 가능 횟수: ${remaining}회`}
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -631,6 +691,14 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle, isPopup 
           </div>
 
           <div className="p-5 space-y-4">
+            {/* 듣기 음성 (듣기 영역) */}
+            {contentJson.audio_url && (
+              <ListeningAudio
+                key={currentQuestion.questionId}
+                audioUrl={contentJson.audio_url}
+              />
+            )}
+
             {/* 지문 (읽기) */}
             {contentJson.passage && (
               <div className="rounded-lg bg-gray-50 border border-gray-200 p-4">

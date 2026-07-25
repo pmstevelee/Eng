@@ -20,6 +20,13 @@ import {
 import { checkPromotionStatus } from '@/lib/assessment/promotion-engine'
 import { getUsedLevelTestQuestions, recordLevelTestUsage } from '@/lib/questions/usage-tracker'
 import { updateQuestionQuality } from '@/lib/questions/quality-updater'
+import {
+  buildWritingGradingSystemPrompt,
+  buildWritingGradingUserPrompt,
+  type WritingGradingReport,
+} from '@/lib/ai/writing-grading'
+import { scoreToLevel, LEVEL_TO_CEFR } from '@/lib/constants/levels'
+import { trackAiUsage } from '@/lib/usage/tracker'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 
 // ─── 중복 출제 방지용 제외 목록 조회 ──────────────────────────────────────────
@@ -510,6 +517,82 @@ export async function submitWritingAnswer(
  * - question_usage_log: 학원별 1년 중복 방지에 사용
  * - usageCount/qualityScore: 문제 선택 시 순환·품질 판단에 사용
  */
+/**
+ * 적응형 테스트 쓰기 답안을 AI(GPT-4o-mini)로 채점해 쓰기 레벨을 산출한다.
+ * - 여러 개의 쓰기 답안은 각각 채점 후 overallScore 평균 → scoreToLevel로 변환
+ * - AI 실패/키 미설정 시 null 반환 → 호출부에서 통계적 추정값으로 폴백
+ * - 사용량은 best-effort로만 기록(레벨 테스트 완료를 한도로 막지 않음)
+ */
+async function gradeAdaptiveWriting(
+  writingAnswers: string[],
+  estimatedLevel: number,
+  academyId: string,
+): Promise<{ level: number; score: number; reports: WritingGradingReport[] } | null> {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) return null
+
+  const essays = writingAnswers.filter((a) => a && a.trim().length > 0)
+  if (essays.length === 0) return null
+
+  const level = Math.max(1, Math.min(10, estimatedLevel))
+  const cefrLevel = LEVEL_TO_CEFR[level] ?? 'A2 하'
+  const promptInfo = getWritingPromptByLevel(level)
+
+  const graded = await Promise.all(
+    essays.map(async (essay) => {
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: buildWritingGradingSystemPrompt() },
+              {
+                role: 'user',
+                content: buildWritingGradingUserPrompt({
+                  cefrLevel,
+                  writingPrompt: promptInfo.prompt,
+                  targetWordCount: null,
+                  studentSubmission: essay,
+                }),
+              },
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.3,
+          }),
+        })
+        if (!response.ok) return null
+        const data = (await response.json()) as {
+          choices: Array<{ message: { content: string } }>
+        }
+        const content = data.choices[0]?.message?.content
+        if (!content) return null
+        return JSON.parse(content) as WritingGradingReport
+      } catch {
+        return null
+      }
+    }),
+  )
+
+  const reports = graded.filter((r): r is WritingGradingReport => r !== null)
+  if (reports.length === 0) return null
+
+  const avgScore = Math.round(
+    reports.reduce((s, r) => s + (r.overallScore ?? 0), 0) / reports.length,
+  )
+
+  // 사용량 기록 (비차단)
+  for (let i = 0; i < reports.length; i++) {
+    trackAiUsage(academyId, 'WRITING').catch(() => {})
+  }
+
+  return { level: scoreToLevel(avgScore), score: avgScore, reports }
+}
+
 function recordAdaptiveUsage(
   academyId: string,
   testId: string,
@@ -531,7 +614,13 @@ async function finalizeAdaptiveTest(
   history: QuestionHistoryItem[],
   config: AdaptiveConfig,
 ): Promise<AdaptiveNextResult> {
-  const domainOrder: AdaptiveDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
+  // 듣기는 최소 측정 문제 수를 채운 경우에만 포함 (미달 시 미측정 처리)
+  const minListening = config.minListeningQuestions ?? 3
+  const listeningMeasured =
+    history.filter((h) => h.domain === 'LISTENING').length >= minListening
+  const domainOrder: AdaptiveDomain[] = listeningMeasured
+    ? ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
+    : ['GRAMMAR', 'VOCABULARY', 'READING', 'WRITING']
 
   const domainResults = domainOrder.map((d) => {
     const dHistory = history.filter((h) => h.domain === d)
@@ -560,6 +649,7 @@ async function finalizeAdaptiveTest(
         grammar: result.grammarLevel,
         vocabulary: result.vocabularyLevel,
         reading: result.readingLevel,
+        listening: result.listeningLevel,
         writing: result.writingLevel,
         overall: result.overallLevel,
       },
@@ -605,21 +695,36 @@ async function finalizeAdaptiveTestWithWriting(
   config: AdaptiveConfig,
   writingAnswers: string[],
 ): Promise<AdaptiveNextResult> {
-  const domainOrder: AdaptiveDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING']
+  // 듣기는 최소 측정 문제 수를 채운 경우에만 포함 (미달 시 미측정 처리)
+  const minListening = config.minListeningQuestions ?? 3
+  const listeningMeasured =
+    history.filter((h) => h.domain === 'LISTENING').length >= minListening
 
-  // 객관식 영역 레벨 계산
-  const objDomainResults = domainOrder.map((d) => {
+  const objDomainOrder: AdaptiveDomain[] = listeningMeasured
+    ? ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING']
+    : ['GRAMMAR', 'VOCABULARY', 'READING']
+
+  // 객관식 영역 레벨 계산 (듣기 포함)
+  const objDomainResults = objDomainOrder.map((d) => {
     const dHistory = history.filter((h) => h.domain === d)
     return calculateDomainLevel(dHistory, config.startLevel)
   })
 
-  // 쓰기 레벨: 답변 길이 + 기본 추정값으로 임시 계산 (AI 채점은 비동기)
+  // 쓰기 레벨: AI(GPT-4o-mini) 채점으로 산출, 실패 시 통계적 추정값으로 폴백
   const objOverall = calculateOverallLevel(objDomainResults)
-  const writingEstimate = Math.max(1, Math.min(10, objOverall - 1)) // 통계적으로 쓰기가 1단계 낮은 경향
+  const aiWriting = await gradeAdaptiveWriting(writingAnswers, objOverall, test.academyId)
+  const writingEstimate = aiWriting
+    ? aiWriting.level
+    : Math.max(1, Math.min(10, objOverall - 1)) // 폴백: 쓰기가 1단계 낮은 통계적 경향
 
   const allDomainResults = [
     ...objDomainResults,
-    { domain: 'WRITING' as AdaptiveDomain, level: writingEstimate, rawScore: 0.5, confidence: 'LOW' as const },
+    {
+      domain: 'WRITING' as AdaptiveDomain,
+      level: writingEstimate,
+      rawScore: aiWriting ? aiWriting.score / 100 : 0.5,
+      confidence: aiWriting ? ('MEDIUM' as const) : ('LOW' as const),
+    },
   ]
 
   const previousLevel = auth.currentLevel > 1 ? auth.currentLevel : null
@@ -639,18 +744,20 @@ async function finalizeAdaptiveTestWithWriting(
       grammarScore: result.grammarLevel * 10,
       vocabularyScore: result.vocabularyLevel * 10,
       readingScore: result.readingLevel * 10,
-      writingScore: writingEstimate * 10,
+      writingScore: aiWriting ? aiWriting.score : writingEstimate * 10,
       assessedLevels: {
         grammar: result.grammarLevel,
         vocabulary: result.vocabularyLevel,
         reading: result.readingLevel,
+        listening: result.listeningLevel,
         writing: result.writingLevel,
         overall: result.overallLevel,
       },
       placementResult: {
         ...JSON.parse(JSON.stringify(result)),
         writingAnswers,
-        writingPendingAiGrade: true,
+        writingAiReports: aiWriting ? JSON.parse(JSON.stringify(aiWriting.reports)) : null,
+        writingPendingAiGrade: false,
       },
       score: overallLevel * 10,
     },

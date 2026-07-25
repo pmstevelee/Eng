@@ -125,12 +125,19 @@ export default async function TestResultPage({
 
   // ── 적응형 배치 시험 결과 분기 ─────────────────────────────────────────────
   if (session.test.isAdaptive && session.isPlacement && session.placementResult) {
+    const placementRaw = session.placementResult as Record<string, unknown>
+    const writingAiReports = Array.isArray(placementRaw.writingAiReports)
+      ? (placementRaw.writingAiReports as unknown as WritingGradingReport[])
+      : null
+    const writingPendingAiGrade = placementRaw.writingPendingAiGrade === true
     return (
       <PlacementResultView
         sessionId={sessionId}
         testTitle={session.test.title}
         placementResult={session.placementResult as unknown as PlacementResult}
         completedAt={session.completedAt?.toISOString() ?? null}
+        writingAiReports={writingAiReports}
+        writingPendingAiGrade={writingPendingAiGrade}
       />
     )
   }

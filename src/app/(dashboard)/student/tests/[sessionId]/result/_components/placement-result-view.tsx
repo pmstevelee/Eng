@@ -1,5 +1,7 @@
-import { ChevronLeft, TrendingUp, TrendingDown, AlertTriangle, BarChart3 } from 'lucide-react'
+import { ChevronLeft, TrendingUp, TrendingDown, AlertTriangle, BarChart3, PenLine } from 'lucide-react'
 import type { PlacementResult, AdaptiveDomain } from '@/lib/assessment/adaptive-test-engine'
+import type { WritingGradingReport } from '@/lib/ai/writing-grading'
+import { WritingGradingReportCard } from '@/components/shared/writing-grading-report-card'
 import { LEVELS } from '@/lib/constants/levels'
 import Link from 'next/link'
 
@@ -86,9 +88,18 @@ type Props = {
   testTitle: string
   placementResult: PlacementResult
   completedAt: string | null
+  writingAiReports?: WritingGradingReport[] | null
+  writingPendingAiGrade?: boolean
 }
 
-export function PlacementResultView({ sessionId, testTitle, placementResult, completedAt }: Props) {
+export function PlacementResultView({
+  sessionId,
+  testTitle,
+  placementResult,
+  completedAt,
+  writingAiReports,
+  writingPendingAiGrade,
+}: Props) {
   const {
     overallLevel,
     grammarLevel,
@@ -224,6 +235,30 @@ export function PlacementResultView({ sessionId, testTitle, placementResult, com
           )}
         </div>
       </div>
+
+      {/* 쓰기 AI 채점 리포트 */}
+      {writingPendingAiGrade && (
+        <div className="rounded-xl border border-gray-200 bg-white p-6 text-center space-y-2">
+          <PenLine className="h-5 w-5 text-gray-400 mx-auto" />
+          <p className="text-sm text-gray-500">쓰기 답안을 채점하는 중입니다. 잠시 후 새로고침 해주세요.</p>
+        </div>
+      )}
+      {writingAiReports && writingAiReports.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2 px-1">
+            <PenLine className="h-4 w-4 text-[#E35C20]" />
+            쓰기 채점 리포트
+          </h2>
+          {writingAiReports.map((report, i) => (
+            <div key={i} className="space-y-1">
+              {writingAiReports.length > 1 && (
+                <p className="text-xs font-medium text-gray-400 px-1">쓰기 {i + 1}번</p>
+              )}
+              <WritingGradingReportCard report={report} />
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* 하단 버튼 */}
       <div className="flex justify-center gap-3 pb-4">
