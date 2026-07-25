@@ -1,48 +1,13 @@
 import { NextResponse } from 'next/server'
-import { getPayment, PortOneServerError } from '@/lib/portone/server'
+
+// ─── DEPRECATED ────────────────────────────────────────────────────────────
+// 결제 시스템이 포트원에서 토스페이먼츠 직접 연동으로 전환되면서
+// 이 헬스체크는 더 이상 의미가 없다. /api/toss/health 를 사용한다.
+// 파일은 삭제하지 않고 무해한 스텁으로 남겨둔다.
 
 export async function GET() {
-  const secret = process.env.PORTONE_API_SECRET
-  const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID
-
-  if (!secret || !storeId) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: '포트원 환경변수가 설정되지 않았습니다',
-        missing: [
-          !secret && 'PORTONE_API_SECRET',
-          !storeId && 'NEXT_PUBLIC_PORTONE_STORE_ID',
-        ].filter(Boolean),
-      },
-      { status: 503 },
-    )
-  }
-
-  // 존재하지 않는 paymentId로 조회 → 404 응답이 오면 API 연결 성공
-  try {
-    await getPayment('health-check-probe')
-    return NextResponse.json({ ok: true, storeId })
-  } catch (err) {
-    if (err instanceof PortOneServerError) {
-      const isConnected =
-        err.message.includes('PaymentNotFoundError') ||
-        err.message.includes('404') ||
-        err.message.includes('존재하지 않는')
-
-      if (isConnected) {
-        return NextResponse.json({ ok: true, storeId, note: '포트원 API 연결 확인됨' })
-      }
-
-      return NextResponse.json(
-        { ok: false, error: err.message, storeId },
-        { status: 502 },
-      )
-    }
-
-    return NextResponse.json(
-      { ok: false, error: '알 수 없는 오류', storeId },
-      { status: 500 },
-    )
-  }
+  return NextResponse.json(
+    { ok: false, deprecated: true, message: '이 엔드포인트는 폐기되었습니다. /api/toss/health 를 사용하세요.' },
+    { status: 410 },
+  )
 }

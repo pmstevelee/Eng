@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
-import { cancelPayment, deleteBillingKey, PortOneServerError } from '@/lib/portone/server'
+import { cancelPayment, deleteBillingKey, TossServerError } from '@/lib/tosspayments/server'
 import { PLANS } from '@/lib/pricing'
 import type { Plan } from '@/generated/prisma'
 
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
             },
           })
         } catch (err) {
-          if (err instanceof PortOneServerError) {
+          if (err instanceof TossServerError) {
             console.error('[cancel] 환불 실패:', err.message)
             // 환불 실패해도 해지는 진행 (환불은 수동 처리)
           } else {

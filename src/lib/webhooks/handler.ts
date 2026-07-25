@@ -7,9 +7,9 @@ import {
   Plan,
   AuditActorType,
 } from '@/generated/prisma'
-import { getPayment } from '@/lib/portone/server'
+import { getPayment } from '@/lib/tosspayments/server'
 import { sendSlackRecurringFailAlert, sendSlackPaymentAlert } from '@/lib/notifications/slack'
-import type { PortOneWebhookEvent } from '@/lib/portone/types'
+import type { TossWebhookEvent } from '@/lib/tosspayments/server'
 
 // ─── 감사 로그 헬퍼 ───────────────────────────────────────────────────────────
 
@@ -37,47 +37,57 @@ export async function writeAuditLog(params: {
 }
 
 // ─── 이벤트 디스패처 ──────────────────────────────────────────────────────────
+// 토스페이먼츠는 PAYMENT_STATUS_CHANGED 등 결제 웹훅에 서명을 제공하지 않으므로
+// (지급대행/셀러 이벤트만 서명 지원), payload를 그대로 신뢰하지 않고 항상
+// getPayment()로 토스 서버에 재조회하여 실제 상태·금액을 확인한 뒤에만 반영한다.
 
-export async function dispatchWebhookEvent(event: PortOneWebhookEvent): Promise<void> {
-  switch (event.type) {
-    case 'Transaction.Paid':
-      await handlePaid(event.data.paymentId!)
+export async function dispatchWebhookEvent(event: TossWebhookEvent): Promise<void> {
+  switch (event.eventType) {
+    case 'PAYMENT_STATUS_CHANGED': {
+      const orderId = event.data.orderId
+      if (!orderId) return
+      switch (event.data.status) {
+        case 'DONE':
+          await handlePaid(orderId)
+          break
+        case 'CANCELED':
+          await handleCancelled(orderId, false)
+          break
+        case 'PARTIAL_CANCELED':
+          await handleCancelled(orderId, true)
+          break
+        case 'ABORTED':
+        case 'EXPIRED':
+          await handleFailed(orderId)
+          break
+        default:
+          break
+      }
       break
-    case 'Transaction.Failed':
-      await handleFailed(event.data.paymentId!)
+    }
+    case 'CANCEL_STATUS_CHANGED': {
+      const orderId = event.data.orderId
+      if (!orderId) return
+      await handleCancelled(orderId, event.data.status === 'PARTIAL_CANCELED')
       break
-    case 'Transaction.Cancelled':
-      await handleCancelled(event.data.paymentId!, false)
+    }
+    case 'BILLING_DELETED': {
+      const billingKey = event.data.billingKey
+      if (!billingKey) return
+      await handleBillingKeyDeleted(billingKey)
       break
-    case 'Transaction.PartialCancelled':
-      await handleCancelled(event.data.paymentId!, true)
-      break
-    case 'Transaction.VirtualAccountIssued':
-      await handleVirtualAccountIssued(event.data.paymentId!)
-      break
-    case 'Transaction.VirtualAccountDeposited':
-      await handlePaid(event.data.paymentId!)
-      break
-    case 'BillingKey.Issued':
-      await handleBillingKeyIssued(event.data.billingKey!)
-      break
-    case 'BillingKey.Failed':
-      await handleBillingKeyFailed(event.data.billingKey ?? 'unknown')
-      break
-    case 'BillingKey.Deleted':
-      await handleBillingKeyDeleted(event.data.billingKey!)
-      break
+    }
     default:
       // 미처리 이벤트 타입 — 무시
       break
   }
 }
 
-// ─── Transaction.Paid / VirtualAccountDeposited ───────────────────────────────
+// ─── PAYMENT_STATUS_CHANGED: DONE ─────────────────────────────────────────────
 
-async function handlePaid(paymentId: string): Promise<void> {
+async function handlePaid(orderId: string): Promise<void> {
   const payment = await prisma.payment.findUnique({
-    where: { paymentId },
+    where: { paymentId: orderId },
     include: { subscription: { include: { academy: true } } },
   })
 
@@ -86,37 +96,35 @@ async function handlePaid(paymentId: string): Promise<void> {
   // 멱등성: 이미 PAID면 무시
   if (payment.status === PaymentStatus.PAID) return
 
-  // 포트원에서 실제 결제 정보 조회 후 금액 재검증
-  const portonePayment = await getPayment(paymentId)
-  if (portonePayment.status !== 'PAID' && portonePayment.status !== 'VIRTUAL_ACCOUNT_ISSUED') {
-    return
-  }
+  // 토스에서 실제 결제 정보 조회 후 금액 재검증 (웹훅 payload는 신뢰하지 않음)
+  const tossPayment = await getPayment(orderId)
+  if (tossPayment.status !== 'DONE') return
 
-  if (portonePayment.amount.total !== payment.amount) {
+  if (tossPayment.totalAmount !== payment.amount) {
     await writeAuditLog({
       actorType: AuditActorType.WEBHOOK,
       action: 'PAYMENT_AMOUNT_MISMATCH',
-      target: `Payment:${paymentId}`,
-      metadata: { expected: payment.amount, actual: portonePayment.amount.total },
+      target: `Payment:${orderId}`,
+      metadata: { expected: payment.amount, actual: tossPayment.totalAmount },
     })
     return
   }
 
   // Payment → PAID
   await prisma.payment.update({
-    where: { paymentId },
+    where: { paymentId: orderId },
     data: {
       status: PaymentStatus.PAID,
-      pgTxId: portonePayment.transactionId,
-      receiptUrl: portonePayment.receiptUrl,
-      paidAt: new Date(),
+      pgTxId: tossPayment.paymentKey,
+      receiptUrl: tossPayment.receipt?.url ?? null,
+      paidAt: tossPayment.approvedAt ? new Date(tossPayment.approvedAt) : new Date(),
     },
   })
 
   await writeAuditLog({
     actorType: AuditActorType.WEBHOOK,
     action: 'PAYMENT_PAID',
-    target: `Payment:${paymentId}`,
+    target: `Payment:${orderId}`,
     metadata: { amount: payment.amount, type: payment.type },
   })
 
@@ -151,30 +159,30 @@ async function handlePaid(paymentId: string): Promise<void> {
     await sendSlackPaymentAlert({
       academyName,
       amount: payment.amount,
-      paymentId,
+      paymentId: orderId,
       type: payment.type,
     })
   }
 }
 
-// ─── Transaction.Failed ───────────────────────────────────────────────────────
+// ─── PAYMENT_STATUS_CHANGED: ABORTED / EXPIRED ────────────────────────────────
 
-async function handleFailed(paymentId: string): Promise<void> {
+async function handleFailed(orderId: string): Promise<void> {
   const payment = await prisma.payment.findUnique({
-    where: { paymentId },
+    where: { paymentId: orderId },
     include: { subscription: { include: { academy: true } } },
   })
   if (!payment || payment.status === PaymentStatus.FAILED) return
 
   await prisma.payment.update({
-    where: { paymentId },
+    where: { paymentId: orderId },
     data: { status: PaymentStatus.FAILED },
   })
 
   await writeAuditLog({
     actorType: AuditActorType.WEBHOOK,
     action: 'PAYMENT_FAILED',
-    target: `Payment:${paymentId}`,
+    target: `Payment:${orderId}`,
     metadata: { type: payment.type },
   })
 
@@ -188,7 +196,7 @@ async function handleFailed(paymentId: string): Promise<void> {
         type: payment.type,
         amount: payment.amount,
         retryCount: 0,
-        metadata: { sourcePaymentId: paymentId, reason: 'webhook_failed' },
+        metadata: { sourcePaymentId: orderId, reason: 'webhook_failed' },
       },
     })
 
@@ -197,18 +205,18 @@ async function handleFailed(paymentId: string): Promise<void> {
     await sendSlackRecurringFailAlert({
       academyName,
       amount: payment.amount,
-      paymentId,
+      paymentId: orderId,
       reason: payment.failureReason ?? '알 수 없음',
       retryAt,
     })
   }
 }
 
-// ─── Transaction.Cancelled / PartialCancelled ────────────────────────────────
+// ─── PAYMENT_STATUS_CHANGED: CANCELED / PARTIAL_CANCELED ─────────────────────
 
-async function handleCancelled(paymentId: string, partial: boolean): Promise<void> {
+async function handleCancelled(orderId: string, partial: boolean): Promise<void> {
   const payment = await prisma.payment.findUnique({
-    where: { paymentId },
+    where: { paymentId: orderId },
     include: { subscription: true },
   })
   if (!payment) return
@@ -219,14 +227,14 @@ async function handleCancelled(paymentId: string, partial: boolean): Promise<voi
   if (payment.status === newStatus || payment.status === PaymentStatus.CANCELED) return
 
   await prisma.payment.update({
-    where: { paymentId },
+    where: { paymentId: orderId },
     data: { status: newStatus, canceledAt: new Date() },
   })
 
   await writeAuditLog({
     actorType: AuditActorType.WEBHOOK,
     action: partial ? 'PAYMENT_PARTIAL_CANCELLED' : 'PAYMENT_CANCELLED',
-    target: `Payment:${paymentId}`,
+    target: `Payment:${orderId}`,
     metadata: { type: payment.type },
   })
 
@@ -243,42 +251,11 @@ async function handleCancelled(paymentId: string, partial: boolean): Promise<voi
 
   if (!partial && payment.type === PaymentType.CREDIT_PACKAGE) {
     // 크레딧 패키지 환불 → 해당 결제로 지급한 크레딧 삭제
-    await prisma.aiCredit.deleteMany({ where: { paymentId } })
+    await prisma.aiCredit.deleteMany({ where: { paymentId: orderId } })
   }
 }
 
-// ─── Transaction.VirtualAccountIssued ─────────────────────────────────────────
-
-async function handleVirtualAccountIssued(paymentId: string): Promise<void> {
-  // 가상계좌 발급 — Payment 상태를 PENDING 유지, 메타 업데이트
-  await writeAuditLog({
-    actorType: AuditActorType.WEBHOOK,
-    action: 'VIRTUAL_ACCOUNT_ISSUED',
-    target: `Payment:${paymentId}`,
-  })
-}
-
-// ─── BillingKey.Issued ────────────────────────────────────────────────────────
-
-async function handleBillingKeyIssued(billingKey: string): Promise<void> {
-  await writeAuditLog({
-    actorType: AuditActorType.WEBHOOK,
-    action: 'BILLING_KEY_ISSUED',
-    target: `BillingKey:${billingKey}`,
-  })
-}
-
-// ─── BillingKey.Failed ────────────────────────────────────────────────────────
-
-async function handleBillingKeyFailed(billingKey: string): Promise<void> {
-  await writeAuditLog({
-    actorType: AuditActorType.WEBHOOK,
-    action: 'BILLING_KEY_FAILED',
-    target: `BillingKey:${billingKey}`,
-  })
-}
-
-// ─── BillingKey.Deleted ───────────────────────────────────────────────────────
+// ─── BILLING_DELETED ──────────────────────────────────────────────────────────
 
 async function handleBillingKeyDeleted(billingKey: string): Promise<void> {
   // DB에서도 삭제 (cancel 라우트가 먼저 삭제했을 수 있으므로 없으면 무시)

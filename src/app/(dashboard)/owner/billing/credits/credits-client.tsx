@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { loadTossPayments } from '@tosspayments/tosspayments-sdk'
 import { Zap, CheckCircle, Star } from 'lucide-react'
-import { requestOneTimePayment, isPaymentError } from '@/lib/portone/client'
 import { CREDIT_PACKAGES } from '@/lib/pricing'
 import type { CreditPackageKey } from '@/lib/pricing'
+
+const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY!
 
 interface PackageCardProps {
   id: CreditPackageKey
@@ -107,6 +108,8 @@ interface CreditsClientProps {
     fullName: string
     email: string
   }
+  initialSuccessMessage?: string
+  initialError?: string
 }
 
 export function CreditsClient({
@@ -114,12 +117,13 @@ export function CreditsClient({
   questionCredits,
   earliestExpiry,
   customerInfo,
+  initialSuccessMessage,
+  initialError,
 }: CreditsClientProps) {
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [selectedPkg, setSelectedPkg] = useState<CreditPackageKey | null>(null)
-  const [error, setError] = useState('')
-  const [successMsg, setSuccessMsg] = useState('')
+  const [error, setError] = useState(initialError ?? '')
+  const [successMsg, setSuccessMsg] = useState(initialSuccessMessage ?? '')
 
   async function handlePurchase(packageId: CreditPackageKey) {
     setLoading(true)
@@ -138,53 +142,34 @@ export function CreditsClient({
       if (!checkoutRes.ok) {
         const data = await checkoutRes.json()
         setError(data.error ?? '결제 초기화에 실패했습니다.')
+        setLoading(false)
+        setSelectedPkg(null)
         return
       }
 
       const { paymentId, amount, orderName } = await checkoutRes.json()
 
-      // 2단계: PortOne 브라우저 결제
-      const portoneResult = await requestOneTimePayment({
-        paymentId,
+      // 2단계: 토스페이먼츠 결제창 (리다이렉트 방식)
+      const tossPayments = await loadTossPayments(TOSS_CLIENT_KEY)
+      const payment = tossPayments.payment({ customerKey: customerInfo.customerId })
+
+      await payment.requestPayment({
+        method: 'CARD',
+        amount: { currency: 'KRW', value: amount },
+        orderId: paymentId,
         orderName,
-        totalAmount: amount,
-        customer: {
-          customerId: customerInfo.customerId,
-          fullName: customerInfo.fullName,
-          email: customerInfo.email,
-        },
-        customData: { packageId, academyId: customerInfo.customerId },
+        successUrl: `${window.location.origin}/owner/billing/credits/toss-success`,
+        failUrl: `${window.location.origin}/owner/billing/credits/toss-fail`,
+        customerEmail: customerInfo.email,
+        customerName: customerInfo.fullName,
       })
 
-      if (isPaymentError(portoneResult)) {
-        if (portoneResult.code !== 'USER_CANCEL') {
-          setError(portoneResult.message ?? '결제에 실패했습니다.')
-        }
-        return
+      // requestPayment는 리다이렉트이므로 이 이후 코드는 실행되지 않음
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다'
+      if (!message.includes('PAY_PROCESS_CANCELED')) {
+        setError(`결제 중 오류가 발생했습니다: ${message}`)
       }
-
-      // 3단계: 서버 검증 + AiCredit 생성
-      const verifyRes = await fetch('/api/billing/credits/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentId, packageId }),
-      })
-
-      if (!verifyRes.ok) {
-        const data = await verifyRes.json()
-        setError(data.error ?? '결제 검증에 실패했습니다.')
-        return
-      }
-
-      const { credits } = await verifyRes.json()
-      const expiry = new Date(credits.expiresAt).toLocaleDateString('ko-KR')
-      setSuccessMsg(
-        `구매 완료! AI 쓰기 ${credits.writing.toLocaleString()}회 + 문제 생성 ${credits.question.toLocaleString()}회가 추가되었습니다. (만료: ${expiry})`,
-      )
-      router.refresh()
-    } catch {
-      setError('서버 오류가 발생했습니다.')
-    } finally {
       setLoading(false)
       setSelectedPkg(null)
     }

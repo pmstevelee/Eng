@@ -3,8 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import { getCurrentUser } from '@/lib/auth'
-import { cancelPayment } from '@/lib/portone/server'
-import { payWithBillingKey } from '@/lib/portone/server'
+import { cancelPayment, payWithBillingKey } from '@/lib/tosspayments/server'
 import { writeAuditLog } from '@/lib/webhooks/handler'
 import {
   PaymentStatus,
@@ -35,14 +34,14 @@ export async function forceRetryPayment(subscriptionId: string): Promise<{ error
   const lastPayment = subscription.payments[0]
   if (!lastPayment) return { error: '기존 결제 내역이 없습니다' }
 
-  const portonePaymentId = crypto.randomUUID()
+  const orderId = crypto.randomUUID()
   const academyName = subscription.academy.businessName ?? subscription.academy.name
 
   await prisma.payment.create({
     data: {
       subscriptionId: subscription.id,
       academyId: subscription.academyId,
-      paymentId: portonePaymentId,
+      paymentId: orderId,
       type: lastPayment.type,
       amount: lastPayment.amount,
       status: PaymentStatus.PENDING,
@@ -51,20 +50,20 @@ export async function forceRetryPayment(subscriptionId: string): Promise<{ error
 
   try {
     const result = await payWithBillingKey({
-      paymentId: portonePaymentId,
       billingKey: subscription.billingKey.portoneBillingKey,
+      customerKey: subscription.academyId,
+      orderId,
       orderName: `${academyName} 재시도 결제 (관리자)`,
       amount: lastPayment.amount,
-      customData: { adminForced: true, adminId: admin.id },
     })
 
     await prisma.payment.update({
-      where: { paymentId: portonePaymentId },
+      where: { paymentId: orderId },
       data: {
         status: PaymentStatus.PAID,
-        pgTxId: result.transactionId,
-        receiptUrl: result.receiptUrl,
-        paidAt: new Date(),
+        pgTxId: result.paymentKey,
+        receiptUrl: result.receipt?.url ?? null,
+        paidAt: result.approvedAt ? new Date(result.approvedAt) : new Date(),
       },
     })
 
@@ -81,7 +80,7 @@ export async function forceRetryPayment(subscriptionId: string): Promise<{ error
       actorType: AuditActorType.ADMIN,
       actorId: admin.id,
       action: 'ADMIN_FORCE_RETRY',
-      target: `Payment:${portonePaymentId}`,
+      target: `Payment:${orderId}`,
       metadata: { subscriptionId, originalPaymentId: lastPayment.paymentId },
     })
 
@@ -89,7 +88,7 @@ export async function forceRetryPayment(subscriptionId: string): Promise<{ error
     return {}
   } catch (err) {
     await prisma.payment.update({
-      where: { paymentId: portonePaymentId },
+      where: { paymentId: orderId },
       data: { status: PaymentStatus.FAILED, failureReason: String(err) },
     })
     return { error: err instanceof Error ? err.message : '재시도 실패' }
@@ -109,9 +108,10 @@ export async function refundPayment(
   const payment = await prisma.payment.findUnique({ where: { paymentId } })
   if (!payment) return { error: '결제를 찾을 수 없습니다' }
   if (payment.status !== PaymentStatus.PAID) return { error: '완료된 결제만 환불 가능합니다' }
+  if (!payment.pgTxId) return { error: '결제 키(pgTxId)가 없어 환불할 수 없습니다' }
 
   try {
-    await cancelPayment(paymentId, reason)
+    await cancelPayment(payment.pgTxId, reason)
 
     await prisma.payment.update({
       where: { paymentId },

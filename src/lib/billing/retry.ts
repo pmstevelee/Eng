@@ -7,7 +7,7 @@ import {
   SubscriptionStatus,
   Plan,
 } from '@/generated/prisma'
-import { payWithBillingKey, PortOneServerError } from '@/lib/portone/server'
+import { payWithBillingKey, TossServerError } from '@/lib/tosspayments/server'
 import { academyPlanSync } from '@/lib/billing/sync-academy'
 import { revalidateTag } from 'next/cache'
 import {
@@ -71,14 +71,14 @@ export async function processRetry(schedule: PendingSchedule): Promise<void> {
     return
   }
 
-  const portonePaymentId = crypto.randomUUID()
+  const orderId = crypto.randomUUID()
   const academyName = subscription.academy.businessName ?? subscription.academy.name
 
   const payment = await prisma.payment.create({
     data: {
       subscriptionId: subscription.id,
       academyId: subscription.academyId,
-      paymentId: portonePaymentId,
+      paymentId: orderId,
       type: schedule.type,
       amount: schedule.amount,
       status: PaymentStatus.PENDING,
@@ -86,26 +86,25 @@ export async function processRetry(schedule: PendingSchedule): Promise<void> {
   })
 
   try {
-    await payWithBillingKey({
-      paymentId: portonePaymentId,
+    const result = await payWithBillingKey({
       billingKey: subscription.billingKey.portoneBillingKey,
+      customerKey: subscription.academyId,
+      orderId,
       orderName: `위고업잉글리시 ${subscription.plan} 정기결제 (재시도 ${schedule.retryCount + 1}회)`,
       amount: schedule.amount,
-      customer: {
-        fullName: academyName,
-        customerId: subscription.academyId,
-      },
-      customData: {
-        subscriptionId: subscription.id,
-        retryCount: schedule.retryCount + 1,
-        originalScheduleId: schedule.id,
-      },
+      customerName: academyName,
     })
 
     await prisma.$transaction([
       prisma.payment.update({
         where: { id: payment.id },
-        data: { status: PaymentStatus.PAID, paidAt: new Date() },
+        data: {
+          status: PaymentStatus.PAID,
+          pgProvider: 'TOSSPAYMENTS',
+          pgTxId: result.paymentKey,
+          receiptUrl: result.receipt?.url ?? null,
+          paidAt: result.approvedAt ? new Date(result.approvedAt) : new Date(),
+        },
       }),
       prisma.paymentSchedule.update({
         where: { id: schedule.id },
@@ -124,7 +123,7 @@ export async function processRetry(schedule: PendingSchedule): Promise<void> {
     revalidateTag(`academy-${subscription.academyId}-subscription`)
   } catch (err) {
     const failureReason =
-      err instanceof PortOneServerError ? err.message : '알 수 없는 오류'
+      err instanceof TossServerError ? err.message : '알 수 없는 오류'
 
     const nextRetryAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
-import { payWithBillingKey, PortOneServerError } from '@/lib/portone/server'
+import { payWithBillingKey, TossServerError } from '@/lib/tosspayments/server'
 import { PLANS, PLAN_DISPLAY_NAMES } from '@/lib/pricing'
 import { Plan, BillingCycle } from '@/generated/prisma'
 import { academyPlanSync } from '@/lib/billing/sync-academy'
@@ -119,32 +119,23 @@ export async function POST(req: NextRequest) {
       if (diffAmount > 0) {
         try {
           const result = await payWithBillingKey({
-            paymentId,
             billingKey: subscription.billingKey.portoneBillingKey,
+            customerKey: dbUser.academyId,
+            orderId: paymentId,
             orderName,
             amount: diffAmount,
-            customer: {
-              customerId: dbUser.academyId,
-              fullName: dbUser.name,
-              email: dbUser.email,
-              phoneNumber: dbUser.phone ?? undefined,
-            },
-            customData: {
-              academyId: dbUser.academyId,
-              planChange: true,
-              fromPlan: subscription.plan,
-              toPlan: validNewPlan,
-            },
+            customerEmail: dbUser.email,
+            customerName: dbUser.name,
           })
 
           await prisma.payment.update({
             where: { id: payment.id },
             data: {
               status: 'PAID',
-              pgProvider: result.channel?.pgProvider ?? 'INICIS',
-              pgTxId: result.transactionId ?? paymentId,
-              receiptUrl: result.receiptUrl ?? null,
-              paidAt: new Date(),
+              pgProvider: 'TOSSPAYMENTS',
+              pgTxId: result.paymentKey,
+              receiptUrl: result.receipt?.url ?? null,
+              paidAt: result.approvedAt ? new Date(result.approvedAt) : new Date(),
             },
           })
         } catch (err) {
@@ -152,12 +143,12 @@ export async function POST(req: NextRequest) {
             where: { id: payment.id },
             data: {
               status: 'FAILED',
-              failureReason: err instanceof PortOneServerError ? err.message : '결제 실패',
+              failureReason: err instanceof TossServerError ? err.message : '결제 실패',
             },
           })
 
           return NextResponse.json(
-            { error: err instanceof PortOneServerError ? err.message : '업그레이드 결제에 실패했습니다' },
+            { error: err instanceof TossServerError ? err.message : '업그레이드 결제에 실패했습니다' },
             { status: 422 },
           )
         }

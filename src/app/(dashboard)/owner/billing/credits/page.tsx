@@ -5,10 +5,27 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { CreditsClient } from './credits-client'
 
-export default async function CreditsPage() {
+interface PageProps {
+  searchParams: Promise<{
+    success?: string
+    writing?: string
+    question?: string
+    expiresAt?: string
+    error?: string
+  }>
+}
+
+export default async function CreditsPage({ searchParams }: PageProps) {
   const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER') redirect('/login')
   if (!user.academyId) redirect('/owner/settings')
+
+  const params = await searchParams
+  const initialSuccessMessage =
+    params.success === '1' && params.writing && params.question && params.expiresAt
+      ? `구매 완료! AI 쓰기 ${Number(params.writing).toLocaleString()}회 + 문제 생성 ${Number(params.question).toLocaleString()}회가 추가되었습니다. (만료: ${new Date(params.expiresAt).toLocaleDateString('ko-KR')})`
+      : undefined
+  const initialError = params.error ? decodeURIComponent(params.error) : undefined
 
   const now = new Date()
 
@@ -63,6 +80,8 @@ export default async function CreditsPage() {
           fullName: user.name,
           email: user.email,
         }}
+        initialSuccessMessage={initialSuccessMessage}
+        initialError={initialError}
       />
     </div>
   )

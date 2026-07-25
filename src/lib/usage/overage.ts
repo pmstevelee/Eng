@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma/client'
-import { payWithBillingKey, PortOneServerError } from '@/lib/portone/server'
+import { payWithBillingKey, TossServerError } from '@/lib/tosspayments/server'
 import { PLANS } from '@/lib/pricing'
 import { Plan, CreditType, PaymentType } from '@/generated/prisma'
 import type { AiUsageType } from './tracker'
@@ -108,20 +108,20 @@ export async function chargeOverage(
   try {
     const result = await payWithBillingKey({
       billingKey: sub.billingKey.portoneBillingKey,
-      paymentId,
+      customerKey: academyId,
+      orderId: paymentId,
       amount,
       orderName: `AI ${type === 'WRITING' ? '쓰기평가' : '문제생성'} 초과 ${billableCount}회`,
-      customer: { customerId: academyId },
     })
 
     await prisma.payment.update({
       where: { id: payment.id },
       data: {
         status: 'PAID',
-        pgProvider: result.channel?.pgProvider ?? null,
-        pgTxId: result.transactionId ?? null,
-        receiptUrl: result.receiptUrl ?? null,
-        paidAt: new Date(),
+        pgProvider: 'TOSSPAYMENTS',
+        pgTxId: result.paymentKey,
+        receiptUrl: result.receipt?.url ?? null,
+        paidAt: result.approvedAt ? new Date(result.approvedAt) : new Date(),
       },
     })
 
@@ -133,7 +133,7 @@ export async function chargeOverage(
       })
     }
   } catch (err) {
-    const reason = err instanceof PortOneServerError ? err.message : String(err)
+    const reason = err instanceof TossServerError ? err.message : String(err)
     await prisma.payment.update({
       where: { id: payment.id },
       data: { status: 'FAILED', failureReason: reason },

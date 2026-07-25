@@ -108,6 +108,15 @@ export default async function SubscriptionPage() {
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
   const academyId = user.academyId
+
+  // 토스페이먼츠 자동결제(카드 등록)로 전환한 학원은 새 결제 관리 화면(해지 기능 포함)으로 안내.
+  // 기존 무통장입금 학원은 아래 레거시 화면을 그대로 유지 (구독 정보 유실 방지).
+  const tossSubscription = await prisma.subscription.findUnique({
+    where: { academyId },
+    select: { id: true },
+  })
+  if (tossSubscription) redirect('/owner/billing')
+
   const { academy, teacherCount, studentCount, subscriptions, pendingSubscription } =
     await getSubscriptionPageData(academyId)
   if (!academy) redirect('/login')
