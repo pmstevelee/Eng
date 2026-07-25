@@ -205,6 +205,7 @@ async function SetsTab({ academyId }: { academyId: string }) {
       title: true,
       cefrLevel: true,
       source: true,
+      createdAt: true,
       _count: { select: { items: true } },
     },
     orderBy: [{ source: 'asc' }, { cefrLevel: 'asc' }],

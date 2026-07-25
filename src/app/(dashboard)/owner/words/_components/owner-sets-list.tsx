@@ -1,11 +1,19 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Pencil, Trash2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { deleteOwnerWordSets } from '../_actions/sets'
+
+type SortOption = 'latest' | 'oldest' | 'name'
+
+const SORT_LABEL: Record<SortOption, string> = {
+  latest: '최신순',
+  oldest: '날짜순',
+  name: '이름순',
+}
 
 const SOURCE_LABEL: Record<string, string> = {
   PUBLISHER: '시스템',
@@ -25,6 +33,7 @@ interface OwnerSet {
   title: string
   cefrLevel: number
   source: string
+  createdAt: Date | string
   _count: { items: number }
 }
 
@@ -34,6 +43,20 @@ export function OwnerSetsList({ sets }: { sets: OwnerSet[] }) {
   const [confirm, setConfirm] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [sortBy, setSortBy] = useState<SortOption>('latest')
+
+  const sortedSets = useMemo(() => {
+    const copy = [...sets]
+    if (sortBy === 'name') {
+      copy.sort((a, b) => a.title.localeCompare(b.title, 'ko'))
+    } else {
+      copy.sort((a, b) => {
+        const diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        return sortBy === 'oldest' ? diff : -diff
+      })
+    }
+    return copy
+  }, [sets, sortBy])
 
   const allSelected = sets.length > 0 && selected.size === sets.length
 
@@ -82,46 +105,59 @@ export function OwnerSetsList({ sets }: { sets: OwnerSet[] }) {
           />
           전체 선택
         </label>
-        {selected.size > 0 && (
-          <div className="flex items-center gap-2">
-            {confirm ? (
-              <>
-                <span className="text-xs text-gray-600">{selected.size}개 세트를 삭제할까요?</span>
+        <div className="flex items-center gap-2">
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            className="h-8 rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-600 focus:outline-none focus:ring-1 focus:ring-[#1865F2]"
+          >
+            {(Object.keys(SORT_LABEL) as SortOption[]).map((option) => (
+              <option key={option} value={option}>
+                {SORT_LABEL[option]}
+              </option>
+            ))}
+          </select>
+          {selected.size > 0 && (
+            <>
+              {confirm ? (
+                <>
+                  <span className="text-xs text-gray-600">{selected.size}개 세트를 삭제할까요?</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setConfirm(false)}
+                    disabled={isPending}
+                    className="h-8 text-xs"
+                  >
+                    취소
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleBulkDelete}
+                    disabled={isPending}
+                    className="h-8 text-xs bg-[#D92916] hover:bg-[#D92916]/90 text-white"
+                  >
+                    {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : '삭제 확인'}
+                  </Button>
+                </>
+              ) : (
                 <Button
-                  variant="outline"
                   size="sm"
-                  onClick={() => setConfirm(false)}
-                  disabled={isPending}
-                  className="h-8 text-xs"
+                  onClick={() => setConfirm(true)}
+                  className="h-8 gap-1.5 text-xs bg-[#D92916] hover:bg-[#D92916]/90 text-white"
                 >
-                  취소
+                  <Trash2 className="w-3.5 h-3.5" />
+                  선택 삭제 ({selected.size})
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={handleBulkDelete}
-                  disabled={isPending}
-                  className="h-8 text-xs bg-[#D92916] hover:bg-[#D92916]/90 text-white"
-                >
-                  {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : '삭제 확인'}
-                </Button>
-              </>
-            ) : (
-              <Button
-                size="sm"
-                onClick={() => setConfirm(true)}
-                className="h-8 gap-1.5 text-xs bg-[#D92916] hover:bg-[#D92916]/90 text-white"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                선택 삭제 ({selected.size})
-              </Button>
-            )}
-          </div>
-        )}
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {error && <p className="text-xs text-[#D92916] px-1">{error}</p>}
 
-      {sets.map((set) => (
+      {sortedSets.map((set) => (
         <div
           key={set.id}
           className="rounded-xl border border-gray-200 bg-white px-5 py-4 flex items-center gap-4"

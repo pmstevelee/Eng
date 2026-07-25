@@ -35,6 +35,7 @@ export default async function TeacherWordsPage() {
       title: true,
       cefrLevel: true,
       source: true,
+      createdAt: true,
       _count: { select: { items: true, wordTestAssignments: true } },
     },
     orderBy: [{ source: 'asc' }, { cefrLevel: 'asc' }],
