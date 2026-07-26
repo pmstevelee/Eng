@@ -232,7 +232,10 @@ export function MissionClient({ mission, questions }: Props) {
         </div>
 
         {/* Answer input */}
-        {content.type === 'multiple_choice' && content.options && (
+        {/* 보기(options)가 있으면 문제 type과 무관하게 선택형으로 렌더링한다.
+            정답이 보기 본문("were")이 아닌 보기 문자("B")로 저장된 문제를
+            텍스트 입력으로 풀면 항상 오답 처리되는 문제를 UI 단에서 원천 차단한다. */}
+        {content.options && content.options.length > 0 ? (
           <div className="space-y-2">
             {content.options.map((opt, i) => {
               const letter = String.fromCharCode(65 + i) // A, B, C, D
@@ -252,9 +255,15 @@ export function MissionClient({ mission, questions }: Props) {
               )
             })}
           </div>
-        )}
-
-        {(content.type === 'fill_blank' || content.type === 'short_answer') && (
+        ) : content.type === 'essay' ? (
+          <textarea
+            placeholder="영어로 답변을 작성하세요..."
+            value={answers[currentQ.id] ?? ''}
+            onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
+            rows={4}
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#1865F2] focus:outline-none text-sm resize-none transition-colors"
+          />
+        ) : (
           <div className="space-y-1">
             {content.type === 'short_answer' && (
               <p className="text-xs text-gray-500">단답형 — 짧게 영어로 답하세요</p>
@@ -268,30 +277,6 @@ export function MissionClient({ mission, questions }: Props) {
             />
           </div>
         )}
-
-        {content.type === 'essay' && (
-          <textarea
-            placeholder="영어로 답변을 작성하세요..."
-            value={answers[currentQ.id] ?? ''}
-            onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
-            rows={4}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#1865F2] focus:outline-none text-sm resize-none transition-colors"
-          />
-        )}
-
-        {/* Fallback: unknown type — 기본 텍스트 입력 제공 */}
-        {content.type !== 'multiple_choice' &&
-          content.type !== 'fill_blank' &&
-          content.type !== 'short_answer' &&
-          content.type !== 'essay' && (
-            <input
-              type="text"
-              placeholder="답을 입력하세요..."
-              value={answers[currentQ.id] ?? ''}
-              onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
-              className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-[#1865F2] focus:outline-none text-sm transition-colors"
-            />
-          )}
 
         {/* 정답을 모를 때 */}
         <button

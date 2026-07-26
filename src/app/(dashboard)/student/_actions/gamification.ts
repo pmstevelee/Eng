@@ -9,6 +9,7 @@ import { getOrCreateTodayMission, buildDailyMissions } from '@/lib/missions/miss
 import { updateStreak } from '@/lib/missions/streak-manager'
 import { awardXP, BADGE_XP } from '@/lib/missions/xp-manager'
 import { getPromotionProgress } from '@/lib/assessment/promotion-engine'
+import { isAnswerMatch } from '@/lib/assessment/answer-checker'
 
 // ─── Auth helper ─────────────────────────────────────────────────────────────
 
@@ -372,6 +373,7 @@ export async function submitMissionAnswers(
     type: string
     correct_answer?: string
     explanation?: string
+    options?: string[]
   }
 
   let correct = 0
@@ -393,8 +395,7 @@ export async function submitMissionAnswers(
     }
 
     total++
-    const isCorrect =
-      studentAnswer.toLowerCase().trim() === content.correct_answer.toLowerCase().trim()
+    const isCorrect = isAnswerMatch(studentAnswer, content.correct_answer, content.options)
     if (isCorrect) correct++
 
     results.push({

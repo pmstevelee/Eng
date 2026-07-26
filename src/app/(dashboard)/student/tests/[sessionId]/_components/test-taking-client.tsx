@@ -649,7 +649,12 @@ function QuestionRenderer({
     return <QuestionSetQuestion content={content} answer={answer} onAnswer={onAnswer} />
   }
 
-  if (content.type === 'fill_blank' || content.type === 'short_answer') {
+  // 보기(options)가 있으면 fill_blank/short_answer로 저장돼 있어도 선택형으로 렌더링한다.
+  // 정답이 보기 문자("B")로 저장된 문제를 텍스트로 입력하면 항상 오답 처리되는 것을 방지.
+  if (
+    (content.type === 'fill_blank' || content.type === 'short_answer') &&
+    !(content.options && content.options.length > 0)
+  ) {
     return <FillBlankQuestion content={content} answer={answer} onAnswer={onAnswer} />
   }
 
@@ -1522,8 +1527,8 @@ function ListeningQuestion({
         <p className="mb-4 text-sm leading-relaxed text-gray-500">{content.question_text_ko}</p>
       )}
 
-      {/* 객관식 선택지 */}
-      {content.type === 'multiple_choice' && options.length > 0 && (
+      {/* 객관식 선택지 (보기가 있으면 type과 무관하게 선택형으로 렌더링) */}
+      {options.length > 0 && (
         <div className="space-y-3">
           {options.map((opt, i) => {
             const letter = LETTERS[i] ?? String(i + 1)
@@ -1572,8 +1577,9 @@ function ListeningQuestion({
         </div>
       )}
 
-      {/* 단답형/빈칸 */}
-      {(content.type === 'fill_blank' || content.type === 'short_answer') && (
+      {/* 단답형/빈칸 (보기가 없을 때만) */}
+      {(content.type === 'fill_blank' || content.type === 'short_answer') &&
+        options.length === 0 && (
         <div className="mt-4">
           <label className="mb-1.5 block text-sm font-medium text-gray-700">답변 입력</label>
           <input

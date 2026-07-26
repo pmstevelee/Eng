@@ -18,6 +18,7 @@ import {
   type AdaptiveConfig,
 } from '@/lib/assessment/adaptive-test-engine'
 import { checkPromotionStatus } from '@/lib/assessment/promotion-engine'
+import { isAnswerMatch } from '@/lib/assessment/answer-checker'
 import { getUsedLevelTestQuestions, recordLevelTestUsage } from '@/lib/questions/usage-tracker'
 import { updateQuestionQuality } from '@/lib/questions/quality-updater'
 import {
@@ -281,7 +282,7 @@ export async function submitAdaptiveAnswer(
       }
     } else if (content.correct_answer) {
       // multiple_choice, fill_blank, short_answer, reading_comprehension 등 모두 동일하게 채점
-      serverIsCorrect = answer.toLowerCase().trim() === content.correct_answer.toLowerCase().trim()
+      serverIsCorrect = isAnswerMatch(answer, content.correct_answer, content.options)
     } else {
       serverIsCorrect = null
     }

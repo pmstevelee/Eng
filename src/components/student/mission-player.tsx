@@ -409,7 +409,12 @@ function QuestionRenderer({
     )
   }
 
-  if (content.type === 'fill_blank' || content.type === 'short_answer') {
+  // 보기(options)가 있으면 fill_blank/short_answer로 저장돼 있어도 선택형으로 렌더링한다.
+  // 정답이 보기 문자("B")로 저장된 문제를 텍스트로 입력하면 항상 오답 처리되는 것을 방지.
+  if (
+    (content.type === 'fill_blank' || content.type === 'short_answer') &&
+    !(content.options && content.options.length > 0)
+  ) {
     return <FillBlankQuestion content={content} answer={answer} onAnswer={onAnswer} />
   }
 

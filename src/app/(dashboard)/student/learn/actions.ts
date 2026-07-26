@@ -11,6 +11,7 @@ import { selectAdaptiveQuestions, selectSmartDomainQuestions } from '@/lib/ai/qu
 import { LEVEL_TO_CEFR } from '@/lib/constants/levels'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
+import { isAnswerMatch } from '@/lib/assessment/answer-checker'
 import type {
   QuestionContentJson,
   QuestionDomainType,
@@ -727,7 +728,7 @@ export async function gradeAnswer(
   }
 
   const correctAnswer = content.correct_answer ?? ''
-  const isCorrect = answer.trim().toLowerCase() === correctAnswer.trim().toLowerCase()
+  const isCorrect = isAnswerMatch(answer, correctAnswer, content.options)
 
   // 정답이면 해당 학생의 가장 최근 오답 응답을 마스터 처리 (오답복습 목록에서 제거)
   if (isCorrect) {

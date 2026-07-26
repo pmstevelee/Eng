@@ -266,8 +266,11 @@ export function PracticeSession({ questions: initialQuestions, onGrade, onLoadMo
               onReadingTabChange={setReadingTab}
               gradeResult={gradeResult}
             />
-          ) : currentQuestion.content.type === 'fill_blank' ||
-            currentQuestion.content.type === 'short_answer' ? (
+          ) : (currentQuestion.content.type === 'fill_blank' ||
+              currentQuestion.content.type === 'short_answer') &&
+            !(currentQuestion.content.options && currentQuestion.content.options.length > 0) ? (
+            // 보기(options)가 있으면 fill_blank/short_answer여도 선택형으로 렌더링한다.
+            // 정답이 보기 문자("B")로 저장된 문제를 텍스트로 입력하면 항상 오답 처리되는 것을 방지.
             <FillBlankQuestion
               content={currentQuestion.content}
               answer={selectedAnswer}

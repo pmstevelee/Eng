@@ -8,6 +8,7 @@ import { recordActivityAndCheckBadges } from '@/app/(dashboard)/student/_actions
 import { recordLevelTestUsage } from '@/lib/questions/usage-tracker'
 import { updateQuestionQuality } from '@/lib/questions/quality-updater'
 import { checkPromotionStatus } from '@/lib/assessment/promotion-engine'
+import { isAnswerMatch } from '@/lib/assessment/answer-checker'
 import { difficultyWeightedScore, scoreToLevel, getGradeLevelCap } from '@/lib/constants/levels'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
@@ -237,8 +238,7 @@ export async function submitTest(
       ) {
         domainStats[domain].total++
         if (studentAnswer) {
-          isCorrect =
-            studentAnswer.toLowerCase().trim() === content.correct_answer.toLowerCase().trim()
+          isCorrect = isAnswerMatch(studentAnswer, content.correct_answer, content.options)
           if (isCorrect) domainStats[domain].correct++
         }
       }

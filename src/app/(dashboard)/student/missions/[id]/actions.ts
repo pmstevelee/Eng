@@ -7,6 +7,7 @@ import { updateStreak } from '@/lib/missions/streak-manager'
 import { awardXP, BADGE_XP } from '@/lib/missions/xp-manager'
 import { BadgeType, QuestionDomain } from '@/generated/prisma'
 import { checkPromotionStatus } from '@/lib/assessment/promotion-engine'
+import { isAnswerMatch } from '@/lib/assessment/answer-checker'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 
@@ -149,7 +150,7 @@ export async function submitMissionAnswer(
   const correctAnswer = content.correct_answer ?? ''
   const isCorrect = isEssay
     ? false
-    : answer.toLowerCase().trim() === correctAnswer.toLowerCase().trim()
+    : isAnswerMatch(answer, correctAnswer, content.options)
 
   // ── XP 계산 ────────────────────────────────────────────────────────────────
 
