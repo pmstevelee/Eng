@@ -339,14 +339,14 @@ export default function TestsListClient({ tests: initialTests }: { tests: TestIt
                             </span>
                             {isDone && (
                               <a
-                                href={`/print/report/session/${s.id}`}
+                                href={`/report/session/${s.id}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="ml-auto flex items-center gap-0.5 shrink-0 rounded px-1.5 py-0.5 text-xs font-medium text-[#7854F7] hover:bg-[#7854F7]/10"
-                                title="AI 리포트 열기"
+                                title="결과표 열기 (PDF 저장 가능)"
                               >
                                 <FileDown size={11} />
-                                리포트
+                                결과표
                               </a>
                             )}
                           </div>

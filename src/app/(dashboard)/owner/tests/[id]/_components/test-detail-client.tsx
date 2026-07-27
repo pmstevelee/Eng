@@ -411,13 +411,13 @@ export default function TestDetailClient({ test }: { test: TestDetailData }) {
                         <td className="px-4 py-3 text-right">
                           {isDone ? (
                             <a
-                              href={`/print/report/session/${s.id}`}
+                              href={`/report/session/${s.id}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-[#7854F7] hover:bg-[#7854F7]/10"
                             >
                               <FileDown size={12} />
-                              PDF
+                              결과표
                             </a>
                           ) : (
                             <span className="text-gray-300">-</span>
