@@ -273,12 +273,12 @@ export function SpellClient({ setId, initialCards }: Props) {
     setTotalAnswered((n) => n + 1)
 
     let state: AnswerState
-    if (correct || nearlyCorrect) {
-      state = correct ? 'correct' : 'nearly'
+    if (correct) {
+      state = 'correct'
       setCorrectCount((n) => n + 1)
       playAudio(ct, currentCard.word.audioUrl)
     } else {
-      state = 'wrong'
+      state = nearlyCorrect ? 'nearly' : 'wrong'
       setWrongCards((prev) => [...prev, currentCard])
     }
     setAnswerState(state)
@@ -287,7 +287,7 @@ export function SpellClient({ setId, initialCards }: Props) {
       wordId: currentCard.word.id,
       stage: 'SPELL',
       quality: quality as 0 | 1 | 2 | 3 | 4 | 5,
-      isCorrect: correct || nearlyCorrect,
+      isCorrect: correct,
       userAnswer: input,
     })
   }
@@ -374,7 +374,7 @@ export function SpellClient({ setId, initialCards }: Props) {
   const card = currentCard
   const accuracy = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : null
   const isAnswered = answerState !== 'idle'
-  const isCorrectish = answerState === 'correct' || answerState === 'nearly'
+  const isCorrectish = answerState === 'correct'
 
   return (
     <div className="flex flex-col" style={{ minHeight: 'calc(100dvh - 120px)' }}>
@@ -503,9 +503,7 @@ export function SpellClient({ setId, initialCards }: Props) {
                   <div className="rounded-xl bg-[#1FAF54]/10 border border-[#1FAF54]/20 px-4 py-3 flex items-center gap-3">
                     <CheckCircle2 className="w-5 h-5 text-[#1FAF54] shrink-0" />
                     <div>
-                      <p className="text-sm font-semibold text-[#1FAF54]">
-                        {answerState === 'nearly' ? '거의 맞았어요! (오타 1개)' : '정답이에요!'}
-                      </p>
+                      <p className="text-sm font-semibold text-[#1FAF54]">정답이에요!</p>
                       <button
                         onClick={() => playAudio(correctTerm, card.word.audioUrl)}
                         className="flex items-center gap-1 text-xs text-[#1FAF54]/70 mt-0.5 hover:text-[#1FAF54] transition-colors"
@@ -517,7 +515,9 @@ export function SpellClient({ setId, initialCards }: Props) {
                   </div>
                 ) : (
                   <div className="rounded-xl bg-[#D92916]/5 border border-[#D92916]/20 px-4 py-3">
-                    <p className="text-xs text-[#D92916] font-medium mb-2">오답</p>
+                    <p className="text-xs text-[#D92916] font-medium mb-2">
+                      {answerState === 'nearly' ? '오답 (철자 한 글자 차이예요)' : '오답'}
+                    </p>
                     <DiffView correct={correctTerm} userAnswer={input || '(건너뜀)'} />
                   </div>
                 )}
