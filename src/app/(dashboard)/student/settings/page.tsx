@@ -65,9 +65,9 @@ export default async function StudentSettingsPage() {
         </dl>
       </div>
 
-      {/* 위험 구역 */}
+      {/* 계정 탈퇴 */}
       <div className="bg-accent-red-light border border-accent-red rounded-xl p-6">
-        <h2 className="text-base font-semibold text-accent-red mb-2">위험 구역</h2>
+        <h2 className="text-base font-semibold text-accent-red mb-2">계정 탈퇴</h2>
         <p className="text-sm text-gray-700 mb-4">
           계정을 탈퇴하면 내 모든 학습 기록, 성적, 배지 등 관련 데이터가 영구적으로 삭제됩니다.
           이 작업은 되돌릴 수 없습니다.
