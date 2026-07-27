@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import type { SubscriptionStatus, Plan } from '@/generated/prisma'
 
@@ -20,16 +21,22 @@ interface AcademySettings {
   }
 }
 
-async function fetchAcademySubscription(academyId: string) {
-  return prisma.academy.findUnique({
-    where: { id: academyId },
-    select: {
-      settingsJson: true,
-      subscription: {
-        select: { plan: true, status: true },
-      },
-    },
-  })
+// 구독 상태는 자주 바뀌지 않으므로 60초 캐시로 학습 액션마다 발생하는 원격 DB 왕복을 줄인다.
+function fetchAcademySubscription(academyId: string) {
+  return unstable_cache(
+    () =>
+      prisma.academy.findUnique({
+        where: { id: academyId },
+        select: {
+          settingsJson: true,
+          subscription: {
+            select: { plan: true, status: true },
+          },
+        },
+      }),
+    ['academy-subscription', academyId],
+    { revalidate: 60, tags: [`academy-${academyId}`] },
+  )()
 }
 
 function isSubscriptionActive(

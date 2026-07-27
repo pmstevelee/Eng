@@ -1,15 +1,13 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma/client'
 import { requireStudent } from '@/lib/auth-student'
 import { assertCanUseWordLearning, getWordLearningLimits } from '@/lib/words/access-guard'
 import { getDueWords, applySrsResult } from '@/lib/words/progress'
-import { checkSpelling } from '@/lib/words/spell-check'
 import { gradeTest, buildQuestions } from '@/lib/words/test-grader'
-import { QUALITY, type SrsQuality } from '@/lib/words/srs'
+import { type SrsQuality } from '@/lib/words/srs'
 import { emitWordEvent } from '@/lib/words/word-events'
 import type { BadgeType, LearnStage } from '@/generated/prisma'
 
@@ -30,14 +28,10 @@ function err(code: string, message: string): Err {
 // ─── 인증 헬퍼 ────────────────────────────────────────────────────────────────
 
 async function getAuthContext() {
-  const { studentId, userId } = await requireStudent()
+  // getCurrentUser 캐시에 academyId가 포함되어 있어 별도 user 조회가 필요 없다.
+  const { studentId, user } = await requireStudent()
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { academyId: true },
-  })
-
-  const academyId = user?.academyId
+  const academyId = user.academyId
   if (!academyId) throw new Error('소속 학원을 찾을 수 없습니다.')
 
   await assertCanUseWordLearning(academyId)
@@ -109,26 +103,25 @@ export async function startWordSet(setId: string): Promise<Result<{ created: num
     // 한도를 전역(모든 세트 합산)으로 세면 같은 날 여러 세트를 열었을 때
     // 뒤에 연 세트일수록 한도가 남지 않아 세트 일부만 시작되는 버그가 있었음 —
     // 세트를 열면 그 세트만큼은 항상 온전히(한도 내에서) 시작되도록 세트별로 센다.
-    const todayNewCount = await prisma.wordProgress.count({
-      where: {
-        studentId,
-        createdAt: { gte: todayStart },
-        wordId: { in: wordSet.items.map((i) => i.wordId) },
-      },
-    })
+    const [todayNewCount, existingProgress] = await Promise.all([
+      prisma.wordProgress.count({
+        where: {
+          studentId,
+          createdAt: { gte: todayStart },
+          wordId: { in: wordSet.items.map((i) => i.wordId) },
+        },
+      }),
+      prisma.wordProgress.findMany({
+        where: { studentId, wordId: { in: wordSet.items.map((i) => i.wordId) } },
+        select: { wordId: true },
+      }),
+    ])
 
     const remaining = limits.dailyNewWords - todayNewCount
     // 한도 소진 시에도 에러 대신 0개 생성 — 오늘 이미 시작한 배치를 그대로 학습하면 된다.
     if (remaining <= 0) return ok({ created: 0 })
 
-    const existingWordIds = new Set(
-      (
-        await prisma.wordProgress.findMany({
-          where: { studentId, wordId: { in: wordSet.items.map((i) => i.wordId) } },
-          select: { wordId: true },
-        })
-      ).map((p) => p.wordId),
-    )
+    const existingWordIds = new Set(existingProgress.map((p) => p.wordId))
 
     // 세트 순서대로 아직 시작하지 않은 단어를 일일 한도만큼만 신규 생성한다.
     const newWordIds = wordSet.items
@@ -249,8 +242,6 @@ export async function recordProgress(
 
     if (!existing) return err('NOT_FOUND', '진도 기록을 찾을 수 없습니다. startWordSet을 먼저 호출하세요.')
 
-    const updated = await applySrsResult(studentId, wordId, quality)
-
     let nextStage: LearnStage = stage
     if (isCorrect) {
       if (stage === 'FLASHCARD') nextStage = 'RECALL'
@@ -258,12 +249,13 @@ export async function recordProgress(
       else if (stage === 'SPELL') nextStage = 'MASTERED'
     }
 
-    if (nextStage !== stage) {
-      await prisma.wordProgress.update({
-        where: { studentId_wordId: { studentId, wordId } },
-        data: { stage: nextStage },
-      })
-    }
+    // 이미 조회한 진도(existing)를 넘기고 stage 변경도 같은 update에 병합해
+    // 단어당 DB 왕복을 최소화한다. revalidatePath는 매 단어마다 호출하면
+    // 현재 학습 페이지 전체가 서버에서 재렌더되므로 라운드 종료 시(finishWordSession) 1회만 수행.
+    const updated = await applySrsResult(studentId, wordId, quality, {
+      existing,
+      stage: nextStage !== stage ? nextStage : undefined,
+    })
 
     // 게이미피케이션: 단계별 XP 지급 (실패해도 학습 기록에는 영향 없음)
     try {
@@ -280,8 +272,6 @@ export async function recordProgress(
     } catch {
       // XP/배지 지급 실패는 무시한다 (학습 진도는 이미 저장됨).
     }
-
-    revalidatePath('/student/words')
 
     return ok({ ...updated, stage: nextStage })
   } catch (e) {
@@ -306,51 +296,73 @@ export async function getTodayReview(): Promise<Result<unknown>> {
   }
 }
 
-// ─── 6. getRecallOptions ──────────────────────────────────────────────────────
+// ─── 6a. getRecallOptionsBatch ────────────────────────────────────────────────
+// 리콜 학습 시작 시 전체 문제의 보기를 한 번에 생성해
+// 단어 전환마다 발생하던 서버 왕복을 제거한다.
 
-const GetRecallOptionsSchema = z.object({ wordId: z.string().uuid() })
+const GetRecallOptionsBatchSchema = z.object({
+  wordIds: z.array(z.string().uuid()).min(1).max(100),
+})
 
-export async function getRecallOptions(wordId: string): Promise<Result<unknown>> {
+interface RecallQuestionData {
+  correctId: string
+  options: { id: string; term: string; meaning: string; partOfSpeech: string }[]
+}
+
+export async function getRecallOptionsBatch(
+  wordIds: string[],
+): Promise<Result<{ questions: Record<string, RecallQuestionData> }>> {
   try {
-    const { wordId: validWordId } = GetRecallOptionsSchema.parse({ wordId })
+    const { wordIds: ids } = GetRecallOptionsBatchSchema.parse({ wordIds })
     await getAuthContext()
 
-    const target = await prisma.word.findUnique({ where: { id: validWordId } })
-    if (!target) return err('NOT_FOUND', '단어를 찾을 수 없습니다.')
+    const targets = await prisma.word.findMany({ where: { id: { in: ids } } })
+    if (targets.length === 0) return err('NOT_FOUND', '단어를 찾을 수 없습니다.')
 
     const DISTRACTOR_COUNT = 3
 
-    let distractors = await prisma.word.findMany({
-      where: {
-        id: { not: validWordId },
-        cefrLevel: target.cefrLevel,
-        partOfSpeech: target.partOfSpeech,
-      },
-      take: DISTRACTOR_COUNT * 3,
-    })
-
-    if (distractors.length < DISTRACTOR_COUNT) {
-      const extra = await prisma.word.findMany({
-        where: {
-          id: { not: validWordId },
-          cefrLevel: { in: [target.cefrLevel - 1, target.cefrLevel + 1] },
-          partOfSpeech: target.partOfSpeech,
-        },
-        take: DISTRACTOR_COUNT * 2,
+    // (cefrLevel, partOfSpeech) 조합별로 후보를 한 번씩만 조회 (±1 레벨 포함)
+    const pairKeys = new Map<string, { cefrLevel: number; partOfSpeech: string }>()
+    for (const t of targets) {
+      pairKeys.set(`${t.cefrLevel}|${t.partOfSpeech}`, {
+        cefrLevel: t.cefrLevel,
+        partOfSpeech: t.partOfSpeech,
       })
-      distractors = [...distractors, ...extra]
     }
 
-    const shuffled = distractors.sort(() => Math.random() - 0.5).slice(0, DISTRACTOR_COUNT)
+    const pairList = Array.from(pairKeys.entries())
+    const candidateLists = await Promise.all(
+      pairList.map(([, p]) =>
+        prisma.word.findMany({
+          where: {
+            cefrLevel: { in: [p.cefrLevel - 1, p.cefrLevel, p.cefrLevel + 1] },
+            partOfSpeech: p.partOfSpeech,
+          },
+          select: { id: true, term: true, meaning: true, partOfSpeech: true, cefrLevel: true },
+          take: 80,
+        }),
+      ),
+    )
+    const candidatesByPair = new Map(pairList.map(([key], i) => [key, candidateLists[i]]))
 
-    const options = [target, ...shuffled].sort(() => Math.random() - 0.5).map((w) => ({
-      id: w.id,
-      term: w.term,
-      meaning: w.meaning,
-      partOfSpeech: w.partOfSpeech,
-    }))
+    const questions: Record<string, RecallQuestionData> = {}
+    for (const target of targets) {
+      const key = `${target.cefrLevel}|${target.partOfSpeech}`
+      const pool = (candidatesByPair.get(key) ?? []).filter((w) => w.id !== target.id)
+      // 같은 레벨 우선, 부족하면 ±1 레벨로 보충
+      const sameLevel = pool.filter((w) => w.cefrLevel === target.cefrLevel)
+      const nearLevel = pool.filter((w) => w.cefrLevel !== target.cefrLevel)
+      const distractors = [...sameLevel.sort(() => Math.random() - 0.5), ...nearLevel.sort(() => Math.random() - 0.5)]
+        .slice(0, DISTRACTOR_COUNT)
 
-    return ok({ correctId: validWordId, options })
+      const options = [target, ...distractors]
+        .sort(() => Math.random() - 0.5)
+        .map((w) => ({ id: w.id, term: w.term, meaning: w.meaning ?? '', partOfSpeech: w.partOfSpeech }))
+
+      questions[target.id] = { correctId: target.id, options }
+    }
+
+    return ok({ questions })
   } catch (e) {
     if (e instanceof z.ZodError) return err('INVALID_INPUT', e.errors[0]?.message ?? '입력 오류')
     if (e instanceof Error) return err('FORBIDDEN', e.message)
@@ -400,50 +412,17 @@ export async function completeReviewSession(
   }
 }
 
-// ─── 7. checkSpell ────────────────────────────────────────────────────────────
+// ─── 7. finishWordSession ─────────────────────────────────────────────────────
+// 라운드/세션 종료 시 1회만 호출해 단어 허브 데이터를 갱신한다.
+// (recordProgress에서 매 단어마다 revalidate하면 학습 페이지 전체가 재렌더되어 느려짐)
 
-const CheckSpellSchema = z.object({
-  wordId: z.string().uuid(),
-  userAnswer: z.string().min(1, '답변을 입력하세요.'),
-  usedHint: z.boolean().default(false),
-})
-
-export async function checkSpell(
-  input: z.infer<typeof CheckSpellSchema>,
-): Promise<Result<unknown>> {
+export async function finishWordSession(): Promise<Result<null>> {
   try {
-    const { wordId, userAnswer, usedHint } = CheckSpellSchema.parse(input)
     await getAuthContext()
-
-    const word = await prisma.word.findUnique({ where: { id: wordId } })
-    if (!word) return err('NOT_FOUND', '단어를 찾을 수 없습니다.')
-
-    const { correct, nearlyCorrect, normalized } = checkSpelling(word.term, userAnswer)
-
-    let quality: SrsQuality
-    let feedback: string
-
-    if (correct) {
-      quality = usedHint ? QUALITY.SPELL_HINT : QUALITY.SPELL_CORRECT
-      feedback = '정답입니다!'
-    } else if (nearlyCorrect) {
-      quality = 4 as SrsQuality
-      feedback = '거의 정답입니다! (오타 1개)'
-    } else {
-      quality = QUALITY.SPELL_WRONG
-      feedback = `오답입니다. 정답: ${word.term}`
-    }
-
-    return ok({
-      correct,
-      nearlyCorrect,
-      quality,
-      feedback,
-      correctTerm: word.term,
-      normalized,
-    })
+    revalidatePath('/student/words')
+    revalidatePath('/student')
+    return ok(null)
   } catch (e) {
-    if (e instanceof z.ZodError) return err('INVALID_INPUT', e.errors[0]?.message ?? '입력 오류')
     if (e instanceof Error) return err('FORBIDDEN', e.message)
     return err('UNKNOWN', '오류가 발생했습니다.')
   }

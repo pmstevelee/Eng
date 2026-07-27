@@ -12,17 +12,17 @@ import {
   Volume2,
   Zap,
   Flame,
-  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import {
-  getRecallOptions,
+  getRecallOptionsBatch,
   recordProgress,
-  checkSpell,
   completeReviewSession,
 } from '@/app/(dashboard)/student/words/_actions'
 import { speakEnglish } from '@/lib/words/speech'
+import { checkSpelling } from '@/lib/words/spell-check'
+import { QUALITY } from '@/lib/words/srs'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -149,28 +149,40 @@ function ProgressBar({ index, total, correct, answered }: { index: number; total
 
 function RecallCard({
   card,
+  preloaded,
   onResult,
 }: {
   card: ReviewCard
+  preloaded?: { correctId: string; options: RecallOption[] }
   onResult: (isCorrect: boolean) => void
 }) {
-  const [options, setOptions] = useState<RecallOption[]>([])
-  const [correctId, setCorrectId] = useState('')
+  const [options, setOptions] = useState<RecallOption[]>(preloaded?.options ?? [])
+  const [correctId, setCorrectId] = useState(preloaded?.correctId ?? '')
   const [selected, setSelected] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!preloaded)
 
   useEffect(() => {
     setSelected(null)
+    if (preloaded) {
+      setCorrectId(preloaded.correctId)
+      setOptions(preloaded.options)
+      setLoading(false)
+      return
+    }
+    // 프리로드가 없는 경우(배치 조회 실패 등)에만 개별 조회로 폴백한다.
     setLoading(true)
-    getRecallOptions(card.word.id).then((res) => {
+    getRecallOptionsBatch([card.word.id]).then((res) => {
       if (res.ok) {
-        const d = res.data as { correctId: string; options: RecallOption[] }
-        setCorrectId(d.correctId)
-        setOptions(d.options)
+        const q = res.data.questions[card.word.id]
+        if (q) {
+          setCorrectId(q.correctId)
+          setOptions(q.options)
+        }
       }
       setLoading(false)
     })
-  }, [card.word.id])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [card.word.id, preloaded])
 
   function handleSelect(id: string) {
     if (selected !== null) return
@@ -249,7 +261,6 @@ function SpellCard({
   const [correctTerm, setCorrectTerm] = useState('')
   const [showHint, setShowHint] = useState(false)
   const [usedHint, setUsedHint] = useState(false)
-  const [isGrading, setIsGrading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -257,23 +268,21 @@ function SpellCard({
     setAnswerState('idle')
     setShowHint(false)
     setUsedHint(false)
-    setIsGrading(false)
     inputRef.current?.focus()
   }, [card.word.id])
 
-  async function handleSubmit() {
+  function handleSubmit() {
     if (answerState !== 'idle' || input.trim() === '') return
-    setIsGrading(true)
-    const minDelay = new Promise((resolve) => setTimeout(resolve, 600))
-    const [res] = await Promise.all([
-      checkSpell({ wordId: card.word.id, userAnswer: input, usedHint }),
-      minDelay,
-    ])
-    setIsGrading(false)
-    if (!res.ok) return
-    const { correct, nearlyCorrect, quality, correctTerm: ct } = res.data as {
-      correct: boolean; nearlyCorrect: boolean; quality: number; correctTerm: string
-    }
+    // 채점 로직이 순수 함수라 서버 왕복 없이 클라이언트에서 즉시 처리한다.
+    const { correct, nearlyCorrect } = checkSpelling(card.word.term, input)
+    const quality = correct
+      ? usedHint
+        ? QUALITY.SPELL_HINT
+        : QUALITY.SPELL_CORRECT
+      : nearlyCorrect
+        ? 4
+        : QUALITY.SPELL_WRONG
+    const ct = card.word.term
     setCorrectTerm(ct)
     const isCorrectish = correct || nearlyCorrect
     setAnswerState(correct ? 'correct' : nearlyCorrect ? 'nearly' : 'wrong')
@@ -282,7 +291,7 @@ function SpellCard({
   }
 
   function handleSkip() {
-    if (answerState !== 'idle' || isGrading) return
+    if (answerState !== 'idle') return
     setCorrectTerm(card.word.term)
     setAnswerState('wrong')
     recordProgress({ wordId: card.word.id, stage: 'SPELL', quality: 2, isCorrect: false, userAnswer: '' })
@@ -326,16 +335,16 @@ function SpellCard({
         ref={inputRef}
         type="text"
         value={input}
-        onChange={(e) => { if (!isAnswered && !isGrading) setInput(e.target.value) }}
+        onChange={(e) => { if (!isAnswered) setInput(e.target.value) }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             e.preventDefault()
             if (isAnswered) onResult(isCorrectish)
-            else if (!isGrading) handleSubmit()
+            else handleSubmit()
           }
         }}
         autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false}
-        disabled={isAnswered || isGrading}
+        disabled={isAnswered}
         placeholder="영어 단어 입력..."
         className={`w-full h-14 rounded-xl border-2 px-4 text-lg font-mono tracking-widest text-center transition-colors outline-none mb-3 ${
           isAnswered
@@ -380,23 +389,15 @@ function SpellCard({
         <div className="flex flex-col gap-2">
           <Button
             onClick={handleSubmit}
-            disabled={input.trim() === '' || isGrading}
+            disabled={input.trim() === ''}
             className="h-14 rounded-xl bg-[#7854F7] hover:bg-[#7854F7]/90 text-white font-semibold text-base disabled:opacity-40"
           >
-            {isGrading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />채점 중...
-              </>
-            ) : (
-              <>
-                확인<ArrowRight className="w-4 h-4 ml-2" />
-              </>
-            )}
+            확인<ArrowRight className="w-4 h-4 ml-2" />
           </Button>
           <div className="flex gap-2">
             <Button
               onClick={() => { setUsedHint(true); setShowHint(true) }}
-              disabled={showHint || isGrading}
+              disabled={showHint}
               variant="outline"
               className="flex-1 h-11 rounded-xl border-2 text-[#FFB100] border-[#FFB100]/30 hover:bg-[#FFB100]/5 disabled:opacity-30 font-medium"
             >
@@ -404,7 +405,6 @@ function SpellCard({
             </Button>
             <Button
               onClick={handleSkip}
-              disabled={isGrading}
               variant="outline"
               className="flex-1 h-11 rounded-xl border-2 text-gray-500 border-gray-200 hover:bg-gray-50 dark:border-gray-700 font-medium disabled:opacity-30"
             >
@@ -540,9 +540,20 @@ export function ReviewClient({ cards }: Props) {
   const [correctCount, setCorrectCount] = useState(0)
   const [answeredCount, setAnsweredCount] = useState(0)
   const [doneStats, setDoneStats] = useState<{ xpEarned: number; streak: number; badges: BadgeType[] }>({ xpEarned: 0, streak: 0, badges: [] })
+  const [recallOptionsMap, setRecallOptionsMap] = useState<Record<string, { correctId: string; options: RecallOption[] }>>({})
 
   const currentCard = cards[index]
   const mode = currentCard ? modeForCard(currentCard) : 'RECALL'
+
+  // 세션 시작 시 리콜 문제의 보기를 한 번에 불러와 카드 전환마다 발생하던 서버 왕복을 제거한다.
+  useEffect(() => {
+    const recallWordIds = cards.filter((c) => modeForCard(c) === 'RECALL').map((c) => c.wordId)
+    if (recallWordIds.length === 0) return
+    getRecallOptionsBatch(recallWordIds).then((res) => {
+      if (res.ok) setRecallOptionsMap(res.data.questions)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleResult = useCallback(
     async (isCorrect: boolean) => {
@@ -609,7 +620,7 @@ export function ReviewClient({ cards }: Props) {
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
           {mode === 'RECALL' ? (
-            <RecallCard card={currentCard} onResult={handleResult} />
+            <RecallCard card={currentCard} preloaded={recallOptionsMap[currentCard.wordId]} onResult={handleResult} />
           ) : (
             <SpellCard card={currentCard} onResult={handleResult} />
           )}

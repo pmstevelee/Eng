@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma/client";
 import { calculateNextWordReview, type SrsQuality } from "./srs";
+import type { LearnStage, WordProgress } from "@/generated/prisma";
 
 export async function getDueWords(studentId: string, limit: number) {
   const now = new Date();
@@ -26,14 +27,19 @@ function isSameDay(a: Date, b: Date): boolean {
 export async function applySrsResult(
   studentId: string,
   wordId: string,
-  quality: SrsQuality
+  quality: SrsQuality,
+  opts?: { existing?: WordProgress | null; stage?: LearnStage }
 ) {
-  const existing = await prisma.wordProgress.findUnique({
-    where: { studentId_wordId: { studentId, wordId } },
-  });
+  const existing =
+    opts && "existing" in opts
+      ? opts.existing
+      : await prisma.wordProgress.findUnique({
+          where: { studentId_wordId: { studentId, wordId } },
+        });
 
   const isCorrect = quality >= 3;
   const now = new Date();
+  const stageData = opts?.stage ? { stage: opts.stage } : {};
 
   // 하루의 다단계 학습(플래시카드→리콜→스펠)은 1회 복습으로 취급한다.
   // 같은 날 이미 학습한 단어면 SRS 일정(간격/반복/다음 복습일)을 다시 진행시키지 않고
@@ -45,6 +51,7 @@ export async function applySrsResult(
         correctCount: { increment: isCorrect ? 1 : 0 },
         wrongCount: { increment: isCorrect ? 0 : 1 },
         lastStudiedAt: now,
+        ...stageData,
       },
     });
   }
@@ -69,6 +76,7 @@ export async function applySrsResult(
       correctCount: isCorrect ? 1 : 0,
       wrongCount: isCorrect ? 0 : 1,
       lastStudiedAt: new Date(),
+      ...stageData,
     },
     update: {
       easeFactor: next.easeFactor,
@@ -78,6 +86,7 @@ export async function applySrsResult(
       correctCount: { increment: isCorrect ? 1 : 0 },
       wrongCount: { increment: isCorrect ? 0 : 1 },
       lastStudiedAt: new Date(),
+      ...stageData,
     },
   });
 }

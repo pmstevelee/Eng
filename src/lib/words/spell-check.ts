@@ -1,5 +1,3 @@
-import 'server-only'
-
 export interface SpellCheckResult {
   correct: boolean
   nearlyCorrect: boolean // 편집거리 1 (질 4)

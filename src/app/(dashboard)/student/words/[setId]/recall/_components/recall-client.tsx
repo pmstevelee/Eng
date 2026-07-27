@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Target } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LoadingOverlay } from '@/components/shared/loading-overlay'
-import { getRecallOptions, recordProgress } from '@/app/(dashboard)/student/words/_actions'
+import { getRecallOptionsBatch, recordProgress, finishWordSession } from '@/app/(dashboard)/student/words/_actions'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -353,19 +353,25 @@ export function RecallClient({ setId, initialCards }: Props) {
   const [wrongCards, setWrongCards] = useState<WordCard[]>([])
   const [retryCount, setRetryCount] = useState(0)
 
-  const nextFetchRef = useRef<Promise<LoadedQuestion | null> | null>(null)
+  // wordId → 보기 목록. 라운드 시작 시 세트 전체를 한 번에 불러와서
+  // 문제 전환마다 발생하던 서버 왕복(다음 단어 로딩 지연)을 제거한다.
+  const optionsMapRef = useRef<Record<string, { correctId: string; options: Option[] }>>({})
 
-  // ─── 옵션 로드 ──────────────────────────────────────────────────────────────
-
-  async function loadQuestion(card: WordCard, currentMode: Mode): Promise<LoadedQuestion | null> {
-    const res = await getRecallOptions(card.word.id)
-    if (!res.ok) return null
-    const { correctId, options } = res.data as { correctId: string; options: Option[] }
+  function buildQuestion(card: WordCard, currentMode: Mode): LoadedQuestion | null {
+    const loaded = optionsMapRef.current[card.word.id]
+    if (!loaded) return null
     const direction: 'EN_TO_KO' | 'KO_TO_EN' =
-      currentMode === 'MIXED'
-        ? Math.random() < 0.5 ? 'EN_TO_KO' : 'KO_TO_EN'
-        : currentMode
-    return { card, options, correctId, direction }
+      currentMode === 'MIXED' ? (Math.random() < 0.5 ? 'EN_TO_KO' : 'KO_TO_EN') : currentMode
+    return { card, options: loaded.options, correctId: loaded.correctId, direction }
+  }
+
+  async function ensureOptionsLoaded(cards: WordCard[]) {
+    const missing = cards.filter((c) => !optionsMapRef.current[c.word.id])
+    if (missing.length === 0) return
+    const res = await getRecallOptionsBatch(missing.map((c) => c.word.id))
+    if (res.ok) {
+      Object.assign(optionsMapRef.current, res.data.questions)
+    }
   }
 
   // ─── 모드 선택 후 시작 ──────────────────────────────────────────────────────
@@ -374,13 +380,9 @@ export function RecallClient({ setId, initialCards }: Props) {
     setMode(m)
     setPhase('quizzing')
     setLoadingQuestion(true)
-    const q = await loadQuestion(deck[0], m)
-    setQuestion(q)
+    await ensureOptionsLoaded(deck)
+    setQuestion(buildQuestion(deck[0], m))
     setLoadingQuestion(false)
-    // 다음 문제 미리 로드
-    if (deck[1]) {
-      nextFetchRef.current = loadQuestion(deck[1], m)
-    }
   }
 
   // ─── 선택 처리 ──────────────────────────────────────────────────────────────
@@ -408,34 +410,19 @@ export function RecallClient({ setId, initialCards }: Props) {
 
   // ─── 다음 문제 ──────────────────────────────────────────────────────────────
 
-  async function handleNext() {
+  function handleNext() {
     const nextIndex = qIndex + 1
     if (nextIndex >= deck.length) {
       // 라운드 종료
       setPhase('round-done')
+      void finishWordSession()
       return
     }
 
     setQIndex(nextIndex)
     setSelected(null)
-    setLoadingQuestion(true)
-
-    // 이미 미리 로드된 것 사용
-    let nextQ: LoadedQuestion | null = null
-    if (nextFetchRef.current) {
-      nextQ = await nextFetchRef.current
-      nextFetchRef.current = null
-    } else {
-      nextQ = await loadQuestion(deck[nextIndex], mode)
-    }
-    setQuestion(nextQ)
-    setLoadingQuestion(false)
-
-    // 그 다음 미리 로드
-    const afterNext = nextIndex + 1
-    if (afterNext < deck.length) {
-      nextFetchRef.current = loadQuestion(deck[afterNext], mode)
-    }
+    // 세트 전체 보기를 라운드 시작 시 이미 불러왔으므로 동기적으로 즉시 전환된다.
+    setQuestion(buildQuestion(deck[nextIndex], mode))
   }
 
   // ─── 재출제 ─────────────────────────────────────────────────────────────────
@@ -450,13 +437,12 @@ export function RecallClient({ setId, initialCards }: Props) {
     setSelected(null)
     setRetryCount((n) => n + 1)
     setPhase('quizzing')
+    // 재출제 단어는 이미 optionsMapRef에 로드되어 있어 즉시 렌더 가능하지만
+    // 방어적으로 누락분만 확인한다.
     setLoadingQuestion(true)
-    const q = await loadQuestion(newDeck[0], mode)
-    setQuestion(q)
+    await ensureOptionsLoaded(newDeck)
+    setQuestion(buildQuestion(newDeck[0], mode))
     setLoadingQuestion(false)
-    if (newDeck[1]) {
-      nextFetchRef.current = loadQuestion(newDeck[1], mode)
-    }
   }
 
   // ─── 키보드 단축키 ──────────────────────────────────────────────────────────

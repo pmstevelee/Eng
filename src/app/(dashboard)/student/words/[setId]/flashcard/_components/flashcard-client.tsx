@@ -7,7 +7,7 @@ import { Volume2, ChevronLeft, ChevronRight, RotateCcw, ArrowRight } from 'lucid
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { LoadingOverlay } from '@/components/shared/loading-overlay'
-import { recordProgress } from '@/app/(dashboard)/student/words/_actions'
+import { recordProgress, finishWordSession } from '@/app/(dashboard)/student/words/_actions'
 import { speakEnglish } from '@/lib/words/speech'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
@@ -294,6 +294,7 @@ export function FlashcardClient({ setId, initialCards, totalWords, masteredWords
       const next = index + 1
       if (next >= total) {
         setIsDone(true)
+        void finishWordSession()
       } else {
         setIndex(next)
       }
