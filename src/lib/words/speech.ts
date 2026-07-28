@@ -5,8 +5,8 @@
 
 let cachedVoices: SpeechSynthesisVoice[] | null = null
 
-function loadVoices(): Promise<SpeechSynthesisVoice[]> {
-  if (cachedVoices) return Promise.resolve(cachedVoices)
+function loadVoices(forceRefresh = false): Promise<SpeechSynthesisVoice[]> {
+  if (cachedVoices && !forceRefresh) return Promise.resolve(cachedVoices)
 
   const voices = window.speechSynthesis.getVoices()
   if (voices.length > 0) {
@@ -21,21 +21,38 @@ function loadVoices(): Promise<SpeechSynthesisVoice[]> {
       resolve(cachedVoices)
     }
     window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged)
-    // 일부 브라우저는 voiceschanged를 발생시키지 않으므로 타임아웃으로 방어
+    // 일부 브라우저(특히 안드로이드)는 음성 엔진 목록 로딩이 늦으므로 타임아웃을 넉넉히 잡는다
     setTimeout(() => {
       window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged)
       cachedVoices = window.speechSynthesis.getVoices()
       resolve(cachedVoices)
-    }, 300)
+    }, 1000)
   })
 }
 
+// 같은 en-US 라도 엔진별 품질 차이가 커서(특히 삼성 등 일부 기기 기본 엔진은
+// 한국어 억양으로 들리는 경우가 있음) 신뢰도 높은 엔진을 이름으로 우선 선택한다.
+const PREFERRED_VOICE_NAME_PATTERNS = [
+  'google us english',
+  'samantha',
+  'microsoft aria',
+  'microsoft jenny',
+  'microsoft guy',
+  'alex',
+]
+
 function pickUsEnglishVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
-  return (
-    voices.find((v) => v.lang === 'en-US') ??
-    voices.find((v) => v.lang.toLowerCase() === 'en-us') ??
-    voices.find((v) => v.lang.toLowerCase().startsWith('en'))
-  )
+  const enUs = voices.filter((v) => v.lang.toLowerCase() === 'en-us')
+  if (enUs.length > 0) {
+    const preferred = enUs.find((v) =>
+      PREFERRED_VOICE_NAME_PATTERNS.some((pattern) => v.name.toLowerCase().includes(pattern))
+    )
+    return preferred ?? enUs[0]
+  }
+
+  // en-US 보이스가 전혀 없으면 다른 원어민 영어 억양(en-GB 등)이라도 사용해
+  // 한국어 엔진으로 대체 재생되는 것을 막는다.
+  return voices.find((v) => v.lang.toLowerCase().startsWith('en'))
 }
 
 /** 미국식 영어 발음(en-US)으로 단어/문장을 읽어준다. */
@@ -44,12 +61,20 @@ export async function speakEnglish(text: string, rate = 0.9): Promise<void> {
 
   window.speechSynthesis.cancel()
 
-  const utterance = new SpeechSynthesisUtterance(text)
-  utterance.lang = 'en-US'
-  utterance.rate = rate
+  let voice = pickUsEnglishVoice(await loadVoices())
+  if (!voice) {
+    // 첫 로딩 시점에 엔진이 아직 준비되지 않았을 수 있으므로 한 번 더 새로고침해서 재시도
+    voice = pickUsEnglishVoice(await loadVoices(true))
+  }
 
-  const voice = pickUsEnglishVoice(await loadVoices())
-  if (voice) utterance.voice = voice
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.rate = rate
+  if (voice) {
+    utterance.voice = voice
+    utterance.lang = voice.lang
+  } else {
+    utterance.lang = 'en-US'
+  }
 
   window.speechSynthesis.speak(utterance)
 }
