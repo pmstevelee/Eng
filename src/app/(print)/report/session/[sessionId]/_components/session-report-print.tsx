@@ -603,6 +603,7 @@ export function SessionReportPrint({ stats: initialStats, savedNarrative, hasSna
       {/* ═══════════ 4. 영역별 페이지 ═══════════ */}
       {stats.domains.map((d) => {
         const comment = narrative?.domainComments?.[DOMAIN_NARRATIVE_KEY[d.domain]]
+        const benchmark = narrative?.domainBenchmarks?.[DOMAIN_NARRATIVE_KEY[d.domain]]
         return (
           <div key={d.domain} className="report-page mx-auto max-w-[210mm] bg-white px-10 py-10">
             <div className="mb-6">
@@ -632,6 +633,28 @@ export function SessionReportPrint({ stats: initialStats, savedNarrative, hasSna
                 />
               </div>
             </section>
+
+            {/* 기준 환산 평가 (문법/듣기/어휘/독해: 수능 기준, 쓰기: 토론토대 기준) */}
+            {benchmark && (
+              <section className="mb-8 print:break-inside-avoid">
+                <SubTitle>기준 환산 평가</SubTitle>
+                <div
+                  className="rounded-xl border p-5"
+                  style={{ borderColor: DOMAIN_COLOR[d.domain] }}
+                >
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <span
+                      className="rounded-full px-3 py-1 text-xs font-semibold text-white"
+                      style={{ backgroundColor: DOMAIN_COLOR[d.domain] }}
+                    >
+                      {benchmark.standard}
+                    </span>
+                    <span className="text-base font-bold text-gray-900">{benchmark.grade}</span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-gray-700">{benchmark.comment}</p>
+                </div>
+              </section>
+            )}
 
             {/* 평가 항목별 역량 */}
             {d.subCategories.length > 0 && (

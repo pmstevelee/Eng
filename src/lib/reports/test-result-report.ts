@@ -64,6 +64,8 @@ export type TestResultReportData = {
     title: string
     type: string
     isAdaptive: boolean
+    /** 영역 카테고리 (null = 전체 영역 테스트) */
+    domain?: ReportDomainKey | null
   }
   completedAt: string | null
   totalScore: number | null
@@ -80,10 +82,18 @@ export type TestResultReportData = {
 }
 
 // AI 생성 총평/처방
+// domainBenchmarks: 영역별 환산 평가 — 문법/듣기/어휘/독해는 수능 영어 기준,
+// 쓰기는 토론토대 학술 영작문 기준 (src/lib/reports/domain-analysis-prompts.ts)
 export type TestReportNarrative = {
   overall: string
   domainComments: Partial<Record<'grammar' | 'vocabulary' | 'reading' | 'writing' | 'listening', string>>
   prescriptions: Partial<Record<'grammar' | 'vocabulary' | 'reading' | 'writing' | 'listening', string[]>>
+  domainBenchmarks?: Partial<
+    Record<
+      'grammar' | 'vocabulary' | 'reading' | 'writing' | 'listening',
+      { standard: string; grade: string; comment: string }
+    >
+  >
 }
 
 export type TestResultReportSnapshot = {
@@ -143,7 +153,7 @@ export async function buildTestResultReportData(sessionId: string): Promise<Test
     where: { id: sessionId },
     include: {
       test: {
-        select: { id: true, title: true, type: true, isAdaptive: true },
+        select: { id: true, title: true, type: true, isAdaptive: true, domain: true },
       },
       student: {
         select: {
@@ -345,6 +355,7 @@ export async function buildTestResultReportData(sessionId: string): Promise<Test
       title: session.test.title,
       type: session.test.type,
       isAdaptive: session.test.isAdaptive,
+      domain: session.test.domain,
     },
     completedAt: session.completedAt?.toISOString() ?? null,
     totalScore: myScore,

@@ -392,6 +392,9 @@ model Test {
   unitName           String? @map("unit_name")            // 단원명 (예: "Unit 3: 관계대명사")
   learningObjectives String? @map("learning_objectives")  // 학습 목표
 
+  // 영역 카테고리 (null = 전체 영역)
+  domain QuestionDomain?
+
   academy      Academy       @relation(fields: [academyId], references: [id])
   creator      User          @relation("TestCreator", fields: [createdBy], references: [id])
   class        Class?        @relation(fields: [classId], references: [id])

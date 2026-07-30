@@ -28,6 +28,7 @@ type DeployClass = { id: string; name: string; students: Array<{ id: string; nam
 type InitialData = {
   title: string
   type: 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE'
+  domain?: 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING' | null
   status?: 'DRAFT' | 'PUBLISHED'
   classId: string | null
   timeLimitMin: number | null
@@ -71,10 +72,22 @@ type Props = {
 const DOMAIN_LABEL: Record<string, string> = {
   GRAMMAR: '문법',
   VOCABULARY: '어휘',
-  READING: '읽기',
+  READING: '독해',
   WRITING: '쓰기',
   LISTENING: '듣기',
 }
+
+// 영역 카테고리 선택지 ('' = 전체)
+const DOMAIN_CATEGORY_OPTIONS = [
+  { value: '', label: '전체' },
+  { value: 'GRAMMAR', label: '문법' },
+  { value: 'LISTENING', label: '듣기' },
+  { value: 'VOCABULARY', label: '어휘' },
+  { value: 'WRITING', label: '쓰기' },
+  { value: 'READING', label: '독해' },
+] as const
+
+type DomainCategory = (typeof DOMAIN_CATEGORY_OPTIONS)[number]['value']
 
 const DOMAIN_COLOR: Record<string, { bg: string; text: string }> = {
   GRAMMAR: { bg: '#EEF4FF', text: '#1865F2' },
@@ -518,6 +531,7 @@ export default function TestFormClient({
   // ── Basic info ──────────────────────────────────────────────────────────────
   const [title, setTitle] = useState(initialData?.title ?? '')
   const [type, setType] = useState<'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE'>(initialData?.type ?? 'LEVEL_TEST')
+  const [domain, setDomain] = useState<DomainCategory>(initialData?.domain ?? '')
   const [classId, setClassId] = useState(initialData?.classId ?? '')
   const [timeLimitEnabled, setTimeLimitEnabled] = useState(!!initialData?.timeLimitMin)
   const [timeLimitMin, setTimeLimitMin] = useState(initialData?.timeLimitMin ?? 45)
@@ -584,9 +598,24 @@ export default function TestFormClient({
   const [deploying, setDeploying] = useState(false)
   const [formError, setFormError] = useState('')
 
+  // ── Domain category ─────────────────────────────────────────────────────────
+  // 영역 카테고리 변경: 특정 영역 선택 시 문제 필터·자동 구성을 해당 영역으로 고정,
+  // 적응형 배치 시험(5영역 전체 측정)은 사용 불가
+  function selectDomainCategory(value: DomainCategory) {
+    setDomain(value)
+    if (value) {
+      setIsAdaptive(false)
+      setFilterDomain(value)
+      setAutoConfigs((prev) => prev.map((c) => ({ ...c, domain: value })))
+    } else {
+      setFilterDomain('')
+    }
+  }
+
   // ── Derived ─────────────────────────────────────────────────────────────────
   const filteredQuestions = useMemo(() => {
     return questions.filter((q) => {
+      if (domain && q.domain !== domain) return false
       if (filterDomain && q.domain !== filterDomain) return false
       if (filterCefr && q.cefrLevel !== filterCefr) return false
       if (searchText) {
@@ -595,7 +624,7 @@ export default function TestFormClient({
       }
       return true
     })
-  }, [questions, filterDomain, filterCefr, searchText])
+  }, [questions, domain, filterDomain, filterCefr, searchText])
 
   const selectedIds = new Set(selectedQuestions.map((q) => q.id))
 
@@ -622,7 +651,7 @@ export default function TestFormClient({
 
   // ── Auto config helpers ──────────────────────────────────────────────────────
   function addAutoConfig() {
-    setAutoConfigs((prev) => [...prev, { domain: 'GRAMMAR', cefrLevel: '', count: 5 }])
+    setAutoConfigs((prev) => [...prev, { domain: domain || 'GRAMMAR', cefrLevel: '', count: 5 }])
   }
 
   function removeAutoConfig(idx: number) {
@@ -706,11 +735,12 @@ export default function TestFormClient({
 
   // ── Form validation ──────────────────────────────────────────────────────────
   function buildFormInput(): TestFormInput {
-    const adaptiveMode = type === 'LEVEL_TEST' && isAdaptive
+    const adaptiveMode = type === 'LEVEL_TEST' && isAdaptive && !domain
     const unitTestMode = type === 'UNIT_TEST'
     return {
       title: title.trim(),
       type,
+      domain: domain || null,
       classId: classId || undefined,
       timeLimitMin: timeLimitEnabled ? timeLimitMin : undefined,
       instructions: instructions.trim() || undefined,
@@ -731,8 +761,11 @@ export default function TestFormClient({
 
   function validate(): string | null {
     if (!title.trim()) return '제목을 입력해 주세요.'
-    const adaptiveMode = type === 'LEVEL_TEST' && isAdaptive
+    const adaptiveMode = type === 'LEVEL_TEST' && isAdaptive && !domain
     if (!adaptiveMode && selectedQuestions.length === 0) return '문제를 1개 이상 선택해 주세요.'
+    if (domain && selectedQuestions.some((q) => q.domain !== domain)) {
+      return `선택한 영역(${DOMAIN_LABEL[domain]})과 다른 영역의 문제가 포함되어 있습니다. 해당 문제를 제거해 주세요.`
+    }
     return null
   }
 
@@ -905,8 +938,41 @@ export default function TestFormClient({
           </div>
         </div>
 
-        {/* 적응형 레벨 테스트 옵션 (LEVEL_TEST일 때만 표시) */}
-        {type === 'LEVEL_TEST' && (
+        {/* 영역 카테고리 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">영역</label>
+          <div className="flex flex-wrap gap-2">
+            {DOMAIN_CATEGORY_OPTIONS.map((opt) => {
+              const active = domain === opt.value
+              const color = opt.value ? DOMAIN_COLOR[opt.value] : null
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => selectDomainCategory(opt.value)}
+                  className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors ${
+                    active && !opt.value
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
+                      : active
+                        ? 'border-transparent'
+                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                  style={active && color ? { backgroundColor: color.bg, color: color.text, borderColor: color.text } : undefined}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+          <p className="text-xs text-gray-400 mt-1.5">
+            {domain
+              ? `${DOMAIN_LABEL[domain]} 영역 문제만으로 테스트를 구성합니다. 결과표도 ${DOMAIN_LABEL[domain]} 영역 기준으로 분석됩니다.`
+              : '전체를 선택하면 5개 영역(문법·듣기·어휘·쓰기·독해)을 모두 포함할 수 있습니다.'}
+          </p>
+        </div>
+
+        {/* 적응형 레벨 테스트 옵션 (LEVEL_TEST + 전체 영역일 때만 표시) */}
+        {type === 'LEVEL_TEST' && !domain && (
           <div className="rounded-xl border border-[#7854F7]/20 bg-[#7854F7]/5 p-4 space-y-3">
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -1120,8 +1186,9 @@ export default function TestFormClient({
               </div>
               <select
                 value={filterDomain}
+                disabled={!!domain}
                 onChange={(e) => setFilterDomain(e.target.value)}
-                className="h-9 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none"
+                className="h-9 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none disabled:bg-gray-100 disabled:text-gray-400"
               >
                 <option value="">영역 전체</option>
                 {DOMAINS.map((d) => (
@@ -1267,10 +1334,11 @@ export default function TestFormClient({
               >
                 <select
                   value={cfg.domain}
+                  disabled={!!domain}
                   onChange={(e) =>
                     updateAutoConfig(idx, 'domain', e.target.value as (typeof DOMAINS)[number])
                   }
-                  className="h-9 px-3 border border-gray-200 rounded-lg text-sm bg-white"
+                  className="h-9 px-3 border border-gray-200 rounded-lg text-sm bg-white disabled:bg-gray-100 disabled:text-gray-400"
                 >
                   {DOMAINS.map((d) => (
                     <option key={d} value={d}>

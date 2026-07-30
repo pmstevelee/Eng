@@ -9,6 +9,7 @@ type TestItem = {
   id: string
   title: string
   type: string
+  domain: string | null
   status: string
   timeLimitMin: number | null
   questionCount: number
@@ -39,6 +40,20 @@ const TYPE_COLOR: Record<string, string> = {
   UNIT_TEST: 'bg-purple-50 text-purple-700',
   PRACTICE: 'bg-teal-50 text-teal-700',
 }
+const DOMAIN_LABEL: Record<string, string> = {
+  GRAMMAR: '문법',
+  LISTENING: '듣기',
+  VOCABULARY: '어휘',
+  WRITING: '쓰기',
+  READING: '독해',
+}
+const DOMAIN_BADGE: Record<string, string> = {
+  GRAMMAR: 'bg-[#EEF4FF] text-[#1865F2]',
+  VOCABULARY: 'bg-[#F3EFFF] text-[#7854F7]',
+  READING: 'bg-[#E6FAF8] text-[#0FBFAD]',
+  WRITING: 'bg-[#FEF0E8] text-[#E35C20]',
+  LISTENING: 'bg-[#E0F2FE] text-[#0EA5E9]',
+}
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: '초안',
   PUBLISHED: '배포됨',
@@ -62,6 +77,7 @@ export default function TestsListClient({
   // Filters
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('ALL')
+  const [domainFilter, setDomainFilter] = useState('ALL')
   const [classFilter, setClassFilter] = useState('ALL')
   const [teacherFilter, setTeacherFilter] = useState('ALL')
   const [dateFrom, setDateFrom] = useState('')
@@ -79,6 +95,7 @@ export default function TestsListClient({
     return tests.filter((t) => {
       if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false
       if (typeFilter !== 'ALL' && t.type !== typeFilter) return false
+      if (domainFilter !== 'ALL' && (t.domain ?? 'ALL') !== domainFilter) return false
       if (classFilter !== 'ALL' && t.classId !== classFilter) return false
       if (teacherFilter !== 'ALL' && t.creatorId !== teacherFilter) return false
       if (dateFrom) {
@@ -92,14 +109,15 @@ export default function TestsListClient({
       }
       return true
     })
-  }, [tests, search, typeFilter, classFilter, teacherFilter, dateFrom, dateTo])
+  }, [tests, search, typeFilter, domainFilter, classFilter, teacherFilter, dateFrom, dateTo])
 
   const hasActiveFilters =
-    search || typeFilter !== 'ALL' || classFilter !== 'ALL' || teacherFilter !== 'ALL' || dateFrom || dateTo
+    search || typeFilter !== 'ALL' || domainFilter !== 'ALL' || classFilter !== 'ALL' || teacherFilter !== 'ALL' || dateFrom || dateTo
 
   function clearFilters() {
     setSearch('')
     setTypeFilter('ALL')
+    setDomainFilter('ALL')
     setClassFilter('ALL')
     setTeacherFilter('ALL')
     setDateFrom('')
@@ -177,6 +195,20 @@ export default function TestsListClient({
             <option value="LEVEL_TEST">레벨 테스트</option>
             <option value="UNIT_TEST">단원 테스트</option>
             <option value="PRACTICE">연습</option>
+          </select>
+
+          {/* 영역 */}
+          <select
+            value={domainFilter}
+            onChange={(e) => setDomainFilter(e.target.value)}
+            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-700/20 focus:border-primary-700 bg-white"
+          >
+            <option value="ALL">전체 영역</option>
+            <option value="GRAMMAR">문법</option>
+            <option value="LISTENING">듣기</option>
+            <option value="VOCABULARY">어휘</option>
+            <option value="WRITING">쓰기</option>
+            <option value="READING">독해</option>
           </select>
 
           {/* 반 */}
@@ -299,11 +331,20 @@ export default function TestsListClient({
 
                     {/* 유형 */}
                     <td className="px-4 py-3.5">
-                      <span
-                        className={`text-xs font-semibold px-2 py-0.5 rounded-full ${TYPE_COLOR[test.type] ?? 'bg-gray-100 text-gray-600'}`}
-                      >
-                        {TYPE_LABEL[test.type] ?? test.type}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${TYPE_COLOR[test.type] ?? 'bg-gray-100 text-gray-600'}`}
+                        >
+                          {TYPE_LABEL[test.type] ?? test.type}
+                        </span>
+                        {test.domain && (
+                          <span
+                            className={`text-xs font-semibold px-2 py-0.5 rounded-full ${DOMAIN_BADGE[test.domain] ?? 'bg-gray-100 text-gray-600'}`}
+                          >
+                            {DOMAIN_LABEL[test.domain] ?? test.domain}
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* 출제 교사 */}

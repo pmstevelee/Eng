@@ -10,6 +10,10 @@ import {
   type TestReportNarrative,
   type TestResultReportSnapshot,
 } from '@/lib/reports/test-result-report'
+import {
+  buildTestReportSystemPrompt,
+  type NarrativeDomainKey,
+} from '@/lib/reports/domain-analysis-prompts'
 
 const TEST_TYPE_KO: Record<string, string> = {
   LEVEL_TEST: '레벨 테스트',
@@ -95,7 +99,7 @@ export async function POST(req: NextRequest) {
       `학생명: ${stats.student.name}`,
       stats.student.grade ? `학년: ${stats.student.grade}` : null,
       `현재 레벨: Level ${stats.student.currentLevel}`,
-      `테스트: ${stats.test.title} (${TEST_TYPE_KO[stats.test.type] ?? stats.test.type})`,
+      `테스트: ${stats.test.title} (${TEST_TYPE_KO[stats.test.type] ?? stats.test.type}${stats.test.domain ? ` · ${REPORT_DOMAIN_LABEL[stats.test.domain]} 영역 전용` : ''})`,
       `종합 점수: ${stats.totalScore ?? '미채점'}점 → 종합 Level ${stats.overallLevel} (${stats.overallCefr}, ${stats.overallNameKo})`,
       stats.overallRankPercent !== null
         ? `동일 테스트 응시자 ${stats.peerCount}명 중 상위 ${stats.overallRankPercent}%`
@@ -106,24 +110,11 @@ export async function POST(req: NextRequest) {
       .filter((l): l is string => l !== null)
       .join('\n')
 
-    const domainKeys = stats.domains.map((d) => d.domain.toLowerCase())
+    const domainKeys = stats.domains.map((d) => d.domain.toLowerCase() as NarrativeDomainKey)
 
-    const systemPrompt = `당신은 영어 교육 전문가입니다. 학생의 영어 테스트 결과를 분석하여 공식 결과표(성적표)에 들어갈 총평과 학습 처방을 JSON으로 작성합니다.
-
-반환할 JSON 구조:
-{
-  "overall": "종합 총평 (4~6문장). 학생 이름을 포함해 '~님의 어휘 실력은 ...' 형태로, 영역별 수준을 언급하며 현재 할 수 있는 것과 보완할 점을 서술",
-  "domainComments": {
-    ${domainKeys.map((k) => `"${k}": "해당 영역 총평 (3~4문장, 데이터 기반: 잘하는 평가 항목과 부족한 항목을 구체적으로 언급하고 다음 단계 학습 방향 제시)"`).join(',\n    ')}
-  },
-  "prescriptions": {
-    ${domainKeys.map((k) => `"${k}": ["학습 처방 1 (2~3문장)", "학습 처방 2 (2~3문장)"]`).join(',\n    ')}
-  }
-}
-
-- 반드시 테스트에 포함된 영역(${domainKeys.join(', ')})만 작성하세요.
-- 격려하되 과장하지 말고, 제공된 수치를 근거로 작성하세요.
-- 모든 내용은 한국어, 존댓말로 작성하세요. 반드시 유효한 JSON만 반환하세요.`
+    // 영역별로 다른 평가 기준 적용:
+    // 문법/듣기/어휘/독해 = 수능 영어 기준, 쓰기 = 토론토대 학술 영작문 기준
+    const systemPrompt = buildTestReportSystemPrompt(domainKeys)
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',

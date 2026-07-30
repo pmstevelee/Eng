@@ -11,6 +11,7 @@ type TestItem = {
   id: string
   title: string
   type: string
+  domain: string | null
   status: string
   timeLimitMin: number | null
   questionCount: number
@@ -30,6 +31,39 @@ const TYPE_COLOR: Record<string, string> = {
   UNIT_TEST: 'bg-purple-50 text-purple-700',
   PRACTICE: 'bg-teal-50 text-teal-700',
 }
+
+const DOMAIN_LABEL: Record<string, string> = {
+  GRAMMAR: '문법',
+  LISTENING: '듣기',
+  VOCABULARY: '어휘',
+  WRITING: '쓰기',
+  READING: '독해',
+}
+
+const DOMAIN_BADGE: Record<string, string> = {
+  GRAMMAR: 'bg-[#EEF4FF] text-[#1865F2]',
+  VOCABULARY: 'bg-[#F3EFFF] text-[#7854F7]',
+  READING: 'bg-[#E6FAF8] text-[#0FBFAD]',
+  WRITING: 'bg-[#FEF0E8] text-[#E35C20]',
+  LISTENING: 'bg-[#E0F2FE] text-[#0EA5E9]',
+}
+
+// 유형/영역 카테고리 필터 옵션
+const TYPE_FILTER_OPTIONS = [
+  { value: 'ALL', label: '전체 유형' },
+  { value: 'LEVEL_TEST', label: '레벨 테스트' },
+  { value: 'UNIT_TEST', label: '단원 테스트' },
+  { value: 'PRACTICE', label: '연습' },
+] as const
+
+const DOMAIN_FILTER_OPTIONS = [
+  { value: 'ALL', label: '전체' },
+  { value: 'GRAMMAR', label: '문법' },
+  { value: 'LISTENING', label: '듣기' },
+  { value: 'VOCABULARY', label: '어휘' },
+  { value: 'WRITING', label: '쓰기' },
+  { value: 'READING', label: '독해' },
+] as const
 
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: '초안',
@@ -62,6 +96,8 @@ type DeployClassInfo = { id: string; name: string; students: Array<{ id: string;
 export default function TestsListClient({ tests: initialTests }: { tests: TestItem[] }) {
   const [tests, setTests] = useState(initialTests)
   const [activeTab, setActiveTab] = useState<'ALL' | 'DRAFT' | 'PUBLISHED' | 'GRADED'>('ALL')
+  const [typeFilter, setTypeFilter] = useState<string>('ALL')
+  const [domainFilter, setDomainFilter] = useState<string>('ALL')
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   // Preview state
@@ -87,7 +123,12 @@ export default function TestsListClient({ tests: initialTests }: { tests: TestIt
     { key: 'GRADED', label: '채점완료', count: tests.filter((t) => t.status === 'GRADED').length },
   ] as const
 
-  const filtered = activeTab === 'ALL' ? tests : tests.filter((t) => t.status === activeTab)
+  const filtered = tests.filter((t) => {
+    if (activeTab !== 'ALL' && t.status !== activeTab) return false
+    if (typeFilter !== 'ALL' && t.type !== typeFilter) return false
+    if (domainFilter !== 'ALL' && (t.domain ?? 'ALL') !== domainFilter) return false
+    return true
+  })
 
   function handleDeleteConfirm(testId: string) {
     setDeleteTargetId(testId)
@@ -188,6 +229,42 @@ export default function TestsListClient({ tests: initialTests }: { tests: TestIt
         ))}
       </div>
 
+      {/* 유형·영역 카테고리 필터 */}
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-gray-400 w-8">유형</span>
+          {TYPE_FILTER_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setTypeFilter(opt.value)}
+              className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
+                typeFilter === opt.value
+                  ? 'border-primary-500 bg-primary-50 text-primary-700'
+                  : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-gray-400 w-8">영역</span>
+          {DOMAIN_FILTER_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setDomainFilter(opt.value)}
+              className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
+                domainFilter === opt.value
+                  ? 'border-primary-500 bg-primary-50 text-primary-700'
+                  : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* 테스트 목록 */}
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
@@ -215,6 +292,13 @@ export default function TestsListClient({ tests: initialTests }: { tests: TestIt
                         >
                           {TYPE_LABEL[test.type] ?? test.type}
                         </span>
+                        {test.domain && (
+                          <span
+                            className={`text-xs font-semibold px-2 py-0.5 rounded-full ${DOMAIN_BADGE[test.domain] ?? 'bg-gray-100 text-gray-600'}`}
+                          >
+                            {DOMAIN_LABEL[test.domain] ?? test.domain}
+                          </span>
+                        )}
                         <span
                           className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[test.status] ?? 'bg-gray-100 text-gray-600'}`}
                         >

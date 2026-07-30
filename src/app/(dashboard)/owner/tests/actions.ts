@@ -25,6 +25,8 @@ async function getAuthedOwner() {
 export type TestFormInput = {
   title: string
   type: 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE'
+  /** 영역 카테고리 (null/undefined = 전체 영역) */
+  domain?: 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING' | null
   classId?: string
   timeLimitMin?: number
   instructions?: string
@@ -69,6 +71,7 @@ export async function saveTestDraft(
         academyId: user.academyId!,
         title: input.title.trim(),
         type: input.type,
+        domain: input.domain ?? null,
         status: 'DRAFT',
         classId: input.classId || null,
         timeLimitMin: input.timeLimitMin || null,
@@ -117,6 +120,7 @@ export async function createAndDeployTest(
           academyId: user.academyId!,
           title: testTitle,
           type: input.type,
+          domain: input.domain ?? null,
           status: 'PUBLISHED',
           classId: input.classId || null,
           timeLimitMin: input.timeLimitMin || null,

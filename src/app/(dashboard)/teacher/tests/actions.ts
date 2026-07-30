@@ -25,6 +25,8 @@ async function getAuthedTeacher() {
 export type TestFormInput = {
   title: string
   type: 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE'
+  /** 영역 카테고리 (null/undefined = 전체 영역) */
+  domain?: 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING' | null
   classId?: string
   timeLimitMin?: number
   instructions?: string
@@ -70,6 +72,7 @@ export async function saveTestDraft(
         academyId: user.academyId!,
         title: input.title.trim(),
         type: input.type,
+        domain: input.domain ?? null,
         status: 'DRAFT',
         classId: input.classId || null,
         timeLimitMin: input.timeLimitMin || null,
@@ -119,6 +122,7 @@ export async function createAndDeployTest(
           academyId: user.academyId!,
           title: testTitle,
           type: input.type,
+          domain: input.domain ?? null,
           status: 'PUBLISHED',
           classId: input.classId || null,
           timeLimitMin: input.timeLimitMin || null,
@@ -298,6 +302,7 @@ export async function updateTest(
       data: {
         title: input.title.trim(),
         type: input.type,
+        domain: input.domain ?? null,
         classId: input.classId || null,
         timeLimitMin: input.timeLimitMin || null,
         instructions: input.instructions || null,
@@ -362,6 +367,7 @@ export async function getTestForEdit(testId: string): Promise<{
     id: string
     title: string
     type: 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE'
+    domain: 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'WRITING' | 'LISTENING' | null
     status: 'DRAFT' | 'PUBLISHED'
     classId: string | null
     timeLimitMin: number | null
@@ -380,6 +386,7 @@ export async function getTestForEdit(testId: string): Promise<{
       id: true,
       title: true,
       type: true,
+      domain: true,
       status: true,
       classId: true,
       timeLimitMin: true,
@@ -402,6 +409,7 @@ export async function getTestForEdit(testId: string): Promise<{
       id: test.id,
       title: test.title,
       type: test.type as 'LEVEL_TEST' | 'UNIT_TEST' | 'PRACTICE',
+      domain: test.domain,
       status: test.status as 'DRAFT' | 'PUBLISHED',
       classId: test.classId,
       timeLimitMin: test.timeLimitMin,
