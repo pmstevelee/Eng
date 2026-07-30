@@ -626,6 +626,15 @@ export default function TestFormClient({
     })
   }, [questions, domain, filterDomain, filterCefr, searchText])
 
+  // 문제 뱅크가 수천 건일 수 있어(예: 문법 3,900여 개) 테이블에 한 번에 전부
+  // 렌더링하면 메인 스레드가 멈춘다. 화면에는 상한선까지만 그리고 검색/레벨로
+  // 좁히도록 안내한다.
+  const MANUAL_LIST_RENDER_CAP = 200
+  const visibleQuestions = useMemo(
+    () => filteredQuestions.slice(0, MANUAL_LIST_RENDER_CAP),
+    [filteredQuestions],
+  )
+
   const selectedIds = new Set(selectedQuestions.map((q) => q.id))
 
   // ── Question selection helpers ───────────────────────────────────────────────
@@ -1248,7 +1257,7 @@ export default function TestFormClient({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {filteredQuestions.map((q) => {
+                      {visibleQuestions.map((q) => {
                         const isSelected = selectedIds.has(q.id)
                         return (
                           <tr
@@ -1313,7 +1322,9 @@ export default function TestFormClient({
                   </table>
                 </div>
                 <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 text-xs text-gray-400">
-                  {filteredQuestions.length}개 문제 / 전체 {questions.length}개
+                  {filteredQuestions.length > MANUAL_LIST_RENDER_CAP
+                    ? `${MANUAL_LIST_RENDER_CAP}개 표시 중 (검색어나 레벨로 좁혀보세요) / 조건에 맞는 문제 ${filteredQuestions.length}개 / 전체 ${questions.length}개`
+                    : `${filteredQuestions.length}개 문제 / 전체 ${questions.length}개`}
                 </div>
               </div>
             )}
