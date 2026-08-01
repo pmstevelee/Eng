@@ -5,11 +5,18 @@ import { prisma } from '@/lib/prisma/client'
 import type { DomainLevels } from '@/lib/ai/domain-level-calculator'
 import { checkAiUsageLimit, trackAiUsage } from '@/lib/usage/tracker'
 import { queueOverageCharge } from '@/lib/usage/overage'
-import type {
-  GrammarErrorSummaryItem,
-  SpellingErrorSummaryItem,
-  WritingCategoryScores,
-  WritingError,
+import {
+  buildEssayAnalysisSchema,
+  buildRubricGuideBlock,
+  buildRubricSchemaBlock,
+  type GrammarErrorSummaryItem,
+  type SpellingErrorSummaryItem,
+  type WritingCategoryScores,
+  type WritingError,
+  type WritingEssayAnalysis,
+  type WritingOverallEvaluation,
+  type WritingRubricItem,
+  type WritingTaskFormat,
 } from '@/lib/ai/writing-grading'
 
 // ── 타입 정의 ──────────────────────────────────────────────────────────────────
@@ -109,6 +116,11 @@ export interface WritingEvaluationResult {
     wordCount: number
     levelFeatures: string[]
   }
+  // 평가항목별 배점 채점 + 종합 총평 (교사 채점 리포트와 공통 스키마)
+  detectedTaskFormat: WritingTaskFormat
+  rubricItems: WritingRubricItem[]
+  overallEvaluation: WritingOverallEvaluation
+  essayAnalysis: WritingEssayAnalysis | null
   // 문법/철자/어휘/문장구조/응집성/과제수행도 6영역 상세 오류분석 (교사 채점 리포트와 공통 스키마)
   categoryScores: WritingCategoryScores
   strengths: string[]
@@ -157,7 +169,19 @@ const SYSTEM_PROMPT = `너는 20년 경력의 영어 교육 평가 전문가야.
 9. 철자 오류(spelling: 단어 표기 자체가 틀림)와 문법 오류(grammar: 시제/수일치/관사/전치사/어순 등)를 명확히 구분해.
 10. 같은 오류가 반복되면 처음 1회만 상세 설명하고, 이후 반복은 occurrenceCount로 묶어서 표시해.
 11. 원어민 관점의 자연스러움과 학습자 영어의 허용 범위를 구분해. 문법적으로 틀리지 않았지만 어색한 표현은 "minor" 심각도의 vocabulary 오류로 분류하고 실제 문법 규칙 위반과 섞지 마.
-12. 절대 원문에 없는 문장을 임의로 추가하여 오류로 지적하지 마.`
+12. 절대 원문에 없는 문장을 임의로 추가하여 오류로 지적하지 마.
+13. 오류는 4단계 구조로 설명해: ① 틀린 표현(original) ② 맞는 표현(corrected) ③ 왜 틀렸는지(whyItsWrong) ④ 암기 팁(howToRemember). 여기에 detailedExplanationKo와 similarCorrectExamples(올바른 예문 2개)를 추가해.
+
+## taskFormat 판별 및 평가항목 채점 원칙 (필수)
+14. 문제의 성격과 목표 단어 수로 taskFormat을 판별해 detectedTaskFormat에 기록해.
+    - "sentence_practice": 문장/짧은 단락 쓰기 연습 (목표 단어 수 150워드 이하, 일기/묘사/짧은 답변형)
+    - "academic_essay": 논술/에세이형 과제 (목표 단어 수 150워드 이상, 찬반/장단점/비교 등 구조화된 논증)
+15. 문법이 완벽해도 논리/구성이 없으면 낮게, 문법이 다소 부족해도 논리가 탄탄하면 상대적으로 높게 평가해. 과제 수행/구성/내용 전개가 문법보다 채점 우선순위가 높아(배점에도 반영되어 있음).
+16. 판별한 taskFormat의 평가항목표(100점 만점)를 그대로 사용해. 항목 추가/삭제, 배점 변경 금지.
+17. 각 항목마다 배점(maxPoints) 범위 안에서 획득 점수(earnedPoints, 정수)를 부여하고, comment(한국어 2~3문장)에 (가) 왜 그 점수인지 원문 근거와 (나) 만점에 가까워지는 방법을 담아.
+18. overallEvaluation.totalPoints는 모든 rubricItems.earnedPoints의 합과 정확히 일치해야 해. grade는 A(90~100)/B(80~89)/C(70~79)/D(60~69)/F(0~59)로 부여해.
+19. summaryKo(종합 총평 3~5문장)는 항목별 점수와 모순되지 않게 작성해. detailedScores.totalScore와 categoryScores도 항목 점수와 일관되게 맞춰.
+20. academic_essay로 판별한 경우에만 essayAnalysis를 채우고(인용은 짧게), sentence_practice면 null로 둬.`
 
 // ── 프롬프트 빌더 ──────────────────────────────────────────────────────────────
 
@@ -219,8 +243,13 @@ ${domainSection}
 ## 에세이 원문
 ${essay}
 
+## 평가항목표 (판별한 taskFormat의 표를 그대로 사용, 배점 변경 금지)
+${buildRubricGuideBlock()}
+
 ## 응답 (JSON, 한국어)
 {
+  ${buildRubricSchemaBlock()},
+
   "writingLevelAssessment": {
     "assessedLevel": 에세이를 독립적으로 평가한 Level (1~10 정수),
     "assessedCefr": "해당 레벨의 CEFR (예: A2 하)",
@@ -354,11 +383,16 @@ ${essay}
     {
       "type": "grammar | spelling | vocabulary | punctuation | sentenceStructure",
       "subType": "예: 시제, 수일치, 관사, 전치사, 철자, 어순, collocation 등",
-      "original": "원문에서 오류가 포함된 부분",
-      "corrected": "수정된 표현",
-      "explanationKo": "왜 오류인지, 어떻게 고치는지 한국어로 설명",
+      "original": "틀린 표현 (원문 그대로 인용)",
+      "corrected": "맞는 표현",
+      "explanationKo": "한 줄 요약 설명",
+      "whyItsWrong": "왜 틀렸는지 (규칙 중심 설명)",
+      "howToRemember": "암기 팁",
+      "detailedExplanationKo": "문단 형태의 상세 설명 (2~3문장)",
+      "similarCorrectExamples": ["올바른 예문 1", "올바른 예문 2"],
       "severity": "minor | moderate | major",
-      "occurrenceCount": 동일 오류가 반복된 횟수 (기본 1)
+      "occurrenceCount": 동일 오류가 반복된 횟수 (기본 1),
+      "otherOccurrences": ["같은 유형이 반복된 다른 위치 인용 (없으면 빈 배열)"]
     }
   ],
   "spellingErrorSummary": [
@@ -368,7 +402,9 @@ ${essay}
     { "category": "시제 | 수일치 | 관사 | 전치사 | 어순 | 기타", "count": 개수, "examples": ["대표 예시 1~2개"] }
   ],
   "improvedVersion": "학생 원문의 의도와 어휘 수준은 최대한 유지하되, 지적한 오류만 수정한 전체 버전 (Before/After 비교용)",
-  "nextStepRecommendation": "학생에게 줄 다음 학습 추천 (예: 관사 집중 연습, 특정 word set 복습 등)"
+  "nextStepRecommendation": "학생에게 줄 다음 학습 추천 (예: 관사 집중 연습, 특정 word set 복습 등)",
+
+  ${buildEssayAnalysisSchema()}
 }
 
 주의사항:
@@ -484,6 +520,10 @@ export async function POST(req: NextRequest) {
                 corrections: result.corrections,
                 levelUpStrategy: result.levelUpStrategy,
                 modelEssay: result.modelEssay,
+                detectedTaskFormat: result.detectedTaskFormat,
+                rubricItems: result.rubricItems,
+                overallEvaluation: result.overallEvaluation,
+                essayAnalysis: result.essayAnalysis,
                 categoryScores: result.categoryScores,
                 strengths: result.strengths,
                 errors: result.errors,

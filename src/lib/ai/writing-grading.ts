@@ -1,4 +1,6 @@
-// 쓰기 채점 AI 공용 스키마/프롬프트 (교사 채점, 학생 쓰기연습 공통 사용)
+// 쓰기 채점 AI 공용 스키마/프롬프트 (테스트관리 쓰기항목, 학습공간 글쓰기연습 공통 사용)
+
+export type WritingTaskFormat = 'sentence_practice' | 'academic_essay'
 
 export type WritingErrorType =
   | 'grammar'
@@ -12,11 +14,22 @@ export type WritingErrorSeverity = 'minor' | 'moderate' | 'major'
 export type WritingError = {
   type: WritingErrorType
   subType: string
+  /** 틀린 표현 (wrongExpression) */
   original: string
+  /** 맞는 표현 (correctExpression) */
   corrected: string
   explanationKo: string
   severity: WritingErrorSeverity
   occurrenceCount: number
+  /** 왜 틀렸는지 */
+  whyItsWrong?: string
+  /** 암기 팁 */
+  howToRemember?: string
+  /** 문단형 상세 설명 */
+  detailedExplanationKo?: string
+  similarCorrectExamples?: string[]
+  /** 같은 유형이 반복된 다른 위치 인용 */
+  otherOccurrences?: string[]
 }
 
 export type SpellingErrorSummaryItem = {
@@ -40,11 +53,167 @@ export type WritingCategoryScores = {
   taskAchievement: number
 }
 
-// 6영역(문법/철자/어휘/문장구조/응집성/과제수행도) 상세 오류분석 채점 리포트
+// ── 평가항목/배점 (100점 만점, 과제·구성 우선 배점) ────────────────────────────
+
+export type WritingRubricDefinition = {
+  key: string
+  label: string
+  maxPoints: number
+  criteriaKo: string
+}
+
+export const WRITING_RUBRIC_DEFINITIONS: Record<WritingTaskFormat, WritingRubricDefinition[]> = {
+  sentence_practice: [
+    { key: 'taskAchievement', label: '과제 수행', maxPoints: 25, criteriaKo: '문제가 요구한 내용/조건(목표 단어, 분량, 상황)을 충족했는가' },
+    { key: 'contentDevelopment', label: '내용 전개', maxPoints: 20, criteriaKo: '생각이 구체적으로 표현되고 문장 간 내용이 이어지는가' },
+    { key: 'sentenceStructure', label: '문장 구조·다양성', maxPoints: 15, criteriaKo: '문장이 완결되고 단조로운 반복 없이 구조가 다양한가' },
+    { key: 'grammar', label: '문법 정확성', maxPoints: 15, criteriaKo: '시제·수일치·관사·전치사 등 기본 문법의 정확성' },
+    { key: 'vocabulary', label: '어휘 사용', maxPoints: 12, criteriaKo: '레벨에 맞는 어휘 선택과 목표 word set 활용도' },
+    { key: 'cohesion', label: '문장 연결·흐름', maxPoints: 8, criteriaKo: '연결어와 대명사 사용이 자연스럽고 흐름이 매끄러운가' },
+    { key: 'mechanics', label: '철자·문장부호', maxPoints: 5, criteriaKo: '철자, 대소문자, 마침표/쉼표 등 표기의 정확성' },
+  ],
+  academic_essay: [
+    { key: 'taskAchievement', label: '과제 수행(Task Response)', maxPoints: 25, criteriaKo: '질문의 모든 요구사항에 답했고 입장이 명확한가' },
+    { key: 'organization', label: '글 구성(서론-본론-결론)', maxPoints: 20, criteriaKo: '문단 구분이 명확하고 문단마다 하나의 중심 생각을 유지하는가' },
+    { key: 'development', label: '내용 전개·근거(PEEL)', maxPoints: 20, criteriaKo: '주장에 대한 근거와 구체적 예시, 설명이 충분한가' },
+    { key: 'cohesion', label: '응집성·연결어', maxPoints: 10, criteriaKo: '연결어가 다양하고 정확하며 결론이 서론과 연결되는가' },
+    { key: 'grammar', label: '문법 정확성', maxPoints: 12, criteriaKo: '복문·시제·수일치 등의 정확성과 의미 전달 지장 여부' },
+    { key: 'vocabulary', label: '어휘·표현', maxPoints: 8, criteriaKo: '학술적 어휘, collocation, 단어 반복 회피' },
+    { key: 'mechanics', label: '철자·문장부호', maxPoints: 5, criteriaKo: '철자, 대소문자, 문장부호 표기의 정확성' },
+  ],
+}
+
+export type WritingRubricItem = {
+  key: string
+  label: string
+  maxPoints: number
+  earnedPoints: number
+  /** 해당 항목에 대한 한국어 평가 (2~3문장) */
+  comment: string
+}
+
+export type WritingGradeBand = {
+  grade: string
+  label: string
+  color: string
+}
+
+export type WritingOverallEvaluation = {
+  /** 항목 획득 점수 합계 (0~100) */
+  totalPoints: number
+  /** 종합 등급 (A~F) */
+  grade: string
+  /** 종합 총평 (3~5문장) */
+  summaryKo: string
+  strongestArea: string
+  weakestArea: string
+  priorityAction: string
+}
+
+export function getWritingGradeBand(totalPoints: number): WritingGradeBand {
+  if (totalPoints >= 90) return { grade: 'A', label: '우수', color: '#1FAF54' }
+  if (totalPoints >= 80) return { grade: 'B', label: '양호', color: '#1865F2' }
+  if (totalPoints >= 70) return { grade: 'C', label: '보통', color: '#FFB100' }
+  if (totalPoints >= 60) return { grade: 'D', label: '노력 필요', color: '#E35C20' }
+  return { grade: 'F', label: '미흡', color: '#D92916' }
+}
+
+export function getRubricItemGradeLabel(earnedPoints: number, maxPoints: number): string {
+  if (maxPoints <= 0) return '보통'
+  const ratio = earnedPoints / maxPoints
+  if (ratio >= 0.9) return '우수'
+  if (ratio >= 0.75) return '양호'
+  if (ratio >= 0.6) return '보통'
+  return '미흡'
+}
+
+// ── academic_essay 전용 심화 분석 ──────────────────────────────────────────────
+
+export type WritingQuestionAnalysis = {
+  topic: string
+  taskRequirements: string[]
+  opinionRequired: boolean
+  evidenceRequired: boolean
+}
+
+export type WritingTaskCoverageItem = {
+  requirement: string
+  covered: boolean
+  note: string
+}
+
+export type WritingStructureParagraph = {
+  /** Introduction / Body 1 / Body 2 / Conclusion 등 */
+  role: string
+  mainIdea: string
+  onTopic: boolean
+  note: string
+}
+
+export type WritingPeelElement = {
+  present: boolean
+  quote: string
+}
+
+export type WritingPeelAnalysis = {
+  paragraph: string
+  point: WritingPeelElement
+  evidence: WritingPeelElement & { quality: 'vague' | 'specific' }
+  explanation: WritingPeelElement
+  link: WritingPeelElement
+  note: string
+}
+
+export type WritingSentenceVariety = {
+  simple: number
+  compound: number
+  complex: number
+  relativeClause: number
+  participial: number
+  note: string
+}
+
+export type WritingCohesiveDevices = {
+  used: string[]
+  overused: string[]
+  missingCategories: string[]
+  note: string
+}
+
+export type WritingRevisionChecklistItem = {
+  item: string
+  passed: boolean
+  note: string
+}
+
+export type WritingImprovedParagraphSample = {
+  targetParagraph: string
+  before: string
+  after: string
+  whatChangedKo: string
+}
+
+export type WritingEssayAnalysis = {
+  questionAnalysis: WritingQuestionAnalysis
+  taskCoverage: WritingTaskCoverageItem[]
+  structureMap: WritingStructureParagraph[]
+  peelAnalysis: WritingPeelAnalysis[]
+  sentenceVariety: WritingSentenceVariety
+  cohesiveDevices: WritingCohesiveDevices
+  revisionChecklist: WritingRevisionChecklistItem[]
+  improvedParagraphSample: WritingImprovedParagraphSample
+}
+
+// 평가항목별 배점 채점 + 오류 상세분석 채점 리포트
 export type WritingGradingReport = {
+  detectedTaskFormat?: WritingTaskFormat
   overallScore: number
   cefrEstimate: string
   categoryScores: WritingCategoryScores
+  /** 평가항목별 배점/획득점수/항목 평가 */
+  rubricItems?: WritingRubricItem[]
+  /** 종합 총평 및 성적 */
+  overallEvaluation?: WritingOverallEvaluation
   wordCount: number
   strengths: string[]
   errors: WritingError[]
@@ -53,30 +222,144 @@ export type WritingGradingReport = {
   improvedVersion: string
   teacherNote: string
   nextStepRecommendation: string
+  /** academic_essay로 판별된 경우에만 채워짐 */
+  essayAnalysis?: WritingEssayAnalysis | null
 }
+
+/** rubricItems 합계 (AI가 합계를 잘못 계산해도 UI 표시는 실제 항목 합으로 맞춘다) */
+export function sumRubricPoints(items: WritingRubricItem[]): number {
+  return items.reduce((sum, item) => sum + (Number.isFinite(item.earnedPoints) ? item.earnedPoints : 0), 0)
+}
+
+// ── 프롬프트 ───────────────────────────────────────────────────────────────────
 
 const SYSTEM_PROMPT = `너는 학생이 제출한 영어 작문을 분석하여, 교사와 학원장이 신뢰할 수 있는 수준의 정확하고 건설적인 채점 리포트를 생성하는 영어 교육 평가 전문가야.
 
-## 역할과 원칙
-1. 문법(Grammar), 철자(Spelling), 어휘(Vocabulary), 문장 구조(Sentence Structure), 과제 수행도(Task Achievement), 응집성(Coherence)의 6개 영역을 평가한다.
-2. 모든 오류는 원문에서 정확한 위치(원본 텍스트 그대로)를 인용하고, 수정안과 "왜 틀렸는지"에 대한 한국어 설명을 함께 제공한다. 설명은 학생이 이해하기 쉽도록 해당 CEFR 레벨에 맞는 문법 용어 난이도를 사용한다.
-3. 오류를 지적할 때 비난조가 아닌 격려하는 톤을 유지한다. 잘 쓴 표현이나 시도는 반드시 최소 1개 이상 구체적으로 칭찬한다.
-4. CEFR 레벨이 낮을수록(A1-A2) 관대하게 채점하고 핵심 오류 위주로 짚어준다. 레벨이 높을수록(B2-C1) 미묘한 뉘앙스, collocation 오류, 격식체 일관성까지 평가한다.
-5. 철자 오류와 문법 오류를 명확히 구분한다:
-   - 철자 오류(spelling): 단어 자체의 표기가 틀린 경우 (예: "recieve" → "receive")
-   - 문법 오류(grammar): 시제, 수 일치, 관사, 전치사, 어순 등 (예: "He go" → "He goes")
-6. 같은 오류가 반복되면 처음 1회만 상세 설명하고, 이후 반복은 "동일 유형 오류 N회 반복"으로 묶어서 표시한다 (리포트 가독성을 위해).
-7. 채점은 아래 JSON 스키마만 출력한다. JSON 외의 텍스트, 마크다운 코드블록 표시(\`\`\`)를 포함하지 않는다.
+## taskFormat 판별 (가장 먼저 수행)
+- "sentence_practice": 문장/짧은 단락 쓰기 연습 (CEFR 레벨별 word set 활용 문제, 일기/묘사/짧은 답변형 등, 보통 목표 단어 수 150워드 이하)
+- "academic_essay": 논술/에세이형 과제 (Task Response가 명시된 문제, 찬반/장단점/비교 등 구조화된 논증이 필요한 과제, 보통 목표 단어 수 150워드 이상)
+- 입력에 taskFormat이 명시되지 않으면 문제(prompt)의 성격과 목표 단어 수로 판단하고, 판단 결과를 반드시 detectedTaskFormat에 기록한다.
 
-## 채점 시 유의사항
-- 원어민 관점의 자연스러움과 학습자 영어(learner English)의 허용 범위를 구분한다. 문법적으로 틀리지 않았지만 어색한 표현(unnatural but not wrong)은 "minor" 심각도의 vocabulary 오류로 별도 분류하고, 실제 문법 규칙 위반과 섞지 않는다.
-- 학생이 목표 단어 수보다 현저히 적게 썼다면 taskAchievement 점수에 반영하되, 그 사실을 errors 배열이 아닌 teacherNote에 언급한다.
-- 절대 원문에 없는 문장을 임의로 추가하여 오류로 지적하지 않는다.
-- 오류 설명(explanationKo)에는 반드시 "왜"와 "어떻게"를 모두 포함한다. 예: "receive는 'i 앞에 e' 규칙의 예외 단어입니다. i-e 순서로 외워두세요." 처럼 단순 정답 나열이 아닌 학습 포인트를 제공한다.`
+## 공통 원칙 (모든 taskFormat에 적용)
+1. 문법이 완벽해도 논리/구성이 없으면 낮게, 문법이 다소 부족해도 논리가 탄탄하면 상대적으로 높게 평가한다. 과제 수행/구성/내용 전개가 문법보다 채점 우선순위가 높다(배점에도 반영되어 있다).
+2. 모든 오류는 4단계 구조로 설명한다: ① 틀린 표현(original) ② 맞는 표현(corrected) ③ 왜 틀렸는지(whyItsWrong) ④ 암기 팁(howToRemember). 여기에 detailedExplanationKo(자연스러운 문단 설명)와 similarCorrectExamples(올바른 예문 2개)를 추가한다.
+3. 철자(spelling)와 문법(grammar) 오류는 명확히 구분해 집계한다(spellingErrorSummary / grammarErrorSummary).
+   - 철자 오류: 단어 표기 자체가 틀린 경우 (예: "recieve" → "receive")
+   - 문법 오류: 시제, 수 일치, 관사, 전치사, 어순 등 (예: "He go" → "He goes")
+4. 같은 유형 오류가 반복되면 errors에는 대표 사례만 넣고 occurrenceCount와 otherOccurrences(반복 위치 인용)로 압축한다. errors는 지정된 최대 개수까지만 상세히 다루고 초과분은 summary로만 집계한다.
+5. CEFR 레벨/목표 밴드에 따라 엄격도를 조절한다: 낮은 레벨(A1-A2)은 핵심 오류 위주로 관대하게, 높은 레벨(B2-C1)은 collocation·격식체·뉘앙스까지 짚는다.
+6. 항상 격려하는 톤을 유지하고 strengths를 최소 1개 이상 구체적으로 제시한다.
+7. 원문에 없는 내용을 임의로 추가해 오류로 지적하지 않는다.
+8. 원어민 관점의 자연스러움과 학습자 영어(learner English)의 허용 범위를 구분한다. 문법적으로 틀리지 않았지만 어색한 표현은 "minor" 심각도의 vocabulary 오류로 분류하고 실제 문법 규칙 위반과 섞지 않는다.
+9. 출력은 지정된 JSON 스키마만 반환한다. 부가 설명, 마크다운 코드블록 표시(\`\`\`) 없이 순수 JSON만 반환한다.
+
+## 종합 총평 및 성적 산출 규칙 (필수)
+1. 판별한 taskFormat에 해당하는 평가항목표(배점 100점 만점)를 그대로 사용한다. 항목을 추가/삭제하거나 배점을 변경하지 않는다.
+2. 각 항목마다 배점(maxPoints) 범위 안에서 획득 점수(earnedPoints, 정수)를 부여한다. 배점을 초과하거나 음수를 주지 않는다.
+3. 각 항목마다 comment(한국어 2~3문장)를 작성한다. comment에는 반드시 (가) 왜 그 점수인지 원문 근거를 인용하고 (나) 만점에 가까워지려면 무엇을 해야 하는지를 포함한다.
+4. overallEvaluation.totalPoints는 모든 항목 earnedPoints의 합과 정확히 일치해야 한다. overallScore도 같은 값으로 둔다.
+5. grade는 totalPoints 기준으로 A(90~100) / B(80~89) / C(70~79) / D(60~69) / F(0~59) 중 하나를 부여한다.
+6. summaryKo(종합 총평, 3~5문장)는 항목별 점수 결과와 일관되게 작성한다. 점수가 낮은 항목을 총평에서 칭찬하거나, 점수가 높은 항목을 총평에서 문제 삼지 않는다.
+7. categoryScores(0~100)는 기존 리포트 호환용 지표이므로 항목 점수와 모순되지 않게 환산해 채운다.
+
+## academic_essay일 때만 추가 적용 (essayAnalysis)
+1. 채점 전 질문(prompt)을 분석해 questionAnalysis를 구조화한다: Topic, Task requirements, Opinion 필요 여부, 근거/예시 필수 여부. 학생 답안이 요구사항을 모두 충족했는지 taskCoverage에서 항목별 covered true/false로 판정한다. 하나라도 false면 과제 수행 항목 점수와 총점에 크게 반영한다.
+2. structureMap으로 Introduction/Body.../Conclusion 각 문단의 중심 생각과 주제 이탈(topic jumping) 여부를 판정한다.
+3. Body 문단마다 peelAnalysis(Point/Evidence/Explanation/Link 각 요소의 존재 여부와 인용, 예시 품질 vague/specific)를 수행한다.
+4. sentenceVariety(simple/compound/complex/관계절/분사구문 문장 수)와 cohesiveDevices(사용된 연결어, 과다 반복 연결어, 미사용 카테고리)를 분석한다.
+5. revisionChecklist 7개 항목(질문에 모두 답했는가 / 문단당 하나의 중심 생각인가 / 근거가 있는가 / 단어 반복이 없는가 / 문법 오류가 심각하지 않은가 / 연결어가 자연스러운가 / 결론이 서론과 연결되는가)을 passed true/false로 판정한다.
+6. improvedParagraphSample로 가장 약한 문단 하나를 PEEL 구조 보완 버전으로 제시한다.
+7. sentence_practice로 판별한 경우 essayAnalysis는 null로 둔다.`
+
+function formatRubricTable(format: WritingTaskFormat): string {
+  return WRITING_RUBRIC_DEFINITIONS[format]
+    .map((r) => `- ${r.key} (${r.label}) / 배점 ${r.maxPoints}점 — ${r.criteriaKo}`)
+    .join('\n')
+}
+
+/** 두 taskFormat의 평가항목표 (프롬프트 공용 블록) */
+export function buildRubricGuideBlock(): string {
+  return `### sentence_practice 평가항목 (총 100점)
+${formatRubricTable('sentence_practice')}
+
+### academic_essay 평가항목 (총 100점)
+${formatRubricTable('academic_essay')}`
+}
+
+/** 평가항목/종합총평 JSON 스키마 (프롬프트 공용 블록) */
+export function buildRubricSchemaBlock(): string {
+  return `"detectedTaskFormat": "sentence_practice | academic_essay (판별 결과)",
+  "rubricItems": [
+    {
+      "key": "평가항목표의 key 그대로",
+      "label": "평가항목표의 label 그대로",
+      "maxPoints": 평가항목표의 배점 그대로,
+      "earnedPoints": 0 ~ maxPoints 사이 정수,
+      "comment": "이 항목에 대한 한국어 평가 2~3문장 (원문 근거 인용 + 만점에 가까워지는 방법)"
+    }
+  ],
+  "overallEvaluation": {
+    "totalPoints": 모든 rubricItems.earnedPoints의 합 (0~100 정수),
+    "grade": "A | B | C | D | F (totalPoints 기준)",
+    "summaryKo": "종합 총평 3~5문장 (항목별 점수와 일관되게, 격려 톤)",
+    "strongestArea": "가장 점수가 높은 평가항목 label과 그 이유 한 문장",
+    "weakestArea": "가장 점수가 낮은 평가항목 label과 그 이유 한 문장",
+    "priorityAction": "다음 작문에서 가장 먼저 고쳐야 할 한 가지"
+  }`
+}
+
+/** academic_essay 심화 분석 JSON 스키마 (프롬프트 공용 블록) */
+export function buildEssayAnalysisSchema(): string {
+  return `"essayAnalysis": {
+    "questionAnalysis": {
+      "topic": "질문의 주제",
+      "taskRequirements": ["질문이 요구한 과제 1", "과제 2"],
+      "opinionRequired": true 또는 false,
+      "evidenceRequired": true 또는 false
+    },
+    "taskCoverage": [
+      { "requirement": "요구사항", "covered": true 또는 false, "note": "충족/미충족 근거 한 문장" }
+    ],
+    "structureMap": [
+      { "role": "Introduction | Body 1 | Body 2 | Conclusion", "mainIdea": "해당 문단의 중심 생각", "onTopic": true 또는 false, "note": "주제 이탈 여부 설명" }
+    ],
+    "peelAnalysis": [
+      {
+        "paragraph": "Body 1",
+        "point": { "present": true 또는 false, "quote": "원문 인용" },
+        "evidence": { "present": true 또는 false, "quote": "원문 인용", "quality": "vague | specific" },
+        "explanation": { "present": true 또는 false, "quote": "원문 인용" },
+        "link": { "present": true 또는 false, "quote": "원문 인용" },
+        "note": "보완할 점 한 문장"
+      }
+    ],
+    "sentenceVariety": {
+      "simple": 개수, "compound": 개수, "complex": 개수,
+      "relativeClause": 개수, "participial": 개수,
+      "note": "문장 구조 분포에 대한 한국어 평가 한두 문장"
+    },
+    "cohesiveDevices": {
+      "used": ["사용된 연결어"],
+      "overused": ["과도하게 반복된 연결어"],
+      "missingCategories": ["미사용 연결어 카테고리 (예: 대조, 예시, 인과)"],
+      "note": "연결어 사용에 대한 한국어 평가 한두 문장"
+    },
+    "revisionChecklist": [
+      { "item": "질문에 모두 답했는가", "passed": true 또는 false, "note": "판정 근거" }
+    ],
+    "improvedParagraphSample": {
+      "targetParagraph": "보완 대상 문단 (예: Body 2)",
+      "before": "원문 문단 그대로",
+      "after": "PEEL 구조로 보완한 영어 문단",
+      "whatChangedKo": "무엇을 어떻게 바꿨는지 한국어 설명"
+    }
+  }`
+}
 
 function buildOutputSchema(): string {
   return `{
-  "overallScore": 0-100 사이 정수,
+  ${buildRubricSchemaBlock()},
+  "overallScore": overallEvaluation.totalPoints와 동일한 값 (0~100 정수),
   "cefrEstimate": "실제 작문 수준에서 추정되는 CEFR 레벨 (예: B1)",
   "categoryScores": {
     "grammar": 0-100,
@@ -94,11 +377,16 @@ function buildOutputSchema(): string {
     {
       "type": "grammar | spelling | vocabulary | punctuation | sentenceStructure",
       "subType": "예: 시제, 수일치, 관사, 전치사, 철자, 어순, collocation 등",
-      "original": "원문에서 오류가 포함된 부분 (문장 단위 또는 구 단위로 인용)",
-      "corrected": "수정된 표현",
-      "explanationKo": "왜 오류인지, 어떻게 고치는지 한국어로 설명",
+      "original": "틀린 표현 (원문 그대로 인용)",
+      "corrected": "맞는 표현",
+      "explanationKo": "한 줄 요약 설명",
+      "whyItsWrong": "왜 틀렸는지 (규칙 중심 설명)",
+      "howToRemember": "암기 팁",
+      "detailedExplanationKo": "자연스러운 문단 형태의 상세 설명 (2~3문장)",
+      "similarCorrectExamples": ["올바른 예문 1", "올바른 예문 2"],
       "severity": "minor | moderate | major",
-      "occurrenceCount": 동일 오류가 반복된 횟수 (기본 1)
+      "occurrenceCount": 동일 유형 오류가 반복된 총 횟수 (기본 1),
+      "otherOccurrences": ["같은 유형이 반복된 다른 위치 인용 (없으면 빈 배열)"]
     }
   ],
   "spellingErrorSummary": [
@@ -107,9 +395,10 @@ function buildOutputSchema(): string {
   "grammarErrorSummary": [
     { "category": "시제 | 수일치 | 관사 | 전치사 | 어순 | 기타", "count": 해당 카테고리 오류 개수, "examples": ["대표 예시 1~2개"] }
   ],
-  "improvedVersion": "학생 원문의 의도와 어휘 수준은 최대한 유지하되, 위에서 지적한 오류만 수정한 전체 버전 (학생이 Before/After로 비교 학습할 수 있도록)",
-  "teacherNote": "담당 교사에게 전달할 1~2문장 요약 (학생의 강점/약점 패턴, 다음 학습 포인트)",
-  "nextStepRecommendation": "학생에게 줄 다음 학습 추천 (예: 관사 집중 연습, 특정 word set 복습 등)"
+  "improvedVersion": "학생 원문의 의도와 어휘 수준은 최대한 유지하되, 지적한 오류만 수정한 전체 버전 (Before/After 비교 학습용)",
+  "teacherNote": "담당 교사에게 전달할 1~2문장 요약 (강점/약점 패턴, 다음 학습 포인트). 분량이 목표에 미달했다면 여기에 언급",
+  "nextStepRecommendation": "학생에게 줄 다음 학습 추천 (예: 관사 집중 연습, 특정 word set 복습 등)",
+  ${buildEssayAnalysisSchema()}
 }`
 }
 
@@ -118,6 +407,8 @@ export type WritingGradingPromptInput = {
   writingPrompt: string
   targetWordCount: number | null
   studentSubmission: string
+  taskFormat?: WritingTaskFormat | null
+  maxErrorCount?: number
 }
 
 export function buildWritingGradingSystemPrompt(): string {
@@ -125,12 +416,25 @@ export function buildWritingGradingSystemPrompt(): string {
 }
 
 export function buildWritingGradingUserPrompt(input: WritingGradingPromptInput): string {
-  const { cefrLevel, writingPrompt, targetWordCount, studentSubmission } = input
+  const {
+    cefrLevel,
+    writingPrompt,
+    targetWordCount,
+    studentSubmission,
+    taskFormat = null,
+    maxErrorCount = 10,
+  } = input
+
   return `## 입력 정보
-- 학생 CEFR 레벨: ${cefrLevel}
+- 학생 CEFR 레벨/목표 밴드: ${cefrLevel}
+- taskFormat: ${taskFormat ?? '미지정 (문제 성격과 목표 단어 수로 직접 판별할 것)'}
 - 문제/주제(prompt): ${writingPrompt}
-- 목표 단어 수: ${targetWordCount !== null ? targetWordCount : '지정되지 않음 (해당 레벨에서 통상적으로 기대되는 분량 기준으로 taskAchievement 평가)'}
+- 목표 단어 수: ${targetWordCount !== null ? `${targetWordCount}단어` : '지정되지 않음 (해당 레벨에서 통상적으로 기대되는 분량 기준으로 과제 수행 평가)'}
+- errors 최대 상세 개수: ${maxErrorCount}개 (초과분은 spellingErrorSummary/grammarErrorSummary로만 집계)
 - 학생 답안: ${studentSubmission}
+
+## 평가항목표 (판별한 taskFormat의 표를 그대로 사용, 배점 변경 금지)
+${buildRubricGuideBlock()}
 
 ## 출력 JSON 스키마
 ${buildOutputSchema()}`

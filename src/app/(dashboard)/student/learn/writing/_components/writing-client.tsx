@@ -760,11 +760,15 @@ function FeedbackDisplay({
   const assessedLevel = writingLevelAssessment.assessedLevel
   const maxGap = domainLevels?.gaps.maxGap ?? 0
 
-  // 6영역 상세 오류분석 카드용 어댑터 (교사 채점 리포트와 공통 컴포넌트 재사용)
+  // 평가항목별 채점 + 6영역 상세 오류분석 카드용 어댑터 (교사 채점 리포트와 공통 컴포넌트 재사용)
   const detailedGradingReport: WritingGradingReport = {
-    overallScore: detailedScores.totalScore,
+    detectedTaskFormat: feedback.detectedTaskFormat,
+    overallScore: feedback.overallEvaluation?.totalPoints ?? detailedScores.totalScore,
     cefrEstimate: writingLevelAssessment.assessedCefr,
     categoryScores: feedback.categoryScores,
+    rubricItems: feedback.rubricItems,
+    overallEvaluation: feedback.overallEvaluation,
+    essayAnalysis: feedback.essayAnalysis,
     wordCount: essay.trim().split(/\s+/).filter(Boolean).length,
     strengths: feedback.strengths,
     errors: feedback.errors,
