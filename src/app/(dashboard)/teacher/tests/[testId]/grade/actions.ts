@@ -7,8 +7,11 @@ import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import { LEVEL_TO_CEFR } from '@/lib/constants/levels'
 import {
+  buildWritingGradingResponseFormat,
   buildWritingGradingSystemPrompt,
   buildWritingGradingUserPrompt,
+  countWords,
+  normalizeWritingGradingReport,
   type WritingCategoryScores,
   type WritingGradingReport,
 } from '@/lib/ai/writing-grading'
@@ -80,7 +83,7 @@ export async function getAiAnalysis(
             }),
           },
         ],
-        response_format: { type: 'json_object' },
+        response_format: buildWritingGradingResponseFormat(),
         temperature: 0.3,
       }),
     })
@@ -94,7 +97,9 @@ export async function getAiAnalysis(
     if (!content) return { error: 'AI 응답을 받지 못했습니다.' }
 
     const parsed = JSON.parse(content) as WritingGradingReport
-    return { result: parsed }
+    // AI가 배점 합계/오류 없음 표시 등 프롬프트 지시를 어길 수 있으므로 서버에서 재검증한다.
+    const normalized = normalizeWritingGradingReport(parsed, countWords(essayText))
+    return { result: normalized }
   } catch {
     return { error: 'AI 분석 중 오류가 발생했습니다.' }
   }

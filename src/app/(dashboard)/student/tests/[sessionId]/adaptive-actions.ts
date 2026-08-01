@@ -22,8 +22,11 @@ import { isAnswerMatch } from '@/lib/assessment/answer-checker'
 import { getUsedLevelTestQuestions, recordLevelTestUsage } from '@/lib/questions/usage-tracker'
 import { updateQuestionQuality } from '@/lib/questions/quality-updater'
 import {
+  buildWritingGradingResponseFormat,
   buildWritingGradingSystemPrompt,
   buildWritingGradingUserPrompt,
+  countWords,
+  normalizeWritingGradingReport,
   type WritingGradingReport,
 } from '@/lib/ai/writing-grading'
 import { scoreToLevel, LEVEL_TO_CEFR } from '@/lib/constants/levels'
@@ -562,7 +565,7 @@ async function gradeAdaptiveWriting(
                 }),
               },
             ],
-            response_format: { type: 'json_object' },
+            response_format: buildWritingGradingResponseFormat(),
             temperature: 0.3,
           }),
         })
@@ -572,7 +575,8 @@ async function gradeAdaptiveWriting(
         }
         const content = data.choices[0]?.message?.content
         if (!content) return null
-        return JSON.parse(content) as WritingGradingReport
+        // AI가 배점 합계/오류 없음 표시 등 프롬프트 지시를 어길 수 있으므로 서버에서 재검증한다.
+        return normalizeWritingGradingReport(JSON.parse(content) as WritingGradingReport, countWords(essay))
       } catch {
         return null
       }

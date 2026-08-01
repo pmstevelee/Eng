@@ -9,6 +9,8 @@ import {
   buildEssayAnalysisSchema,
   buildRubricGuideBlock,
   buildRubricSchemaBlock,
+  normalizeRubricScoring,
+  stripNonErrors,
   type GrammarErrorSummaryItem,
   type SpellingErrorSummaryItem,
   type WritingCategoryScores,
@@ -168,6 +170,7 @@ const SYSTEM_PROMPT = `너는 20년 경력의 영어 교육 평가 전문가야.
 8. 오류를 지적할 때 비난조가 아닌 격려하는 톤을 유지해. 잘 쓴 표현이나 시도는 반드시 최소 1개 이상 구체적으로 칭찬해 (strengths).
 9. 철자 오류(spelling: 단어 표기 자체가 틀림)와 문법 오류(grammar: 시제/수일치/관사/전치사/어순 등)를 명확히 구분해.
 10. 같은 오류가 반복되면 처음 1회만 상세 설명하고, 이후 반복은 occurrenceCount로 묶어서 표시해.
+10-1. errors 배열에는 실제로 틀린 부분만 넣어. original과 corrected가 같은 문장이거나 "오류가 발견되지 않았습니다"처럼 오류가 아니라고 설명하는 항목은 절대 넣지 마. 실제 오류가 전혀 없으면 errors는 빈 배열([])로 반환해. 오류 개수를 채우려고 없는 오류를 만들어내지 마.
 11. 원어민 관점의 자연스러움과 학습자 영어의 허용 범위를 구분해. 문법적으로 틀리지 않았지만 어색한 표현은 "minor" 심각도의 vocabulary 오류로 분류하고 실제 문법 규칙 위반과 섞지 마.
 12. 절대 원문에 없는 문장을 임의로 추가하여 오류로 지적하지 마.
 13. 오류는 4단계 구조로 설명해: ① 틀린 표현(original) ② 맞는 표현(corrected) ③ 왜 틀렸는지(whyItsWrong) ④ 암기 팁(howToRemember). 여기에 detailedExplanationKo와 similarCorrectExamples(올바른 예문 2개)를 추가해.
@@ -179,9 +182,10 @@ const SYSTEM_PROMPT = `너는 20년 경력의 영어 교육 평가 전문가야.
 15. 문법이 완벽해도 논리/구성이 없으면 낮게, 문법이 다소 부족해도 논리가 탄탄하면 상대적으로 높게 평가해. 과제 수행/구성/내용 전개가 문법보다 채점 우선순위가 높아(배점에도 반영되어 있음).
 16. 판별한 taskFormat의 평가항목표(100점 만점)를 그대로 사용해. 항목 추가/삭제, 배점 변경 금지.
 17. 각 항목마다 배점(maxPoints) 범위 안에서 획득 점수(earnedPoints, 정수)를 부여하고, comment(한국어 2~3문장)에 (가) 왜 그 점수인지 원문 근거와 (나) 만점에 가까워지는 방법을 담아.
-18. overallEvaluation.totalPoints는 모든 rubricItems.earnedPoints의 합과 정확히 일치해야 해. grade는 A(90~100)/B(80~89)/C(70~79)/D(60~69)/F(0~59)로 부여해.
+18. overallEvaluation.totalPoints는 모든 rubricItems.earnedPoints의 합과 정확히 일치해야 해. rubricItems를 다 채운 뒤 반드시 다시 손으로 더해 합계를 확인하고 그 값을 totalPoints에 넣어. grade는 A(90~100)/B(80~89)/C(70~79)/D(60~69)/F(0~59)로 부여해.
 19. summaryKo(종합 총평 3~5문장)는 항목별 점수와 모순되지 않게 작성해. detailedScores.totalScore와 categoryScores도 항목 점수와 일관되게 맞춰.
-20. academic_essay로 판별한 경우에만 essayAnalysis를 채우고(인용은 짧게), sentence_practice면 null로 둬.`
+20. detectedTaskFormat이 academic_essay이면 essayAnalysis는 생략할 수 없는 필수 필드야. questionAnalysis/taskCoverage/structureMap/peelAnalysis/sentenceVariety/cohesiveDevices/revisionChecklist/improvedParagraphSample을 모두 채워(인용은 짧게). sentence_practice일 때만 null로 둬.
+21. taskCoverage 중 하나라도 covered:false이면 taskAchievement(과제 수행) 항목의 earnedPoints는 반드시 maxPoints의 60% 이하로 채점해. 반대로 요구사항을 모두 충족했다고 판정했으면 과제 수행 점수를 근거 없이 낮게 주지 마.`
 
 // ── 프롬프트 빌더 ──────────────────────────────────────────────────────────────
 
@@ -467,7 +471,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'AI 응답을 받지 못했습니다.' }, { status: 500 })
     }
 
-    const result = JSON.parse(rawContent) as WritingEvaluationResult
+    // AI가 배점 합계/오류 없음 표시 등 프롬프트 지시를 어길 수 있으므로 서버에서 재검증한다.
+    const parsedResult = JSON.parse(rawContent) as WritingEvaluationResult
+    const result: WritingEvaluationResult = {
+      ...normalizeRubricScoring(parsedResult),
+      errors: stripNonErrors(parsedResult.errors ?? []),
+    }
 
     // ── 사용량 기록 + 초과 결제 큐 ────────────────────────────────────────────
     if (academyId) {

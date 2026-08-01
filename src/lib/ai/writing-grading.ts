@@ -231,6 +231,92 @@ export function sumRubricPoints(items: WritingRubricItem[]): number {
   return items.reduce((sum, item) => sum + (Number.isFinite(item.earnedPoints) ? item.earnedPoints : 0), 0)
 }
 
+// ── 채점 결과 검증/정규화 ────────────────────────────────────────────────────────
+// AI 응답은 프롬프트 지시를 어길 수 있다 (예: rubricItems 합계와 overallEvaluation.totalPoints가
+// 다르거나, earnedPoints가 배점을 초과하거나, 오류가 없는데도 errors에 억지 항목을 채워 넣는 경우).
+// 화면/DB에 반영되기 전에 서버에서 항상 아래 정규화를 거쳐 점수 신뢰성을 보장한다.
+
+export type NormalizableRubricReport = {
+  rubricItems?: WritingRubricItem[]
+  overallEvaluation?: WritingOverallEvaluation
+  categoryScores?: WritingCategoryScores
+}
+
+function clampScore(value: number, max = 100): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.max(0, Math.min(max, Math.round(value)))
+}
+
+/** errors 배열에서 "오류 없음"을 오류인 것처럼 채워 넣은 무의미한 항목을 제거한다. */
+export function stripNonErrors(errors: WritingError[]): WritingError[] {
+  return errors.filter((err) => {
+    const original = err.original?.trim() ?? ''
+    const corrected = err.corrected?.trim() ?? ''
+    if (original.length === 0) return false
+    if (original === corrected) return false
+    const noErrorMarkers = ['오류가 발견되지 않았습니다', '문법적으로 맞습니다', '오류가 없습니다', '틀린 부분이 없습니다']
+    if (noErrorMarkers.some((marker) => err.explanationKo?.includes(marker) || err.whyItsWrong?.includes(marker))) {
+      return false
+    }
+    return true
+  })
+}
+
+/**
+ * rubricItems/overallEvaluation/categoryScores를 가진 보고서를 정규화한다.
+ * - earnedPoints를 [0, maxPoints] 범위로 클램프 + 정수 반올림
+ * - overallEvaluation.totalPoints/grade를 실제 rubricItems 합계 기준으로 재계산 (AI가 준 값은 무시)
+ * - categoryScores를 0~100 범위로 클램프
+ */
+export function normalizeRubricScoring<T extends NormalizableRubricReport>(report: T): T {
+  const categoryScores = report.categoryScores
+    ? (Object.fromEntries(
+        Object.entries(report.categoryScores).map(([key, value]) => [key, clampScore(value as number)]),
+      ) as WritingCategoryScores)
+    : report.categoryScores
+
+  if (!report.rubricItems || report.rubricItems.length === 0) {
+    return { ...report, categoryScores }
+  }
+
+  const rubricItems = report.rubricItems.map((item) => ({
+    ...item,
+    earnedPoints: clampScore(item.earnedPoints, item.maxPoints),
+  }))
+  const totalPoints = sumRubricPoints(rubricItems)
+  const band = getWritingGradeBand(totalPoints)
+  const overallEvaluation = report.overallEvaluation
+    ? { ...report.overallEvaluation, totalPoints, grade: band.grade }
+    : report.overallEvaluation
+
+  return { ...report, rubricItems, overallEvaluation, categoryScores }
+}
+
+/**
+ * WritingGradingReport(교사 채점, 적응형 배치테스트 공용) 전용 정규화.
+ * - rubricItems 기준으로 overallScore를 재계산해 rubricItems 합계와 항상 일치시킨다.
+ * - wordCount는 AI가 종종 잘못 세므로, 실제 원문에서 계산한 값(actualWordCount)이 있으면 그 값으로 덮어쓴다.
+ * - errors에서 "오류 아님"을 오류처럼 채워 넣은 무의미한 항목을 제거한다.
+ */
+export function normalizeWritingGradingReport(
+  report: WritingGradingReport,
+  actualWordCount?: number,
+): WritingGradingReport {
+  const scoreNormalized = normalizeRubricScoring(report)
+  const totalPoints = scoreNormalized.overallEvaluation?.totalPoints
+  return {
+    ...scoreNormalized,
+    overallScore: totalPoints ?? clampScore(scoreNormalized.overallScore),
+    wordCount: actualWordCount ?? scoreNormalized.wordCount,
+    errors: stripNonErrors(scoreNormalized.errors ?? []),
+  }
+}
+
+/** 원문 텍스트에서 실제 단어 수를 계산한다 (공백 기준 분리). */
+export function countWords(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length
+}
+
 // ── 프롬프트 ───────────────────────────────────────────────────────────────────
 
 const SYSTEM_PROMPT = `너는 학생이 제출한 영어 작문을 분석하여, 교사와 학원장이 신뢰할 수 있는 수준의 정확하고 건설적인 채점 리포트를 생성하는 영어 교육 평가 전문가야.
@@ -247,6 +333,7 @@ const SYSTEM_PROMPT = `너는 학생이 제출한 영어 작문을 분석하여,
    - 철자 오류: 단어 표기 자체가 틀린 경우 (예: "recieve" → "receive")
    - 문법 오류: 시제, 수 일치, 관사, 전치사, 어순 등 (예: "He go" → "He goes")
 4. 같은 유형 오류가 반복되면 errors에는 대표 사례만 넣고 occurrenceCount와 otherOccurrences(반복 위치 인용)로 압축한다. errors는 지정된 최대 개수까지만 상세히 다루고 초과분은 summary로만 집계한다.
+4-1. errors 배열에는 실제로 틀린 부분만 넣는다. original과 corrected가 같은 문장이거나, "오류가 발견되지 않았습니다"/"문법적으로 맞습니다"처럼 오류가 아니라고 설명하는 항목은 절대 넣지 않는다. 학생 답안에 실제 오류가 전혀 없다면 errors는 빈 배열([])로 반환한다. 오류 개수를 채우기 위해 없는 오류를 만들어내지 않는다.
 5. CEFR 레벨/목표 밴드에 따라 엄격도를 조절한다: 낮은 레벨(A1-A2)은 핵심 오류 위주로 관대하게, 높은 레벨(B2-C1)은 collocation·격식체·뉘앙스까지 짚는다.
 6. 항상 격려하는 톤을 유지하고 strengths를 최소 1개 이상 구체적으로 제시한다.
 7. 원문에 없는 내용을 임의로 추가해 오류로 지적하지 않는다.
@@ -257,12 +344,14 @@ const SYSTEM_PROMPT = `너는 학생이 제출한 영어 작문을 분석하여,
 1. 판별한 taskFormat에 해당하는 평가항목표(배점 100점 만점)를 그대로 사용한다. 항목을 추가/삭제하거나 배점을 변경하지 않는다.
 2. 각 항목마다 배점(maxPoints) 범위 안에서 획득 점수(earnedPoints, 정수)를 부여한다. 배점을 초과하거나 음수를 주지 않는다.
 3. 각 항목마다 comment(한국어 2~3문장)를 작성한다. comment에는 반드시 (가) 왜 그 점수인지 원문 근거를 인용하고 (나) 만점에 가까워지려면 무엇을 해야 하는지를 포함한다.
-4. overallEvaluation.totalPoints는 모든 항목 earnedPoints의 합과 정확히 일치해야 한다. overallScore도 같은 값으로 둔다.
+4. overallEvaluation.totalPoints는 모든 항목 earnedPoints의 합과 정확히 일치해야 한다. overallScore도 같은 값으로 둔다. rubricItems를 모두 채운 뒤 반드시 다시 손으로 더해 합계를 확인하고 totalPoints/overallScore에 그 확인된 합계를 넣는다.
 5. grade는 totalPoints 기준으로 A(90~100) / B(80~89) / C(70~79) / D(60~69) / F(0~59) 중 하나를 부여한다.
 6. summaryKo(종합 총평, 3~5문장)는 항목별 점수 결과와 일관되게 작성한다. 점수가 낮은 항목을 총평에서 칭찬하거나, 점수가 높은 항목을 총평에서 문제 삼지 않는다.
 7. categoryScores(0~100)는 기존 리포트 호환용 지표이므로 항목 점수와 모순되지 않게 환산해 채운다.
+8. taskCoverage(academic_essay) 또는 문제 요구사항 중 하나라도 충족하지 못했다면, taskAchievement(또는 과제 수행 항목)의 earnedPoints는 반드시 해당 항목 maxPoints의 60% 이하로 채점한다. 요구사항을 다 충족했다고 판정했으면서 과제 수행 점수를 크게 깎지 않는다 (반대의 경우도 금지 — 모두 충족했는데 낮게 주지 않는다).
 
 ## academic_essay일 때만 추가 적용 (essayAnalysis)
+0. detectedTaskFormat이 academic_essay이면 essayAnalysis는 절대 생략할 수 없는 필수 필드다. 항상 questionAnalysis/taskCoverage/structureMap/peelAnalysis/sentenceVariety/cohesiveDevices/revisionChecklist/improvedParagraphSample을 모두 채워서 반환한다. sentence_practice일 때만 essayAnalysis를 null로 둔다.
 1. 채점 전 질문(prompt)을 분석해 questionAnalysis를 구조화한다: Topic, Task requirements, Opinion 필요 여부, 근거/예시 필수 여부. 학생 답안이 요구사항을 모두 충족했는지 taskCoverage에서 항목별 covered true/false로 판정한다. 하나라도 false면 과제 수행 항목 점수와 총점에 크게 반영한다.
 2. structureMap으로 Introduction/Body.../Conclusion 각 문단의 중심 생각과 주제 이탈(topic jumping) 여부를 판정한다.
 3. Body 문단마다 peelAnalysis(Point/Evidence/Explanation/Link 각 요소의 존재 여부와 인용, 예시 품질 vague/specific)를 수행한다.
@@ -310,7 +399,8 @@ export function buildRubricSchemaBlock(): string {
 
 /** academic_essay 심화 분석 JSON 스키마 (프롬프트 공용 블록) */
 export function buildEssayAnalysisSchema(): string {
-  return `"essayAnalysis": {
+  return `"essayAnalysis": detectedTaskFormat이 "academic_essay"이면 이 필드는 반드시 아래 형태로 채워야 한다 (필수, 생략 금지). "sentence_practice"이면 null.
+  {
     "questionAnalysis": {
       "topic": "질문의 주제",
       "taskRequirements": ["질문이 요구한 과제 1", "과제 2"],
@@ -438,4 +528,274 @@ ${buildRubricGuideBlock()}
 
 ## 출력 JSON 스키마
 ${buildOutputSchema()}`
+}
+
+// ── OpenAI Structured Outputs (strict JSON Schema) ─────────────────────────────
+// json_object 모드는 필드 설명을 텍스트로만 지시하므로, 모델이 필수 필드(특히 essayAnalysis)를
+// 통째로 누락해도 유효한 JSON으로 통과해버린다. strict 모드는 스키마에 선언된 키가 항상
+// 존재하도록(값이 필요하면 null) 구조적으로 강제하므로, 응답 검증 대신 응답 생성 단계에서 막는다.
+
+const PEEL_ELEMENT_SCHEMA = {
+  type: 'object',
+  properties: {
+    present: { type: 'boolean' },
+    quote: { type: 'string' },
+  },
+  required: ['present', 'quote'],
+  additionalProperties: false,
+} as const
+
+const ERROR_ITEM_SCHEMA = {
+  type: 'object',
+  properties: {
+    type: { type: 'string', enum: ['grammar', 'spelling', 'vocabulary', 'punctuation', 'sentenceStructure'] },
+    subType: { type: 'string' },
+    original: { type: 'string' },
+    corrected: { type: 'string' },
+    explanationKo: { type: 'string' },
+    whyItsWrong: { type: 'string' },
+    howToRemember: { type: 'string' },
+    detailedExplanationKo: { type: 'string' },
+    similarCorrectExamples: { type: 'array', items: { type: 'string' } },
+    severity: { type: 'string', enum: ['minor', 'moderate', 'major'] },
+    occurrenceCount: { type: 'integer' },
+    otherOccurrences: { type: 'array', items: { type: 'string' } },
+  },
+  required: [
+    'type', 'subType', 'original', 'corrected', 'explanationKo', 'whyItsWrong',
+    'howToRemember', 'detailedExplanationKo', 'similarCorrectExamples', 'severity',
+    'occurrenceCount', 'otherOccurrences',
+  ],
+  additionalProperties: false,
+} as const
+
+const RUBRIC_ITEM_SCHEMA = {
+  type: 'object',
+  properties: {
+    key: { type: 'string' },
+    label: { type: 'string' },
+    maxPoints: { type: 'integer' },
+    earnedPoints: { type: 'integer' },
+    comment: { type: 'string' },
+  },
+  required: ['key', 'label', 'maxPoints', 'earnedPoints', 'comment'],
+  additionalProperties: false,
+} as const
+
+const OVERALL_EVALUATION_SCHEMA = {
+  type: 'object',
+  properties: {
+    totalPoints: { type: 'integer' },
+    grade: { type: 'string', enum: ['A', 'B', 'C', 'D', 'F'] },
+    summaryKo: { type: 'string' },
+    strongestArea: { type: 'string' },
+    weakestArea: { type: 'string' },
+    priorityAction: { type: 'string' },
+  },
+  required: ['totalPoints', 'grade', 'summaryKo', 'strongestArea', 'weakestArea', 'priorityAction'],
+  additionalProperties: false,
+} as const
+
+const CATEGORY_SCORES_SCHEMA = {
+  type: 'object',
+  properties: {
+    grammar: { type: 'integer' },
+    spelling: { type: 'integer' },
+    vocabulary: { type: 'integer' },
+    sentenceStructure: { type: 'integer' },
+    coherence: { type: 'integer' },
+    taskAchievement: { type: 'integer' },
+  },
+  required: ['grammar', 'spelling', 'vocabulary', 'sentenceStructure', 'coherence', 'taskAchievement'],
+  additionalProperties: false,
+} as const
+
+const ESSAY_ANALYSIS_SCHEMA = {
+  type: 'object',
+  properties: {
+    questionAnalysis: {
+      type: 'object',
+      properties: {
+        topic: { type: 'string' },
+        taskRequirements: { type: 'array', items: { type: 'string' } },
+        opinionRequired: { type: 'boolean' },
+        evidenceRequired: { type: 'boolean' },
+      },
+      required: ['topic', 'taskRequirements', 'opinionRequired', 'evidenceRequired'],
+      additionalProperties: false,
+    },
+    taskCoverage: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          requirement: { type: 'string' },
+          covered: { type: 'boolean' },
+          note: { type: 'string' },
+        },
+        required: ['requirement', 'covered', 'note'],
+        additionalProperties: false,
+      },
+    },
+    structureMap: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          role: { type: 'string' },
+          mainIdea: { type: 'string' },
+          onTopic: { type: 'boolean' },
+          note: { type: 'string' },
+        },
+        required: ['role', 'mainIdea', 'onTopic', 'note'],
+        additionalProperties: false,
+      },
+    },
+    peelAnalysis: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          paragraph: { type: 'string' },
+          point: PEEL_ELEMENT_SCHEMA,
+          evidence: {
+            type: 'object',
+            properties: {
+              present: { type: 'boolean' },
+              quote: { type: 'string' },
+              quality: { type: 'string', enum: ['vague', 'specific'] },
+            },
+            required: ['present', 'quote', 'quality'],
+            additionalProperties: false,
+          },
+          explanation: PEEL_ELEMENT_SCHEMA,
+          link: PEEL_ELEMENT_SCHEMA,
+          note: { type: 'string' },
+        },
+        required: ['paragraph', 'point', 'evidence', 'explanation', 'link', 'note'],
+        additionalProperties: false,
+      },
+    },
+    sentenceVariety: {
+      type: 'object',
+      properties: {
+        simple: { type: 'integer' },
+        compound: { type: 'integer' },
+        complex: { type: 'integer' },
+        relativeClause: { type: 'integer' },
+        participial: { type: 'integer' },
+        note: { type: 'string' },
+      },
+      required: ['simple', 'compound', 'complex', 'relativeClause', 'participial', 'note'],
+      additionalProperties: false,
+    },
+    cohesiveDevices: {
+      type: 'object',
+      properties: {
+        used: { type: 'array', items: { type: 'string' } },
+        overused: { type: 'array', items: { type: 'string' } },
+        missingCategories: { type: 'array', items: { type: 'string' } },
+        note: { type: 'string' },
+      },
+      required: ['used', 'overused', 'missingCategories', 'note'],
+      additionalProperties: false,
+    },
+    revisionChecklist: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          item: { type: 'string' },
+          passed: { type: 'boolean' },
+          note: { type: 'string' },
+        },
+        required: ['item', 'passed', 'note'],
+        additionalProperties: false,
+      },
+    },
+    improvedParagraphSample: {
+      type: 'object',
+      properties: {
+        targetParagraph: { type: 'string' },
+        before: { type: 'string' },
+        after: { type: 'string' },
+        whatChangedKo: { type: 'string' },
+      },
+      required: ['targetParagraph', 'before', 'after', 'whatChangedKo'],
+      additionalProperties: false,
+    },
+  },
+  required: [
+    'questionAnalysis', 'taskCoverage', 'structureMap', 'peelAnalysis',
+    'sentenceVariety', 'cohesiveDevices', 'revisionChecklist', 'improvedParagraphSample',
+  ],
+  additionalProperties: false,
+} as const
+
+/**
+ * WritingGradingReport용 strict JSON Schema (OpenAI Structured Outputs).
+ * essayAnalysis는 detectedTaskFormat이 sentence_practice일 때 null이 되어야 하므로
+ * anyOf[객체, null]로 선언한다 — 그 외 필드는 항상 값이 있어야 하므로 nullable로 두지 않는다.
+ */
+export const WRITING_GRADING_JSON_SCHEMA = {
+  type: 'object',
+  properties: {
+    detectedTaskFormat: { type: 'string', enum: ['sentence_practice', 'academic_essay'] },
+    overallScore: { type: 'integer' },
+    cefrEstimate: { type: 'string' },
+    categoryScores: CATEGORY_SCORES_SCHEMA,
+    rubricItems: { type: 'array', items: RUBRIC_ITEM_SCHEMA },
+    overallEvaluation: OVERALL_EVALUATION_SCHEMA,
+    wordCount: { type: 'integer' },
+    strengths: { type: 'array', items: { type: 'string' } },
+    errors: { type: 'array', items: ERROR_ITEM_SCHEMA },
+    spellingErrorSummary: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          misspelled: { type: 'string' },
+          correct: { type: 'string' },
+          occurrenceCount: { type: 'integer' },
+        },
+        required: ['misspelled', 'correct', 'occurrenceCount'],
+        additionalProperties: false,
+      },
+    },
+    grammarErrorSummary: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          category: { type: 'string' },
+          count: { type: 'integer' },
+          examples: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['category', 'count', 'examples'],
+        additionalProperties: false,
+      },
+    },
+    improvedVersion: { type: 'string' },
+    teacherNote: { type: 'string' },
+    nextStepRecommendation: { type: 'string' },
+    essayAnalysis: { anyOf: [ESSAY_ANALYSIS_SCHEMA, { type: 'null' }] },
+  },
+  required: [
+    'detectedTaskFormat', 'overallScore', 'cefrEstimate', 'categoryScores', 'rubricItems',
+    'overallEvaluation', 'wordCount', 'strengths', 'errors', 'spellingErrorSummary',
+    'grammarErrorSummary', 'improvedVersion', 'teacherNote', 'nextStepRecommendation', 'essayAnalysis',
+  ],
+  additionalProperties: false,
+} as const
+
+/** getAiAnalysis/gradeAdaptiveWriting 등에서 OpenAI Chat Completions 호출 시 response_format으로 그대로 전달 */
+export function buildWritingGradingResponseFormat() {
+  return {
+    type: 'json_schema' as const,
+    json_schema: {
+      name: 'writing_grading_report',
+      strict: true,
+      schema: WRITING_GRADING_JSON_SCHEMA,
+    },
+  }
 }
