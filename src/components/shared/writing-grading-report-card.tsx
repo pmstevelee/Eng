@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Sparkles, ChevronDown, ChevronUp, Check, X } from 'lucide-react'
-import type { WritingError, WritingGradingReport } from '@/lib/ai/writing-grading'
+import type { WritingError, WritingGradingReport, WritingRubricItem } from '@/lib/ai/writing-grading'
 import {
   getRubricItemGradeLabel,
   getWritingGradeBand,
@@ -112,39 +112,9 @@ export function WritingGradingReportCard({
       {hasRubric && (
         <div className="space-y-2">
           <p className="text-xs font-semibold text-gray-800">평가항목별 채점</p>
-          {rubricItems.map((item) => {
-            const gradeLabel = getRubricItemGradeLabel(item.score)
-            const contribution = rubricItemContribution(item)
-            return (
-              <div key={item.key} className="rounded-lg border border-gray-200 bg-white/70 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-sm font-semibold text-gray-800">{item.label}</span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${ITEM_GRADE_STYLE[gradeLabel] ?? ''}`}
-                    >
-                      {gradeLabel}
-                    </span>
-                    <span className="text-[11px] text-gray-400">가중치 {item.weight}%</span>
-                  </div>
-                  <span className="shrink-0 text-sm font-bold text-gray-900">
-                    {item.score}
-                    <span className="text-xs font-medium text-gray-400"> / 100점</span>
-                  </span>
-                </div>
-                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
-                  <div
-                    className="h-full rounded-full bg-[#7854F7]"
-                    style={{ width: `${Math.min(100, Math.round(item.score))}%` }}
-                  />
-                </div>
-                <p className="mt-1 text-[11px] text-gray-400">총점 반영 {contribution.toFixed(1)}점</p>
-                {item.comment && (
-                  <p className="mt-2 text-sm leading-relaxed text-gray-600">{item.comment}</p>
-                )}
-              </div>
-            )
-          })}
+          {rubricItems.map((item) => (
+            <RubricItemCard key={item.key} item={item} />
+          ))}
         </div>
       )}
 
@@ -308,6 +278,100 @@ export function WritingGradingReportCard({
           <p className="mb-1 text-xs font-semibold text-[#8a6200]">다음 학습 추천</p>
           <p className="text-sm text-[#8a6200]">{report.nextStepRecommendation}</p>
         </div>
+      )}
+    </div>
+  )
+}
+
+function RubricItemCard({ item }: { item: WritingRubricItem }) {
+  const [showDetail, setShowDetail] = useState(false)
+  const gradeLabel = getRubricItemGradeLabel(item.score)
+  const contribution = rubricItemContribution(item)
+  const detail = item.detail
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white/70 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-sm font-semibold text-gray-800">{item.label}</span>
+          <span
+            className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${ITEM_GRADE_STYLE[gradeLabel] ?? ''}`}
+          >
+            {gradeLabel}
+          </span>
+          <span className="text-[11px] text-gray-400">가중치 {item.weight}%</span>
+        </div>
+        <span className="shrink-0 text-sm font-bold text-gray-900">
+          {item.score}
+          <span className="text-xs font-medium text-gray-400"> / 100점</span>
+        </span>
+      </div>
+      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+        <div
+          className="h-full rounded-full bg-[#7854F7]"
+          style={{ width: `${Math.min(100, Math.round(item.score))}%` }}
+        />
+      </div>
+      <p className="mt-1 text-[11px] text-gray-400">총점 반영 {contribution.toFixed(1)}점</p>
+      {item.comment && (
+        <p className="mt-2 text-sm leading-relaxed text-gray-600">{item.comment}</p>
+      )}
+
+      {detail && (
+        <>
+          <button
+            type="button"
+            onClick={() => setShowDetail((v) => !v)}
+            className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#7854F7]"
+          >
+            자세히 보기
+            {showDetail ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+          </button>
+
+          {showDetail && (
+            <div className="mt-2 space-y-2 rounded-lg bg-gray-50 p-3">
+              {detail.analysisKo && (
+                <p className="text-sm leading-relaxed text-gray-700">{detail.analysisKo}</p>
+              )}
+
+              {detail.strengthQuotes.length > 0 && (
+                <div>
+                  <p className="mb-1 text-[11px] font-semibold text-[#1FAF54]">잘한 부분</p>
+                  <ul className="space-y-1.5">
+                    {detail.strengthQuotes.map((s, i) => (
+                      <li key={i} className="text-xs">
+                        <p className="text-gray-700">&ldquo;{s.quote}&rdquo;</p>
+                        <p className="mt-0.5 text-gray-500">{s.noteKo}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {detail.improvementQuotes.length > 0 && (
+                <div>
+                  <p className="mb-1 text-[11px] font-semibold text-[#D92916]">개선할 부분</p>
+                  <ul className="space-y-1.5">
+                    {detail.improvementQuotes.map((s, i) => (
+                      <li key={i} className="text-xs">
+                        <p className="text-[#D92916]">&ldquo;{s.quote}&rdquo;</p>
+                        <p className="mt-0.5 text-gray-500">{s.noteKo}</p>
+                        <p className="mt-0.5 text-[#1FAF54]">→ {s.suggestionKo}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {detail.nextStepKo && (
+                <div>
+                  <p className="mb-0.5 text-[11px] font-semibold text-gray-800">다음 연습 방법</p>
+                  <p className="text-xs text-gray-600">{detail.nextStepKo}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   )

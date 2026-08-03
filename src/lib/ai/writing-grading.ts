@@ -86,6 +86,18 @@ export const WRITING_RUBRIC_DEFINITIONS: Record<WritingTaskFormat, WritingRubric
   ],
 }
 
+/** 평가항목 "자세히 보기"에서 노출되는 심층 분석 */
+export type WritingRubricItemDetail = {
+  /** 이 항목을 왜 이 점수로 채점했는지에 대한 상세 분석 (4~6문장) */
+  analysisKo: string
+  /** 이 항목에서 잘한 점 (원문 인용 포함, 1~3개) */
+  strengthQuotes: { quote: string; noteKo: string }[]
+  /** 이 항목에서 개선할 점 (원문 인용 + 어떻게 고칠지, 1~3개) */
+  improvementQuotes: { quote: string; noteKo: string; suggestionKo: string }[]
+  /** 이 항목에서 다음 단계로 나아가기 위한 구체적 연습 방법 */
+  nextStepKo: string
+}
+
 export type WritingRubricItem = {
   key: string
   label: string
@@ -95,6 +107,8 @@ export type WritingRubricItem = {
   score: number
   /** 해당 항목에 대한 한국어 평가 (2~3문장) */
   comment: string
+  /** "자세히 보기" 클릭 시 노출되는 심층 분석 */
+  detail: WritingRubricItemDetail
 }
 
 /** 항목이 전체 100점 총점에 실제로 기여하는 점수 (score × weight ÷ 100) */
@@ -361,6 +375,12 @@ const SYSTEM_PROMPT = `너는 학생이 제출한 영어 작문을 분석하여,
 1. 판별한 taskFormat에 해당하는 평가항목표를 그대로 사용한다. 항목을 추가/삭제하지 않는다.
 2. 각 항목은 그 자체로 0~100점 만점으로 독립 채점한다(score). 배점(weight)이 작은 항목이라고 해서 낮은 만점 기준으로 채점하지 않는다 — 예를 들어 weight 5%인 "철자·문장부호" 항목도 철자가 완벽하면 100점을 줄 수 있다. weight는 그 항목이 전체 총점에서 차지하는 비중(%)일 뿐, 항목 자체의 만점이 아니다. weight 값은 평가항목표에 정의된 값을 그대로 사용하고 임의로 바꾸지 않는다.
 3. 각 항목마다 comment(한국어 2~3문장)를 작성한다. comment에는 반드시 (가) 왜 그 점수(100점 만점 기준)인지 원문 근거를 인용하고 (나) 100점에 가까워지려면 무엇을 해야 하는지를 포함한다.
+3-1. 각 항목마다 detail(자세히 보기용 심층 분석)을 반드시 채운다. comment보다 더 깊이 있게 작성한다.
+   - analysisKo: 이 항목을 왜 이 점수로 채점했는지 4~6문장으로 구체적으로 설명한다. 원문의 실제 표현/구조를 근거로 든다.
+   - strengthQuotes: 이 항목에서 학생이 잘한 부분을 원문에서 그대로 인용(quote)하고, 왜 잘했는지(noteKo)를 설명한다. 1~3개. 잘한 점이 전혀 없으면 빈 배열([])로 둔다 — 억지로 만들지 않는다.
+   - improvementQuotes: 이 항목에서 개선이 필요한 부분을 원문에서 그대로 인용(quote)하고, 무엇이 문제인지(noteKo)와 구체적으로 어떻게 고치면 되는지(suggestionKo)를 설명한다. 1~3개. score가 100이라 개선점이 없으면 빈 배열([])로 둔다.
+   - nextStepKo: 이 항목 점수를 다음 단계로 올리기 위한 구체적인 연습 방법 한두 문장.
+   - quote는 반드시 원문에 실제로 있는 문장/구를 그대로 인용한다. 원문에 없는 문장을 지어내지 않는다.
 4. overallEvaluation.totalPoints(전체 총점, 0~100)는 모든 항목의 (score × weight ÷ 100)을 더한 가중평균이다. overallScore도 같은 값으로 둔다. rubricItems를 모두 채운 뒤 반드시 각 항목의 (score × weight ÷ 100)을 계산해 손으로 더하고, 그 합계를 반올림한 값을 totalPoints/overallScore에 넣는다. (예: 문법 score 80점 × weight 12% = 12점 만점 중 9.6점 기여)
 5. grade는 totalPoints 기준으로 A(90~100) / B(80~89) / C(70~79) / D(60~69) / F(0~59) 중 하나를 부여한다.
 6. summaryKo(종합 총평, 3~5문장)는 항목별 점수 결과와 일관되게 작성한다. 점수가 낮은 항목을 총평에서 칭찬하거나, 점수가 높은 항목을 총평에서 문제 삼지 않는다.
@@ -401,7 +421,17 @@ export function buildRubricSchemaBlock(): string {
       "label": "평가항목표의 label 그대로",
       "weight": 평가항목표의 가중치(%) 그대로,
       "score": 이 항목 자체를 100점 만점 기준으로 채점한 점수 (0~100 정수, weight와 무관하게 채점),
-      "comment": "이 항목에 대한 한국어 평가 2~3문장 (원문 근거 인용 + 100점에 가까워지는 방법)"
+      "comment": "이 항목에 대한 한국어 평가 2~3문장 (원문 근거 인용 + 100점에 가까워지는 방법)",
+      "detail": {
+        "analysisKo": "이 점수를 준 이유에 대한 상세 분석 4~6문장 (원문 근거 기반)",
+        "strengthQuotes": [
+          { "quote": "원문에서 그대로 인용한 잘한 부분", "noteKo": "왜 잘했는지 설명" }
+        ],
+        "improvementQuotes": [
+          { "quote": "원문에서 그대로 인용한 개선 필요 부분", "noteKo": "무엇이 문제인지 설명", "suggestionKo": "구체적으로 어떻게 고치면 되는지" }
+        ],
+        "nextStepKo": "이 항목 점수를 올리기 위한 구체적 연습 방법 한두 문장"
+      }
     }
   ],
   "overallEvaluation": {
@@ -586,6 +616,41 @@ const ERROR_ITEM_SCHEMA = {
   additionalProperties: false,
 } as const
 
+const RUBRIC_ITEM_DETAIL_SCHEMA = {
+  type: 'object',
+  properties: {
+    analysisKo: { type: 'string' },
+    strengthQuotes: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          quote: { type: 'string' },
+          noteKo: { type: 'string' },
+        },
+        required: ['quote', 'noteKo'],
+        additionalProperties: false,
+      },
+    },
+    improvementQuotes: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          quote: { type: 'string' },
+          noteKo: { type: 'string' },
+          suggestionKo: { type: 'string' },
+        },
+        required: ['quote', 'noteKo', 'suggestionKo'],
+        additionalProperties: false,
+      },
+    },
+    nextStepKo: { type: 'string' },
+  },
+  required: ['analysisKo', 'strengthQuotes', 'improvementQuotes', 'nextStepKo'],
+  additionalProperties: false,
+} as const
+
 const RUBRIC_ITEM_SCHEMA = {
   type: 'object',
   properties: {
@@ -594,8 +659,9 @@ const RUBRIC_ITEM_SCHEMA = {
     weight: { type: 'integer' },
     score: { type: 'integer' },
     comment: { type: 'string' },
+    detail: RUBRIC_ITEM_DETAIL_SCHEMA,
   },
-  required: ['key', 'label', 'weight', 'score', 'comment'],
+  required: ['key', 'label', 'weight', 'score', 'comment', 'detail'],
   additionalProperties: false,
 } as const
 
