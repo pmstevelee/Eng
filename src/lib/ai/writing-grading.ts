@@ -53,43 +53,53 @@ export type WritingCategoryScores = {
   taskAchievement: number
 }
 
-// ── 평가항목/배점 (100점 만점, 과제·구성 우선 배점) ────────────────────────────
+// ── 평가항목/가중치 (항목별 100점 만점 채점 → 가중평균으로 전체 100점 산출) ──────
+// 각 항목은 그 자체로 0~100점 만점 채점한다. weight(%)는 전체 총점에서 그 항목이
+// 차지하는 비중이며, 모든 항목의 weight 합은 항상 100이다.
+// 총점 = Σ(항목 score × 항목 weight ÷ 100)
 
 export type WritingRubricDefinition = {
   key: string
   label: string
-  maxPoints: number
+  weight: number
   criteriaKo: string
 }
 
 export const WRITING_RUBRIC_DEFINITIONS: Record<WritingTaskFormat, WritingRubricDefinition[]> = {
   sentence_practice: [
-    { key: 'taskAchievement', label: '과제 수행', maxPoints: 25, criteriaKo: '문제가 요구한 내용/조건(목표 단어, 분량, 상황)을 충족했는가' },
-    { key: 'contentDevelopment', label: '내용 전개', maxPoints: 20, criteriaKo: '생각이 구체적으로 표현되고 문장 간 내용이 이어지는가' },
-    { key: 'sentenceStructure', label: '문장 구조·다양성', maxPoints: 15, criteriaKo: '문장이 완결되고 단조로운 반복 없이 구조가 다양한가' },
-    { key: 'grammar', label: '문법 정확성', maxPoints: 15, criteriaKo: '시제·수일치·관사·전치사 등 기본 문법의 정확성' },
-    { key: 'vocabulary', label: '어휘 사용', maxPoints: 12, criteriaKo: '레벨에 맞는 어휘 선택과 목표 word set 활용도' },
-    { key: 'cohesion', label: '문장 연결·흐름', maxPoints: 8, criteriaKo: '연결어와 대명사 사용이 자연스럽고 흐름이 매끄러운가' },
-    { key: 'mechanics', label: '철자·문장부호', maxPoints: 5, criteriaKo: '철자, 대소문자, 마침표/쉼표 등 표기의 정확성' },
+    { key: 'taskAchievement', label: '과제 수행', weight: 25, criteriaKo: '문제가 요구한 내용/조건(목표 단어, 분량, 상황)을 충족했는가' },
+    { key: 'contentDevelopment', label: '내용 전개', weight: 20, criteriaKo: '생각이 구체적으로 표현되고 문장 간 내용이 이어지는가' },
+    { key: 'sentenceStructure', label: '문장 구조·다양성', weight: 15, criteriaKo: '문장이 완결되고 단조로운 반복 없이 구조가 다양한가' },
+    { key: 'grammar', label: '문법 정확성', weight: 15, criteriaKo: '시제·수일치·관사·전치사 등 기본 문법의 정확성' },
+    { key: 'vocabulary', label: '어휘 사용', weight: 12, criteriaKo: '레벨에 맞는 어휘 선택과 목표 word set 활용도' },
+    { key: 'cohesion', label: '문장 연결·흐름', weight: 8, criteriaKo: '연결어와 대명사 사용이 자연스럽고 흐름이 매끄러운가' },
+    { key: 'mechanics', label: '철자·문장부호', weight: 5, criteriaKo: '철자, 대소문자, 마침표/쉼표 등 표기의 정확성' },
   ],
   academic_essay: [
-    { key: 'taskAchievement', label: '과제 수행(Task Response)', maxPoints: 25, criteriaKo: '질문의 모든 요구사항에 답했고 입장이 명확한가' },
-    { key: 'organization', label: '글 구성(서론-본론-결론)', maxPoints: 20, criteriaKo: '문단 구분이 명확하고 문단마다 하나의 중심 생각을 유지하는가' },
-    { key: 'development', label: '내용 전개·근거(PEEL)', maxPoints: 20, criteriaKo: '주장에 대한 근거와 구체적 예시, 설명이 충분한가' },
-    { key: 'cohesion', label: '응집성·연결어', maxPoints: 10, criteriaKo: '연결어가 다양하고 정확하며 결론이 서론과 연결되는가' },
-    { key: 'grammar', label: '문법 정확성', maxPoints: 12, criteriaKo: '복문·시제·수일치 등의 정확성과 의미 전달 지장 여부' },
-    { key: 'vocabulary', label: '어휘·표현', maxPoints: 8, criteriaKo: '학술적 어휘, collocation, 단어 반복 회피' },
-    { key: 'mechanics', label: '철자·문장부호', maxPoints: 5, criteriaKo: '철자, 대소문자, 문장부호 표기의 정확성' },
+    { key: 'taskAchievement', label: '과제 수행(Task Response)', weight: 25, criteriaKo: '질문의 모든 요구사항에 답했고 입장이 명확한가' },
+    { key: 'organization', label: '글 구성(서론-본론-결론)', weight: 20, criteriaKo: '문단 구분이 명확하고 문단마다 하나의 중심 생각을 유지하는가' },
+    { key: 'development', label: '내용 전개·근거(PEEL)', weight: 20, criteriaKo: '주장에 대한 근거와 구체적 예시, 설명이 충분한가' },
+    { key: 'cohesion', label: '응집성·연결어', weight: 10, criteriaKo: '연결어가 다양하고 정확하며 결론이 서론과 연결되는가' },
+    { key: 'grammar', label: '문법 정확성', weight: 12, criteriaKo: '복문·시제·수일치 등의 정확성과 의미 전달 지장 여부' },
+    { key: 'vocabulary', label: '어휘·표현', weight: 8, criteriaKo: '학술적 어휘, collocation, 단어 반복 회피' },
+    { key: 'mechanics', label: '철자·문장부호', weight: 5, criteriaKo: '철자, 대소문자, 문장부호 표기의 정확성' },
   ],
 }
 
 export type WritingRubricItem = {
   key: string
   label: string
-  maxPoints: number
-  earnedPoints: number
+  /** 항목 가중치 (0~100, 전체 항목 합 100) */
+  weight: number
+  /** 항목 자체 점수 (0~100점 만점 채점, 가중치와 무관) */
+  score: number
   /** 해당 항목에 대한 한국어 평가 (2~3문장) */
   comment: string
+}
+
+/** 항목이 전체 100점 총점에 실제로 기여하는 점수 (score × weight ÷ 100) */
+export function rubricItemContribution(item: WritingRubricItem): number {
+  return (item.score * item.weight) / 100
 }
 
 export type WritingGradeBand = {
@@ -118,12 +128,10 @@ export function getWritingGradeBand(totalPoints: number): WritingGradeBand {
   return { grade: 'F', label: '미흡', color: '#D92916' }
 }
 
-export function getRubricItemGradeLabel(earnedPoints: number, maxPoints: number): string {
-  if (maxPoints <= 0) return '보통'
-  const ratio = earnedPoints / maxPoints
-  if (ratio >= 0.9) return '우수'
-  if (ratio >= 0.75) return '양호'
-  if (ratio >= 0.6) return '보통'
+export function getRubricItemGradeLabel(score: number): string {
+  if (score >= 90) return '우수'
+  if (score >= 75) return '양호'
+  if (score >= 60) return '보통'
   return '미흡'
 }
 
@@ -226,17 +234,20 @@ export type WritingGradingReport = {
   essayAnalysis?: WritingEssayAnalysis | null
 }
 
-/** rubricItems 합계 (AI가 합계를 잘못 계산해도 UI 표시는 실제 항목 합으로 맞춘다) */
+/** rubricItems 가중합계 (Σ score×weight÷100, 반올림). AI가 합계를 잘못 계산해도 UI 표시는 이 값으로 맞춘다. */
 export function sumRubricPoints(items: WritingRubricItem[]): number {
-  return items.reduce((sum, item) => sum + (Number.isFinite(item.earnedPoints) ? item.earnedPoints : 0), 0)
+  const raw = items.reduce((sum, item) => sum + (Number.isFinite(item.score) ? rubricItemContribution(item) : 0), 0)
+  return Math.round(raw)
 }
 
 // ── 채점 결과 검증/정규화 ────────────────────────────────────────────────────────
-// AI 응답은 프롬프트 지시를 어길 수 있다 (예: rubricItems 합계와 overallEvaluation.totalPoints가
-// 다르거나, earnedPoints가 배점을 초과하거나, 오류가 없는데도 errors에 억지 항목을 채워 넣는 경우).
+// AI 응답은 프롬프트 지시를 어길 수 있다 (예: rubricItems 가중합계와 overallEvaluation.totalPoints가
+// 다르거나, score가 0~100 범위를 벗어나거나, weight를 임의로 바꾸거나,
+// 오류가 없는데도 errors에 억지 항목을 채워 넣는 경우).
 // 화면/DB에 반영되기 전에 서버에서 항상 아래 정규화를 거쳐 점수 신뢰성을 보장한다.
 
 export type NormalizableRubricReport = {
+  detectedTaskFormat?: WritingTaskFormat
   rubricItems?: WritingRubricItem[]
   overallEvaluation?: WritingOverallEvaluation
   categoryScores?: WritingCategoryScores
@@ -264,8 +275,9 @@ export function stripNonErrors(errors: WritingError[]): WritingError[] {
 
 /**
  * rubricItems/overallEvaluation/categoryScores를 가진 보고서를 정규화한다.
- * - earnedPoints를 [0, maxPoints] 범위로 클램프 + 정수 반올림
- * - overallEvaluation.totalPoints/grade를 실제 rubricItems 합계 기준으로 재계산 (AI가 준 값은 무시)
+ * - score를 [0, 100] 범위로 클램프 + 정수 반올림
+ * - weight는 AI가 임의로 바꿀 수 없도록 detectedTaskFormat에 대응하는 평가항목표의 고정값으로 덮어쓴다
+ * - overallEvaluation.totalPoints/grade를 실제 rubricItems 가중합계 기준으로 재계산 (AI가 준 값은 무시)
  * - categoryScores를 0~100 범위로 클램프
  */
 export function normalizeRubricScoring<T extends NormalizableRubricReport>(report: T): T {
@@ -279,10 +291,15 @@ export function normalizeRubricScoring<T extends NormalizableRubricReport>(repor
     return { ...report, categoryScores }
   }
 
-  const rubricItems = report.rubricItems.map((item) => ({
-    ...item,
-    earnedPoints: clampScore(item.earnedPoints, item.maxPoints),
-  }))
+  const defs = report.detectedTaskFormat ? WRITING_RUBRIC_DEFINITIONS[report.detectedTaskFormat] : null
+  const rubricItems = report.rubricItems.map((item) => {
+    const def = defs?.find((d) => d.key === item.key)
+    return {
+      ...item,
+      score: clampScore(item.score),
+      weight: def ? def.weight : clampScore(item.weight),
+    }
+  })
   const totalPoints = sumRubricPoints(rubricItems)
   const band = getWritingGradeBand(totalPoints)
   const overallEvaluation = report.overallEvaluation
@@ -341,14 +358,14 @@ const SYSTEM_PROMPT = `너는 학생이 제출한 영어 작문을 분석하여,
 9. 출력은 지정된 JSON 스키마만 반환한다. 부가 설명, 마크다운 코드블록 표시(\`\`\`) 없이 순수 JSON만 반환한다.
 
 ## 종합 총평 및 성적 산출 규칙 (필수)
-1. 판별한 taskFormat에 해당하는 평가항목표(배점 100점 만점)를 그대로 사용한다. 항목을 추가/삭제하거나 배점을 변경하지 않는다.
-2. 각 항목마다 배점(maxPoints) 범위 안에서 획득 점수(earnedPoints, 정수)를 부여한다. 배점을 초과하거나 음수를 주지 않는다.
-3. 각 항목마다 comment(한국어 2~3문장)를 작성한다. comment에는 반드시 (가) 왜 그 점수인지 원문 근거를 인용하고 (나) 만점에 가까워지려면 무엇을 해야 하는지를 포함한다.
-4. overallEvaluation.totalPoints는 모든 항목 earnedPoints의 합과 정확히 일치해야 한다. overallScore도 같은 값으로 둔다. rubricItems를 모두 채운 뒤 반드시 다시 손으로 더해 합계를 확인하고 totalPoints/overallScore에 그 확인된 합계를 넣는다.
+1. 판별한 taskFormat에 해당하는 평가항목표를 그대로 사용한다. 항목을 추가/삭제하지 않는다.
+2. 각 항목은 그 자체로 0~100점 만점으로 독립 채점한다(score). 배점(weight)이 작은 항목이라고 해서 낮은 만점 기준으로 채점하지 않는다 — 예를 들어 weight 5%인 "철자·문장부호" 항목도 철자가 완벽하면 100점을 줄 수 있다. weight는 그 항목이 전체 총점에서 차지하는 비중(%)일 뿐, 항목 자체의 만점이 아니다. weight 값은 평가항목표에 정의된 값을 그대로 사용하고 임의로 바꾸지 않는다.
+3. 각 항목마다 comment(한국어 2~3문장)를 작성한다. comment에는 반드시 (가) 왜 그 점수(100점 만점 기준)인지 원문 근거를 인용하고 (나) 100점에 가까워지려면 무엇을 해야 하는지를 포함한다.
+4. overallEvaluation.totalPoints(전체 총점, 0~100)는 모든 항목의 (score × weight ÷ 100)을 더한 가중평균이다. overallScore도 같은 값으로 둔다. rubricItems를 모두 채운 뒤 반드시 각 항목의 (score × weight ÷ 100)을 계산해 손으로 더하고, 그 합계를 반올림한 값을 totalPoints/overallScore에 넣는다. (예: 문법 score 80점 × weight 12% = 12점 만점 중 9.6점 기여)
 5. grade는 totalPoints 기준으로 A(90~100) / B(80~89) / C(70~79) / D(60~69) / F(0~59) 중 하나를 부여한다.
 6. summaryKo(종합 총평, 3~5문장)는 항목별 점수 결과와 일관되게 작성한다. 점수가 낮은 항목을 총평에서 칭찬하거나, 점수가 높은 항목을 총평에서 문제 삼지 않는다.
 7. categoryScores(0~100)는 기존 리포트 호환용 지표이므로 항목 점수와 모순되지 않게 환산해 채운다.
-8. taskCoverage(academic_essay) 또는 문제 요구사항 중 하나라도 충족하지 못했다면, taskAchievement(또는 과제 수행 항목)의 earnedPoints는 반드시 해당 항목 maxPoints의 60% 이하로 채점한다. 요구사항을 다 충족했다고 판정했으면서 과제 수행 점수를 크게 깎지 않는다 (반대의 경우도 금지 — 모두 충족했는데 낮게 주지 않는다).
+8. taskCoverage(academic_essay) 또는 문제 요구사항 중 하나라도 충족하지 못했다면, taskAchievement(또는 과제 수행 항목)의 score는 반드시 60점 이하로 채점한다. 요구사항을 다 충족했다고 판정했으면서 과제 수행 점수를 크게 깎지 않는다 (반대의 경우도 금지 — 모두 충족했는데 낮게 주지 않는다).
 
 ## academic_essay일 때만 추가 적용 (essayAnalysis)
 0. detectedTaskFormat이 academic_essay이면 essayAnalysis는 절대 생략할 수 없는 필수 필드다. 항상 questionAnalysis/taskCoverage/structureMap/peelAnalysis/sentenceVariety/cohesiveDevices/revisionChecklist/improvedParagraphSample을 모두 채워서 반환한다. sentence_practice일 때만 essayAnalysis를 null로 둔다.
@@ -362,16 +379,16 @@ const SYSTEM_PROMPT = `너는 학생이 제출한 영어 작문을 분석하여,
 
 function formatRubricTable(format: WritingTaskFormat): string {
   return WRITING_RUBRIC_DEFINITIONS[format]
-    .map((r) => `- ${r.key} (${r.label}) / 배점 ${r.maxPoints}점 — ${r.criteriaKo}`)
+    .map((r) => `- ${r.key} (${r.label}) / 가중치 ${r.weight}% — ${r.criteriaKo}`)
     .join('\n')
 }
 
 /** 두 taskFormat의 평가항목표 (프롬프트 공용 블록) */
 export function buildRubricGuideBlock(): string {
-  return `### sentence_practice 평가항목 (총 100점)
+  return `### sentence_practice 평가항목 (항목별 100점 만점 채점, 가중치 합 100%)
 ${formatRubricTable('sentence_practice')}
 
-### academic_essay 평가항목 (총 100점)
+### academic_essay 평가항목 (항목별 100점 만점 채점, 가중치 합 100%)
 ${formatRubricTable('academic_essay')}`
 }
 
@@ -382,13 +399,13 @@ export function buildRubricSchemaBlock(): string {
     {
       "key": "평가항목표의 key 그대로",
       "label": "평가항목표의 label 그대로",
-      "maxPoints": 평가항목표의 배점 그대로,
-      "earnedPoints": 0 ~ maxPoints 사이 정수,
-      "comment": "이 항목에 대한 한국어 평가 2~3문장 (원문 근거 인용 + 만점에 가까워지는 방법)"
+      "weight": 평가항목표의 가중치(%) 그대로,
+      "score": 이 항목 자체를 100점 만점 기준으로 채점한 점수 (0~100 정수, weight와 무관하게 채점),
+      "comment": "이 항목에 대한 한국어 평가 2~3문장 (원문 근거 인용 + 100점에 가까워지는 방법)"
     }
   ],
   "overallEvaluation": {
-    "totalPoints": 모든 rubricItems.earnedPoints의 합 (0~100 정수),
+    "totalPoints": 모든 rubricItems의 (score × weight ÷ 100)을 더한 가중평균, 반올림한 정수 (0~100),
     "grade": "A | B | C | D | F (totalPoints 기준)",
     "summaryKo": "종합 총평 3~5문장 (항목별 점수와 일관되게, 격려 톤)",
     "strongestArea": "가장 점수가 높은 평가항목 label과 그 이유 한 문장",
@@ -574,11 +591,11 @@ const RUBRIC_ITEM_SCHEMA = {
   properties: {
     key: { type: 'string' },
     label: { type: 'string' },
-    maxPoints: { type: 'integer' },
-    earnedPoints: { type: 'integer' },
+    weight: { type: 'integer' },
+    score: { type: 'integer' },
     comment: { type: 'string' },
   },
-  required: ['key', 'label', 'maxPoints', 'earnedPoints', 'comment'],
+  required: ['key', 'label', 'weight', 'score', 'comment'],
   additionalProperties: false,
 } as const
 

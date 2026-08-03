@@ -6,6 +6,7 @@ import type { WritingError, WritingGradingReport } from '@/lib/ai/writing-gradin
 import {
   getRubricItemGradeLabel,
   getWritingGradeBand,
+  rubricItemContribution,
   sumRubricPoints,
 } from '@/lib/ai/writing-grading'
 
@@ -54,7 +55,7 @@ export function WritingGradingReportCard({
   const rubricItems = report.rubricItems ?? []
   const hasRubric = rubricItems.length > 0
   const totalPoints = hasRubric ? sumRubricPoints(rubricItems) : report.overallScore
-  const totalMax = hasRubric ? rubricItems.reduce((sum, item) => sum + item.maxPoints, 0) : 100
+  const totalMax = 100
   const band = getWritingGradeBand(totalPoints)
   const essay = report.essayAnalysis
   const taskFormatLabel = report.detectedTaskFormat
@@ -112,30 +113,32 @@ export function WritingGradingReportCard({
         <div className="space-y-2">
           <p className="text-xs font-semibold text-gray-800">평가항목별 채점</p>
           {rubricItems.map((item) => {
-            const gradeLabel = getRubricItemGradeLabel(item.earnedPoints, item.maxPoints)
-            const ratio = item.maxPoints > 0 ? item.earnedPoints / item.maxPoints : 0
+            const gradeLabel = getRubricItemGradeLabel(item.score)
+            const contribution = rubricItemContribution(item)
             return (
               <div key={item.key} className="rounded-lg border border-gray-200 bg-white/70 p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-sm font-semibold text-gray-800">{item.label}</span>
                     <span
                       className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${ITEM_GRADE_STYLE[gradeLabel] ?? ''}`}
                     >
                       {gradeLabel}
                     </span>
+                    <span className="text-[11px] text-gray-400">가중치 {item.weight}%</span>
                   </div>
                   <span className="shrink-0 text-sm font-bold text-gray-900">
-                    {item.earnedPoints}
-                    <span className="text-xs font-medium text-gray-400"> / {item.maxPoints}점</span>
+                    {item.score}
+                    <span className="text-xs font-medium text-gray-400"> / 100점</span>
                   </span>
                 </div>
                 <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
                   <div
                     className="h-full rounded-full bg-[#7854F7]"
-                    style={{ width: `${Math.min(100, Math.round(ratio * 100))}%` }}
+                    style={{ width: `${Math.min(100, Math.round(item.score))}%` }}
                   />
                 </div>
+                <p className="mt-1 text-[11px] text-gray-400">총점 반영 {contribution.toFixed(1)}점</p>
                 {item.comment && (
                   <p className="mt-2 text-sm leading-relaxed text-gray-600">{item.comment}</p>
                 )}

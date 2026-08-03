@@ -180,12 +180,12 @@ const SYSTEM_PROMPT = `너는 20년 경력의 영어 교육 평가 전문가야.
     - "sentence_practice": 문장/짧은 단락 쓰기 연습 (목표 단어 수 150워드 이하, 일기/묘사/짧은 답변형)
     - "academic_essay": 논술/에세이형 과제 (목표 단어 수 150워드 이상, 찬반/장단점/비교 등 구조화된 논증)
 15. 문법이 완벽해도 논리/구성이 없으면 낮게, 문법이 다소 부족해도 논리가 탄탄하면 상대적으로 높게 평가해. 과제 수행/구성/내용 전개가 문법보다 채점 우선순위가 높아(배점에도 반영되어 있음).
-16. 판별한 taskFormat의 평가항목표(100점 만점)를 그대로 사용해. 항목 추가/삭제, 배점 변경 금지.
-17. 각 항목마다 배점(maxPoints) 범위 안에서 획득 점수(earnedPoints, 정수)를 부여하고, comment(한국어 2~3문장)에 (가) 왜 그 점수인지 원문 근거와 (나) 만점에 가까워지는 방법을 담아.
-18. overallEvaluation.totalPoints는 모든 rubricItems.earnedPoints의 합과 정확히 일치해야 해. rubricItems를 다 채운 뒤 반드시 다시 손으로 더해 합계를 확인하고 그 값을 totalPoints에 넣어. grade는 A(90~100)/B(80~89)/C(70~79)/D(60~69)/F(0~59)로 부여해.
+16. 판별한 taskFormat의 평가항목표를 그대로 사용해. 항목 추가/삭제 금지.
+17. 각 항목은 그 자체로 0~100점 만점으로 독립 채점해(score). weight가 작은 항목이라고 낮은 만점 기준으로 채점하지 마 — weight는 전체 총점에서 차지하는 비중(%)일 뿐 항목 자체의 만점이 아니야. weight 값은 평가항목표에 정의된 값을 그대로 사용하고 바꾸지 마. comment(한국어 2~3문장)에는 (가) 왜 그 점수(100점 만점 기준)인지 원문 근거와 (나) 100점에 가까워지는 방법을 담아.
+18. overallEvaluation.totalPoints(0~100)는 모든 rubricItems의 (score × weight ÷ 100)을 더한 가중평균이야. rubricItems를 다 채운 뒤 반드시 각 항목의 (score × weight ÷ 100)을 계산해 손으로 더하고, 반올림한 값을 totalPoints에 넣어. grade는 A(90~100)/B(80~89)/C(70~79)/D(60~69)/F(0~59)로 부여해.
 19. summaryKo(종합 총평 3~5문장)는 항목별 점수와 모순되지 않게 작성해. detailedScores.totalScore와 categoryScores도 항목 점수와 일관되게 맞춰.
 20. detectedTaskFormat이 academic_essay이면 essayAnalysis는 생략할 수 없는 필수 필드야. questionAnalysis/taskCoverage/structureMap/peelAnalysis/sentenceVariety/cohesiveDevices/revisionChecklist/improvedParagraphSample을 모두 채워(인용은 짧게). sentence_practice일 때만 null로 둬.
-21. taskCoverage 중 하나라도 covered:false이면 taskAchievement(과제 수행) 항목의 earnedPoints는 반드시 maxPoints의 60% 이하로 채점해. 반대로 요구사항을 모두 충족했다고 판정했으면 과제 수행 점수를 근거 없이 낮게 주지 마.`
+21. taskCoverage 중 하나라도 covered:false이면 taskAchievement(과제 수행) 항목의 score는 반드시 60점 이하로 채점해. 반대로 요구사항을 모두 충족했다고 판정했으면 과제 수행 점수를 근거 없이 낮게 주지 마.`
 
 // ── 프롬프트 빌더 ──────────────────────────────────────────────────────────────
 
