@@ -40,7 +40,7 @@ const DOMAIN_CARDS = [
 
 export default async function LearnPage() {
   await requireStudent()
-  const { wrongAnswerCount, domainScores, todayQuestions, todayCorrect } =
+  const { wrongAnswerCount, todayQuestions, todayCorrect } =
     await getLearnHubData()
 
   const todayAccuracy =
@@ -99,40 +99,27 @@ export default async function LearnPage() {
               <h2 className="font-bold text-gray-900">영역별 연습</h2>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              {DOMAIN_CARDS.map((d) => {
-                const score = domainScores[d.key as keyof typeof domainScores]
-                return (
-                  <Link
-                    key={d.key}
-                    href={d.href}
-                    className="flex flex-col rounded-xl border p-2.5 transition-all hover:opacity-90"
-                    style={{ backgroundColor: d.bg, borderColor: d.border }}
-                  >
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <div
-                        className="h-2 w-2 rounded-full"
-                        style={{ backgroundColor: d.color }}
-                      />
-                      <span
-                        className="text-xs font-semibold"
-                        style={{ color: d.color }}
-                      >
-                        {d.label}
-                      </span>
-                    </div>
-                    {score !== null && score !== undefined ? (
-                      <span
-                        className="text-base font-black leading-tight"
-                        style={{ color: d.color }}
-                      >
-                        {score}점
-                      </span>
-                    ) : (
-                      <span className="text-xs text-gray-400">미측정</span>
-                    )}
-                  </Link>
-                )
-              })}
+              {DOMAIN_CARDS.map((d) => (
+                <Link
+                  key={d.key}
+                  href={d.href}
+                  className="flex flex-col rounded-xl border p-2.5 transition-all hover:opacity-90"
+                  style={{ backgroundColor: d.bg, borderColor: d.border }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <div
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: d.color }}
+                    />
+                    <span
+                      className="text-xs font-semibold"
+                      style={{ color: d.color }}
+                    >
+                      {d.label}
+                    </span>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </div>
