@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma/client'
-import type { QuestionDomain } from '@/generated/prisma'
+import type { QuestionDomain, QuestionSource } from '@/generated/prisma'
 
 type ShareableQuestion = {
   id: string
@@ -10,12 +10,24 @@ type ShareableQuestion = {
   contentJson: { question_text: string; [key: string]: unknown }
 }
 
+type ShareOptions = {
+  /** 공용 풀에 생성될 사본의 source (기본값: AI_SHARED) */
+  source?: QuestionSource
+  /** 공용 풀에 생성될 사본의 초기 품질 점수 (기본값: 0.6) */
+  qualityScore?: number
+}
+
 /**
- * AI 유사문제를 공용 풀에 복사합니다.
+ * AI 유사문제 또는 교사 출제 문제를 공용 풀에 복사합니다.
  * - 같은 question_text가 공용 풀에 이미 있으면 건너뜁니다.
  * - 비동기로 호출하여 학생 응답 속도에 영향을 주지 않습니다.
  */
-export async function shareQuestionToPublicPool(question: ShareableQuestion): Promise<void> {
+export async function shareQuestionToPublicPool(
+  question: ShareableQuestion,
+  options: ShareOptions = {},
+): Promise<{ shared: boolean }> {
+  const { source = 'AI_SHARED', qualityScore = 0.6 } = options
+
   try {
     // 중복 체크: 공용 풀에서 같은 도메인/난이도의 문제 조회 후 텍스트 비교
     const candidates = await prisma.question.findMany({
@@ -33,7 +45,7 @@ export async function shareQuestionToPublicPool(question: ShareableQuestion): Pr
       return content.question_text === question.contentJson.question_text
     })
 
-    if (exists) return
+    if (exists) return { shared: false }
 
     await prisma.question.create({
       data: {
@@ -43,18 +55,20 @@ export async function shareQuestionToPublicPool(question: ShareableQuestion): Pr
         difficulty: question.difficulty,
         cefrLevel: question.cefrLevel,
         contentJson: question.contentJson as Parameters<typeof prisma.question.create>[0]['data']['contentJson'],
-        source: 'AI_SHARED',
+        source,
         isVerified: true,
         isActive: true,
         originalQuestionId: question.id,
-        qualityScore: 0.6,
+        qualityScore,
       },
     })
 
     // 통계 캐시 비동기 업데이트
     updateQuestionBankStatsForDomain(question.domain, question.difficulty).catch(console.error)
+    return { shared: true }
   } catch (err) {
     console.error('[share-to-pool] 공용 풀 공유 실패:', err)
+    return { shared: false }
   }
 }
 

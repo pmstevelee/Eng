@@ -4,7 +4,7 @@ import { revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import OpenAI from 'openai'
-import { updateQuestionBankStatsForDomain } from '@/lib/questions/share-to-pool'
+import { updateQuestionBankStatsForDomain, shareQuestionToPublicPool } from '@/lib/questions/share-to-pool'
 import { Prisma } from '@/generated/prisma'
 import type { QuestionDomain, QuestionSource } from '@/generated/prisma'
 
@@ -776,5 +776,143 @@ export async function updateQuestion(
     return {}
   } catch {
     return { error: '문제 수정에 실패했습니다.' }
+  }
+}
+
+// ── 회원(학원) 출제 문제 → 공용 풀 공유 ──────────────────────────────────────────
+
+export type AdminMemberQuestionRow = {
+  id: string
+  domain: QuestionDomain
+  subCategory: string | null
+  difficulty: number
+  cefrLevel: string | null
+  questionType: string
+  questionText: string
+  academyId: string
+  academyName: string
+  creatorName: string | null
+  usageCount: number
+  correctRate: number | null
+  createdAt: string
+  isShared: boolean
+}
+
+export async function getAdminMemberQuestions(filters: {
+  domain?: string
+  difficulty?: number
+  onlyUnshared?: boolean
+}): Promise<AdminMemberQuestionRow[]> {
+  const admin = await getAuthedAdmin()
+  if (!admin) return []
+
+  const where: Prisma.QuestionWhereInput = {
+    academyId: { not: null },
+    source: 'TEACHER_CREATED',
+    isActive: true,
+  }
+  if (filters.domain) where.domain = filters.domain as QuestionDomain
+  if (filters.difficulty) where.difficulty = filters.difficulty
+
+  const rows = await prisma.question.findMany({
+    where,
+    orderBy: [{ createdAt: 'desc' }],
+    take: 500,
+    select: {
+      id: true,
+      domain: true,
+      subCategory: true,
+      difficulty: true,
+      cefrLevel: true,
+      contentJson: true,
+      academyId: true,
+      usageCount: true,
+      statsJson: true,
+      createdAt: true,
+      academy: { select: { name: true, businessName: true } },
+      creator: { select: { name: true } },
+    },
+  })
+
+  if (rows.length === 0) return []
+
+  // 이미 공유된 문제 판별 (originalQuestionId로 연결된 공용 풀 사본 존재 여부)
+  const sharedOriginalIds = await prisma.question.findMany({
+    where: { academyId: null, originalQuestionId: { in: rows.map((r) => r.id) } },
+    select: { originalQuestionId: true },
+  })
+  const sharedSet = new Set(sharedOriginalIds.map((s) => s.originalQuestionId))
+
+  const result = rows.map((q) => {
+    const content = q.contentJson as { type?: string; question_text?: string }
+    const stats = q.statsJson as { correctRate?: number } | null
+    return {
+      id: q.id,
+      domain: q.domain,
+      subCategory: q.subCategory,
+      difficulty: q.difficulty,
+      cefrLevel: q.cefrLevel,
+      questionType: content.type ?? 'multiple_choice',
+      questionText: content.question_text ?? '',
+      academyId: q.academyId!,
+      academyName: q.academy?.businessName || q.academy?.name || '-',
+      creatorName: q.creator?.name ?? null,
+      usageCount: q.usageCount,
+      correctRate: stats?.correctRate ?? null,
+      createdAt: q.createdAt.toISOString(),
+      isShared: sharedSet.has(q.id),
+    }
+  })
+
+  return filters.onlyUnshared ? result.filter((r) => !r.isShared) : result
+}
+
+export async function shareMemberQuestionToPool(
+  id: string,
+): Promise<{ shared?: boolean; error?: string }> {
+  const admin = await getAuthedAdmin()
+  if (!admin) return { error: '권한이 없습니다.' }
+
+  try {
+    const question = await prisma.question.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        academyId: true,
+        source: true,
+        isActive: true,
+        domain: true,
+        subCategory: true,
+        difficulty: true,
+        cefrLevel: true,
+        contentJson: true,
+      },
+    })
+    if (!question || question.academyId === null || question.source !== 'TEACHER_CREATED') {
+      return { error: '공유할 수 있는 회원 출제 문제가 아닙니다.' }
+    }
+    if (!question.isActive) return { error: '비활성화된 문제는 공유할 수 없습니다.' }
+
+    const content = question.contentJson as { question_text?: string; [key: string]: unknown }
+    if (!content.question_text) return { error: '문제 본문이 없어 공유할 수 없습니다.' }
+
+    const { shared } = await shareQuestionToPublicPool(
+      {
+        id: question.id,
+        domain: question.domain,
+        subCategory: question.subCategory,
+        difficulty: question.difficulty,
+        cefrLevel: question.cefrLevel,
+        contentJson: content as { question_text: string; [key: string]: unknown },
+      },
+      { source: 'TEACHER_CREATED', qualityScore: 0.5 },
+    )
+
+    if (!shared) return { error: '이미 동일한 문제가 공용 풀에 존재합니다.' }
+
+    revalidateTag('question-bank')
+    return { shared: true }
+  } catch {
+    return { error: '공용 풀 공유에 실패했습니다.' }
   }
 }

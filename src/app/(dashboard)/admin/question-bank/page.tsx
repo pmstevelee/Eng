@@ -5,7 +5,7 @@ import { Library, AlertTriangle, Star, TrendingUp, Database } from 'lucide-react
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { getQuestionBankOverviewLive, getHeatmapData } from '@/lib/questions/cached-queries'
-import { getAdminQuestions } from './actions'
+import { getAdminQuestions, getAdminMemberQuestions } from './actions'
 import { getAdminQuestionReports } from '@/lib/questions/report-actions'
 import QuestionBankHeatmap from './_components/heatmap'
 import AdminQuestionBankTabs from './_components/admin-question-bank-tabs'
@@ -16,11 +16,12 @@ export default async function AdminQuestionBankPage() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'SUPER_ADMIN') redirect('/login')
 
-  const [overview, heatmapStats, questions, reports] = await Promise.all([
+  const [overview, heatmapStats, questions, reports, memberQuestions] = await Promise.all([
     getQuestionBankOverviewLive(),
     getHeatmapData(),
     getAdminQuestions({}),
     getAdminQuestionReports({}),
+    getAdminMemberQuestions({}),
   ])
 
   // 저품질 문제 수 (qualityScore < 0.4 또는 미집계)
@@ -158,8 +159,8 @@ export default async function AdminQuestionBankPage() {
         </div>
       </div>
 
-      {/* 문제 목록 + 신고 탭 */}
-      <AdminQuestionBankTabs questions={questions} reports={reports} />
+      {/* 문제 목록 + 신고 + 회원 문제 공유 탭 */}
+      <AdminQuestionBankTabs questions={questions} reports={reports} memberQuestions={memberQuestions} />
     </div>
   )
 }
