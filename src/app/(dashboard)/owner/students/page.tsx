@@ -5,6 +5,7 @@ import { Users } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
+import { getStudentWordStats, EMPTY_WORD_STAT } from '@/lib/words/student-word-stats'
 import StudentsListClient from './_components/students-list-client'
 
 const PAGE_SIZE = 20
@@ -98,15 +99,36 @@ const getDynamicStudentsData = (
             grade: true,
             class: { select: { id: true, name: true } },
             user: { select: { name: true, email: true, lastLoginAt: true } },
+            testSessions: {
+              where: { status: { in: ['COMPLETED', 'GRADED'] } },
+              orderBy: { completedAt: 'desc' },
+              take: 1,
+              select: {
+                score: true,
+                grammarScore: true,
+                vocabularyScore: true,
+                readingScore: true,
+                listeningScore: true,
+                writingScore: true,
+                completedAt: true,
+              },
+            },
           },
         }),
       ])
+
+      const wordStats = await getStudentWordStats(rows.map((s) => s.id))
+
       return [
         count,
         rows.map((s) => ({
           ...s,
           createdAt: s.createdAt.toISOString(),
           user: { ...s.user, lastLoginAt: s.user.lastLoginAt?.toISOString() ?? null },
+          latestTest: s.testSessions[0]
+            ? { ...s.testSessions[0], completedAt: s.testSessions[0].completedAt?.toISOString() ?? null }
+            : null,
+          wordStat: wordStats[s.id] ?? EMPTY_WORD_STAT,
         })),
       ] as const
     },
@@ -160,6 +182,8 @@ export default async function OwnerStudentsPage({
     createdAt: s.createdAt,
     grade: s.grade,
     lastLoginAt: s.user.lastLoginAt,
+    latestTest: s.latestTest,
+    wordStat: s.wordStat,
   }))
 
   const classData = classes.map((c) => ({ id: c.id, name: c.name }))

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { getStudentWordStats, EMPTY_WORD_STAT } from '@/lib/words/student-word-stats'
 import { StudentsClient } from './students-client'
 
 export const metadata = { title: '학생 학습관리' }
@@ -70,6 +71,9 @@ const getCachedTeacherStudents = (teacherId: string) =>
         attRateById[id] = t && t.total > 0 ? Math.round((t.present / t.total) * 100) : null
       }
 
+      // 3단계: 단어학습 상세 점수는 groupBy 집계로 별도 로드
+      const wordStats = await getStudentWordStats(studentIds)
+
       return {
         classes,
         students: students.map((s) => ({
@@ -88,6 +92,7 @@ const getCachedTeacherStudents = (teacherId: string) =>
             completedAt: ts.completedAt?.toISOString() ?? null,
           })),
           attendanceRate: attRateById[s.id] ?? null,
+          wordStat: wordStats[s.id] ?? EMPTY_WORD_STAT,
         })),
       }
     },

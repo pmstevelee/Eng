@@ -29,6 +29,15 @@ type SessionSummary = {
   completedAt: string | null
 }
 
+type WordStat = {
+  learned: number
+  mastered: number
+  accuracy: number | null
+  testAccuracy: number | null
+  testCount: number
+  lastStudiedAt: string | null
+}
+
 type StudentItem = {
   id: string
   currentLevel: number
@@ -36,6 +45,27 @@ type StudentItem = {
   class: { id: string; name: string } | null
   testSessions: SessionSummary[]
   attendanceRate: number | null
+  wordStat: WordStat
+}
+
+// 단어학습 상세 정보 요약: 학습 단어 수 / 마스터 수 / 정답률
+function WordStatSummary({ stat }: { stat: WordStat }) {
+  if (stat.learned === 0) {
+    return <span className="text-xs text-gray-400">학습 기록 없음</span>
+  }
+  const tooltip = `학습 ${stat.learned}개 · 마스터 ${stat.mastered}개 · 복습 정답률 ${stat.accuracy ?? '-'}%${
+    stat.testCount > 0 ? ` · 단어시험 ${stat.testCount}회 (평균 ${stat.testAccuracy ?? '-'}%)` : ''
+  }`
+  return (
+    <div title={tooltip} className="leading-tight">
+      <span className="text-xs font-semibold text-gray-900">
+        {stat.mastered}/{stat.learned} 마스터
+      </span>
+      <p className="text-[11px] text-gray-500">
+        정답률 {stat.accuracy ?? '-'}%{stat.testCount > 0 && ` · 시험 ${stat.testCount}회`}
+      </p>
+    </div>
+  )
 }
 
 type Status = 'warning' | 'excellent' | 'normal'
@@ -168,6 +198,12 @@ function StudentCard({
           ))}
         </div>
 
+        {/* 단어학습 */}
+        <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
+          <span className="text-xs text-gray-400">단어학습</span>
+          <WordStatSummary stat={student.wordStat} />
+        </div>
+
         {/* Attendance */}
         {student.attendanceRate !== null && (
           <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
@@ -221,7 +257,7 @@ function StudentsTable({
                 {allSelected && <CheckCheck size={9} color="white" />}
               </button>
             </th>
-            {['이름', '레벨', '최근점수', '문법', '어휘', '읽기', '듣기', '쓰기', '출석률', '상태', ''].map((h) => (
+            {['이름', '레벨', '최근점수', '문법', '어휘', '읽기', '듣기', '쓰기', '단어학습', '출석률', '상태', ''].map((h) => (
               <th
                 key={h}
                 className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide bg-gray-50 first:rounded-tl-lg last:rounded-tr-lg"
@@ -275,6 +311,9 @@ function StudentsTable({
                 <td className="px-3 py-3 text-gray-600">{latest?.readingScore ?? '-'}</td>
                 <td className="px-3 py-3 text-gray-600">{latest?.listeningScore ?? '-'}</td>
                 <td className="px-3 py-3 text-gray-600">{latest?.writingScore ?? '-'}</td>
+                <td className="px-3 py-3">
+                  <WordStatSummary stat={student.wordStat} />
+                </td>
                 <td className="px-3 py-3">
                   {student.attendanceRate !== null ? (
                     <span

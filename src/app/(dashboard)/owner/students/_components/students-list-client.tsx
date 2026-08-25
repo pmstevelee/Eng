@@ -8,6 +8,25 @@ import AddStudentDialog from './add-student-dialog'
 import EditStudentDialog from './edit-student-dialog'
 import DeleteStudentDialog from './delete-student-dialog'
 
+type LatestTest = {
+  score: number | null
+  grammarScore: number | null
+  vocabularyScore: number | null
+  readingScore: number | null
+  listeningScore: number | null
+  writingScore: number | null
+  completedAt: string | null
+} | null
+
+type WordStat = {
+  learned: number
+  mastered: number
+  accuracy: number | null
+  testAccuracy: number | null
+  testCount: number
+  lastStudiedAt: string | null
+}
+
 type Student = {
   id: string
   name: string
@@ -19,6 +38,75 @@ type Student = {
   createdAt: string
   grade?: string | null
   lastLoginAt: string | null
+  latestTest: LatestTest
+  wordStat: WordStat
+}
+
+const DOMAIN_LABEL: Record<string, string> = {
+  grammar: '문법',
+  vocabulary: '어휘',
+  reading: '읽기',
+  listening: '듣기',
+  writing: '쓰기',
+}
+
+// 테스트 상세 점수 요약: 최근 점수 + 5영역 배지 (툴팁으로 상세 표시)
+function TestScoreCell({ test }: { test: LatestTest }) {
+  if (!test || test.score === null) {
+    return <span className="text-sm text-gray-400">응시 기록 없음</span>
+  }
+
+  const domains: Array<{ key: string; value: number | null }> = [
+    { key: 'grammar', value: test.grammarScore },
+    { key: 'vocabulary', value: test.vocabularyScore },
+    { key: 'reading', value: test.readingScore },
+    { key: 'listening', value: test.listeningScore },
+    { key: 'writing', value: test.writingScore },
+  ]
+
+  const tooltip = domains
+    .map((d) => `${DOMAIN_LABEL[d.key]} ${d.value ?? '-'}`)
+    .join(' · ')
+
+  return (
+    <div title={tooltip} className="space-y-1">
+      <span className="text-sm font-semibold text-gray-900">{test.score}점</span>
+      <div className="flex items-center gap-1">
+        {domains.map((d) => (
+          <span
+            key={d.key}
+            className="text-[10px] font-medium text-gray-500 bg-gray-100 rounded px-1 py-0.5"
+          >
+            {DOMAIN_LABEL[d.key]} {d.value ?? '-'}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// 단어학습 상세 정보 요약: 학습 단어 수 / 마스터 수 / 정답률
+function WordStatCell({ stat }: { stat: WordStat }) {
+  if (stat.learned === 0) {
+    return <span className="text-sm text-gray-400">학습 기록 없음</span>
+  }
+
+  const tooltip = `학습 ${stat.learned}개 · 마스터 ${stat.mastered}개 · 복습 정답률 ${stat.accuracy ?? '-'}%${
+    stat.testCount > 0 ? ` · 단어시험 ${stat.testCount}회 (평균 ${stat.testAccuracy ?? '-'}%)` : ''
+  }`
+
+  return (
+    <div title={tooltip} className="space-y-0.5">
+      <span className="text-sm font-medium text-gray-900">
+        {stat.mastered}/{stat.learned}
+        <span className="text-xs font-normal text-gray-400 ml-1">마스터</span>
+      </span>
+      <p className="text-[11px] text-gray-500">
+        정답률 {stat.accuracy ?? '-'}%
+        {stat.testCount > 0 && ` · 시험 ${stat.testCount}회`}
+      </p>
+    </div>
+  )
 }
 
 type ClassOption = {
@@ -189,6 +277,8 @@ export default function StudentsListClient({
       <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">학생</th>
       <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">반</th>
       <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">레벨</th>
+      <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">테스트 점수</th>
+      <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">단어학습</th>
       <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">상태</th>
       <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">가입일</th>
       <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">마지막 로그인</th>
@@ -280,7 +370,7 @@ export default function StudentsListClient({
           /* 로딩 스켈레톤 */
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px]">
+              <table className="w-full min-w-[920px]">
                 <thead>{tableHeader}</thead>
                 <tbody className="divide-y divide-gray-100">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -296,6 +386,8 @@ export default function StudentsListClient({
                       </td>
                       <td className="px-4 py-3"><div className="h-3.5 w-16 bg-gray-200 rounded" /></td>
                       <td className="px-4 py-3"><div className="h-3.5 w-10 bg-gray-200 rounded" /></td>
+                      <td className="px-4 py-3"><div className="h-8 w-28 bg-gray-200 rounded" /></td>
+                      <td className="px-4 py-3"><div className="h-8 w-24 bg-gray-200 rounded" /></td>
                       <td className="px-4 py-3"><div className="h-5 w-12 bg-gray-200 rounded-full" /></td>
                       <td className="px-4 py-3"><div className="h-3.5 w-24 bg-gray-200 rounded" /></td>
                       <td className="px-4 py-3"><div className="h-3.5 w-24 bg-gray-200 rounded" /></td>
@@ -334,7 +426,7 @@ export default function StudentsListClient({
           /* 학생 목록 테이블 */
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px]">
+              <table className="w-full min-w-[920px]">
                 <thead>{tableHeader}</thead>
                 <tbody className="divide-y divide-gray-100">
                   {students.map((student) => (
@@ -378,6 +470,16 @@ export default function StudentsListClient({
                       {/* 레벨 */}
                       <td className="px-4 py-3">
                         <span className="text-sm font-medium text-gray-700">Lv.{student.currentLevel}</span>
+                      </td>
+
+                      {/* 테스트 상세 점수 */}
+                      <td className="px-4 py-3">
+                        <TestScoreCell test={student.latestTest} />
+                      </td>
+
+                      {/* 단어학습 상세 점수 */}
+                      <td className="px-4 py-3">
+                        <WordStatCell stat={student.wordStat} />
                       </td>
 
                       {/* 상태 */}
