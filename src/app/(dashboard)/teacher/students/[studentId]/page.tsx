@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { StudentDetailClient } from './student-detail-client'
 import { getPromotionProgress } from '@/lib/assessment/promotion-engine'
+import { getStudentWordDetail } from '@/lib/words/student-word-stats'
 
 const getStudentDetailData = (studentId: string, teacherId: string) =>
   unstable_cache(
@@ -13,7 +14,7 @@ const getStudentDetailData = (studentId: string, teacherId: string) =>
       const now = new Date()
       const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1)
 
-      const [testSessions, learningPath, teacherComments, attendanceRecords, levelAssessments, promotionProgress] =
+      const [testSessions, learningPath, teacherComments, attendanceRecords, levelAssessments, promotionProgress, wordDetail] =
         await Promise.all([
           prisma.testSession.findMany({
             where: { studentId, status: { in: ['COMPLETED', 'GRADED'] } },
@@ -53,6 +54,7 @@ const getStudentDetailData = (studentId: string, teacherId: string) =>
             },
           }),
           getPromotionProgress(studentId),
+          getStudentWordDetail(studentId),
         ])
 
       return {
@@ -83,6 +85,7 @@ const getStudentDetailData = (studentId: string, teacherId: string) =>
           assessedBy: la.assessedBy, isCurrent: la.isCurrent, detailJson: la.detailJson,
         })),
         promotionProgress,
+        wordDetail,
       }
     },
     [`student-detail-${studentId}`, teacherId],
@@ -118,6 +121,7 @@ export default async function StudentDetailPage({
     attendanceRecords: serializedAttendance,
     levelAssessments: serializedLevelAssessments,
     promotionProgress,
+    wordDetail,
   } = await getStudentDetailData(student.id, user.id)
 
 
@@ -183,6 +187,7 @@ export default async function StudentDetailPage({
         attendance={serializedAttendance}
         levelAssessments={serializedLevelAssessments}
         promotionProgress={promotionProgress}
+        wordDetail={wordDetail}
       />
     </div>
   )

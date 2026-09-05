@@ -29,9 +29,14 @@ import {
   Circle,
   TrendingUp,
   CheckCircle2,
+  SpellCheck,
+  Star,
+  Flame,
 } from 'lucide-react'
 import { saveTeacherComment, updateAttendance, regenerateLearningPath, overrideStudentLevel, deployLevelTestToStudent } from '../actions'
 import type { PromotionProgress } from '@/lib/assessment/promotion-engine'
+import type { StudentWordDetail } from '@/lib/words/student-word-stats'
+import { CefrProgressChart, WeeklyActivityHeatmap } from '@/app/(dashboard)/student/words/report/_components/report-charts'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -338,6 +343,186 @@ function ScoreTab({
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Tab: 단어학습 ────────────────────────────────────────────────────────────
+
+function VocabTab({ detail }: { detail: StudentWordDetail }) {
+  const masterRate = detail.learned > 0 ? Math.round((detail.mastered / detail.learned) * 100) : 0
+  const weekStreak = detail.weeklyActivity.filter((d) => d.count > 0).length
+
+  if (detail.learned === 0) {
+    return (
+      <div className="py-20 text-center text-gray-400">
+        <SpellCheck size={36} className="mx-auto mb-3 opacity-50" />
+        <p className="text-sm">단어학습 기록이 없습니다</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* 핵심 지표 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <VocabStatCard
+          icon={<BookOpen className="w-5 h-5 text-[#1865F2]" />}
+          label="학습 단어"
+          value={detail.learned.toLocaleString()}
+          unit="개"
+          bg="#EFF4FE"
+        />
+        <VocabStatCard
+          icon={<Star className="w-5 h-5 text-[#7854F7]" />}
+          label="마스터"
+          value={detail.mastered.toLocaleString()}
+          unit="개"
+          bg="#F3F0FF"
+        />
+        <VocabStatCard
+          icon={<Flame className="w-5 h-5 text-[#E35C20]" />}
+          label="7일 활동"
+          value={String(weekStreak)}
+          unit="일"
+          bg="#FEF3EC"
+        />
+        <VocabStatCard
+          icon={<SpellCheck className="w-5 h-5 text-[#1FAF54]" />}
+          label="단어시험"
+          value={String(detail.testCount)}
+          unit="회"
+          bg="#E9F9EF"
+        />
+      </div>
+
+      {/* 마스터율 / 정답률 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-gray-700">마스터율</p>
+            <span className="text-lg font-bold text-[#1865F2]">{masterRate}%</span>
+          </div>
+          <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-[#1865F2] transition-all"
+              style={{ width: `${masterRate}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-400 mt-2">
+            전체 {detail.learned}개 중 {detail.mastered}개 마스터
+          </p>
+        </div>
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <p className="text-sm font-semibold text-gray-700 mb-3">정답률</p>
+          <div className="flex items-center gap-6">
+            <div>
+              <p className="text-xs text-gray-400 mb-1">복습 정답률</p>
+              <p className="text-lg font-bold text-gray-900">
+                {detail.accuracy !== null ? `${detail.accuracy}%` : '-'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-1">단어시험 정답률</p>
+              <p className="text-lg font-bold text-gray-900">
+                {detail.testAccuracy !== null ? `${detail.testAccuracy}%` : '-'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-1">마지막 학습</p>
+              <p className="text-sm font-medium text-gray-700">
+                {detail.lastStudiedAt
+                  ? new Date(detail.lastStudiedAt).toLocaleDateString('ko-KR', {
+                      month: '2-digit',
+                      day: '2-digit',
+                    })
+                  : '-'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CEFR 레벨별 진도 */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp className="w-4 h-4 text-[#1865F2]" />
+          <p className="text-sm font-semibold text-gray-700">레벨별 학습 현황</p>
+        </div>
+        <div className="flex gap-4 text-xs text-gray-500 mb-3">
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-sm bg-[#DDE8FD]" />학습
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-sm bg-[#1865F2]" />마스터
+          </span>
+        </div>
+        <CefrProgressChart data={detail.cefrProgress} />
+      </div>
+
+      {/* 최근 7일 활동 */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <p className="text-sm font-semibold text-gray-700 mb-4">최근 7일 활동</p>
+        <WeeklyActivityHeatmap data={detail.weeklyActivity} />
+      </div>
+
+      {/* 약점 단어 */}
+      {detail.weakWords.length > 0 && (
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <p className="text-sm font-semibold text-gray-700 mb-4">
+            약점 단어 TOP{detail.weakWords.length}
+          </p>
+          <div className="space-y-2">
+            {detail.weakWords.map((w, i) => (
+              <div key={w.word} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+                <span
+                  className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                  style={{ background: i < 3 ? '#FEF3EC' : '#F9FAFB', color: i < 3 ? '#E35C20' : '#9CA3AF' }}
+                >
+                  {i + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 text-sm">{w.word}</p>
+                  {w.meaning && <p className="text-xs text-gray-400 truncate">{w.meaning}</p>}
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs text-[#D92916] font-medium">오답 {w.wrongCount}회</p>
+                  <p className="text-xs text-gray-400">정답 {w.correctCount}회</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function VocabStatCard({
+  icon,
+  label,
+  value,
+  unit,
+  bg,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: string
+  unit: string
+  bg: string
+}) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4 flex flex-col gap-2">
+      <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: bg }}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-2xl font-bold text-gray-900">
+          {value}
+          <span className="text-sm font-medium text-gray-400 ml-0.5">{unit}</span>
+        </p>
+        <p className="text-xs text-gray-400">{label}</p>
       </div>
     </div>
   )
@@ -1184,6 +1369,7 @@ function LevelTab({
 const TABS = [
   { id: 'score', label: '성적 종합', icon: BarChart2 },
   { id: 'level', label: '레벨 관리', icon: TrendingUp },
+  { id: 'vocab', label: '단어학습', icon: SpellCheck },
   { id: 'path', label: '학습 경로', icon: BookOpen },
   { id: 'comment', label: '교사 코멘트', icon: MessageSquare },
   { id: 'attendance', label: '출석', icon: Calendar },
@@ -1202,6 +1388,7 @@ export function StudentDetailClient({
   attendance,
   levelAssessments,
   promotionProgress,
+  wordDetail,
 }: {
   studentId: string
   studentName: string
@@ -1213,6 +1400,7 @@ export function StudentDetailClient({
   attendance: AttendanceData[]
   levelAssessments: LevelAssessmentData[]
   promotionProgress: PromotionProgress
+  wordDetail: StudentWordDetail
 }) {
   const [activeTab, setActiveTab] = useState<TabId>('score')
 
@@ -1248,6 +1436,7 @@ export function StudentDetailClient({
           promotionProgress={promotionProgress}
         />
       )}
+      {activeTab === 'vocab' && <VocabTab detail={wordDetail} />}
       {activeTab === 'path' && (
         <LearningPathTab studentId={studentId} learningPath={learningPath} />
       )}
