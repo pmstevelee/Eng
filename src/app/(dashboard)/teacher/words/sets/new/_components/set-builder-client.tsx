@@ -103,6 +103,16 @@ function addDays(dateStr: string, days: number): string {
   return toDateInput(d)
 }
 
+/** startDate가 주말이고 excludeWeekends이면 다음 평일까지 앞당긴 첫 학습일 */
+function firstLearningDate(start: string, excludeWeekends: boolean): string {
+  if (!start) return start
+  const d = new Date(start + 'T00:00:00')
+  while (excludeWeekends && (d.getDay() === 0 || d.getDay() === 6)) {
+    d.setDate(d.getDate() + 1)
+  }
+  return toDateInput(d)
+}
+
 /** 시작일~종료일 포함 일수 (excludeWeekends 시 토·일 제외) */
 function daysBetween(start: string, end: string, excludeWeekends = false): number {
   if (!start || !end) return 0
@@ -341,6 +351,8 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
         perDay,
         totalDays,
         order: autoOrder,
+        startDate,
+        excludeWeekends,
         testAssignment: wantsTest
           ? {
               title: testTitle.trim() || `${title.trim()} 단어 시험`,
@@ -641,10 +653,10 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
             생성될 세트:{' '}
             <span className="font-bold text-[#1865F2]">
               {totalDays > 1
-                ? `"${title.trim() || '세트'} (${today}) 1일차" 형식 ${expectedSets}개`
-                : `"${title.trim() || '세트'} (${today})" 1개`}
+                ? `"${title.trim() || '세트'} (${firstLearningDate(startDate, excludeWeekends)}) 1일차" 형식 ${expectedSets}개`
+                : `"${title.trim() || '세트'} (${firstLearningDate(startDate, excludeWeekends)})" 1개`}
             </span>{' '}
-            <span className="text-gray-400">(세트당 하루 {perDay}개)</span>
+            <span className="text-gray-400">(세트당 하루 {perDay}개, 날짜는 학습일 기준)</span>
           </p>
         </div>
 

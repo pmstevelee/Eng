@@ -384,10 +384,12 @@ export async function createTeacherWordSet(
     return { error: `시험 문항 수(${testAssignment.numQuestions})가 세트 단어 수(${uniqueWordIds.length})보다 많습니다.` }
   }
 
+  const dateSuffix = setCreationDateSuffix()
+
   const { set, assignmentId } = await prisma.$transaction(async (tx) => {
     const set = await tx.wordSet.create({
       data: {
-        title: `${title} ${setCreationDateSuffix()}`,
+        title: `${title} ${dateSuffix}`,
         description: description ?? null,
         cefrLevel,
         isPublic: false,
@@ -407,7 +409,7 @@ export async function createTeacherWordSet(
           teacherId: teacher.id,
           academyId: teacher.academyId!,
           setId: set.id,
-          title: testAssignment.title,
+          title: `${testAssignment.title} ${dateSuffix}`,
           mode: testAssignment.mode as WordTestMode,
           timePerQuestion: testAssignment.timePerQuestion,
           numQuestions: testAssignment.numQuestions,
@@ -444,8 +446,27 @@ const AutoCreateDailySetsSchema = z.object({
   perDay: z.coerce.number().int().min(1).max(200),
   totalDays: z.coerce.number().int().min(1).max(120),
   order: z.enum(['alphabetical', 'random']).default('random'),
+  startDate: z.string().min(1, '학습 시작일을 선택하세요.'),
+  excludeWeekends: z.boolean().default(false),
   testAssignment: TestAssignmentOptionsSchema.optional(),
 })
+
+/** startDate부터 실제 학습일(주말 제외 옵션 반영) 날짜를 count개 순서대로 생성 */
+function buildLearningDates(startDate: string, count: number, excludeWeekends: boolean): string[] {
+  const dates: string[] = []
+  const cur = new Date(startDate + 'T00:00:00')
+  while (dates.length < count) {
+    const day = cur.getDay()
+    if (!excludeWeekends || (day !== 0 && day !== 6)) {
+      const y = cur.getFullYear()
+      const m = String(cur.getMonth() + 1).padStart(2, '0')
+      const d = String(cur.getDate()).padStart(2, '0')
+      dates.push(`${y}-${m}-${d}`)
+    }
+    cur.setDate(cur.getDate() + 1)
+  }
+  return dates
+}
 
 /**
  * 기간 조건으로 "일자별" 단어 세트를 한 번에 생성한다.
@@ -461,7 +482,8 @@ export async function autoCreateDailySets(
   const parsed = AutoCreateDailySetsSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
 
-  const { titleBase, description, cefrLevel, cefrLevels, perDay, totalDays, order, testAssignment } = parsed.data
+  const { titleBase, description, cefrLevel, cefrLevels, perDay, totalDays, order, startDate, excludeWeekends, testAssignment } =
+    parsed.data
 
   // 레벨 칩을 선택하지 않았으면 세트의 위고업 단계에 맞춰 자동 보정
   const effectiveLevels = cefrLevels.length > 0 ? cefrLevels : [levelToOxfordCefr(cefrLevel)]
@@ -503,10 +525,12 @@ export async function autoCreateDailySets(
   // 세트 id를 미리 생성해 두고 createMany 2번으로 일괄 삽입
   // (일자 수가 많아도 트랜잭션이 길어지지 않도록 — interactive transaction 타임아웃 방지)
   const savedCefrLevel = mapOxfordCefrToWegoupLevel(effectiveLevels[0])
-  const dateSuffix = setCreationDateSuffix()
+  const learningDates = buildLearningDates(startDate, chunks.length, excludeWeekends)
   const setsData = chunks.map((_, d) => ({
     id: randomUUID(),
-    title: multiDay ? `${titleBase} ${dateSuffix} ${d + 1}일차` : `${titleBase} ${dateSuffix}`,
+    title: multiDay
+      ? `${titleBase} (${learningDates[d]}) ${d + 1}일차`
+      : `${titleBase} (${learningDates[d]})`,
     description: description ?? null,
     cefrLevel: savedCefrLevel,
     isPublic: false,
@@ -529,7 +553,9 @@ export async function autoCreateDailySets(
       teacherId: teacher.id,
       academyId: teacher.academyId!,
       setId: setsData[d].id,
-      title: multiDay ? `${testAssignment.title} ${d + 1}일차` : testAssignment.title,
+      title: multiDay
+        ? `${testAssignment.title} (${learningDates[d]}) ${d + 1}일차`
+        : `${testAssignment.title} (${learningDates[d]})`,
       mode: testAssignment.mode as WordTestMode,
       timePerQuestion: testAssignment.timePerQuestion,
       numQuestions: Math.min(testAssignment.numQuestions, chunk.length),
