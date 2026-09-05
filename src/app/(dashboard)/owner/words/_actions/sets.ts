@@ -93,6 +93,15 @@ function levelToOxfordCefr(level: number): OxfordCefrValue {
   return OXFORD_CEFR_VALUES[idx - 1]
 }
 
+/** 세트 이름에 붙일 생성 날짜 접미사, 예: "(2026-09-05)" */
+function setCreationDateSuffix(): string {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `(${y}-${m}-${day})`
+}
+
 function buildAutoWhere(cefrLevels: OxfordCefrValue[], excludeWordIds: string[]) {
   return {
     ...(cefrLevels.length > 0 ? { oxfordCefr: { in: cefrLevels } } : {}),
@@ -164,7 +173,7 @@ export async function createOwnerWordSet(
   const { set, assignmentId } = await prisma.$transaction(async (tx) => {
     const set = await tx.wordSet.create({
       data: {
-        title,
+        title: `${title} ${setCreationDateSuffix()}`,
         description: description ?? null,
         cefrLevel,
         isPublic: false,
@@ -268,7 +277,7 @@ const AutoCreateDailySetsSchema = z.object({
   cefrLevels: z.array(z.enum(OXFORD_CEFR_VALUES)).default([]),
   perDay: z.coerce.number().int().min(1).max(200),
   totalDays: z.coerce.number().int().min(1).max(120),
-  order: z.enum(['alphabetical', 'random']).default('alphabetical'),
+  order: z.enum(['alphabetical', 'random']).default('random'),
   testAssignment: TestAssignmentOptionsSchema.optional(),
 })
 
@@ -317,9 +326,10 @@ export async function autoCreateOwnerDailySets(
   const multiDay = chunks.length > 1
 
   const savedCefrLevel = mapOxfordCefrToWegoupLevel(effectiveLevels[0])
+  const dateSuffix = setCreationDateSuffix()
   const setsData = chunks.map((_, d) => ({
     id: randomUUID(),
-    title: multiDay ? `${titleBase} ${d + 1}일차` : titleBase,
+    title: multiDay ? `${titleBase} ${dateSuffix} ${d + 1}일차` : `${titleBase} ${dateSuffix}`,
     description: description ?? null,
     cefrLevel: savedCefrLevel,
     isPublic: false,

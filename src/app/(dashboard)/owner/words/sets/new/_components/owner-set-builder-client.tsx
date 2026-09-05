@@ -92,12 +92,19 @@ function addDays(dateStr: string, days: number): string {
   return toDateInput(d)
 }
 
-function daysBetween(start: string, end: string): number {
+/** 시작일~종료일 포함 일수 (excludeWeekends 시 토·일 제외) */
+function daysBetween(start: string, end: string, excludeWeekends = false): number {
   if (!start || !end) return 0
   const s = new Date(start + 'T00:00:00').getTime()
   const e = new Date(end + 'T00:00:00').getTime()
   if (Number.isNaN(s) || Number.isNaN(e) || e < s) return 0
-  return Math.floor((e - s) / 86_400_000) + 1
+  if (!excludeWeekends) return Math.floor((e - s) / 86_400_000) + 1
+  let count = 0
+  for (let t = s; t <= e; t += 86_400_000) {
+    const day = new Date(t).getDay()
+    if (day !== 0 && day !== 6) count++
+  }
+  return count
 }
 
 interface SelectedWord extends WordSearchResult {
@@ -154,7 +161,8 @@ export function OwnerSetBuilderClient({
   const [startDate, setStartDate] = useState(today)
   const [endDate, setEndDate] = useState(addDays(today, 29))
   const [perDay, setPerDay] = useState(20)
-  const [autoOrder, setAutoOrder] = useState<'alphabetical' | 'random'>('alphabetical')
+  const [autoOrder, setAutoOrder] = useState<'alphabetical' | 'random'>('random')
+  const [excludeWeekends, setExcludeWeekends] = useState(false)
   const [availableCount, setAvailableCount] = useState<number | null>(null)
   const [isAutoCreating, startAutoCreate] = useTransition()
   const [autoError, setAutoError] = useState<string | null>(null)
@@ -162,7 +170,7 @@ export function OwnerSetBuilderClient({
   const autoLevelFallback = autoLevels.length === 0
   const effectiveLevels = autoLevelFallback ? [levelToOxfordCefr(cefrLevel)] : autoLevels
 
-  const totalDays = daysBetween(startDate, endDate)
+  const totalDays = daysBetween(startDate, endDate, excludeWeekends)
   const neededCount = perDay * totalDays
 
   const [isSaving, startSave] = useTransition()
@@ -405,6 +413,9 @@ export function OwnerSetBuilderClient({
               className="h-11"
               maxLength={100}
             />
+            {!isEdit && (
+              <p className="text-xs text-gray-400 mt-1">저장 시 세트 이름 뒤에 생성 날짜가 자동으로 붙습니다.</p>
+            )}
           </div>
           <div>
             <label className="text-xs font-medium text-gray-500 mb-1 block">CEFR 레벨 (위고업 단계)</label>
@@ -527,8 +538,15 @@ export function OwnerSetBuilderClient({
               />
             </div>
             <span className="h-11 inline-flex items-center px-4 rounded-xl bg-[#1865F2]/10 text-[#1865F2] text-sm font-semibold">
-              총 {totalDays}일
+              총 {totalDays}일{excludeWeekends ? ' (주말 제외)' : ''}
             </span>
+            <label className="h-11 inline-flex items-center gap-2 cursor-pointer">
+              <Checkbox
+                checked={excludeWeekends}
+                onCheckedChange={(v) => setExcludeWeekends(Boolean(v))}
+              />
+              <span className="text-sm text-gray-600">토요일·일요일 제외</span>
+            </label>
           </div>
         </div>
 
@@ -607,7 +625,9 @@ export function OwnerSetBuilderClient({
           <p>
             생성될 세트:{' '}
             <span className="font-bold text-[#1865F2]">
-              {totalDays > 1 ? `"${title.trim() || '세트'} 1일차" 형식 ${expectedSets}개` : '1개'}
+              {totalDays > 1
+                ? `"${title.trim() || '세트'} (${today}) 1일차" 형식 ${expectedSets}개`
+                : `"${title.trim() || '세트'} (${today})" 1개`}
             </span>{' '}
             <span className="text-gray-400">(세트당 하루 {perDay}개)</span>
           </p>
