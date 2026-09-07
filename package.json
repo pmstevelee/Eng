@@ -26,7 +26,11 @@
     "seed:unit-test-u1": "tsx prisma/seed-unit-test-u1.ts",
     "oxford:download": "tsx scripts/oxford/download-pdfs.ts",
     "oxford:parse": "tsx scripts/oxford/parse-oxford.ts",
-    "oxford:seed:sets": "tsx scripts/oxford/seed-wordsets.ts"
+    "oxford:seed:sets": "tsx scripts/oxford/seed-wordsets.ts",
+    "words:import-category": "tsx scripts/oxford/import-exam-category.ts",
+    "words:import-word-list": "tsx scripts/oxford/import-word-list.ts",
+    "words:backfill-examples": "tsx scripts/oxford/backfill-examples.ts",
+    "words:seed-category-sets": "tsx scripts/oxford/seed-exam-category-sets.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -9,6 +9,8 @@ import {
 import { getLevelInfo } from '@/lib/constants/levels'
 import { DailyReviewWidget } from '@/components/words/daily-review-widget'
 import { NavLinkWithLoading } from '@/components/shared/nav-link-with-loading'
+import { ExamCategoryBadges, EXAM_CATEGORY_OPTIONS } from '@/components/words/exam-category-badges'
+import type { ExamCategory } from '@/generated/prisma'
 
 async function getWordsHubData(studentId: string, userId: string) {
   const user = await prisma.user.findUnique({
@@ -67,7 +69,7 @@ async function ensureSystemWordSets() {
   }
 }
 
-async function getWordSets(academyId: string | null, studentLevel: number) {
+async function getWordSets(academyId: string | null, studentLevel: number, category?: ExamCategory) {
   return prisma.wordSet.findMany({
     where: {
       AND: [
@@ -78,6 +80,7 @@ async function getWordSets(academyId: string | null, studentLevel: number) {
           ],
         },
         { source: { notIn: ['OXFORD_3000', 'OXFORD_5000'] } },
+        ...(category ? [{ examCategory: category }] : []),
       ],
     },
     select: {
@@ -85,6 +88,7 @@ async function getWordSets(academyId: string | null, studentLevel: number) {
       title: true,
       description: true,
       cefrLevel: true,
+      examCategory: true,
       _count: { select: { items: true } },
     },
     orderBy: { cefrLevel: 'asc' },
@@ -124,7 +128,16 @@ function UpgradePrompt() {
   )
 }
 
-export default async function WordsHubPage() {
+interface Props {
+  searchParams: Promise<{ category?: string }>
+}
+
+export default async function WordsHubPage({ searchParams }: Props) {
+  const { category } = await searchParams
+  const activeCategory = EXAM_CATEGORY_OPTIONS.some((o) => o.value === category)
+    ? (category as ExamCategory)
+    : undefined
+
   const { studentId, userId } = await requireStudent()
   const { user } = await getWordsHubData(studentId, userId)
 
@@ -146,7 +159,7 @@ export default async function WordsHubPage() {
   const levelInfo = getLevelInfo(studentLevel)
   const dailyNewWords = getAcademyDailyNewWords(user?.academy?.settingsJson)
   await ensureSystemWordSets()
-  const wordSets = await getWordSets(academyId, studentLevel)
+  const wordSets = await getWordSets(academyId, studentLevel, activeCategory)
 
   // 배정된 시험 (미응시만)
   const now = new Date()
@@ -275,6 +288,33 @@ export default async function WordsHubPage() {
         </div>
       </div>
 
+      {/* 시험 카테고리 필터 */}
+      <div className="flex gap-2 flex-wrap">
+        <Link
+          href="/student/words"
+          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+            !activeCategory
+              ? 'bg-[#7854F7] text-white border-[#7854F7]'
+              : 'bg-white text-gray-500 border-gray-200 hover:border-[#7854F7] hover:text-[#7854F7]'
+          }`}
+        >
+          전체
+        </Link>
+        {EXAM_CATEGORY_OPTIONS.map((opt) => (
+          <Link
+            key={opt.value}
+            href={`/student/words?category=${opt.value}`}
+            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+              activeCategory === opt.value
+                ? 'bg-[#7854F7] text-white border-[#7854F7]'
+                : 'bg-white text-gray-500 border-gray-200 hover:border-[#7854F7] hover:text-[#7854F7]'
+            }`}
+          >
+            {opt.label}
+          </Link>
+        ))}
+      </div>
+
       {/* 추천 단어 세트 */}
       {recommendedSets.length > 0 && (
         <section id="word-sets">
@@ -308,6 +348,7 @@ export default async function WordsHubPage() {
                           {CEFR_LABEL[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
                         </span>
                         <span className="text-xs text-gray-400">{set._count.items}단어</span>
+                        {set.examCategory && <ExamCategoryBadges categories={[set.examCategory]} />}
                       </div>
                       <p className="font-semibold text-gray-900 truncate">{set.title}</p>
                       {set.description && (
@@ -363,6 +404,7 @@ export default async function WordsHubPage() {
                           {CEFR_LABEL[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
                         </span>
                         <span className="text-xs text-gray-400">{set._count.items}단어</span>
+                        {set.examCategory && <ExamCategoryBadges categories={[set.examCategory]} />}
                       </div>
                       <p className="font-semibold text-gray-900 truncate">{set.title}</p>
                       {set.description && (

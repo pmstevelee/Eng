@@ -21,7 +21,15 @@ export default async function OwnerWordSetEditPage({ params }: Props) {
         orderBy: { order: 'asc' },
         include: {
           word: {
-            select: { id: true, term: true, meaning: true, partOfSpeech: true, cefrLevel: true, oxfordCefr: true },
+            select: {
+              id: true,
+              term: true,
+              meaning: true,
+              partOfSpeech: true,
+              cefrLevel: true,
+              oxfordCefr: true,
+              examCategories: { select: { category: true } },
+            },
           },
         },
       },
@@ -49,7 +57,10 @@ export default async function OwnerWordSetEditPage({ params }: Props) {
         initialTitle={wordSet.title}
         initialDescription={wordSet.description ?? ''}
         initialCefrLevel={wordSet.cefrLevel}
-        initialWords={wordSet.items.map((item) => item.word)}
+        initialWords={wordSet.items.map((item) => ({
+          ...item.word,
+          examCategories: item.word.examCategories.map((c) => c.category),
+        }))}
       />
     </div>
   )

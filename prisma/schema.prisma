@@ -1096,6 +1096,14 @@ enum OxfordCefr {
   C1
 }
 
+enum ExamCategory {
+  IELTS
+  CELPIP
+  TOEFL
+  TOEIC
+  SAT
+}
+
 /// 단어 마스터 (Oxford 기반)
 model Word {
   id            String      @id @default(uuid())
@@ -1113,8 +1121,9 @@ model Word {
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
 
-  wordSetItems  WordSetItem[]
-  wordProgress  WordProgress[]
+  wordSetItems    WordSetItem[]
+  wordProgress    WordProgress[]
+  examCategories  WordExamCategory[]
 
   @@unique([term, partOfSpeech, homonymIndex])
   @@index([cefrLevel])
@@ -1122,18 +1131,34 @@ model Word {
   @@map("words")
 }
 
+/// 단어의 시험별 카테고리 태그 (한 단어가 여러 시험에 동시 소속 가능 — 중복 표시용)
+model WordExamCategory {
+  id        String       @id @default(uuid())
+  wordId    String       @map("word_id")
+  category  ExamCategory
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([wordId, category])
+  @@index([category])
+  @@index([wordId])
+  @@map("word_exam_categories")
+}
+
 /// 단어 세트
 model WordSet {
   id          String        @id @default(uuid())
-  title       String
-  description String?
-  cefrLevel   Int           @map("cefr_level")
-  isPublic    Boolean       @default(false) @map("is_public")
-  source      WordSetSource
-  ownerId     String?       @map("owner_id")
-  academyId   String?       @map("academy_id")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
+  title        String
+  description  String?
+  cefrLevel    Int           @map("cefr_level")
+  examCategory ExamCategory? @map("exam_category")
+  isPublic     Boolean       @default(false) @map("is_public")
+  source       WordSetSource
+  ownerId      String?       @map("owner_id")
+  academyId    String?       @map("academy_id")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
 
   owner     User?     @relation("OwnedWordSets", fields: [ownerId], references: [id])
   academy   Academy?  @relation(fields: [academyId], references: [id])
@@ -1144,6 +1169,7 @@ model WordSet {
 
   @@index([ownerId])
   @@index([academyId])
+  @@index([examCategory])
   @@map("word_sets")
 }
 

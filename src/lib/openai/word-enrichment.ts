@@ -81,3 +81,52 @@ export async function enrichWord(input: WordEnrichmentInput): Promise<WordEnrich
     tokensUsed: response.usage?.total_tokens ?? 0,
   }
 }
+
+export type ExampleOnlyInput = {
+  term: string
+  partOfSpeech: string
+  meaning: string
+}
+
+export type ExampleOnlyResult = {
+  example: string
+  tokensUsed: number
+}
+
+/** 이미 뜻/정의가 있는 단어(예: 사용자 제공 파일에서 가져온 단어)에 예문만 새로 생성한다. */
+export async function generateExampleOnly(input: ExampleOnlyInput): Promise<ExampleOnlyResult> {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) throw new Error('OPENAI_API_KEY가 설정되지 않았습니다.')
+
+  const openai = new OpenAI({ apiKey })
+  const { term, partOfSpeech, meaning } = input
+
+  const prompt = `You are an EFL vocabulary expert creating dictionary entries for Korean English learners.
+
+Word: "${term}" (${partOfSpeech})
+Korean meaning: ${meaning}
+
+Return a JSON object with exactly this field:
+- "example": One natural English example sentence showing the word in context, matching the given meaning. No more than 20 words.`
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    response_format: { type: 'json_object' },
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.3,
+    max_tokens: 100,
+  })
+
+  const raw = response.choices[0]?.message?.content
+  if (!raw) throw new Error('OpenAI 응답이 비어 있습니다.')
+
+  const parsed = JSON.parse(raw) as Partial<{ example: string }>
+  if (!parsed.example) {
+    throw new Error(`OpenAI 응답 필드 누락: ${JSON.stringify(parsed)}`)
+  }
+
+  return {
+    example: parsed.example.trim(),
+    tokensUsed: response.usage?.total_tokens ?? 0,
+  }
+}

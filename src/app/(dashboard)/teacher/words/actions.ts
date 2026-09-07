@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { mapOxfordCefrToWegoupLevel } from '@/lib/words/cefr-mapping'
 import type { WordTestMode } from '@/generated/prisma'
+import { ExamCategory } from '@/generated/prisma'
 
 async function getAuthedTeacher() {
   const supabase = await createClient()
@@ -234,6 +235,7 @@ export async function getClassesForTeacher() {
 const SearchWordsSchema = z.object({
   query: z.string().max(80).default(''),
   oxfordCefr: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', '']).optional(),
+  examCategories: z.array(z.nativeEnum(ExamCategory)).default([]),
   page: z.coerce.number().int().min(1).default(1),
 })
 
@@ -244,6 +246,7 @@ export type WordSearchResult = {
   partOfSpeech: string | null
   cefrLevel: number
   oxfordCefr: string | null
+  examCategories: string[]
 }
 
 export async function searchWords(
@@ -252,7 +255,7 @@ export async function searchWords(
   const teacher = await getAuthedTeacher()
   if (!teacher) return { words: [], total: 0 }
 
-  const { query, oxfordCefr, page } = SearchWordsSchema.parse(input)
+  const { query, oxfordCefr, examCategories, page } = SearchWordsSchema.parse(input)
   const PAGE_SIZE = 20
   const skip = (page - 1) * PAGE_SIZE
 
@@ -266,6 +269,9 @@ export async function searchWords(
         }
       : {}),
     ...(oxfordCefr ? { oxfordCefr: oxfordCefr as 'A1' | 'A2' | 'B1' | 'B2' | 'C1' } : {}),
+    ...(examCategories.length > 0
+      ? { examCategories: { some: { category: { in: examCategories } } } }
+      : {}),
   }
 
   const [words, total] = await Promise.all([
@@ -278,6 +284,7 @@ export async function searchWords(
         partOfSpeech: true,
         cefrLevel: true,
         oxfordCefr: true,
+        examCategories: { select: { category: true } },
       },
       orderBy: [{ cefrLevel: 'asc' }, { term: 'asc' }],
       skip,
@@ -286,7 +293,13 @@ export async function searchWords(
     prisma.word.count({ where }),
   ])
 
-  return { words, total }
+  return {
+    words: words.map((w) => ({
+      ...w,
+      examCategories: w.examCategories.map((c) => c.category),
+    })),
+    total,
+  }
 }
 
 // ─── 자동 생성: 사용 가능한 단어 수 ─────────────────────────────────────────────
@@ -316,6 +329,7 @@ function setCreationDateSuffix(): string {
 const CountAvailableSchema = z.object({
   cefrLevels: z.array(z.enum(OXFORD_CEFR_VALUES)).default([]),
   excludeWordIds: z.array(z.string().uuid()).default([]),
+  examCategories: z.array(z.nativeEnum(ExamCategory)).default([]),
 })
 
 /** 선택한 레벨 + 이미 추가한 단어 제외 시 남은 단어 수 (경고 표시용) */
@@ -327,17 +341,24 @@ export async function getAvailableWordCount(
 
   const parsed = CountAvailableSchema.safeParse(input)
   if (!parsed.success) return 0
-  const { cefrLevels, excludeWordIds } = parsed.data
+  const { cefrLevels, excludeWordIds, examCategories } = parsed.data
 
   return prisma.word.count({
-    where: buildAutoWhere(cefrLevels, excludeWordIds),
+    where: buildAutoWhere(cefrLevels, excludeWordIds, examCategories),
   })
 }
 
-function buildAutoWhere(cefrLevels: OxfordCefrValue[], excludeWordIds: string[]) {
+function buildAutoWhere(
+  cefrLevels: OxfordCefrValue[],
+  excludeWordIds: string[],
+  examCategories: ExamCategory[] = [],
+) {
   return {
     ...(cefrLevels.length > 0 ? { oxfordCefr: { in: cefrLevels } } : {}),
     ...(excludeWordIds.length > 0 ? { id: { notIn: excludeWordIds } } : {}),
+    ...(examCategories.length > 0
+      ? { examCategories: { some: { category: { in: examCategories } } } }
+      : {}),
   }
 }
 
@@ -443,6 +464,7 @@ const AutoCreateDailySetsSchema = z.object({
   description: z.string().max(300).optional(),
   cefrLevel: z.coerce.number().int().min(1).max(10),
   cefrLevels: z.array(z.enum(OXFORD_CEFR_VALUES)).default([]),
+  examCategories: z.array(z.nativeEnum(ExamCategory)).default([]),
   perDay: z.coerce.number().int().min(1).max(200),
   totalDays: z.coerce.number().int().min(1).max(120),
   order: z.enum(['alphabetical', 'random']).default('random'),
@@ -482,14 +504,14 @@ export async function autoCreateDailySets(
   const parsed = AutoCreateDailySetsSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
 
-  const { titleBase, description, cefrLevel, cefrLevels, perDay, totalDays, order, startDate, excludeWeekends, testAssignment } =
+  const { titleBase, description, cefrLevel, cefrLevels, examCategories, perDay, totalDays, order, startDate, excludeWeekends, testAssignment } =
     parsed.data
 
   // 레벨 칩을 선택하지 않았으면 세트의 위고업 단계에 맞춰 자동 보정
   const effectiveLevels = cefrLevels.length > 0 ? cefrLevels : [levelToOxfordCefr(cefrLevel)]
 
   const need = perDay * totalDays
-  const where = buildAutoWhere(effectiveLevels, [])
+  const where = buildAutoWhere(effectiveLevels, [], examCategories)
 
   // 필요한 만큼 단어 id 선택 (알파벳순 / 무작위)
   let wordIds: string[]

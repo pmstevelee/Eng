@@ -6,9 +6,11 @@ import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
 import { getOwnerWordStats } from './_actions/report'
 import { OwnerSetsList } from './_components/owner-sets-list'
+import { ExamCategoryBadges, EXAM_CATEGORY_OPTIONS } from '@/components/words/exam-category-badges'
+import type { ExamCategory } from '@/generated/prisma'
 
 interface Props {
-  searchParams: Promise<{ tab?: string }>
+  searchParams: Promise<{ tab?: string; category?: string }>
 }
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -25,8 +27,11 @@ const CEFR_MAP: Record<number, string> = {
 }
 
 export default async function OwnerWordsPage({ searchParams }: Props) {
-  const { tab } = await searchParams
+  const { tab, category } = await searchParams
   const activeTab = tab === 'sets' ? 'sets' : 'stats'
+  const activeCategory = EXAM_CATEGORY_OPTIONS.some((o) => o.value === category)
+    ? (category as ExamCategory)
+    : undefined
 
   const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
@@ -90,7 +95,7 @@ export default async function OwnerWordsPage({ searchParams }: Props) {
       {activeTab === 'stats' ? (
         <StatsTab />
       ) : (
-        <SetsTab academyId={user.academyId} />
+        <SetsTab academyId={user.academyId} activeCategory={activeCategory} />
       )}
     </div>
   )
@@ -192,18 +197,26 @@ async function StatsTab() {
   )
 }
 
-async function SetsTab({ academyId }: { academyId: string }) {
+async function SetsTab({
+  academyId,
+  activeCategory,
+}: {
+  academyId: string
+  activeCategory?: ExamCategory
+}) {
   const wordSets = await prisma.wordSet.findMany({
     where: {
       AND: [
         { OR: [{ academyId }, { isPublic: true }] },
         { source: { notIn: ['OXFORD_3000', 'OXFORD_5000'] } },
+        ...(activeCategory ? [{ examCategory: activeCategory }] : []),
       ],
     },
     select: {
       id: true,
       title: true,
       cefrLevel: true,
+      examCategory: true,
       source: true,
       createdAt: true,
       _count: { select: { items: true } },
@@ -216,6 +229,33 @@ async function SetsTab({ academyId }: { academyId: string }) {
 
   return (
     <div className="space-y-6">
+      {/* 시험 카테고리 필터 */}
+      <div className="flex gap-2 flex-wrap">
+        <Link
+          href="/owner/words?tab=sets"
+          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+            !activeCategory
+              ? 'bg-[#7854F7] text-white border-[#7854F7]'
+              : 'bg-white text-gray-500 border-gray-200 hover:border-[#7854F7] hover:text-[#7854F7]'
+          }`}
+        >
+          전체
+        </Link>
+        {EXAM_CATEGORY_OPTIONS.map((opt) => (
+          <Link
+            key={opt.value}
+            href={`/owner/words?tab=sets&category=${opt.value}`}
+            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+              activeCategory === opt.value
+                ? 'bg-[#7854F7] text-white border-[#7854F7]'
+                : 'bg-white text-gray-500 border-gray-200 hover:border-[#7854F7] hover:text-[#7854F7]'
+            }`}
+          >
+            {opt.label}
+          </Link>
+        ))}
+      </div>
+
       {/* 학원 제작 세트 */}
       <section>
         <div className="flex items-center justify-between mb-3">
@@ -258,6 +298,7 @@ async function SetsTab({ academyId }: { academyId: string }) {
                     <span className="text-xs font-medium text-[#1865F2] bg-[#1865F2]/10 px-2 py-0.5 rounded-full">
                       {CEFR_MAP[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
                     </span>
+                    {set.examCategory && <ExamCategoryBadges categories={[set.examCategory]} />}
                   </div>
                   <p className="font-semibold text-gray-900 truncate">{set.title}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{set._count.items}단어</p>

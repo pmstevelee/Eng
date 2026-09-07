@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
 import { BookOpen, Plus, BarChart2, ClipboardList } from 'lucide-react'
 import { TeacherSetsList } from './_components/teacher-sets-list'
+import { ExamCategoryBadges, EXAM_CATEGORY_OPTIONS } from '@/components/words/exam-category-badges'
+import type { ExamCategory } from '@/generated/prisma'
 
 const SOURCE_LABEL: Record<string, string> = {
   PUBLISHER: '시스템',
@@ -19,7 +21,16 @@ const CEFR_MAP: Record<number, string> = {
   6: 'B1', 7: 'B1+', 8: 'B2', 9: 'B2+', 10: 'C1',
 }
 
-export default async function TeacherWordsPage() {
+interface Props {
+  searchParams: Promise<{ category?: string }>
+}
+
+export default async function TeacherWordsPage({ searchParams }: Props) {
+  const { category } = await searchParams
+  const activeCategory = EXAM_CATEGORY_OPTIONS.some((o) => o.value === category)
+    ? (category as ExamCategory)
+    : undefined
+
   const user = await getCurrentUser()
   if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
 
@@ -28,12 +39,14 @@ export default async function TeacherWordsPage() {
       AND: [
         { OR: [{ academyId: user.academyId }, { isPublic: true }, { ownerId: user.id }] },
         { source: { notIn: ['OXFORD_3000', 'OXFORD_5000'] } },
+        ...(activeCategory ? [{ examCategory: activeCategory }] : []),
       ],
     },
     select: {
       id: true,
       title: true,
       cefrLevel: true,
+      examCategory: true,
       source: true,
       createdAt: true,
       _count: { select: { items: true, wordTestAssignments: true } },
@@ -70,6 +83,33 @@ export default async function TeacherWordsPage() {
             </Button>
           </Link>
         </div>
+      </div>
+
+      {/* 시험 카테고리 필터 */}
+      <div className="flex gap-2 flex-wrap">
+        <Link
+          href="/teacher/words"
+          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+            !activeCategory
+              ? 'bg-[#7854F7] text-white border-[#7854F7]'
+              : 'bg-white text-gray-500 border-gray-200 hover:border-[#7854F7] hover:text-[#7854F7]'
+          }`}
+        >
+          전체
+        </Link>
+        {EXAM_CATEGORY_OPTIONS.map((opt) => (
+          <Link
+            key={opt.value}
+            href={`/teacher/words?category=${opt.value}`}
+            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+              activeCategory === opt.value
+                ? 'bg-[#7854F7] text-white border-[#7854F7]'
+                : 'bg-white text-gray-500 border-gray-200 hover:border-[#7854F7] hover:text-[#7854F7]'
+            }`}
+          >
+            {opt.label}
+          </Link>
+        ))}
       </div>
 
       {/* 교사 제작 세트 */}
@@ -114,6 +154,7 @@ export default async function TeacherWordsPage() {
                     <span className="text-xs font-medium text-[#1865F2] bg-[#1865F2]/10 px-2 py-0.5 rounded-full">
                       {CEFR_MAP[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
                     </span>
+                    {set.examCategory && <ExamCategoryBadges categories={[set.examCategory]} />}
                   </div>
                   <p className="font-semibold text-gray-900 truncate">{set.title}</p>
                   <p className="text-xs text-gray-400 mt-0.5">

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Pencil, Trash2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { deleteOwnerWordSets } from '../_actions/sets'
+import { ExamCategoryBadges } from '@/components/words/exam-category-badges'
 
 type SortOption = 'latest' | 'oldest' | 'name'
 
@@ -32,6 +33,7 @@ interface OwnerSet {
   id: string
   title: string
   cefrLevel: number
+  examCategory?: string | null
   source: string
   createdAt: Date | string
   _count: { items: number }
@@ -176,6 +178,7 @@ export function OwnerSetsList({ sets }: { sets: OwnerSet[] }) {
               <span className="text-xs text-gray-400">
                 {CEFR_MAP[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
               </span>
+              {set.examCategory && <ExamCategoryBadges categories={[set.examCategory]} />}
             </div>
             <p className="font-semibold text-gray-900 truncate">{set.title}</p>
             <p className="text-xs text-gray-400 mt-0.5">{set._count.items}단어</p>

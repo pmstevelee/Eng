@@ -27,6 +27,9 @@ import {
   getAvailableWordCountForOwner,
 } from '@/app/(dashboard)/owner/words/_actions/sets'
 import type { WordSearchResult } from '@/app/(dashboard)/owner/words/_actions/sets'
+import { ExamCategoryBadges, EXAM_CATEGORY_OPTIONS } from '@/components/words/exam-category-badges'
+
+type ExamCategoryValue = (typeof EXAM_CATEGORY_OPTIONS)[number]['value']
 
 const TEST_MODE_LABELS: Record<string, string> = {
   EN_TO_KO: '영어 → 한국어 (객관식)',
@@ -155,6 +158,7 @@ export function OwnerSetBuilderClient({
 
   const [query, setQuery] = useState('')
   const [filterCefr, setFilterCefr] = useState<string>('')
+  const [filterCategories, setFilterCategories] = useState<ExamCategoryValue[]>([])
   const [searchResults, setSearchResults] = useState<WordSearchResult[]>([])
   const [searchTotal, setSearchTotal] = useState(0)
   const [searchPage, setSearchPage] = useState(1)
@@ -167,6 +171,7 @@ export function OwnerSetBuilderClient({
 
   const today = toDateInput(new Date())
   const [autoLevels, setAutoLevels] = useState<AutoLevel[]>([])
+  const [autoCategories, setAutoCategories] = useState<ExamCategoryValue[]>([])
   const [durationPreset, setDurationPreset] = useState<number | null>(30)
   const [startDate, setStartDate] = useState(today)
   const [endDate, setEndDate] = useState(addDays(today, 29))
@@ -216,23 +221,39 @@ export function OwnerSetBuilderClient({
 
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  const runSearch = useCallback((q: string, cefr: string, page: number) => {
-    startSearch(async () => {
-      const res = await searchWordsForOwner({ query: q, oxfordCefr: cefr as 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | '', page })
-      setSearchResults(res.words)
-      setSearchTotal(res.total)
-      setSearchPage(page)
-    })
-  }, [])
+  const runSearch = useCallback(
+    (q: string, cefr: string, page: number, categories: ExamCategoryValue[]) => {
+      startSearch(async () => {
+        const res = await searchWordsForOwner({
+          query: q,
+          oxfordCefr: cefr as 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | '',
+          examCategories: categories,
+          page,
+        })
+        setSearchResults(res.words)
+        setSearchTotal(res.total)
+        setSearchPage(page)
+      })
+    },
+    [],
+  )
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault()
-    runSearch(query, filterCefr, 1)
+    runSearch(query, filterCefr, 1, filterCategories)
   }
 
   function handleCefrFilter(cefr: string) {
     setFilterCefr(cefr)
-    runSearch(query, cefr, 1)
+    runSearch(query, cefr, 1, filterCategories)
+  }
+
+  function toggleFilterCategory(category: ExamCategoryValue) {
+    const next = filterCategories.includes(category)
+      ? filterCategories.filter((c) => c !== category)
+      : [...filterCategories, category]
+    setFilterCategories(next)
+    runSearch(query, filterCefr, 1, next)
   }
 
   function addWord(word: WordSearchResult) {
@@ -257,7 +278,11 @@ export function OwnerSetBuilderClient({
     let cancelled = false
     setAvailableCount(null)
     const timer = setTimeout(async () => {
-      const count = await getAvailableWordCountForOwner({ cefrLevels: effectiveLevels, excludeWordIds: [] })
+      const count = await getAvailableWordCountForOwner({
+        cefrLevels: effectiveLevels,
+        excludeWordIds: [],
+        examCategories: autoCategories,
+      })
       if (!cancelled) setAvailableCount(count)
     }, 300)
     return () => {
@@ -265,11 +290,17 @@ export function OwnerSetBuilderClient({
       clearTimeout(timer)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoLevels, cefrLevel])
+  }, [autoLevels, cefrLevel, autoCategories])
 
   function toggleAutoLevel(level: AutoLevel) {
     setAutoLevels((prev) =>
       prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level],
+    )
+  }
+
+  function toggleAutoCategory(category: ExamCategoryValue) {
+    setAutoCategories((prev) =>
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
     )
   }
 
@@ -332,6 +363,7 @@ export function OwnerSetBuilderClient({
         description: description.trim() || undefined,
         cefrLevel,
         cefrLevels: effectiveLevels,
+        examCategories: autoCategories,
         perDay,
         totalDays,
         order: autoOrder,
@@ -508,6 +540,32 @@ export function OwnerSetBuilderClient({
               <span className="font-semibold text-[#1865F2]">{effectiveLevels[0]}</span> 단어로 생성됩니다.
             </p>
           )}
+        </div>
+
+        {/* 시험 카테고리 */}
+        <div>
+          <label className="text-xs font-medium text-gray-500 mb-2 block">
+            시험 카테고리 (복수 선택 가능, 선택 안 하면 전체)
+          </label>
+          <div className="flex gap-2 flex-wrap">
+            {EXAM_CATEGORY_OPTIONS.map((opt) => {
+              const active = autoCategories.includes(opt.value)
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => toggleAutoCategory(opt.value)}
+                  className={`px-4 h-10 rounded-full text-sm font-semibold border transition-colors ${
+                    active
+                      ? 'bg-[#7854F7] text-white border-[#7854F7]'
+                      : 'bg-white text-gray-500 border-gray-200 hover:border-[#7854F7] hover:text-[#7854F7]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* 학습 기간 */}
@@ -702,6 +760,21 @@ export function OwnerSetBuilderClient({
                 </button>
               ))}
             </div>
+            <div className="flex gap-2 mt-2 flex-wrap">
+              {EXAM_CATEGORY_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => toggleFilterCategory(opt.value)}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                    filterCategories.includes(opt.value)
+                      ? 'bg-[#7854F7] text-white border-[#7854F7]'
+                      : 'bg-white text-gray-500 border-gray-200 hover:border-[#7854F7] hover:text-[#7854F7]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {searchResults.length > 0 && (
@@ -760,6 +833,7 @@ export function OwnerSetBuilderClient({
                               {word.oxfordCefr}
                             </span>
                           )}
+                          <ExamCategoryBadges categories={word.examCategories} />
                         </div>
                         <p className="text-xs text-gray-500 truncate">{word.meaning ?? '—'}</p>
                       </div>
@@ -789,7 +863,7 @@ export function OwnerSetBuilderClient({
               </span>
               <div className="flex items-center gap-1">
                 <button
-                  onClick={() => runSearch(query, filterCefr, searchPage - 1)}
+                  onClick={() => runSearch(query, filterCefr, searchPage - 1, filterCategories)}
                   disabled={searchPage <= 1 || isSearching}
                   className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 disabled:opacity-30"
                 >
@@ -799,7 +873,7 @@ export function OwnerSetBuilderClient({
                   {searchPage} / {totalPages}
                 </span>
                 <button
-                  onClick={() => runSearch(query, filterCefr, searchPage + 1)}
+                  onClick={() => runSearch(query, filterCefr, searchPage + 1, filterCategories)}
                   disabled={searchPage >= totalPages || isSearching}
                   className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 disabled:opacity-30"
                 >
