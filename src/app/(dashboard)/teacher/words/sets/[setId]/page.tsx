@@ -121,12 +121,17 @@ export default async function TeacherWordSetPage({ params }: Props) {
       {/* 학생 학습 진행 현황 */}
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-900">학생 학습 진행 현황</h2>
-          <span className="text-xs text-gray-400">{studentProgress.length}명 학습 중</span>
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">학생 학습 진행 현황</h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              같은 단어를 다른 세트나 자율학습에서 학습한 경우 그 진행도가 함께 표시됩니다.
+            </p>
+          </div>
+          <span className="text-xs text-gray-400 shrink-0">{studentProgress.length}명 진행 있음</span>
         </div>
         {studentProgress.length === 0 ? (
           <div className="px-4 py-8 text-center text-sm text-gray-400">
-            아직 학습한 학생이 없습니다.
+            아직 이 세트의 단어를 학습한 학생이 없습니다.
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
