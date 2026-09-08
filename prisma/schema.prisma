@@ -333,6 +333,7 @@ model Student {
   wordTests                 WordTest[]
   wordTestStudentAssignments WordTestStudentAssignment[]
   wordTestAttempts          WordTestAttempt[]
+  wordSetAssignments        WordSetAssignment[]
 
   @@index([classId])
   @@index([status])
@@ -1166,11 +1167,28 @@ model WordSet {
   items               WordSetItem[]
   wordTests           WordTest[]
   wordTestAssignments WordTestAssignment[]
+  assignments         WordSetAssignment[]
 
   @@index([ownerId])
   @@index([academyId])
   @@index([examCategory])
   @@map("word_sets")
+}
+
+/// 단어 세트 배정 대상 (지정된 학생이 없으면 학원 전체에 공개)
+model WordSetAssignment {
+  id        String   @id @default(uuid())
+  setId     String   @map("set_id")
+  studentId String   @map("student_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  wordSet WordSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([setId, studentId])
+  @@index([setId])
+  @@index([studentId])
+  @@map("word_set_assignments")
 }
 
 /// 단어 세트 항목 (N:M + 순서)

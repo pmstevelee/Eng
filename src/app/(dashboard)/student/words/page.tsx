@@ -69,14 +69,22 @@ async function ensureSystemWordSets() {
   }
 }
 
-async function getWordSets(academyId: string | null, studentLevel: number, category?: ExamCategory) {
+async function getWordSets(academyId: string | null, studentId: string, category?: ExamCategory) {
   return prisma.wordSet.findMany({
     where: {
       AND: [
         {
           OR: [
             { isPublic: true },
-            ...(academyId ? [{ academyId }] : []),
+            ...(academyId
+              ? [
+                  {
+                    academyId,
+                    // 배정 대상이 지정된 세트는 배정된 학생에게만 노출 (미지정 시 학원 전체 공개)
+                    OR: [{ assignments: { none: {} } }, { assignments: { some: { studentId } } }],
+                  },
+                ]
+              : []),
           ],
         },
         { source: { notIn: ['OXFORD_3000', 'OXFORD_5000'] } },
@@ -159,7 +167,7 @@ export default async function WordsHubPage({ searchParams }: Props) {
   const levelInfo = getLevelInfo(studentLevel)
   const dailyNewWords = getAcademyDailyNewWords(user?.academy?.settingsJson)
   await ensureSystemWordSets()
-  const wordSets = await getWordSets(academyId, studentLevel, activeCategory)
+  const wordSets = await getWordSets(academyId, studentId, activeCategory)
 
   // 배정된 시험 (미응시만)
   const now = new Date()

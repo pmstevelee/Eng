@@ -39,6 +39,24 @@ async function getAuthContext() {
   return { studentId, academyId }
 }
 
+/**
+ * 학생이 접근 가능한 단어 세트 조건.
+ * 배정 대상이 지정된 세트(assignments 있음)는 배정된 학생만 접근 가능하고,
+ * 지정되지 않은 세트는 기존처럼 학원 전체에 공개된다.
+ */
+function wordSetAccessWhere(studentId: string, academyId: string) {
+  return {
+    OR: [
+      { isPublic: true },
+      { ownerId: studentId },
+      {
+        academyId,
+        OR: [{ assignments: { none: {} } }, { assignments: { some: { studentId } } }],
+      },
+    ],
+  }
+}
+
 // ─── 1. getWordSet ─────────────────────────────────────────────────────────────
 
 const GetWordSetSchema = z.object({ setId: z.string().uuid() })
@@ -51,11 +69,7 @@ export async function getWordSet(setId: string): Promise<Result<unknown>> {
     const wordSet = await prisma.wordSet.findFirst({
       where: {
         id: validSetId,
-        OR: [
-          { isPublic: true },
-          { ownerId: studentId },
-          { academyId },
-        ],
+        ...wordSetAccessWhere(studentId, academyId),
       },
       include: {
         items: {
@@ -89,7 +103,7 @@ export async function startWordSet(setId: string): Promise<Result<{ created: num
     const wordSet = await prisma.wordSet.findFirst({
       where: {
         id: validSetId,
-        OR: [{ isPublic: true }, { ownerId: studentId }, { academyId }],
+        ...wordSetAccessWhere(studentId, academyId),
       },
       include: { items: { orderBy: { order: 'asc' }, select: { wordId: true } } },
     })
@@ -158,7 +172,7 @@ export async function getFlashcards(setId: string, _stage?: 'FLASHCARD' | 'RECAL
     const wordSet = await prisma.wordSet.findFirst({
       where: {
         id: validSetId,
-        OR: [{ isPublic: true }, { ownerId: studentId }, { academyId }],
+        ...wordSetAccessWhere(studentId, academyId),
       },
       include: {
         items: {

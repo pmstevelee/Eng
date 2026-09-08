@@ -44,6 +44,7 @@ export default async function OwnerWordSetPage({ params }: Props) {
           _count: { select: { attempts: true } },
         },
       },
+      _count: { select: { assignments: true } },
     },
   })
 
@@ -105,7 +106,12 @@ export default async function OwnerWordSetPage({ params }: Props) {
           <div>
             <p className="text-sm text-gray-500 mb-1">단어 세트</p>
             <h1 className="text-2xl font-bold text-gray-900">{wordSet.title}</h1>
-            <p className="text-sm text-gray-400 mt-1">{wordSet.items.length}개 단어</p>
+            <p className="text-sm text-gray-400 mt-1">
+              {wordSet.items.length}개 단어 ·{' '}
+              {wordSet._count.assignments > 0
+                ? `배정된 학생 ${wordSet._count.assignments}명에게만 공개`
+                : '학원 전체 공개'}
+            </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Link href={`/words/${setId}`} target="_blank" rel="noopener noreferrer">

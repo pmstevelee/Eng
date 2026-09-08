@@ -384,6 +384,7 @@ const CreateTeacherSetSchema = z.object({
     .array(z.string().uuid())
     .min(1, '단어를 1개 이상 추가하세요.')
     .max(1000, '한 세트에는 단어를 최대 1,000개까지 담을 수 있습니다.'),
+  assignedStudentIds: z.array(z.string().uuid()).default([]),
   testAssignment: TestAssignmentOptionsSchema.optional(),
 })
 
@@ -396,7 +397,7 @@ export async function createTeacherWordSet(
   const parsed = CreateTeacherSetSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
 
-  const { title, description, cefrLevel, wordIds, testAssignment } = parsed.data
+  const { title, description, cefrLevel, wordIds, assignedStudentIds, testAssignment } = parsed.data
 
   // 중복 wordId 제거 + 순서 보존
   const uniqueWordIds = wordIds.filter((id, idx) => wordIds.indexOf(id) === idx)
@@ -422,6 +423,13 @@ export async function createTeacherWordSet(
     await tx.wordSetItem.createMany({
       data: uniqueWordIds.map((wordId, i) => ({ setId: set.id, wordId, order: i })),
     })
+
+    if (assignedStudentIds.length > 0) {
+      await tx.wordSetAssignment.createMany({
+        data: assignedStudentIds.map((studentId) => ({ setId: set.id, studentId })),
+        skipDuplicates: true,
+      })
+    }
 
     let assignmentId: string | undefined
     if (testAssignment) {
@@ -470,6 +478,7 @@ const AutoCreateDailySetsSchema = z.object({
   order: z.enum(['alphabetical', 'random']).default('random'),
   startDate: z.string().min(1, '학습 시작일을 선택하세요.'),
   excludeWeekends: z.boolean().default(false),
+  assignedStudentIds: z.array(z.string().uuid()).default([]),
   testAssignment: TestAssignmentOptionsSchema.optional(),
 })
 
@@ -504,7 +513,7 @@ export async function autoCreateDailySets(
   const parsed = AutoCreateDailySetsSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
 
-  const { titleBase, description, cefrLevel, cefrLevels, examCategories, perDay, totalDays, order, startDate, excludeWeekends, testAssignment } =
+  const { titleBase, description, cefrLevel, cefrLevels, examCategories, perDay, totalDays, order, startDate, excludeWeekends, assignedStudentIds, testAssignment } =
     parsed.data
 
   // 레벨 칩을 선택하지 않았으면 세트의 위고업 단계에 맞춰 자동 보정
@@ -568,6 +577,13 @@ export async function autoCreateDailySets(
     prisma.wordSet.createMany({ data: setsData }),
     prisma.wordSetItem.createMany({ data: itemsData }),
   ]
+
+  if (assignedStudentIds.length > 0) {
+    const setAssignmentsData = setsData.flatMap((s) =>
+      assignedStudentIds.map((studentId) => ({ setId: s.id, studentId })),
+    )
+    dbOps.push(prisma.wordSetAssignment.createMany({ data: setAssignmentsData, skipDuplicates: true }))
+  }
 
   if (testAssignment) {
     const assignmentsData = chunks.map((chunk, d) => ({

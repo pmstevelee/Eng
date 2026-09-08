@@ -24,7 +24,16 @@ export default async function WordSetPrintPage({
   const { setId } = await params
 
   const accessConditions: Prisma.WordSetWhereInput[] = [{ isPublic: true }]
-  if (user.academyId) accessConditions.push({ academyId: user.academyId })
+  if (user.academyId) {
+    accessConditions.push(
+      user.role === 'STUDENT' && user.student
+        ? {
+            academyId: user.academyId,
+            OR: [{ assignments: { none: {} } }, { assignments: { some: { studentId: user.student.id } } }],
+          }
+        : { academyId: user.academyId },
+    )
+  }
   if (user.role === 'STUDENT' && user.student) accessConditions.push({ ownerId: user.student.id })
   if (user.role === 'TEACHER') accessConditions.push({ ownerId: user.id })
 

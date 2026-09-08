@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   ListPlus,
   ClipboardList,
+  Users,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -205,20 +206,22 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
   const [testPassingScore, setTestPassingScore] = useState('80')
   const [testStartsAt, setTestStartsAt] = useState(`${today}T00:00`)
   const [testEndsAt, setTestEndsAt] = useState(`${today}T23:59`)
-  const [testStudentIds, setTestStudentIds] = useState<string[]>([])
+
+  // 배정 대상 (세트 자체의 공개 대상이자, 시험 출제 시 시험 배정 대상으로도 재사용)
+  const [assignedStudentIds, setAssignedStudentIds] = useState<string[]>([])
 
   // 시험 제목을 직접 수정하지 않았다면 세트 이름과 동일하게 유지
   useEffect(() => {
     if (!testTitleEdited) setTestTitle(title)
   }, [title, testTitleEdited])
 
-  function toggleTestStudent(id: string) {
-    setTestStudentIds((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]))
+  function toggleAssignedStudent(id: string) {
+    setAssignedStudentIds((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]))
   }
 
-  function toggleTestClass(studentIds: string[]) {
-    const allSelected = studentIds.length > 0 && studentIds.every((id) => testStudentIds.includes(id))
-    setTestStudentIds((prev) =>
+  function toggleAssignedClass(studentIds: string[]) {
+    const allSelected = studentIds.length > 0 && studentIds.every((id) => assignedStudentIds.includes(id))
+    setAssignedStudentIds((prev) =>
       allSelected ? prev.filter((id) => !studentIds.includes(id)) : Array.from(new Set([...prev, ...studentIds])),
     )
   }
@@ -362,10 +365,10 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
       '일자별 세트 생성과 함께 시험도 출제하시겠습니까?\n\n확인: 아래 "시험 출제 옵션"에 설정한 내용으로 생성되는 세트마다 시험을 함께 배정합니다.\n취소: 단어 세트만 생성합니다.',
     )
     if (wantsTest && !enableTest) {
-      setAutoError('시험도 함께 출제하려면 아래 "시험 출제 옵션"을 먼저 켜고 배정 대상을 설정하세요.')
+      setAutoError('시험도 함께 출제하려면 아래 "시험 출제 옵션"을 먼저 켜세요.')
       return
     }
-    if (wantsTest && testStudentIds.length === 0) {
+    if (wantsTest && assignedStudentIds.length === 0) {
       setAutoError('시험을 배정할 학생을 한 명 이상 선택하세요.')
       return
     }
@@ -382,6 +385,7 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
         order: autoOrder,
         startDate,
         excludeWeekends,
+        assignedStudentIds,
         testAssignment: wantsTest
           ? {
               title: testTitle.trim() || `${title.trim()} 단어 시험`,
@@ -391,7 +395,7 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
               passingScore: Number(testPassingScore),
               startsAt: testStartsAt || undefined,
               endsAt: testEndsAt || undefined,
-              studentIds: testStudentIds,
+              studentIds: assignedStudentIds,
             }
           : undefined,
       })
@@ -415,7 +419,7 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
       return
     }
     if (enableTest) {
-      if (testStudentIds.length === 0) {
+      if (assignedStudentIds.length === 0) {
         setSaveError('시험을 배정할 학생을 한 명 이상 선택하세요.')
         return
       }
@@ -430,6 +434,7 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
         description: description.trim() || undefined,
         cefrLevel,
         wordIds: selectedWords.map((w) => w.id),
+        assignedStudentIds,
         testAssignment: enableTest
           ? {
               title: testTitle.trim() || `${title.trim()} 단어 시험`,
@@ -439,7 +444,7 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
               passingScore: Number(testPassingScore),
               startsAt: testStartsAt || undefined,
               endsAt: testEndsAt || undefined,
-              studentIds: testStudentIds,
+              studentIds: assignedStudentIds,
             }
           : undefined,
       })
@@ -953,6 +958,58 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
         </div>
       </div>
 
+      {/* 배정 대상 */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <Users className="w-4 h-4 text-[#7854F7]" />
+          <h2 className="text-sm font-semibold text-gray-700">배정 대상 (반 또는 학생 선택)</h2>
+        </div>
+        <p className="text-sm text-gray-500 -mt-1">
+          선택하지 않으면 학원 전체 학생에게 공개됩니다. 특정 학생을 선택하면 해당 학생에게만 이 세트가 노출됩니다.
+        </p>
+        {classes.length === 0 ? (
+          <p className="text-sm text-gray-500">담당 반이 없습니다.</p>
+        ) : (
+          <div className="rounded-xl border border-gray-200 divide-y max-h-96 overflow-y-auto">
+            {classes.map((cls) => {
+              const classStudentIds = cls.students.map((s) => s.id)
+              const allSelected =
+                classStudentIds.length > 0 && classStudentIds.every((id) => assignedStudentIds.includes(id))
+              return (
+                <div key={cls.id} className="p-4">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <Checkbox checked={allSelected} onCheckedChange={() => toggleAssignedClass(classStudentIds)} />
+                    <span className="flex-1 text-sm font-semibold text-gray-900">{cls.name}</span>
+                    <span className="text-xs text-gray-400">{cls.students.length}명</span>
+                  </label>
+                  {cls.students.length > 0 ? (
+                    <div className="mt-2 ml-7 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                      {cls.students.map((s) => (
+                        <label key={s.id} className="flex items-center gap-2 cursor-pointer py-0.5">
+                          <Checkbox
+                            checked={assignedStudentIds.includes(s.id)}
+                            onCheckedChange={() => toggleAssignedStudent(s.id)}
+                          />
+                          <span className="text-sm text-gray-600">{s.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-1 ml-7 text-xs text-gray-400">학생이 없습니다.</p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+        <p className="text-sm text-gray-500">
+          선택된 학생:{' '}
+          <span className="font-semibold text-gray-900">
+            {assignedStudentIds.length > 0 ? `${assignedStudentIds.length}명` : '없음 (학원 전체 공개)'}
+          </span>
+        </p>
+      </div>
+
       {/* 시험 출제 옵션 */}
       <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
         <div className="flex items-center justify-between">
@@ -1060,46 +1117,12 @@ export function SetBuilderClient({ classes = [] }: SetBuilderClientProps) {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-gray-500 block">배정 대상 (반 또는 학생 선택)</label>
-              {classes.length === 0 ? (
-                <p className="text-sm text-gray-500">담당 반이 없습니다.</p>
-              ) : (
-                <div className="rounded-xl border border-gray-200 divide-y max-h-96 overflow-y-auto">
-                  {classes.map((cls) => {
-                    const classStudentIds = cls.students.map((s) => s.id)
-                    const allSelected =
-                      classStudentIds.length > 0 && classStudentIds.every((id) => testStudentIds.includes(id))
-                    return (
-                      <div key={cls.id} className="p-4">
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <Checkbox checked={allSelected} onCheckedChange={() => toggleTestClass(classStudentIds)} />
-                          <span className="flex-1 text-sm font-semibold text-gray-900">{cls.name}</span>
-                          <span className="text-xs text-gray-400">{cls.students.length}명</span>
-                        </label>
-                        {cls.students.length > 0 ? (
-                          <div className="mt-2 ml-7 grid grid-cols-2 gap-x-4 gap-y-1.5">
-                            {cls.students.map((s) => (
-                              <label key={s.id} className="flex items-center gap-2 cursor-pointer py-0.5">
-                                <Checkbox
-                                  checked={testStudentIds.includes(s.id)}
-                                  onCheckedChange={() => toggleTestStudent(s.id)}
-                                />
-                                <span className="text-sm text-gray-600">{s.name}</span>
-                              </label>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="mt-1 ml-7 text-xs text-gray-400">학생이 없습니다.</p>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
+            <div className="rounded-xl border border-[#1865F2]/20 bg-[#1865F2]/5 px-4 py-3 text-sm text-gray-700">
+              시험은 위 <span className="font-semibold text-[#1865F2]">&quot;배정 대상&quot;</span>에서 선택한{' '}
+              <span className="font-semibold text-gray-900">{assignedStudentIds.length}명</span>에게 배정됩니다.
+              {assignedStudentIds.length === 0 && (
+                <span className="text-[#D92916]"> 배정 대상을 한 명 이상 선택하세요.</span>
               )}
-              <p className="text-sm text-gray-500">
-                선택된 학생: <span className="font-semibold text-gray-900">{testStudentIds.length}명</span>
-              </p>
             </div>
           </div>
         )}

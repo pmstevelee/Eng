@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { ChevronLeft } from 'lucide-react'
 import { OwnerSetBuilderClient } from '../../new/_components/owner-set-builder-client'
+import { getClassesForOwner } from '@/app/(dashboard)/owner/words/_actions/test'
 
 interface Props {
   params: Promise<{ setId: string }>
@@ -14,27 +15,31 @@ export default async function OwnerWordSetEditPage({ params }: Props) {
   const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
-  const wordSet = await prisma.wordSet.findFirst({
-    where: { id: setId, academyId: user.academyId },
-    include: {
-      items: {
-        orderBy: { order: 'asc' },
-        include: {
-          word: {
-            select: {
-              id: true,
-              term: true,
-              meaning: true,
-              partOfSpeech: true,
-              cefrLevel: true,
-              oxfordCefr: true,
-              examCategories: { select: { category: true } },
+  const [wordSet, classes] = await Promise.all([
+    prisma.wordSet.findFirst({
+      where: { id: setId, academyId: user.academyId },
+      include: {
+        items: {
+          orderBy: { order: 'asc' },
+          include: {
+            word: {
+              select: {
+                id: true,
+                term: true,
+                meaning: true,
+                partOfSpeech: true,
+                cefrLevel: true,
+                oxfordCefr: true,
+                examCategories: { select: { category: true } },
+              },
             },
           },
         },
+        assignments: { select: { studentId: true } },
       },
-    },
-  })
+    }),
+    getClassesForOwner(),
+  ])
 
   if (!wordSet || wordSet.source === 'PUBLISHER') redirect(`/owner/words/sets/${setId}`)
 
@@ -49,7 +54,7 @@ export default async function OwnerWordSetEditPage({ params }: Props) {
           세트로 돌아가기
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">단어 세트 수정</h1>
-        <p className="text-sm text-gray-400 mt-1">세트 이름, 레벨, 포함된 단어를 수정할 수 있습니다.</p>
+        <p className="text-sm text-gray-400 mt-1">세트 이름, 레벨, 포함된 단어, 배정 대상을 수정할 수 있습니다.</p>
       </div>
       <OwnerSetBuilderClient
         mode="edit"
@@ -61,6 +66,8 @@ export default async function OwnerWordSetEditPage({ params }: Props) {
           ...item.word,
           examCategories: item.word.examCategories.map((c) => c.category),
         }))}
+        initialAssignedStudentIds={wordSet.assignments.map((a) => a.studentId)}
+        classes={classes}
       />
     </div>
   )

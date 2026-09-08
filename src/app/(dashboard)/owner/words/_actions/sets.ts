@@ -172,6 +172,7 @@ const CreateOwnerSetSchema = z.object({
     .array(z.string().uuid())
     .min(1, '단어를 1개 이상 추가하세요.')
     .max(1000, '한 세트에는 단어를 최대 1,000개까지 담을 수 있습니다.'),
+  assignedStudentIds: z.array(z.string().uuid()).default([]),
   testAssignment: TestAssignmentOptionsSchema.optional(),
 })
 
@@ -184,7 +185,7 @@ export async function createOwnerWordSet(
   const parsed = CreateOwnerSetSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
 
-  const { title, description, cefrLevel, wordIds, testAssignment } = parsed.data
+  const { title, description, cefrLevel, wordIds, assignedStudentIds, testAssignment } = parsed.data
   const uniqueWordIds = wordIds.filter((id, idx) => wordIds.indexOf(id) === idx)
 
   if (testAssignment && testAssignment.numQuestions > uniqueWordIds.length) {
@@ -208,6 +209,13 @@ export async function createOwnerWordSet(
     await tx.wordSetItem.createMany({
       data: uniqueWordIds.map((wordId, i) => ({ setId: set.id, wordId, order: i })),
     })
+
+    if (assignedStudentIds.length > 0) {
+      await tx.wordSetAssignment.createMany({
+        data: assignedStudentIds.map((studentId) => ({ setId: set.id, studentId })),
+        skipDuplicates: true,
+      })
+    }
 
     let assignmentId: string | undefined
     if (testAssignment) {
@@ -253,6 +261,7 @@ const UpdateOwnerSetSchema = z.object({
     .array(z.string().uuid())
     .min(1, '단어를 1개 이상 추가하세요.')
     .max(1000, '한 세트에는 단어를 최대 1,000개까지 담을 수 있습니다.'),
+  assignedStudentIds: z.array(z.string().uuid()).default([]),
 })
 
 export async function updateOwnerWordSet(
@@ -272,8 +281,9 @@ export async function updateOwnerWordSet(
   if (!existing) return { error: '세트를 찾을 수 없습니다.' }
   if (existing.source === 'PUBLISHER') return { error: '시스템 기본 세트는 수정할 수 없습니다.' }
 
-  const { title, description, cefrLevel, wordIds } = parsed.data
+  const { title, description, cefrLevel, wordIds, assignedStudentIds } = parsed.data
   const uniqueWordIds = wordIds.filter((id, idx) => wordIds.indexOf(id) === idx)
+  const uniqueStudentIds = assignedStudentIds.filter((id, idx) => assignedStudentIds.indexOf(id) === idx)
 
   await prisma.$transaction([
     prisma.wordSet.update({
@@ -284,6 +294,15 @@ export async function updateOwnerWordSet(
     prisma.wordSetItem.createMany({
       data: uniqueWordIds.map((wordId, i) => ({ setId, wordId, order: i })),
     }),
+    prisma.wordSetAssignment.deleteMany({ where: { setId } }),
+    ...(uniqueStudentIds.length > 0
+      ? [
+          prisma.wordSetAssignment.createMany({
+            data: uniqueStudentIds.map((studentId) => ({ setId, studentId })),
+            skipDuplicates: true,
+          }),
+        ]
+      : []),
   ])
 
   revalidatePath('/owner/words')
@@ -304,6 +323,7 @@ const AutoCreateDailySetsSchema = z.object({
   order: z.enum(['alphabetical', 'random']).default('random'),
   startDate: z.string().min(1, '학습 시작일을 선택하세요.'),
   excludeWeekends: z.boolean().default(false),
+  assignedStudentIds: z.array(z.string().uuid()).default([]),
   testAssignment: TestAssignmentOptionsSchema.optional(),
 })
 
@@ -333,7 +353,7 @@ export async function autoCreateOwnerDailySets(
   const parsed = AutoCreateDailySetsSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? '입력 오류' }
 
-  const { titleBase, description, cefrLevel, cefrLevels, examCategories, perDay, totalDays, order, startDate, excludeWeekends, testAssignment } =
+  const { titleBase, description, cefrLevel, cefrLevels, examCategories, perDay, totalDays, order, startDate, excludeWeekends, assignedStudentIds, testAssignment } =
     parsed.data
   const effectiveLevels = cefrLevels.length > 0 ? cefrLevels : [levelToOxfordCefr(cefrLevel)]
 
@@ -391,6 +411,13 @@ export async function autoCreateOwnerDailySets(
     prisma.wordSet.createMany({ data: setsData }),
     prisma.wordSetItem.createMany({ data: itemsData }),
   ]
+
+  if (assignedStudentIds.length > 0) {
+    const setAssignmentsData = setsData.flatMap((s) =>
+      assignedStudentIds.map((studentId) => ({ setId: s.id, studentId })),
+    )
+    dbOps.push(prisma.wordSetAssignment.createMany({ data: setAssignmentsData, skipDuplicates: true }))
+  }
 
   if (testAssignment) {
     const assignmentsData = chunks.map((chunk, d) => ({
