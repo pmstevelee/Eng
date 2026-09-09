@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen, ChevronRight, Lock, Layers, ClipboardList, Download } from 'lucide-react'
+import { BookOpen, ChevronRight, Lock, Layers, ClipboardList, Download, CheckCircle2 } from 'lucide-react'
 import { requireStudent } from '@/lib/auth-student'
 import { prisma } from '@/lib/prisma/client'
 import {
@@ -111,6 +111,153 @@ function cefrBadgeStyle(cefrLevel: number, studentLevel: number) {
   return { bg: '#F9FAFB', text: '#6B7280', border: '#E5E7EB' }
 }
 
+type WordSetProgress = { started: number; mastered: number }
+
+/**
+ * 학생의 세트별 학습 진행 현황(시작한 단어 수 / 마스터한 단어 수)을 한 번에 계산한다.
+ * 학생이 학습한 적 있는 단어(wordProgress)만으로 대상을 좁혀서
+ * 전체 세트(수천 단어 포함)를 매번 로딩하지 않도록 한다.
+ */
+async function getWordSetProgressMap(
+  studentId: string,
+  setIds: string[],
+): Promise<Record<string, WordSetProgress>> {
+  if (setIds.length === 0) return {}
+
+  const progress = await prisma.wordProgress.findMany({
+    where: { studentId },
+    select: { wordId: true, stage: true },
+  })
+  if (progress.length === 0) return {}
+
+  const stageByWordId = new Map(progress.map((p) => [p.wordId, p.stage]))
+
+  const items = await prisma.wordSetItem.findMany({
+    where: { setId: { in: setIds }, wordId: { in: Array.from(stageByWordId.keys()) } },
+    select: { setId: true, wordId: true },
+  })
+
+  const result: Record<string, WordSetProgress> = {}
+  for (const item of items) {
+    const stat = result[item.setId] ?? { started: 0, mastered: 0 }
+    stat.started += 1
+    if (stageByWordId.get(item.wordId) === 'MASTERED') stat.mastered += 1
+    result[item.setId] = stat
+  }
+  return result
+}
+
+/** 세트 카드에 표시할 학습 상태 배지 + 진행률 바 */
+function SetProgressIndicator({
+  total,
+  progress,
+}: {
+  total: number
+  progress?: WordSetProgress
+}) {
+  const started = progress?.started ?? 0
+  const mastered = progress?.mastered ?? 0
+  if (total === 0 || started === 0) {
+    return <p className="text-xs text-gray-400 mt-1.5">아직 학습 전</p>
+  }
+
+  const isComplete = mastered >= total
+  const pct = Math.min(100, Math.round((mastered / total) * 100))
+
+  return (
+    <div className="mt-2">
+      <div className="flex items-center justify-between mb-1">
+        <span
+          className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+          style={
+            isComplete
+              ? { backgroundColor: '#1FAF54', color: '#fff' }
+              : { backgroundColor: '#F3F0FF', color: '#7854F7' }
+          }
+        >
+          {isComplete && <CheckCircle2 className="w-2.5 h-2.5" />}
+          {isComplete ? '완료' : '학습중'}
+        </span>
+        <span className="text-[11px] text-gray-400">
+          {mastered}/{total} 마스터
+        </span>
+      </div>
+      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-[#1FAF54] rounded-full transition-all"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+type WordSetListItem = {
+  id: string
+  title: string
+  description: string | null
+  cefrLevel: number
+  examCategory: ExamCategory | null
+  _count: { items: number }
+}
+
+/** 추천/전체 목록에서 공통으로 쓰는 단어 세트 카드 */
+function WordSetCard({
+  set,
+  studentLevel,
+  progress,
+}: {
+  set: WordSetListItem
+  studentLevel: number
+  progress?: WordSetProgress
+}) {
+  const style = cefrBadgeStyle(set.cefrLevel, studentLevel)
+  return (
+    <div
+      className="flex items-center justify-between rounded-xl border bg-white p-4 transition-all hover:border-violet-300 hover:shadow-sm"
+      style={{ borderColor: '#E5E7EB' }}
+    >
+      <NavLinkWithLoading
+        href={`/student/words/${set.id}`}
+        className="flex min-w-0 flex-1 items-center"
+        loadingLabel="단어 세트로 이동 중..."
+      >
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span
+              className="rounded-full px-2 py-0.5 text-xs font-semibold"
+              style={{
+                backgroundColor: style.bg,
+                color: style.text,
+                border: `1px solid ${style.border}`,
+              }}
+            >
+              {CEFR_LABEL[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
+            </span>
+            <span className="text-xs text-gray-400">{set._count.items}단어</span>
+            {set.examCategory && <ExamCategoryBadges categories={[set.examCategory]} />}
+          </div>
+          <p className="font-semibold text-gray-900 truncate">{set.title}</p>
+          {set.description && (
+            <p className="text-xs text-gray-500 mt-0.5 truncate">{set.description}</p>
+          )}
+          <SetProgressIndicator total={set._count.items} progress={progress} />
+        </div>
+        <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 ml-3" />
+      </NavLinkWithLoading>
+      <Link
+        href={`/words/${set.id}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="단어 목록 다운로드"
+        className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-[#1865F2]"
+      >
+        <Download className="h-4 w-4" />
+      </Link>
+    </div>
+  )
+}
+
 function UpgradePrompt() {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -169,32 +316,35 @@ export default async function WordsHubPage({ searchParams }: Props) {
   await ensureSystemWordSets()
   const wordSets = await getWordSets(academyId, studentId, activeCategory)
 
-  // 배정된 시험 (미응시만)
+  // 배정된 시험 목록과 세트별 학습 진행 현황은 서로 독립적이므로 함께 조회한다.
   const now = new Date()
-  const pendingTests = await prisma.wordTestAssignment.findMany({
-    where: {
-      AND: [
-        {
-          OR: [
-            { classAssignments: { some: { class: { students: { some: { id: studentId } } } } } },
-            { studentAssignments: { some: { studentId } } },
-          ],
-        },
-        { attempts: { none: { studentId } } },
-        { OR: [{ endsAt: null }, { endsAt: { gte: now } }] },
-      ],
-    },
-    select: {
-      id: true,
-      title: true,
-      mode: true,
-      numQuestions: true,
-      passingScore: true,
-      endsAt: true,
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 5,
-  })
+  const [pendingTests, progressMap] = await Promise.all([
+    prisma.wordTestAssignment.findMany({
+      where: {
+        AND: [
+          {
+            OR: [
+              { classAssignments: { some: { class: { students: { some: { id: studentId } } } } } },
+              { studentAssignments: { some: { studentId } } },
+            ],
+          },
+          { attempts: { none: { studentId } } },
+          { OR: [{ endsAt: null }, { endsAt: { gte: now } }] },
+        ],
+      },
+      select: {
+        id: true,
+        title: true,
+        mode: true,
+        numQuestions: true,
+        passingScore: true,
+        endsAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    }),
+    getWordSetProgressMap(studentId, wordSets.map((s) => s.id)),
+  ])
 
   // 추천 세트: 현재 레벨 ±1 범위
   const recommendedSets = wordSets.filter(
@@ -330,53 +480,14 @@ export default async function WordsHubPage({ searchParams }: Props) {
             추천 세트 — 내 레벨 ({levelInfo.cefr})
           </h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {recommendedSets.map((set) => {
-              const style = cefrBadgeStyle(set.cefrLevel, studentLevel)
-              return (
-                <div
-                  key={set.id}
-                  className="flex items-center justify-between rounded-xl border bg-white p-4 transition-all hover:border-violet-300 hover:shadow-sm"
-                  style={{ borderColor: '#E5E7EB' }}
-                >
-                  <NavLinkWithLoading
-                    href={`/student/words/${set.id}/flashcard`}
-                    className="flex min-w-0 flex-1 items-center"
-                    loadingLabel="단어 세트로 이동 중..."
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span
-                          className="rounded-full px-2 py-0.5 text-xs font-semibold"
-                          style={{
-                            backgroundColor: style.bg,
-                            color: style.text,
-                            border: `1px solid ${style.border}`,
-                          }}
-                        >
-                          {CEFR_LABEL[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
-                        </span>
-                        <span className="text-xs text-gray-400">{set._count.items}단어</span>
-                        {set.examCategory && <ExamCategoryBadges categories={[set.examCategory]} />}
-                      </div>
-                      <p className="font-semibold text-gray-900 truncate">{set.title}</p>
-                      {set.description && (
-                        <p className="text-xs text-gray-500 mt-0.5 truncate">{set.description}</p>
-                      )}
-                    </div>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 ml-3" />
-                  </NavLinkWithLoading>
-                  <Link
-                    href={`/words/${set.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="단어 목록 다운로드"
-                    className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-[#1865F2]"
-                  >
-                    <Download className="h-4 w-4" />
-                  </Link>
-                </div>
-              )
-            })}
+            {recommendedSets.map((set) => (
+              <WordSetCard
+                key={set.id}
+                set={set}
+                studentLevel={studentLevel}
+                progress={progressMap[set.id]}
+              />
+            ))}
           </div>
         </section>
       )}
@@ -386,53 +497,14 @@ export default async function WordsHubPage({ searchParams }: Props) {
         <section id={recommendedSets.length === 0 ? 'word-sets' : undefined}>
           <h2 className="text-base font-bold text-gray-900 mb-3">전체 단어 세트</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {otherSets.map((set) => {
-              const style = cefrBadgeStyle(set.cefrLevel, studentLevel)
-              return (
-                <div
-                  key={set.id}
-                  className="flex items-center justify-between rounded-xl border bg-white p-4 transition-all hover:border-violet-300 hover:shadow-sm"
-                  style={{ borderColor: '#E5E7EB' }}
-                >
-                  <NavLinkWithLoading
-                    href={`/student/words/${set.id}/flashcard`}
-                    className="flex min-w-0 flex-1 items-center"
-                    loadingLabel="단어 세트로 이동 중..."
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span
-                          className="rounded-full px-2 py-0.5 text-xs font-semibold"
-                          style={{
-                            backgroundColor: style.bg,
-                            color: style.text,
-                            border: `1px solid ${style.border}`,
-                          }}
-                        >
-                          {CEFR_LABEL[set.cefrLevel] ?? `Lv${set.cefrLevel}`}
-                        </span>
-                        <span className="text-xs text-gray-400">{set._count.items}단어</span>
-                        {set.examCategory && <ExamCategoryBadges categories={[set.examCategory]} />}
-                      </div>
-                      <p className="font-semibold text-gray-900 truncate">{set.title}</p>
-                      {set.description && (
-                        <p className="text-xs text-gray-500 mt-0.5 truncate">{set.description}</p>
-                      )}
-                    </div>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 ml-3" />
-                  </NavLinkWithLoading>
-                  <Link
-                    href={`/words/${set.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="단어 목록 다운로드"
-                    className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-[#1865F2]"
-                  >
-                    <Download className="h-4 w-4" />
-                  </Link>
-                </div>
-              )
-            })}
+            {otherSets.map((set) => (
+              <WordSetCard
+                key={set.id}
+                set={set}
+                studentLevel={studentLevel}
+                progress={progressMap[set.id]}
+              />
+            ))}
           </div>
         </section>
       )}

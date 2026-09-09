@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
-import { getFlashcards } from '@/app/(dashboard)/student/words/_actions'
+import { getFlashcards, startWordSet } from '@/app/(dashboard)/student/words/_actions'
 import { SpellClient } from './_components/spell-client'
 
 interface Props {
@@ -10,6 +10,8 @@ interface Props {
 
 export default async function SpellPage({ params }: Props) {
   const { setId } = await params
+  // 플래시카드/리콜을 거치지 않고 스펠링을 바로 선택한 경우를 대비해 진도를 초기화한다.
+  await startWordSet(setId)
   const result = await getFlashcards(setId, 'SPELL')
 
   if (!result.ok) {

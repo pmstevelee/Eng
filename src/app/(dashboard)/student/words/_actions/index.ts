@@ -89,6 +89,71 @@ export async function getWordSet(setId: string): Promise<Result<unknown>> {
   }
 }
 
+// ─── 1b. getWordSetOverview ────────────────────────────────────────────────────
+// 세트 상세(문제유형 선택) 화면에서 사용하는 메타 정보 + 진행 현황.
+
+export async function getWordSetOverview(setId: string): Promise<
+  Result<{
+    id: string
+    title: string
+    description: string | null
+    cefrLevel: number
+    examCategory: string | null
+    totalWords: number
+    startedWords: number
+    masteredWords: number
+  }>
+> {
+  try {
+    const { setId: validSetId } = GetWordSetSchema.parse({ setId })
+    const { studentId, academyId } = await getAuthContext()
+
+    const wordSet = await prisma.wordSet.findFirst({
+      where: {
+        id: validSetId,
+        ...wordSetAccessWhere(studentId, academyId),
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        cefrLevel: true,
+        examCategory: true,
+        items: {
+          select: {
+            word: { select: { wordProgress: { where: { studentId }, select: { stage: true } } } },
+          },
+        },
+      },
+    })
+
+    if (!wordSet) return err('NOT_FOUND', '단어 세트를 찾을 수 없습니다.')
+
+    let startedWords = 0
+    let masteredWords = 0
+    for (const item of wordSet.items) {
+      const stage = item.word.wordProgress[0]?.stage
+      if (stage) startedWords++
+      if (stage === 'MASTERED') masteredWords++
+    }
+
+    return ok({
+      id: wordSet.id,
+      title: wordSet.title,
+      description: wordSet.description,
+      cefrLevel: wordSet.cefrLevel,
+      examCategory: wordSet.examCategory,
+      totalWords: wordSet.items.length,
+      startedWords,
+      masteredWords,
+    })
+  } catch (e) {
+    if (e instanceof z.ZodError) return err('INVALID_INPUT', e.errors[0]?.message ?? '입력 오류')
+    if (e instanceof Error) return err('FORBIDDEN', e.message)
+    return err('UNKNOWN', '오류가 발생했습니다.')
+  }
+}
+
 // ─── 2. startWordSet ──────────────────────────────────────────────────────────
 
 const StartWordSetSchema = z.object({ setId: z.string().uuid() })
