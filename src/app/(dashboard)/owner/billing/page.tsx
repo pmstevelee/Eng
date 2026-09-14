@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { PLANS, PLAN_DISPLAY_NAMES, BILLING_CYCLE_DISPLAY_NAMES } from '@/lib/pricing'
-import { UsageWidget } from '@/components/billing/UsageWidget'
 import { BillingActions } from '@/components/billing/BillingActions'
 import {
   CreditCard,
@@ -202,12 +201,6 @@ export default async function BillingPage() {
             </Link>
           </div>
         )}
-      </div>
-
-      {/* 이번 달 사용량 */}
-      <div>
-        <h2 className="mb-3 text-lg font-bold text-gray-900">이번 달 사용량</h2>
-        <UsageWidget />
       </div>
 
       {/* 보유 크레딧 */}
