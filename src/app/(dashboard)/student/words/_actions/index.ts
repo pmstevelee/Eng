@@ -29,14 +29,14 @@ function err(code: string, message: string): Err {
 
 async function getAuthContext() {
   // getCurrentUser 캐시에 academyId가 포함되어 있어 별도 user 조회가 필요 없다.
-  const { studentId, user } = await requireStudent()
+  const { studentId, userId, user } = await requireStudent()
 
   const academyId = user.academyId
   if (!academyId) throw new Error('소속 학원을 찾을 수 없습니다.')
 
   await assertCanUseWordLearning(academyId)
 
-  return { studentId, academyId }
+  return { studentId, userId, academyId }
 }
 
 /**
@@ -651,7 +651,7 @@ export async function submitWordTest(
 
 export async function retakeWrong(testId: string): Promise<Result<unknown>> {
   try {
-    const { studentId } = await getAuthContext()
+    const { studentId, userId } = await getAuthContext()
 
     const attempt = await prisma.wordTestAttempt.findUnique({
       where: { assignmentId_studentId: { assignmentId: testId, studentId } },
@@ -671,7 +671,7 @@ export async function retakeWrong(testId: string): Promise<Result<unknown>> {
           cefrLevel: 1,
           isPublic: false,
           source: 'AI_GENERATED',
-          ownerId: studentId,
+          ownerId: userId,
         },
       })
       await tx.wordSetItem.createMany({
