@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma/client'
 import { SubscriptionStatus, ScheduleStatus, PaymentType, Plan } from '@/generated/prisma'
 import { processRecurringPayment } from '@/lib/billing/recurring'
-import { processRetry, downgradeExpiredSubscriptions } from '@/lib/billing/retry'
+import {
+  processRetry,
+  downgradeExpiredSubscriptions,
+  finalizeCanceledSubscriptions,
+} from '@/lib/billing/retry'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // 5분
@@ -21,11 +25,15 @@ export async function GET(req: NextRequest) {
   const now = new Date()
   const windowEnd = new Date(now.getTime() + 60 * 60 * 1000) // +1시간
 
-  // ── 1. 오늘 결제일인 활성 구독 조회 ──
+  // ── 1. 해지 예약 후 기간이 끝난 구독 확정 처리 ──
+  const { finalized, academyIds: finalizedAcademyIds } = await finalizeCanceledSubscriptions()
+
+  // ── 2. 오늘 결제일인 활성 구독 조회 (해지 예약된 구독은 갱신 대상에서 제외) ──
   const dueSubscriptions = await prisma.subscription.findMany({
     where: {
       status: { in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIAL] },
       currentPeriodEnd: { lte: windowEnd },
+      cancelAtPeriodEnd: false,
       plan: { not: Plan.FREE },
       billingKey: { isNot: null },
     },
@@ -35,7 +43,7 @@ export async function GET(req: NextRequest) {
     },
   })
 
-  // ── 2. 재시도 대기 중인 결제 예약 조회 ──
+  // ── 3. 재시도 대기 중인 결제 예약 조회 ──
   const pendingRetries = await prisma.paymentSchedule.findMany({
     where: {
       status: ScheduleStatus.PENDING,
@@ -52,7 +60,7 @@ export async function GET(req: NextRequest) {
     },
   })
 
-  // ── 3. 정기결제 실행 ──
+  // ── 4. 정기결제 실행 ──
   const recurringResults = await Promise.allSettled(
     dueSubscriptions.map((sub) => processRecurringPayment(sub)),
   )
@@ -67,7 +75,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // ── 4. 재시도 실행 ──
+  // ── 5. 재시도 실행 ──
   const retryResults = await Promise.allSettled(
     pendingRetries.map((schedule) =>
       processRetry({
@@ -84,11 +92,12 @@ export async function GET(req: NextRequest) {
 
   const retryFailed = retryResults.filter((r) => r.status === 'rejected').length
 
-  // ── 5. PAST_DUE 구독 자동 다운그레이드 ──
+  // ── 6. PAST_DUE 구독 자동 다운그레이드 ──
   const { downgraded, academyIds } = await downgradeExpiredSubscriptions()
 
   console.log('[cron:billing] 실행 완료', {
     at: now.toISOString(),
+    finalizedCancellations: { count: finalized, academyIds: finalizedAcademyIds },
     recurring: { total: dueSubscriptions.length, success: recurringSuccess, failed: recurringFailed },
     retries: { total: pendingRetries.length, failed: retryFailed },
     downgraded: { count: downgraded, academyIds },
@@ -97,6 +106,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     at: now.toISOString(),
+    finalizedCancellations: finalized,
     recurring: {
       total: dueSubscriptions.length,
       success: recurringSuccess,

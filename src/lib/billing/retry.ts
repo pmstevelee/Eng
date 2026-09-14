@@ -7,7 +7,7 @@ import {
   SubscriptionStatus,
   Plan,
 } from '@/generated/prisma'
-import { payWithBillingKey, TossServerError } from '@/lib/tosspayments/server'
+import { payWithBillingKey, deleteBillingKey, TossServerError } from '@/lib/tosspayments/server'
 import { academyPlanSync } from '@/lib/billing/sync-academy'
 import { revalidateTag } from 'next/cache'
 import {
@@ -201,4 +201,61 @@ export async function downgradeExpiredSubscriptions(): Promise<{
   }
 
   return { downgraded: expiredSubscriptions.length, academyIds }
+}
+
+/** 해지 예약(cancelAtPeriodEnd) 후 이용 기간이 끝난 구독을 실제로 해지 확정 처리 */
+export async function finalizeCanceledSubscriptions(): Promise<{
+  finalized: number
+  academyIds: string[]
+}> {
+  const now = new Date()
+
+  const dueSubscriptions = await prisma.subscription.findMany({
+    where: {
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: { lte: now },
+      status: { in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIAL, SubscriptionStatus.PAST_DUE] },
+    },
+    include: { billingKey: true },
+  })
+
+  if (dueSubscriptions.length === 0) {
+    return { finalized: 0, academyIds: [] }
+  }
+
+  for (const sub of dueSubscriptions) {
+    if (sub.billingKey) {
+      try {
+        await deleteBillingKey(sub.billingKey.portoneBillingKey)
+      } catch (err) {
+        console.error('[cron:billing] 해지 확정 중 빌링키 삭제 실패:', err)
+      }
+    }
+
+    await prisma.$transaction([
+      prisma.subscription.update({
+        where: { id: sub.id },
+        data: {
+          status: SubscriptionStatus.CANCELLED,
+          plan: Plan.FREE,
+          cancelAtPeriodEnd: false,
+        },
+      }),
+      ...(sub.billingKey
+        ? [prisma.billingKey.delete({ where: { id: sub.billingKey.id } })]
+        : []),
+      prisma.academy.update({
+        where: { id: sub.academyId },
+        data: academyPlanSync(Plan.FREE, SubscriptionStatus.CANCELLED, sub.currentPeriodEnd),
+      }),
+    ])
+
+    revalidateTag(`academy-${sub.academyId}-subscription`)
+    await sendDowngradeExecuted(sub.academyId)
+  }
+
+  return {
+    finalized: dueSubscriptions.length,
+    academyIds: dueSubscriptions.map((s) => s.academyId),
+  }
 }
