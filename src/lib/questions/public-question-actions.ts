@@ -1,9 +1,9 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
 import type { Prisma, QuestionDomain, QuestionSource } from '@/generated/prisma'
 import type { PublicQuestionRow } from '@/components/shared/public-question-list'
+import { getCurrentUser } from '@/lib/auth'
 
 export type PublicQuestionPageParams = {
   page: number
@@ -15,16 +15,7 @@ export type PublicQuestionPageParams = {
 }
 
 async function getAuthedAcademyUser() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return null
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true },
-  })
+  const user = await getCurrentUser()
   if (!user) return null
   if (user.role !== 'ACADEMY_OWNER' && user.role !== 'TEACHER' && user.role !== 'SUPER_ADMIN') return null
   return user

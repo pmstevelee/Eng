@@ -1,7 +1,6 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import {
   estimateCurrentLevel,
@@ -32,6 +31,7 @@ import {
 import { scoreToLevel, LEVEL_TO_CEFR } from '@/lib/constants/levels'
 import { trackAiUsage } from '@/lib/usage/tracker'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
+import { getCurrentUser } from '@/lib/auth'
 
 // ─── 중복 출제 방지용 제외 목록 조회 ──────────────────────────────────────────
 
@@ -68,10 +68,7 @@ async function getAdaptiveExclusions(
 // ─── Auth 헬퍼 ────────────────────────────────────────────────────────────────
 
 async function getAuthedStudent() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
+  const authUser = await getCurrentUser()
   if (!authUser) return null
 
   const user = await prisma.user.findUnique({
@@ -799,20 +796,11 @@ async function finalizeAdaptiveTestWithWriting(
 // ─── 배치 결과 조회 ────────────────────────────────────────────────────────────
 
 export async function getPlacementResult(sessionId: string) {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return null
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: authUser.id },
-    select: { student: { select: { id: true } } },
-  })
-  if (!dbUser?.student) return null
+  const authUser = await getCurrentUser()
+  if (!authUser?.student) return null
 
   const session = await prisma.testSession.findUnique({
-    where: { id: sessionId, studentId: dbUser.student.id },
+    where: { id: sessionId, studentId: authUser.student.id },
     select: {
       id: true,
       status: true,

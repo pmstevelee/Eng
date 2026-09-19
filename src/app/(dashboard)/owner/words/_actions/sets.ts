@@ -5,21 +5,13 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
 import { mapOxfordCefrToWegoupLevel } from '@/lib/words/cefr-mapping'
 import type { WordTestMode } from '@/generated/prisma'
 import { ExamCategory } from '@/generated/prisma'
+import { getCurrentUser } from '@/lib/auth'
 
 async function getAuthedOwner() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return null
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return null
   return user
 }

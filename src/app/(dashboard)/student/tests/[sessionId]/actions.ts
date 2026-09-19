@@ -1,7 +1,6 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 import { recordActivityAndCheckBadges } from '@/app/(dashboard)/student/_actions/gamification'
@@ -12,22 +11,10 @@ import { isAnswerMatch } from '@/lib/assessment/answer-checker'
 import { difficultyWeightedScore, scoreToLevel, getGradeLevelCap } from '@/lib/constants/levels'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
+import { getCurrentUser } from '@/lib/auth'
 
 async function getAuthedStudent() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return null
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: {
-      id: true,
-      role: true,
-      student: { select: { id: true } },
-    },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'STUDENT') return null
 
   // Student 레코드가 없으면 자동 생성

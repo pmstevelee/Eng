@@ -8,6 +8,7 @@ import { randomBytes } from 'crypto'
 import { headers } from 'next/headers'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
+import { getCurrentUser } from '@/lib/auth'
 
 export async function withdrawAcademy(
   formData: FormData,
@@ -15,20 +16,12 @@ export async function withdrawAcademy(
   const password = formData.get('password') as string
   if (!password) return { error: '비밀번호를 입력해주세요.' }
 
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return { error: '인증이 필요합니다.' }
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, email: true, role: true, academyId: true },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER') return { error: '권한이 없습니다.' }
   if (!user.academyId) return { error: '학원 정보를 찾을 수 없습니다.' }
 
   // 비밀번호 확인
+  const supabase = await createClient()
   const { error: pwError } = await supabase.auth.signInWithPassword({
     email: user.email,
     password,
@@ -124,16 +117,7 @@ export async function updateAcademyInfo(
 
   if (!businessName) return { error: '상호명을 입력해주세요.' }
 
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return { error: '인증이 필요합니다.' }
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return { error: '권한이 없습니다.' }
 
   await prisma.academy.update({
@@ -145,7 +129,7 @@ export async function updateAcademyInfo(
     },
   })
 
-  revalidateTag(`user-${authUser.id}`)
+  revalidateTag(`user-${user.id}`)
   revalidatePath('/owner/settings/academy')
   revalidatePath('/owner')
   logActivity({
@@ -165,16 +149,7 @@ export async function updateNotificationSettings(settings: {
   subscriptionExpiring: boolean
   levelTestPeriod?: string
 }): Promise<{ error?: string; success?: boolean }> {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return { error: '인증이 필요합니다.' }
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return { error: '권한이 없습니다.' }
 
   const academy = await prisma.academy.findUnique({
@@ -214,16 +189,7 @@ export async function updateWordLearningSettings(settings: {
     return { error: '하루 단어 수는 1~100 사이여야 합니다.' }
   }
 
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return { error: '인증이 필요합니다.' }
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return { error: '권한이 없습니다.' }
 
   const academy = await prisma.academy.findUnique({
@@ -253,18 +219,16 @@ export async function updateWordLearningSettings(settings: {
 }
 
 export async function sendPasswordResetEmail(): Promise<{ error?: string; success?: boolean }> {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return { error: '인증이 필요합니다.' }
+  const user = await getCurrentUser()
+  if (!user) return { error: '인증이 필요합니다.' }
 
   const headersList = await headers()
   const host = headersList.get('x-forwarded-host') ?? headersList.get('host') ?? 'localhost:3000'
   const protocol = headersList.get('x-forwarded-proto') ?? 'http'
   const redirectTo = `${protocol}://${host}/auth/callback?next=/reset-password`
 
-  const { error } = await supabase.auth.resetPasswordForEmail(authUser.email!, {
+  const supabase = await createClient()
+  const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
     redirectTo,
   })
   if (error) {
@@ -283,16 +247,7 @@ export async function sendPasswordResetEmail(): Promise<{ error?: string; succes
 }
 
 export async function regenerateInviteCode(): Promise<{ error?: string; code?: string }> {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return { error: '인증이 필요합니다.' }
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return { error: '권한이 없습니다.' }
 
   const newCode = randomBytes(4).toString('hex').toUpperCase()

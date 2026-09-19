@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
+import { getCurrentUser } from '@/lib/auth'
 
 const PAYMENT_TYPE_LABELS: Record<string, string> = {
   SUBSCRIPTION: '구독 결제',
@@ -17,22 +17,13 @@ export async function GET(
   { params }: { params: Promise<{ paymentId: string }> },
 ) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
 
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id, isDeleted: false },
-      select: { id: true, role: true, academyId: true, name: true, email: true },
-    })
-
-    if (!dbUser) {
+    if (!user) {
       return NextResponse.json({ error: '사용자 정보를 찾을 수 없습니다' }, { status: 401 })
     }
 
@@ -51,7 +42,7 @@ export async function GET(
       return NextResponse.json({ error: '결제 정보를 찾을 수 없습니다' }, { status: 404 })
     }
 
-    if (payment.academyId !== dbUser.academyId) {
+    if (payment.academyId !== user.academyId) {
       return NextResponse.json({ error: '권한이 없습니다' }, { status: 403 })
     }
 

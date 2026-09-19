@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma/client'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/auth'
 
 export async function withdrawStudent(
   formData: FormData,
@@ -10,19 +11,11 @@ export async function withdrawStudent(
   const password = formData.get('password') as string
   if (!password) return { error: '비밀번호를 입력해주세요.' }
 
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return { error: '인증이 필요합니다.' }
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, email: true, role: true, student: { select: { id: true } } },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'STUDENT') return { error: '권한이 없습니다.' }
 
   // 비밀번호 확인
+  const supabase = await createClient()
   const { error: pwError } = await supabase.auth.signInWithPassword({
     email: user.email,
     password,

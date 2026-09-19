@@ -11,17 +11,9 @@ export function useUser() {
   useEffect(() => {
     const supabase = createClient()
 
+    // /api/profile 이 서버에서 인증(캐시 적용)을 확인하므로
+    // 클라이언트에서 auth.getUser() 네트워크 왕복을 한 번 더 할 필요가 없다.
     const fetchProfile = async () => {
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser()
-
-      if (!authUser) {
-        setUser(null)
-        setLoading(false)
-        return
-      }
-
       try {
         const res = await fetch('/api/profile')
         if (res.ok) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
+import { getCurrentUser } from '@/lib/auth'
 
 const BUCKET = 'question-images'
 const MAX_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
@@ -8,10 +8,7 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 
 export async function POST(req: NextRequest) {
   // 인증 확인
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) {
     return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
   }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 
 interface AnalyzeQuestionRequest {
   questionText: string
@@ -40,8 +40,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 인증 확인 (역할 무관, 로그인만 필요)
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }

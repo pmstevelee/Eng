@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation'
 import { revalidateTag, revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import { issueBillingKey, payWithBillingKey, cancelPayment, TossServerError } from '@/lib/tosspayments/server'
 import { PLAN_DISPLAY_NAMES, BILLING_CYCLE_DISPLAY_NAMES } from '@/lib/pricing'
 import { academyPlanSync } from '@/lib/billing/sync-academy'
+import { getCurrentUser } from '@/lib/auth'
 
 interface PageProps {
   searchParams: Promise<{ customerKey?: string; authKey?: string }>
@@ -18,28 +18,22 @@ export default async function TossSuccessPage({ searchParams }: PageProps) {
     redirect('/owner/billing/plans?error=missing_params')
   }
 
-  const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
 
-  if (authError || !user) redirect('/login')
+  if (!user) redirect('/login')
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true, name: true, email: true },
-  })
-
-  if (!dbUser || dbUser.role !== 'ACADEMY_OWNER' || !dbUser.academyId) {
+  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) {
     redirect('/owner/billing/plans?error=unauthorized')
   }
 
   // customerKey는 academyId와 일치해야 함
-  if (customerKey !== dbUser.academyId) {
+  if (customerKey !== user.academyId) {
     redirect('/owner/billing/toss-fail?code=INVALID_CUSTOMER&message=잘못된+고객+키입니다')
   }
 
   // 진행 중인 TRIAL 구독 조회
   const subscription = await prisma.subscription.findUnique({
-    where: { academyId: dbUser.academyId },
+    where: { academyId: user.academyId },
   })
 
   if (!subscription || subscription.status !== 'TRIAL') {
@@ -74,8 +68,8 @@ export default async function TossSuccessPage({ searchParams }: PageProps) {
       orderId,
       orderName,
       amount: pendingPayment.amount,
-      customerEmail: dbUser.email,
-      customerName: dbUser.name,
+      customerEmail: user.email,
+      customerName: user.name,
     })
 
     // 3. 결제 금액 검증
@@ -139,12 +133,12 @@ export default async function TossSuccessPage({ searchParams }: PageProps) {
       })
 
       await tx.academy.update({
-        where: { id: dbUser.academyId! },
+        where: { id: user.academyId! },
         data: academyPlanSync(subscription.plan, 'ACTIVE', periodEnd),
       })
     })
 
-    revalidateTag(`academy-${dbUser.academyId}-subscription`)
+    revalidateTag(`academy-${user.academyId}-subscription`)
     revalidatePath('/owner/settings/subscription')
 
     redirect(`/owner/billing/success?plan=${subscription.plan}&cycle=${subscription.billingCycle}`)

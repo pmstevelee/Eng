@@ -1,8 +1,8 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { getCurrentUser } from '@/lib/auth'
 
 const PLAN_PRICES: Record<string, { monthly: number; yearly: number }> = {
   STARTER: { monthly: 19900, yearly: 191040 },
@@ -26,16 +26,7 @@ export async function createPendingSubscription(
   plan: 'STANDARD' | 'PREMIUM',
   period: 'MONTHLY' | 'YEARLY',
 ): Promise<{ error: string } | { success: true }> {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return { error: '인증이 필요합니다.' }
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { role: true, academyId: true },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER') return { error: '권한이 없습니다.' }
   if (!user.academyId) return { error: '학원 정보를 찾을 수 없습니다.' }
 

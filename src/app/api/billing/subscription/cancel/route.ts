@@ -1,32 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import { cancelPayment, deleteBillingKey, TossServerError } from '@/lib/tosspayments/server'
 import { PLANS } from '@/lib/pricing'
 import type { Plan } from '@/generated/prisma'
+import { getCurrentUser } from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
 
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id, isDeleted: false },
-      select: { id: true, role: true, academyId: true },
-    })
-
-    if (!dbUser || dbUser.role !== 'ACADEMY_OWNER') {
+    if (!user || user.role !== 'ACADEMY_OWNER') {
       return NextResponse.json({ error: '학원장만 구독을 해지할 수 있습니다' }, { status: 403 })
     }
 
-    if (!dbUser.academyId) {
+    if (!user.academyId) {
       return NextResponse.json({ error: '학원 정보가 없습니다' }, { status: 400 })
     }
 
@@ -38,7 +29,7 @@ export async function POST(req: NextRequest) {
     }
 
     const subscription = await prisma.subscription.findUnique({
-      where: { academyId: dbUser.academyId },
+      where: { academyId: user.academyId },
       include: { billingKey: true },
     })
 

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import type { DetailedReportResult } from '@/types'
+import { getCurrentUser } from '@/lib/auth'
 
 type WritingDataJson = {
   topicTitle?: string
@@ -23,8 +23,7 @@ type WritingDataJson = {
 export async function POST(req: NextRequest) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
 
     const body = await req.json()

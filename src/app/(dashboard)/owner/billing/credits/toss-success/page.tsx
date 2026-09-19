@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import { confirmPayment, TossServerError } from '@/lib/tosspayments/server'
 import { CREDIT_PACKAGES } from '@/lib/pricing'
 import type { CreditPackageKey } from '@/lib/pricing'
+import { getCurrentUser } from '@/lib/auth'
 
 interface PageProps {
   searchParams: Promise<{ paymentKey?: string; orderId?: string; amount?: string }>
@@ -17,26 +17,17 @@ export default async function CreditsTossSuccessPage({ searchParams }: PageProps
     redirect('/owner/billing/credits?error=' + encodeURIComponent('결제 정보가 올바르지 않습니다'))
   }
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
 
-  if (authError || !user) redirect('/login')
+  if (!user) redirect('/login')
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
-
-  if (!dbUser || dbUser.role !== 'ACADEMY_OWNER' || !dbUser.academyId) {
+  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) {
     redirect('/owner/billing/credits?error=' + encodeURIComponent('권한이 없습니다'))
   }
 
   const pendingPayment = await prisma.payment.findUnique({ where: { paymentId: orderId } })
 
-  if (!pendingPayment || pendingPayment.academyId !== dbUser.academyId) {
+  if (!pendingPayment || pendingPayment.academyId !== user.academyId) {
     redirect('/owner/billing/credits?error=' + encodeURIComponent('결제 정보를 찾을 수 없습니다'))
   }
 
@@ -100,7 +91,7 @@ export default async function CreditsTossSuccessPage({ searchParams }: PageProps
 
       await tx.aiCredit.create({
         data: {
-          academyId: dbUser.academyId!,
+          academyId: user.academyId!,
           type: 'WRITING',
           amount: pkg.writingCredits,
           expiresAt,
@@ -110,7 +101,7 @@ export default async function CreditsTossSuccessPage({ searchParams }: PageProps
 
       await tx.aiCredit.create({
         data: {
-          academyId: dbUser.academyId!,
+          academyId: user.academyId!,
           type: 'QUESTION',
           amount: pkg.questionCredits,
           expiresAt,

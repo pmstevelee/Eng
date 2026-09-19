@@ -1,16 +1,10 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 
 async function getAuthedTeacher() {
-  const supabase = await createClient()
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  if (!authUser) return null
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'TEACHER' || !user.academyId) return null
   return user
 }

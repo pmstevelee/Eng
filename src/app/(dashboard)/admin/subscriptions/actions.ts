@@ -1,22 +1,14 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/auth'
 
 async function requireAdmin() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) redirect('/login')
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { role: true },
-  })
-  if (!dbUser || dbUser.role !== 'SUPER_ADMIN') redirect('/login')
+  if (!user || user.role !== 'SUPER_ADMIN') redirect('/login')
 }
 
 export async function confirmPayment(formData: FormData) {

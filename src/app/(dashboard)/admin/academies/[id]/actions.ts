@@ -1,10 +1,11 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { PlanType } from '@/generated/prisma'
+import { getCurrentUser } from '@/lib/auth'
 
 // 플랜별 정원 (회원가입 PLAN_LIMITS와 동일 기준 + ENTERPRISE)
 const PLAN_LIMITS: Record<PlanType, { maxStudents: number; maxTeachers: number }> = {
@@ -17,17 +18,9 @@ const PLAN_LIMITS: Record<PlanType, { maxStudents: number; maxTeachers: number }
 }
 
 async function requireAdmin() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) redirect('/login')
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { role: true },
-  })
-  if (!dbUser || dbUser.role !== 'SUPER_ADMIN') redirect('/login')
+  if (!user || user.role !== 'SUPER_ADMIN') redirect('/login')
 }
 
 export async function extendSubscription(formData: FormData) {

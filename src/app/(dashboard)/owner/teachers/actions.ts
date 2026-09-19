@@ -1,9 +1,9 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import { revalidatePath, revalidateTag } from 'next/cache'
+import { getCurrentUser } from '@/lib/auth'
 
 function getAdminClient() {
   return createSupabaseAdmin(
@@ -19,16 +19,7 @@ export type TeacherPermissions = {
 }
 
 async function getOwner() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return null
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return null
   return user
 }
@@ -172,7 +163,7 @@ export async function createTeacher(data: {
     password: data.password,
     email_confirm: true,
   })
-  if (authError || !authData.user) {
+  if (!authData.user) {
     return { error: authError?.message ?? 'Auth 계정 생성에 실패했습니다.' }
   }
 

@@ -1,26 +1,19 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import { PLANS } from '@/lib/pricing'
 import { Plan, CreditType } from '@/generated/prisma'
+import { getCurrentUser } from '@/lib/auth'
 
 export async function GET() {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }
 
     // 사용자의 학원 정보 조회 (User.academyId는 모든 역할에 공통)
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id, isDeleted: false },
-      select: { academyId: true },
-    })
 
-    const academyId = dbUser?.academyId
+    const academyId = user?.academyId
 
     if (!academyId) {
       return NextResponse.json({ error: '학원 정보를 찾을 수 없습니다.' }, { status: 404 })

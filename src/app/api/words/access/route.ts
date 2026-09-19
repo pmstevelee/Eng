@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { canUseWordLearning } from '@/lib/words/access-guard'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
+import { getCurrentUser } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
+  const authUser = await getCurrentUser()
 
   if (!authUser) {
     return NextResponse.json({ canAccess: false, reason: 'NO_SUBSCRIPTION' }, { status: 401 })

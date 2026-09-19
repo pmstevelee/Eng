@@ -1,8 +1,8 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
+import { getCurrentUser } from '@/lib/auth'
 
 export type AnnouncementWithAuthor = {
   id: string
@@ -16,20 +16,12 @@ export type AnnouncementWithAuthor = {
 }
 
 export async function getAnnouncements(): Promise<AnnouncementWithAuthor[]> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return []
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { academyId: true },
-  })
-  if (!dbUser?.academyId) return []
+  if (!user?.academyId) return []
 
   const announcements = await prisma.announcement.findMany({
-    where: { academyId: dbUser.academyId },
+    where: { academyId: user.academyId },
     orderBy: { createdAt: 'desc' },
     include: {
       author: { select: { name: true } },
@@ -50,10 +42,7 @@ export async function getAnnouncements(): Promise<AnnouncementWithAuthor[]> {
 }
 
 export async function getMyClasses() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return []
 
   const classes = await prisma.class.findMany({
@@ -65,17 +54,9 @@ export async function getMyClasses() {
 }
 
 export async function createAnnouncement(formData: FormData) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return { error: '인증이 필요합니다.' }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { academyId: true, name: true },
-  })
-  if (!dbUser?.academyId) return { error: '학원 정보를 찾을 수 없습니다.' }
+  if (!user?.academyId) return { error: '학원 정보를 찾을 수 없습니다.' }
 
   const title = formData.get('title') as string
   const content = formData.get('content') as string
@@ -89,7 +70,7 @@ export async function createAnnouncement(formData: FormData) {
   // 1. 공지사항 저장
   const announcement = await prisma.announcement.create({
     data: {
-      academyId: dbUser.academyId,
+      academyId: user.academyId,
       authorId: user.id,
       classId: target === 'CLASS' && classId ? classId : null,
       title: title.trim(),
@@ -110,7 +91,7 @@ export async function createAnnouncement(formData: FormData) {
   } else {
     // 학원 전체 학생
     const students = await prisma.student.findMany({
-      where: { user: { academyId: dbUser.academyId } },
+      where: { user: { academyId: user.academyId } },
       select: { userId: true },
     })
     targetStudentUserIds = students.map((s) => s.userId)
@@ -121,7 +102,7 @@ export async function createAnnouncement(formData: FormData) {
     await prisma.notification.createMany({
       data: targetStudentUserIds.map((userId) => ({
         userId,
-        academyId: dbUser.academyId!,
+        academyId: user.academyId!,
         type: 'INFO' as const,
         title: `📢 공지사항: ${title.trim()}`,
         message: content.trim().slice(0, 100) + (content.trim().length > 100 ? '...' : ''),
@@ -137,10 +118,7 @@ export async function createAnnouncement(formData: FormData) {
 }
 
 export async function deleteAnnouncement(announcementId: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return { error: '인증이 필요합니다.' }
 
   await prisma.announcement.delete({

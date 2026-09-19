@@ -1,11 +1,11 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import { LEVEL_TO_CEFR } from '@/lib/constants/levels'
+import { getCurrentUser } from '@/lib/auth'
 import {
   buildWritingGradingResponseFormat,
   buildWritingGradingSystemPrompt,
@@ -19,16 +19,7 @@ import {
 export type { WritingGradingReport } from '@/lib/ai/writing-grading'
 
 async function getAuthedTeacherOrOwner() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return null
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true, academyId: true },
-  })
+  const user = await getCurrentUser()
   if (!user || !user.academyId) return null
   if (user.role !== 'TEACHER' && user.role !== 'ACADEMY_OWNER') return null
   return user

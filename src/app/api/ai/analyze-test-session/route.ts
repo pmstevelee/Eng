@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
+import { getCurrentUser } from '@/lib/auth'
 
 export type TestSessionAnalysis = {
   summary: string
@@ -21,10 +21,7 @@ export type TestSessionAnalysis = {
 export async function POST(req: NextRequest) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }
@@ -75,19 +72,15 @@ export async function POST(req: NextRequest) {
     }
 
     // 권한 확인: 학생 본인 OR 같은 학원의 교사/학원장
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { role: true, academyId: true, student: { select: { id: true } } },
-    })
-    if (!dbUser) {
+    if (!user) {
       return NextResponse.json({ error: '사용자를 찾을 수 없습니다.' }, { status: 403 })
     }
 
     const studentAcademyId = session.student.user.academyId
-    const isStudent = dbUser.role === 'STUDENT' && dbUser.student?.id === session.studentId
+    const isStudent = user.role === 'STUDENT' && user.student?.id === session.studentId
     const isStaff =
-      (dbUser.role === 'TEACHER' || dbUser.role === 'ACADEMY_OWNER') &&
-      dbUser.academyId === studentAcademyId
+      (user.role === 'TEACHER' || user.role === 'ACADEMY_OWNER') &&
+      user.academyId === studentAcademyId
     if (!isStudent && !isStaff) {
       return NextResponse.json({ error: '접근 권한이 없습니다.' }, { status: 403 })
     }

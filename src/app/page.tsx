@@ -2,8 +2,6 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { createClient } from '@/lib/supabase/server'
-import { prisma } from '@/lib/prisma/client'
 import type { Role } from '@/types'
 import LandingNav from '@/components/landing/nav'
 import LandingFooter from '@/components/landing/footer'
@@ -11,6 +9,7 @@ import ScrollReveal from '@/components/landing/scroll-reveal'
 import Counter from '@/components/landing/counter'
 import RoleTabs from '@/components/landing/role-tabs'
 import ReviewsCarousel from '@/components/landing/reviews-carousel'
+import { getCurrentUser } from '@/lib/auth'
 
 export const metadata: Metadata = {
   title: '위고업잉글리시 — 영어학원의 새로운 기준',
@@ -81,17 +80,9 @@ const FEATURES = [
 
 
 export default async function Home() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (user) {
-    const profile = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { role: true },
-    })
-    if (profile) redirect(ROLE_REDIRECT[profile.role as Role])
-    redirect('/login')
-  }
+  // getCurrentUser는 role까지 포함하므로 별도 DB 조회 없이 바로 리다이렉트
+  const user = await getCurrentUser()
+  if (user) redirect(ROLE_REDIRECT[user.role as Role])
 
   return (
     <>

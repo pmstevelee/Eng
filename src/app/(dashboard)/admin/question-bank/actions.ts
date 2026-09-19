@@ -2,25 +2,16 @@
 
 import { revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
 import OpenAI from 'openai'
 import { updateQuestionBankStatsForDomain, shareQuestionToPublicPool } from '@/lib/questions/share-to-pool'
 import { Prisma } from '@/generated/prisma'
 import type { QuestionDomain, QuestionSource } from '@/generated/prisma'
+import { getCurrentUser } from '@/lib/auth'
 
 // ── 인증 헬퍼 ──────────────────────────────────────────────────────────────────
 
 async function getAuthedAdmin() {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
-  if (!authUser) return null
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id, isDeleted: false },
-    select: { id: true, role: true },
-  })
+  const user = await getCurrentUser()
   if (!user || user.role !== 'SUPER_ADMIN') return null
   return user
 }
