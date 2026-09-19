@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import { primeAuthCache, invalidateAuthCache, getUserRecordCached } from '@/lib/auth'
+import { warmOwnerBranchesCache } from '@/lib/branch'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import type { Role } from '@/types'
@@ -21,6 +22,7 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
   const password = formData.get('password') as string
 
   const supabase = await createClient()
+  const signInStart = performance.now()
 
   let authUserId: string
   let accessToken: string | undefined
@@ -34,6 +36,7 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
   } catch {
     return { error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
   }
+  const authMs = Math.round(performance.now() - signInStart)
 
   // 인증 캐시를 미리 채워서 다음 요청(/student 등)에서
   // supabase.auth.getUser() 네트워크 호출(~300-500ms)을 스킵한다.
@@ -44,7 +47,16 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
   try {
     // getCurrentUser와 같은 캐시를 사용해 로그인 시 조회 결과를
     // 이어지는 대시보드 렌더에서 그대로 재사용한다 (DB 왕복 1회 절약).
-    const user = await getUserRecordCached(authUserId)
+    // 학원장 본원/지점 캐시도 같은 웨이브에서 병렬로 채워 OwnerLayout의
+    // 순차 DB 왕복을 제거한다 (User.id === Academy.ownerId).
+    const dbStart = performance.now()
+    const [user] = await Promise.all([
+      getUserRecordCached(authUserId),
+      warmOwnerBranchesCache(authUserId),
+    ])
+    console.log(
+      `📊 [signIn] auth: ${authMs}ms | db(user+branches 병렬): ${Math.round(performance.now() - dbStart)}ms`,
+    )
 
     if (!user) {
       await supabase.auth.signOut()

@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import { revalidatePath, revalidateTag } from 'next/cache'
 
 export type NotificationItem = {
@@ -19,14 +19,13 @@ export async function getNotifications(limit = 30): Promise<{
   notifications: NotificationItem[]
   unreadCount: number
 }> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // supabase.auth.getUser() 직접 호출(매번 Auth 서버 왕복 ~300ms) 대신
+  // 토큰 인메모리 캐시가 적용된 getCurrentUser()를 사용한다.
+  const user = await getCurrentUser()
   if (!user) return { notifications: [], unreadCount: 0 }
 
   const notifications = await prisma.notification.findMany({
-    where: { userId: user.id },
+    where: { userId: user.authId },
     orderBy: { createdAt: 'desc' },
     take: limit,
     select: {
@@ -46,31 +45,25 @@ export async function getNotifications(limit = 30): Promise<{
 }
 
 export async function markNotificationRead(notificationId: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return
 
   await prisma.notification.updateMany({
-    where: { id: notificationId, userId: user.id },
+    where: { id: notificationId, userId: user.authId },
     data: { isRead: true },
   })
-  revalidateTag(`notifications-${user.id}`)
+  revalidateTag(`notifications-${user.authId}`)
   revalidatePath('/', 'layout')
 }
 
 export async function markAllNotificationsRead() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return
 
   await prisma.notification.updateMany({
-    where: { userId: user.id, isRead: false },
+    where: { userId: user.authId, isRead: false },
     data: { isRead: true },
   })
-  revalidateTag(`notifications-${user.id}`)
+  revalidateTag(`notifications-${user.authId}`)
   revalidatePath('/', 'layout')
 }

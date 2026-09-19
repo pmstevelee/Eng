@@ -11,7 +11,16 @@ import { prisma } from '@/lib/prisma/client'
  * (정상 로그아웃은 access_token 자체가 변경되어 즉시 무효화됨)
  */
 type AuthUserCacheEntry = { userId: string; expiresAt: number }
-const authUserCache = new Map<string, AuthUserCacheEntry>()
+// Server Action(action 레이어)과 RSC 렌더(rsc 레이어)는 webpack 레이어가 달라
+// 같은 모듈이라도 인스턴스가 분리된다. 모듈 스코프 Map을 쓰면 로그인 액션에서
+// primeAuthCache()로 채운 캐시를 이어지는 대시보드 렌더가 보지 못해 매번
+// supabase.auth.getUser() 네트워크 왕복이 발생한다. Prisma 싱글턴과 같은 이유로
+// globalThis에 붙여 두 레이어가 하나의 캐시를 공유하게 한다.
+const globalForAuth = globalThis as unknown as {
+  __authUserCache: Map<string, AuthUserCacheEntry> | undefined
+}
+const authUserCache = globalForAuth.__authUserCache ?? new Map<string, AuthUserCacheEntry>()
+globalForAuth.__authUserCache = authUserCache
 const AUTH_TTL_MS = 5 * 60_000
 
 function pruneAuthCache(now: number) {
@@ -86,25 +95,39 @@ export const getCurrentUser = cache(async () => {
   // Supabase SSR 쿠키에서 access_token을 추출 (토큰을 캐시 키로 사용)
   // Supabase는 {ref}-auth-token 형태로 세션 JSON 쿠키를 저장하며,
   // 용량 큰 세션은 여러 조각(.0, .1)으로 분할한다.
+  const t0 = performance.now()
   const { data: { session } } = await supabase.auth.getSession()
   const accessToken = session?.access_token
+  const sessionMs = Math.round(performance.now() - t0)
 
   if (!accessToken) return null
 
   const now = Date.now()
   const cached = authUserCache.get(accessToken)
   let verifiedUserId: string | undefined
+  let verifyMs = 0
 
   if (cached && cached.expiresAt > now) {
     verifiedUserId = cached.userId
   } else {
+    const t1 = performance.now()
     const { data: { user: authUser } } = await supabase.auth.getUser()
+    verifyMs = Math.round(performance.now() - t1)
     if (!authUser) return null
     verifiedUserId = authUser.id
     pruneAuthCache(now)
     authUserCache.set(accessToken, { userId: authUser.id, expiresAt: now + AUTH_TTL_MS })
   }
 
+  const t2 = performance.now()
   const user = await getCachedDbUser(verifiedUserId)
+  const dbMs = Math.round(performance.now() - t2)
+
+  if (sessionMs + verifyMs + dbMs >= 100) {
+    console.log(
+      `  [getCurrentUser] session ${sessionMs}ms | getUser ${verifyMs === 0 ? '캐시히트' : `${verifyMs}ms`} | db ${dbMs}ms`,
+    )
+  }
+
   return user ? { ...user, authId: verifiedUserId } : null
 })

@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
+  "regions": ["icn1"],
   "buildCommand": "prisma generate && next build && cp src/generated/prisma/*.node .next/server/",
   "outputDirectory": ".next",
   "installCommand": "npm install",

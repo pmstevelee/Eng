@@ -73,6 +73,16 @@ const fetchOwnerBranchesCached = (ownerId: string) =>
     { revalidate: 60, tags: [`owner-${ownerId}-branches`] },
   )()
 
+/**
+ * 로그인 액션에서 유저 조회와 병렬로 호출해 본원/지점 캐시를 미리 채운다.
+ * Academy.ownerId === User.id(=Supabase auth id)이므로 역할을 알기 전에도 호출 가능.
+ * 학원장이 아니면 null이 캐시될 뿐이며, 학원장은 이어지는 OwnerLayout 렌더에서
+ * DB 왕복 1회(원격 DB 기준 수백 ms~1초)를 절약한다.
+ */
+export function warmOwnerBranchesCache(ownerId: string): Promise<unknown> {
+  return fetchOwnerBranchesCached(ownerId).catch(() => null)
+}
+
 /** 학원장이 소유한 본원 + 모든 지점 ID 배열 반환 */
 export async function getOwnerAcademyIds(ownerId: string): Promise<string[]> {
   const data = await fetchOwnerBranchesCached(ownerId)
