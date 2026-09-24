@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma/client'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
+import { createStudentAccount } from '@/lib/students/create-student-account'
 
 function getAdminClient() {
   return createSupabaseAdmin(
@@ -125,68 +126,12 @@ export async function createStudent(data: {
   const owner = await getOwner()
   if (!owner) return { error: '권한이 없습니다.' }
 
-  if (!data.name.trim()) return { error: '이름을 입력해주세요.' }
-  if (!data.email.trim()) return { error: '이메일을 입력해주세요.' }
-  if (data.password.length < 6) return { error: '비밀번호는 최소 6자 이상이어야 합니다.' }
-
-  // 정원 초과 확인
-  const [academy, existingCount] = await Promise.all([
-    prisma.academy.findUnique({ where: { id: owner.academyId! }, select: { maxStudents: true } }),
-    prisma.student.count({ where: { user: { academyId: owner.academyId!, isDeleted: false } } }),
-  ])
-  if (academy && existingCount >= academy.maxStudents) {
-    return { error: `최대 학생 수(${academy.maxStudents}명)에 도달했습니다.` }
-  }
-
-  // 이메일 중복 확인
-  const existing = await prisma.user.findUnique({ where: { email: data.email.trim() } })
-  if (existing) return { error: '이미 사용 중인 이메일입니다.' }
-
-  // Supabase Auth 계정 생성
-  const adminClient = getAdminClient()
-  const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-    email: data.email.trim(),
-    password: data.password,
-    email_confirm: true,
-  })
-  if (!authData.user) {
-    return { error: authError?.message ?? 'Auth 계정 생성에 실패했습니다.' }
-  }
-
-  try {
-    // Prisma User + Student 생성
-    const user = await prisma.user.create({
-      data: {
-        id: authData.user.id,
-        name: data.name.trim(),
-        email: data.email.trim(),
-        role: 'STUDENT',
-        academyId: owner.academyId!,
-        agreedTerms: true,
-        agreedPrivacy: true,
-      },
-    })
-
-    const student = await prisma.student.create({
-      data: {
-        userId: user.id,
-        classId: data.classId || null,
-        grade: data.grade ?? null,
-        currentLevel: data.currentLevel ?? 1,
-        status: 'ACTIVE',
-        ...(data.joinedAt ? { createdAt: new Date(data.joinedAt) } : {}),
-      },
-    })
-
+  const result = await createStudentAccount({ ...data, academyId: owner.academyId! })
+  if (result.studentId) {
     revalidateTag(`academy-${owner.academyId}-students`)
     revalidatePath('/owner/students')
-    return { studentId: student.id }
-  } catch (err) {
-    // Prisma 실패 시 Auth 계정도 롤백
-    await adminClient.auth.admin.deleteUser(authData.user.id)
-    console.error('createStudent prisma error:', err)
-    return { error: '학생 생성 중 오류가 발생했습니다.' }
   }
+  return result
 }
 
 // ─── 학생 정보 수정 ────────────────────────────────────────────────────────────

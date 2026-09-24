@@ -21,6 +21,7 @@ import {
   GitBranch,
   Languages,
   Activity,
+  MessagesSquare,
 } from 'lucide-react'
 import type { Role } from '@/types'
 
@@ -49,6 +50,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
   ACADEMY_OWNER: [
     { label: '대시보드', href: '/owner', icon: LayoutDashboard },
     { label: '학생관리', href: '/owner/students', icon: Users },
+    { label: '상담관리', href: '/owner/consultations', icon: MessagesSquare },
     { label: '교사관리', href: '/owner/teachers', icon: UserCheck },
     { label: '반관리', href: '/owner/classes', icon: GraduationCap },
     { label: '테스트관리', href: '/owner/tests', icon: FileText },
@@ -65,6 +67,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '문제 뱅크', href: '/teacher/tests/questions', icon: Library },
     { label: '단어학습 관리', href: '/teacher/words', icon: Languages },
     { label: '학생학습관리', href: '/teacher/students', icon: Users },
+    { label: '상담관리', href: '/teacher/consultations', icon: MessagesSquare },
     { label: '커뮤니케이션', href: '/teacher/communication', icon: MessageSquare },
     { label: '일정', href: '/teacher/schedule', icon: Calendar },
     { label: '설정', href: '/teacher/settings', icon: Settings },
