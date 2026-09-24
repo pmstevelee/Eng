@@ -1,5 +1,6 @@
 'use server'
 
+import { randomUUID } from 'crypto'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import { createStudentAccount, rollbackStudentAccount } from '@/lib/students/create-student-account'
@@ -312,8 +313,15 @@ function parseConsultationInput(input: ConsultationInput) {
   return { data } as const
 }
 
-/** 상담 기록 추가 — 문의/상담예약 상태였다면 자동으로 상담완료 처리 */
-export async function createConsultation(leadId: string, input: ConsultationInput): Promise<ActionResult> {
+/**
+ * 상담 기록 추가 — 문의/상담예약 상태였다면 자동으로 상담완료 처리.
+ * appointmentId가 있으면 해당 예약을 완료 처리하고 기록과 연결한다.
+ */
+export async function createConsultation(
+  leadId: string,
+  input: ConsultationInput,
+  appointmentId?: string,
+): Promise<ActionResult> {
   const actor = await getConsultationActor()
   if (!actor) return { error: NO_PERMISSION }
 
@@ -323,10 +331,31 @@ export async function createConsultation(leadId: string, input: ConsultationInpu
   const parsed = parseConsultationInput(input)
   if ('error' in parsed) return { error: parsed.error ?? '입력값을 확인해주세요.' }
 
+  if (appointmentId) {
+    const appointment = await prisma.consultationAppointment.findFirst({
+      where: { id: appointmentId, leadId: lead.id },
+      select: { status: true },
+    })
+    if (!appointment) return { error: '예약을 찾을 수 없습니다.' }
+    if (appointment.status !== 'SCHEDULED') return { error: '이미 처리된 예약입니다.' }
+  }
+
   const autoAdvance = lead.status === 'NEW' || lead.status === 'SCHEDULED'
+  const consultationId = randomUUID()
 
   await prisma.$transaction([
-    prisma.consultation.create({ data: { ...parsed.data, leadId: lead.id, counselorId: actor.userId } }),
+    prisma.consultation.create({
+      data: { ...parsed.data, id: consultationId, leadId: lead.id, counselorId: actor.userId },
+    }),
+    ...(appointmentId
+      ? [
+          prisma.consultationAppointment.update({
+            // 동시에 다른 처리가 먼저 된 경우 update가 실패해 기록 생성까지 롤백된다
+            where: { id: appointmentId, status: 'SCHEDULED' },
+            data: { status: 'COMPLETED', consultationId },
+          }),
+        ]
+      : []),
     ...(autoAdvance
       ? [
           prisma.lead.update({ where: { id: lead.id }, data: { status: 'CONSULTED' } }),

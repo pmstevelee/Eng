@@ -3,7 +3,14 @@ import 'server-only'
 import type { Prisma } from '@/generated/prisma'
 import { prisma } from '@/lib/prisma/client'
 import { leadScopeWhere, type ConsultationActor } from './access'
-import { LEAD_STATUS_ORDER, normalizePhone, type LeadChannelValue, type LeadStatusValue } from './constants'
+import {
+  LEAD_STATUS_ORDER,
+  kstDateStart,
+  normalizePhone,
+  type AppointmentStatusValue,
+  type LeadChannelValue,
+  type LeadStatusValue,
+} from './constants'
 
 export const LEAD_PAGE_SIZE = 20
 
@@ -222,6 +229,19 @@ export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
           counselor: { select: { name: true } },
         },
       },
+      appointments: {
+        orderBy: { scheduledAt: 'desc' },
+        select: {
+          id: true,
+          scheduledAt: true,
+          durationMinutes: true,
+          status: true,
+          counselorId: true,
+          rescheduledFromId: true,
+          consultationId: true,
+          counselor: { select: { name: true } },
+        },
+      },
       statusHistory: {
         orderBy: { changedAt: 'desc' },
         select: {
@@ -251,6 +271,12 @@ export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
     academyLabel: lead.academy.parentAcademyId ? (lead.academy.branchName ?? lead.academy.name) : '본원',
     consultations: lead.consultations.map((c) => ({ ...c, consultedAt: c.consultedAt.toISOString() })),
     statusHistory: lead.statusHistory.map((h) => ({ ...h, changedAt: h.changedAt.toISOString() })),
+    appointments: lead.appointments.map((a) => ({
+      ...a,
+      status: a.status as AppointmentStatusValue,
+      scheduledAt: a.scheduledAt.toISOString(),
+    })),
+    noShowCount: lead.appointments.filter((a) => a.status === 'NO_SHOW').length,
     siblings,
   }
 }
@@ -309,4 +335,76 @@ export async function getAcademyOptions(actor: ConsultationActor): Promise<Selec
   return rows
     .sort((a, b) => (a.parentAcademyId ? 1 : 0) - (b.parentAcademyId ? 1 : 0))
     .map((a) => ({ id: a.id, name: a.parentAcademyId ? (a.branchName ?? a.name) : '본원' }))
+}
+
+// ─── 상담 일정 ─────────────────────────────────────────────────────────────────
+
+export type AppointmentCalendarItem = {
+  id: string
+  scheduledAt: string
+  durationMinutes: number
+  status: AppointmentStatusValue
+  counselorId: string | null
+  counselorName: string | null
+  leadId: string
+  studentName: string
+  grade: string | null
+  leadStatus: LeadStatusValue
+  /** 문의 상세를 열 수 있는지 (교사는 본인 담당 문의만) */
+  canOpen: boolean
+}
+
+/**
+ * 기간 내 상담 일정 (취소된 예약 제외)
+ * - 교사: 본인이 상담자인 일정 (소속 학원)
+ * - 학원장: 조회 범위 학원 전체, 담당자 필터 가능
+ * from/to: KST 날짜 (YYYY-MM-DD), to는 포함
+ */
+export async function getAppointments(
+  actor: ConsultationActor,
+  params: { from: string; to: string; viewAcademyIds?: string[]; counselorId?: string },
+): Promise<AppointmentCalendarItem[]> {
+  const start = kstDateStart(params.from)
+  const end = new Date(kstDateStart(params.to).getTime() + 24 * 60 * 60 * 1000)
+
+  const where: Prisma.ConsultationAppointmentWhereInput =
+    actor.role === 'TEACHER'
+      ? { counselorId: actor.userId, lead: { academyId: actor.academyId } }
+      : {
+          lead: {
+            academyId: {
+              in: (params.viewAcademyIds ?? actor.academyIds).filter((id) => actor.academyIds.includes(id)),
+            },
+          },
+          ...(params.counselorId ? { counselorId: params.counselorId } : {}),
+        }
+
+  const rows = await prisma.consultationAppointment.findMany({
+    where: { ...where, status: { not: 'CANCELED' }, scheduledAt: { gte: start, lt: end } },
+    orderBy: { scheduledAt: 'asc' },
+    take: 500,
+    select: {
+      id: true,
+      scheduledAt: true,
+      durationMinutes: true,
+      status: true,
+      counselorId: true,
+      counselor: { select: { name: true } },
+      lead: { select: { id: true, studentName: true, grade: true, status: true, assigneeId: true } },
+    },
+  })
+
+  return rows.map((r) => ({
+    id: r.id,
+    scheduledAt: r.scheduledAt.toISOString(),
+    durationMinutes: r.durationMinutes,
+    status: r.status as AppointmentStatusValue,
+    counselorId: r.counselorId,
+    counselorName: r.counselor?.name ?? null,
+    leadId: r.lead.id,
+    studentName: r.lead.studentName,
+    grade: r.lead.grade,
+    leadStatus: r.lead.status as LeadStatusValue,
+    canOpen: actor.role === 'ACADEMY_OWNER' || r.lead.assigneeId === actor.userId,
+  }))
 }

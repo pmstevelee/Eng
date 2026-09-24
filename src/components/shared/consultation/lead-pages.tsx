@@ -1,11 +1,20 @@
 import { notFound, redirect } from 'next/navigation'
 import { MessagesSquare } from 'lucide-react'
 import { getConsultationActor } from '@/lib/consultation/access'
-import { LEAD_CHANNEL_LABEL, isLeadStatus, type LeadChannelValue } from '@/lib/consultation/constants'
+import {
+  LEAD_CHANNEL_LABEL,
+  addDaysToDateKey,
+  isDateKey,
+  isLeadStatus,
+  todayKst,
+  weekStartKst,
+  type LeadChannelValue,
+} from '@/lib/consultation/constants'
 import {
   LEAD_PAGE_SIZE,
   getAcademyOptions,
   getAssigneeFilterOptions,
+  getAppointments,
   getAssigneeOptions,
   getClassOptions,
   getLeadBoard,
@@ -14,6 +23,8 @@ import {
   type LeadFilters,
 } from '@/lib/consultation/queries'
 import { BRANCH_ALL, getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
+import { AppointmentCalendar } from './appointment-calendar'
+import { ConsultationTabs } from './consultation-tabs'
 import { LeadDetailClient } from './lead-detail-client'
 import { LeadListClient } from './lead-list-client'
 
@@ -99,17 +110,13 @@ export async function LeadListPage({ role, searchParams }: { role: Role; searchP
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
-          <MessagesSquare size={20} className="text-primary-700" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">상담관리</h1>
-          <p className="text-sm text-gray-500">
-            {isOwner ? '신규 문의부터 등록 전환까지 상담 진행 상황을 관리합니다.' : '내가 담당한 상담 문의를 관리합니다.'}
-          </p>
-        </div>
-      </div>
+      <ConsultationHeader
+        role={role}
+        active="leads"
+        description={
+          isOwner ? '신규 문의부터 등록 전환까지 상담 진행 상황을 관리합니다.' : '내가 담당한 상담 문의를 관리합니다.'
+        }
+      />
 
       <LeadListClient
         basePath={BASE_PATH[role]}
@@ -130,6 +137,88 @@ export async function LeadListPage({ role, searchParams }: { role: Role; searchP
         academyOptions={academyOptions}
         defaultAcademyId={defaultAcademyId}
         assigneeOptions={assigneeOptions}
+      />
+    </div>
+  )
+}
+
+function ConsultationHeader({
+  role,
+  active,
+  description,
+}: {
+  role: Role
+  active: 'leads' | 'schedule'
+  description: string
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
+          <MessagesSquare size={20} className="text-primary-700" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">상담관리</h1>
+          <p className="text-sm text-gray-500">{description}</p>
+        </div>
+      </div>
+      <ConsultationTabs basePath={BASE_PATH[role]} active={active} />
+    </div>
+  )
+}
+
+export type ScheduleSearchParams = {
+  view?: string
+  date?: string
+  counselor?: string
+}
+
+/** 상담 일정 페이지 (학원장/교사 공용 서버 컴포넌트) — 선택 날짜가 속한 주(월~일)를 조회 */
+export async function AppointmentSchedulePage({
+  role,
+  searchParams,
+}: {
+  role: Role
+  searchParams: ScheduleSearchParams
+}) {
+  const actor = await getConsultationActor()
+  if (!actor || actor.role !== role) redirect('/login')
+
+  const isOwner = actor.role === 'ACADEMY_OWNER'
+  const today = todayKst()
+  const date = isDateKey(searchParams.date) ? searchParams.date : today
+  const weekStart = weekStartKst(date)
+  const weekEnd = addDaysToDateKey(weekStart, 6)
+  const view = searchParams.view === 'day' || searchParams.view === 'week' ? searchParams.view : null
+  const counselorId = isOwner ? (searchParams.counselor?.slice(0, 64) ?? '') : ''
+
+  let viewAcademyIds: string[] | undefined
+  if (isOwner) {
+    viewAcademyIds = await getViewableAcademyIds(actor.userId, await getSelectedBranchId())
+  }
+
+  const [appointments, counselorOptions] = await Promise.all([
+    getAppointments(actor, { from: weekStart, to: weekEnd, viewAcademyIds, counselorId: counselorId || undefined }),
+    getAssigneeFilterOptions(actor, viewAcademyIds ?? actor.academyIds),
+  ])
+
+  return (
+    <div className="space-y-6">
+      <ConsultationHeader
+        role={role}
+        active="schedule"
+        description={isOwner ? '학원 전체 상담 일정을 확인합니다.' : '내 상담 일정을 확인합니다.'}
+      />
+      <AppointmentCalendar
+        basePath={BASE_PATH[role]}
+        today={today}
+        date={date}
+        weekStart={weekStart}
+        view={view}
+        counselorId={counselorId}
+        counselorOptions={counselorOptions}
+        showCounselor={isOwner}
+        appointments={appointments}
       />
     </div>
   )

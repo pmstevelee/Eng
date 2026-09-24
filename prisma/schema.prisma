@@ -233,6 +233,13 @@ enum ConsultationType {
   FOLLOW_UP // 추가 상담
 }
 
+enum AppointmentStatus {
+  SCHEDULED // 예정
+  COMPLETED // 완료
+  NO_SHOW // 노쇼
+  CANCELED // 취소
+}
+
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 /// 1. 학원
@@ -330,6 +337,7 @@ model User {
   assignedLeads              Lead[]                   @relation("LeadAssignee")
   consultations              Consultation[]           @relation("ConsultationCounselor")
   leadStatusChanges          LeadStatusHistory[]      @relation("LeadStatusChanger")
+  counseledAppointments      ConsultationAppointment[] @relation("AppointmentCounselor")
 
   @@index([academyId])
   @@map("users")
@@ -1412,6 +1420,7 @@ model Lead {
   student       Student?            @relation(fields: [studentId], references: [id], onDelete: SetNull)
   consultations Consultation[]
   statusHistory LeadStatusHistory[]
+  appointments  ConsultationAppointment[]
 
   // 형제가 같은 학부모 번호로 문의할 수 있어 unique 대신 인덱스 + 앱 단 중복 경고
   @@index([academyId, phone])
@@ -1435,8 +1444,9 @@ model Consultation {
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
 
-  lead      Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  counselor User? @relation("ConsultationCounselor", fields: [counselorId], references: [id], onDelete: SetNull)
+  lead        Lead                     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  counselor   User?                    @relation("ConsultationCounselor", fields: [counselorId], references: [id], onDelete: SetNull)
+  appointment ConsultationAppointment?
 
   @@index([leadId, consultedAt])
   @@index([counselorId])
@@ -1457,4 +1467,29 @@ model LeadStatusHistory {
 
   @@index([leadId, changedAt])
   @@map("lead_status_history")
+}
+
+/// 상담 예약 일정
+model ConsultationAppointment {
+  id                String            @id @default(uuid())
+  leadId            String            @map("lead_id")
+  counselorId       String?           @map("counselor_id") // 상담자 계정 삭제 시에도 예약 이력 유지
+  scheduledAt       DateTime          @map("scheduled_at")
+  durationMinutes   Int               @default(30) @map("duration_minutes")
+  status            AppointmentStatus @default(SCHEDULED)
+  rescheduledFromId String?           @unique @map("rescheduled_from_id") // 일정 변경 시 이전 예약
+  consultationId    String?           @unique @map("consultation_id") // 상담 완료 후 작성된 기록
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  lead            Lead                     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  counselor       User?                    @relation("AppointmentCounselor", fields: [counselorId], references: [id], onDelete: SetNull)
+  rescheduledFrom ConsultationAppointment? @relation("AppointmentReschedule", fields: [rescheduledFromId], references: [id], onDelete: SetNull)
+  rescheduledTo   ConsultationAppointment? @relation("AppointmentReschedule")
+  consultation    Consultation?            @relation(fields: [consultationId], references: [id], onDelete: SetNull)
+
+  @@index([counselorId, scheduledAt])
+  @@index([leadId, scheduledAt])
+  @@index([scheduledAt, status])
+  @@map("consultation_appointments")
 }

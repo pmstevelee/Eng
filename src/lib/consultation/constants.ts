@@ -183,3 +183,76 @@ export function toKstLocalInput(iso: string): string {
 export function kstLocalInputToIso(local: string): string {
   return new Date(`${local}:00+09:00`).toISOString()
 }
+
+// ─── 상담 예약 ────────────────────────────────────────────────────────────────
+
+export type AppointmentStatusValue = 'SCHEDULED' | 'COMPLETED' | 'NO_SHOW' | 'CANCELED'
+
+export const APPOINTMENT_STATUS_LABEL: Record<AppointmentStatusValue, string> = {
+  SCHEDULED: '예정',
+  COMPLETED: '완료',
+  NO_SHOW: '노쇼',
+  CANCELED: '취소',
+}
+
+export const APPOINTMENT_STATUS_BADGE: Record<AppointmentStatusValue, string> = {
+  SCHEDULED: 'bg-primary-100 text-primary-700',
+  COMPLETED: 'bg-accent-green-light text-[#16803D]',
+  NO_SHOW: 'bg-accent-red-light text-accent-red',
+  CANCELED: 'bg-gray-100 text-gray-700',
+}
+
+export const APPOINTMENT_DURATION_OPTIONS = [20, 30, 40, 60, 90]
+
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/** 현재 KST 날짜 (YYYY-MM-DD) */
+export function todayKst(): string {
+  return new Date(Date.now() + KST_OFFSET_MS).toISOString().slice(0, 10)
+}
+
+/** ISO/Date → KST 날짜 (YYYY-MM-DD) */
+export function toKstDateKey(iso: string | Date): string {
+  return new Date(new Date(iso).getTime() + KST_OFFSET_MS).toISOString().slice(0, 10)
+}
+
+/** KST 날짜(YYYY-MM-DD)의 자정 → UTC Date */
+export function kstDateStart(date: string): Date {
+  return new Date(`${date}T00:00:00+09:00`)
+}
+
+/** YYYY-MM-DD에 일수 더하기 */
+export function addDaysToDateKey(date: string, days: number): string {
+  return new Date(kstDateStart(date).getTime() + days * DAY_MS + KST_OFFSET_MS).toISOString().slice(0, 10)
+}
+
+/** 해당 날짜가 속한 주의 월요일 (YYYY-MM-DD) */
+export function weekStartKst(date: string): string {
+  const dow = new Date(`${date}T00:00:00Z`).getUTCDay() // 0=일
+  return addDaysToDateKey(date, dow === 0 ? -6 : 1 - dow)
+}
+
+/** ISO → KST 시:분 (HH:mm) */
+export function formatKstTime(iso: string | Date): string {
+  return new Date(new Date(iso).getTime() + KST_OFFSET_MS).toISOString().slice(11, 16)
+}
+
+/** ISO → KST 기준 0시부터 경과 분 */
+export function kstMinutesOfDay(iso: string | Date): number {
+  const d = new Date(new Date(iso).getTime() + KST_OFFSET_MS)
+  return d.getUTCHours() * 60 + d.getUTCMinutes()
+}
+
+const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토']
+
+/** YYYY-MM-DD → 9/25(목) */
+export function formatDateKeyShort(date: string): string {
+  const d = new Date(`${date}T00:00:00Z`)
+  return `${d.getUTCMonth() + 1}/${d.getUTCDate()}(${WEEKDAY_KO[d.getUTCDay()]})`
+}
+
+/** YYYY-MM-DD 형식 검증 */
+export function isDateKey(v: string | undefined | null): v is string {
+  return !!v && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(new Date(`${v}T00:00:00Z`).getTime())
+}

@@ -29,6 +29,8 @@ type Props = {
   /** 첫 상담 기록이면 기본 유형을 '신규 상담'으로 */
   hasConsultations: boolean
   initial?: ConsultationFormInitial
+  /** 예약 "상담 완료" 처리: 저장 시 예약을 완료하고 기록과 연결 */
+  appointment?: { id: string; scheduledAt: string }
   onClose: () => void
 }
 
@@ -40,7 +42,11 @@ export function ConsultationFormDialog(props: Props) {
   const [error, setError] = useState('')
   const init = props.initial
   const [form, setForm] = useState({
-    consultedAt: init ? toKstLocalInput(init.consultedAt) : nowKstLocalInput(),
+    consultedAt: init
+      ? toKstLocalInput(init.consultedAt)
+      : props.appointment
+        ? toKstLocalInput(props.appointment.scheduledAt)
+        : nowKstLocalInput(),
     type: (init?.type ?? (props.hasConsultations ? 'FOLLOW_UP' : 'INITIAL')) as ConsultationTypeValue,
     learningHistory: init?.learningHistory ?? '',
     prevAcademy: init?.prevAcademy ?? '',
@@ -67,7 +73,7 @@ export function ConsultationFormDialog(props: Props) {
       const payload = { ...form, consultedAt: kstLocalInputToIso(form.consultedAt) }
       const result = init
         ? await updateConsultation(init.id, payload)
-        : await createConsultation(props.leadId, payload)
+        : await createConsultation(props.leadId, payload, props.appointment?.id)
       if (result.error) {
         setError(result.error)
         return
@@ -78,7 +84,12 @@ export function ConsultationFormDialog(props: Props) {
   }
 
   return (
-    <ModalShell title={init ? '상담 기록 수정' : '상담 기록 추가'} icon={NotebookPen} onClose={props.onClose} size="lg">
+    <ModalShell
+      title={init ? '상담 기록 수정' : props.appointment ? '상담 완료 · 기록 작성' : '상담 기록 추가'}
+      icon={NotebookPen}
+      onClose={props.onClose}
+      size="lg"
+    >
       <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 space-y-6">
         <FormSection title="상담 정보">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

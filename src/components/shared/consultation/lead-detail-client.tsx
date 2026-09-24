@@ -7,6 +7,8 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRightLeft,
+  CalendarClock,
+  CalendarPlus,
   GraduationCap,
   History,
   NotebookPen,
@@ -16,7 +18,10 @@ import {
   UserCheck,
 } from 'lucide-react'
 import { assignLead, deleteConsultation, deleteLead } from '@/lib/consultation/actions'
+import { cancelAppointment, markAppointmentNoShow } from '@/lib/consultation/appointment-actions'
 import {
+  APPOINTMENT_STATUS_BADGE,
+  APPOINTMENT_STATUS_LABEL,
   CONSULTATION_TYPE_LABEL,
   LEAD_CHANNEL_LABEL,
   LEAD_STATUS_BADGE,
@@ -31,6 +36,7 @@ import {
   type LostReasonValue,
 } from '@/lib/consultation/constants'
 import type { LeadDetail } from '@/lib/consultation/queries'
+import { AppointmentFormDialog } from './appointment-form-dialog'
 import { ConsultationFormDialog, type ConsultationFormInitial } from './consultation-form-dialog'
 import { ConvertToStudentDialog } from './convert-to-student-dialog'
 import { LeadFormDialog } from './lead-form-dialog'
@@ -52,7 +58,8 @@ type Props = {
 type Dialog =
   | { kind: 'edit' }
   | { kind: 'status' }
-  | { kind: 'consultation'; initial?: ConsultationFormInitial }
+  | { kind: 'consultation'; initial?: ConsultationFormInitial; appointment?: { id: string; scheduledAt: string } }
+  | { kind: 'appointment'; reschedule?: LeadDetail['appointments'][number] }
   | { kind: 'convert' }
   | null
 
@@ -86,6 +93,25 @@ export function LeadDetailClient({ basePath, studentBasePath, isOwner, showAcade
     })
   }
 
+  const runAppointmentAction = (action: () => Promise<{ error?: string }>) => {
+    setActionError('')
+    startTransition(async () => {
+      const result = await action()
+      if (result.error) setActionError(result.error)
+      else router.refresh()
+    })
+  }
+
+  const handleCancelAppointment = (id: string) => {
+    if (!confirm('이 상담 예약을 취소할까요?')) return
+    runAppointmentAction(() => cancelAppointment(id))
+  }
+
+  const handleNoShow = (id: string) => {
+    if (!confirm('노쇼로 처리할까요? 노쇼 횟수는 문의 상세에 표시됩니다.')) return
+    runAppointmentAction(() => markAppointmentNoShow(id))
+  }
+
   const handleDeleteConsultation = (id: string) => {
     if (!confirm('이 상담 기록을 삭제할까요?')) return
     startTransition(async () => {
@@ -111,6 +137,9 @@ export function LeadDetailClient({ basePath, studentBasePath, isOwner, showAcade
           <div className="flex flex-wrap gap-2">
             {!enrolled && (
               <ActionButton icon={GraduationCap} label="학생으로 등록" primary onClick={() => setDialog({ kind: 'convert' })} />
+            )}
+            {!enrolled && (
+              <ActionButton icon={CalendarPlus} label="상담 예약" onClick={() => setDialog({ kind: 'appointment' })} />
             )}
             <ActionButton icon={Pencil} label="정보 수정" onClick={() => setDialog({ kind: 'edit' })} />
             {isOwner && <ActionButton icon={Trash2} label="삭제" danger onClick={handleDelete} disabled={isPending} />}
@@ -155,6 +184,9 @@ export function LeadDetailClient({ basePath, studentBasePath, isOwner, showAcade
             <p className="text-xs font-medium text-gray-500 mb-1.5">현재 상태</p>
             <div className="flex items-center gap-2 min-h-11">
               <StatusBadge className={LEAD_STATUS_BADGE[status]} label={LEAD_STATUS_LABEL[status]} />
+              {lead.noShowCount > 0 && (
+                <StatusBadge className="bg-accent-red-light text-accent-red" label={`노쇼 ${lead.noShowCount}회`} />
+              )}
               {!enrolled && (
                 <button
                   type="button"
@@ -302,8 +334,21 @@ export function LeadDetailClient({ basePath, studentBasePath, isOwner, showAcade
           )}
         </section>
 
+        <div className="space-y-5 lg:sticky lg:top-4">
+        {/* 사이드: 상담 예약 */}
+        <AppointmentSection
+          appointments={lead.appointments}
+          enrolled={enrolled}
+          pending={isPending}
+          onCreate={() => setDialog({ kind: 'appointment' })}
+          onComplete={(a) => setDialog({ kind: 'consultation', appointment: { id: a.id, scheduledAt: a.scheduledAt } })}
+          onReschedule={(a) => setDialog({ kind: 'appointment', reschedule: a })}
+          onCancel={handleCancelAppointment}
+          onNoShow={handleNoShow}
+        />
+
         {/* 사이드: 상태 변경 이력 */}
-        <aside className="rounded-xl border border-gray-200 bg-white p-5 lg:sticky lg:top-4">
+        <aside className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-1.5">
             <History size={16} className="text-gray-500" />
             상태 변경 이력
@@ -330,6 +375,7 @@ export function LeadDetailClient({ basePath, studentBasePath, isOwner, showAcade
             ))}
           </ol>
         </aside>
+        </div>
       </div>
 
       {dialog?.kind === 'edit' && (
@@ -364,6 +410,17 @@ export function LeadDetailClient({ basePath, studentBasePath, isOwner, showAcade
           leadId={lead.id}
           hasConsultations={lead.consultations.length > 0}
           initial={dialog.initial}
+          appointment={dialog.appointment}
+          onClose={() => setDialog(null)}
+        />
+      )}
+      {dialog?.kind === 'appointment' && (
+        <AppointmentFormDialog
+          leadId={lead.id}
+          studentName={lead.studentName}
+          reschedule={dialog.reschedule}
+          counselorOptions={assigneeOptions}
+          defaultCounselorId={lead.assigneeId ?? assigneeOptions[0]?.id ?? null}
           onClose={() => setDialog(null)}
         />
       )}
@@ -430,5 +487,149 @@ function RecordRow({ label, value }: { label: string; value: string | null }) {
       <dt className="text-xs font-medium text-gray-500">{label}</dt>
       <dd className="text-gray-900 whitespace-pre-wrap">{value}</dd>
     </div>
+  )
+}
+
+type AppointmentItem = LeadDetail['appointments'][number]
+
+function AppointmentSection({
+  appointments,
+  enrolled,
+  pending,
+  onCreate,
+  onComplete,
+  onReschedule,
+  onCancel,
+  onNoShow,
+}: {
+  appointments: AppointmentItem[]
+  enrolled: boolean
+  pending: boolean
+  onCreate: () => void
+  onComplete: (a: AppointmentItem) => void
+  onReschedule: (a: AppointmentItem) => void
+  onCancel: (id: string) => void
+  onNoShow: (id: string) => void
+}) {
+  // 예정 일정은 가까운 순으로 위에, 지난/처리된 일정은 최신순으로 아래에
+  const upcoming = appointments
+    .filter((a) => a.status === 'SCHEDULED')
+    .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
+  const past = appointments.filter((a) => a.status !== 'SCHEDULED')
+  const now = Date.now()
+
+  return (
+    <section className="rounded-xl border border-gray-200 bg-white p-5">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <h2 className="text-base font-semibold text-gray-900 flex items-center gap-1.5">
+          <CalendarClock size={16} className="text-gray-500" />
+          상담 예약
+        </h2>
+        {!enrolled && appointments.length > 0 && (
+          <button
+            type="button"
+            onClick={onCreate}
+            className="h-11 px-3 rounded-xl text-sm font-medium text-primary-700 hover:bg-primary-100 inline-flex items-center gap-1"
+          >
+            <CalendarPlus size={15} />
+            추가
+          </button>
+        )}
+      </div>
+
+      {appointments.length === 0 ? (
+        <div className="py-4 flex flex-col items-center text-center">
+          <p className="text-sm text-gray-500">예약된 상담이 없습니다</p>
+          {!enrolled && (
+            <button
+              type="button"
+              onClick={onCreate}
+              className="mt-3 h-11 px-4 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 inline-flex items-center gap-1.5"
+            >
+              <CalendarPlus size={15} />
+              상담 예약하기
+            </button>
+          )}
+        </div>
+      ) : (
+        <ul className="space-y-3">
+          {upcoming.map((a) => {
+            const started = new Date(a.scheduledAt).getTime() <= now
+            return (
+              <li key={a.id} className="rounded-xl border border-primary-100 bg-primary-100/40 p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 tabular-nums">{formatKstDateTime(a.scheduledAt)}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {a.durationMinutes}분 · {a.counselor?.name ?? '(삭제된 사용자)'}
+                      {a.rescheduledFromId && ' · 일정 변경됨'}
+                    </p>
+                  </div>
+                  <StatusBadge className={APPOINTMENT_STATUS_BADGE[a.status]} label={APPOINTMENT_STATUS_LABEL[a.status]} />
+                </div>
+                <div className="grid grid-cols-2 gap-2 mt-3">
+                  <button
+                    type="button"
+                    onClick={() => onComplete(a)}
+                    disabled={pending}
+                    className="col-span-2 h-11 rounded-xl bg-primary-700 text-white text-sm font-medium hover:bg-primary-800 disabled:opacity-50"
+                  >
+                    상담 완료 · 기록 작성
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onReschedule(a)}
+                    disabled={pending}
+                    className="h-11 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    일정 변경
+                  </button>
+                  {started ? (
+                    <button
+                      type="button"
+                      onClick={() => onNoShow(a.id)}
+                      disabled={pending}
+                      className="h-11 rounded-xl border border-gray-200 bg-white text-sm font-medium text-accent-red hover:bg-accent-red-light disabled:opacity-50"
+                    >
+                      노쇼
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onCancel(a.id)}
+                      disabled={pending}
+                      className="h-11 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      예약 취소
+                    </button>
+                  )}
+                  {started && (
+                    <button
+                      type="button"
+                      onClick={() => onCancel(a.id)}
+                      disabled={pending}
+                      className="col-span-2 h-11 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      예약 취소
+                    </button>
+                  )}
+                </div>
+              </li>
+            )
+          })}
+          {past.map((a) => (
+            <li key={a.id} className="flex items-center justify-between gap-2 text-sm">
+              <div className="min-w-0">
+                <p className={a.status === 'CANCELED' ? 'text-gray-500 line-through tabular-nums' : 'text-gray-900 tabular-nums'}>
+                  {formatKstDateTime(a.scheduledAt)}
+                </p>
+                <p className="text-xs text-gray-500">{a.counselor?.name ?? '(삭제된 사용자)'}</p>
+              </div>
+              <StatusBadge className={APPOINTMENT_STATUS_BADGE[a.status]} label={APPOINTMENT_STATUS_LABEL[a.status]} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }
