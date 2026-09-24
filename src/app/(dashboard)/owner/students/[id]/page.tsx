@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { unstable_cache } from 'next/cache'
-import { ChevronLeft, BookOpen, FileDown } from 'lucide-react'
+import { ChevronLeft, BookOpen, FileDown, MessagesSquare } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import StudentDetailClient from './_components/student-detail-client'
@@ -20,6 +20,7 @@ const getStudentDetail = (academyId: string, studentId: string) =>
             createdAt: true,
             class: { select: { id: true, name: true } },
             user: { select: { name: true, email: true, createdAt: true } },
+            lead: { select: { id: true } },
             testSessions: {
               orderBy: { startedAt: 'desc' },
               take: 10,
@@ -149,6 +150,15 @@ export default async function StudentDetailPage({
           학생 목록
         </Link>
         <div className="flex items-center gap-2">
+          {student.lead && (
+            <Link
+              href={`/owner/consultations/${student.lead.id}`}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              <MessagesSquare size={15} />
+              상담 기록 보기
+            </Link>
+          )}
           <Link
             href={`/owner/students/${studentId}/writing-logs`}
             className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"

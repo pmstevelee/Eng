@@ -404,7 +404,7 @@ export async function getConvertOptions(
  */
 export async function convertLeadToStudent(
   leadId: string,
-  input: { email: string; password: string; classId?: string; grade?: string; currentLevel?: number },
+  input: { name?: string; email: string; password: string; classId?: string; grade?: string; currentLevel?: number },
 ): Promise<ActionResult<{ studentId: string }>> {
   const actor = await getConsultationActor()
   if (!actor) return { error: NO_PERMISSION }
@@ -418,7 +418,7 @@ export async function convertLeadToStudent(
 
   const created = await createStudentAccount({
     academyId: lead.academyId,
-    name: lead.studentName,
+    name: optionalText(input.name, 50) ?? lead.studentName,
     email: input.email,
     password: input.password,
     classId: input.classId || undefined,

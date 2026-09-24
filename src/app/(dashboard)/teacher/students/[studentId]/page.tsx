@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, BookOpen, FileDown } from 'lucide-react'
+import { ArrowLeft, BookOpen, FileDown, MessagesSquare } from 'lucide-react'
 import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -109,6 +109,7 @@ export default async function StudentDetailPage({
     include: {
       user: { select: { name: true, email: true } },
       class: { select: { id: true, name: true } },
+      lead: { select: { id: true, assigneeId: true } },
     },
   })
 
@@ -123,6 +124,9 @@ export default async function StudentDetailPage({
     promotionProgress,
     wordDetail,
   } = await getStudentDetailData(student.id, user.id)
+
+  // 교사는 본인 담당 문의만 열람 가능 (leadScopeWhere와 동일 기준)
+  const leadId = student.lead?.assigneeId === user.id ? student.lead.id : null
 
 
   return (
@@ -149,6 +153,15 @@ export default async function StudentDetailPage({
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {leadId && (
+              <Link
+                href={`/teacher/consultations/${leadId}`}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <MessagesSquare size={15} />
+                상담 기록 보기
+              </Link>
+            )}
             <Link
               href={`/teacher/students/${student.id}/writing-logs`}
               className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"

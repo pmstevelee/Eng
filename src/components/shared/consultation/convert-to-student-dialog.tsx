@@ -28,6 +28,7 @@ export function ConvertToStudentDialog(props: Props) {
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [form, setForm] = useState({
+    name: props.studentName,
     email: '',
     password: '',
     classId: '',
@@ -41,6 +42,7 @@ export function ConvertToStudentDialog(props: Props) {
     setError('')
     startTransition(async () => {
       const result = await convertLeadToStudent(props.leadId, {
+        name: form.name.trim(),
         email: form.email.trim(),
         password: form.password,
         classId: form.classId || undefined,
@@ -60,9 +62,19 @@ export function ConvertToStudentDialog(props: Props) {
     <ModalShell title="학생으로 등록" icon={GraduationCap} onClose={props.onClose}>
       <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 space-y-4">
         <div className="rounded-xl bg-primary-100 px-4 py-3 text-sm text-gray-900">
-          <span className="font-semibold">{props.studentName}</span> 학생의 로그인 계정을 만들고 상태를
-          &lsquo;등록&rsquo;으로 변경합니다. 상담 기록은 학생과 연결되어 유지됩니다.
+          학생 로그인 계정을 만들고 상태를 &lsquo;등록&rsquo;으로 변경합니다. 상담 기록은 학생과 연결되어
+          유지됩니다.
         </div>
+
+        <Field label="학생 이름" required>
+          <input
+            className={inputClass}
+            value={form.name}
+            onChange={(e) => set('name', e.target.value)}
+            maxLength={50}
+            required
+          />
+        </Field>
 
         <Field label="이메일 (로그인 아이디)" required>
           <input
