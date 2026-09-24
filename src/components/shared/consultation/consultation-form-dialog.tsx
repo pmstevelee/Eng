@@ -79,89 +79,99 @@ export function ConsultationFormDialog(props: Props) {
 
   return (
     <ModalShell title={init ? '상담 기록 수정' : '상담 기록 추가'} icon={NotebookPen} onClose={props.onClose} size="lg">
-      <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="상담 일시" required>
-            <input
-              type="datetime-local"
-              className={inputClass}
-              value={form.consultedAt}
-              onChange={(e) => set('consultedAt', e.target.value)}
-              required
+      <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 space-y-6">
+        <FormSection title="상담 정보">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field label="상담 일시" required>
+              <input
+                type="datetime-local"
+                className={inputClass}
+                value={form.consultedAt}
+                onChange={(e) => set('consultedAt', e.target.value)}
+                required
+              />
+            </Field>
+            <Field label="상담 유형" required>
+              <select
+                className={inputClass}
+                value={form.type}
+                onChange={(e) => set('type', e.target.value as ConsultationTypeValue)}
+              >
+                {(Object.keys(CONSULTATION_TYPE_LABEL) as ConsultationTypeValue[]).map((t) => (
+                  <option key={t} value={t}>
+                    {CONSULTATION_TYPE_LABEL[t]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        </FormSection>
+
+        <FormSection title="학습 배경" description="현재 영어 실력과 이전 학습 경험">
+          <Field label="영어 학습 이력">
+            <textarea
+              className={textareaClass}
+              value={form.learningHistory}
+              onChange={(e) => set('learningHistory', e.target.value)}
+              placeholder="예: 초3부터 영어 유치원 출신, 파닉스 완료, 리딩 AR 2점대"
+              maxLength={2000}
             />
           </Field>
-          <Field label="상담 유형" required>
-            <select
-              className={inputClass}
-              value={form.type}
-              onChange={(e) => set('type', e.target.value as ConsultationTypeValue)}
-            >
-              {(Object.keys(CONSULTATION_TYPE_LABEL) as ConsultationTypeValue[]).map((t) => (
-                <option key={t} value={t}>
-                  {CONSULTATION_TYPE_LABEL[t]}
-                </option>
-              ))}
-            </select>
+          <Field label="타 학원 경험">
+            <textarea
+              className={textareaClass}
+              value={form.prevAcademy}
+              onChange={(e) => set('prevAcademy', e.target.value)}
+              placeholder="예: OO어학원 1년 수강, 숙제량 부담으로 그만둠"
+              maxLength={2000}
+            />
           </Field>
-        </div>
+        </FormSection>
 
-        <Field label="영어 학습 이력">
-          <textarea
-            className={textareaClass}
-            value={form.learningHistory}
-            onChange={(e) => set('learningHistory', e.target.value)}
-            placeholder="예: 초3부터 영어 유치원 출신, 파닉스 완료, 리딩 AR 2점대"
-            maxLength={2000}
-          />
-        </Field>
-        <Field label="타 학원 경험">
-          <textarea
-            className={textareaClass}
-            value={form.prevAcademy}
-            onChange={(e) => set('prevAcademy', e.target.value)}
-            placeholder="예: OO어학원 1년 수강, 숙제량 부담으로 그만둠"
-            maxLength={2000}
-          />
-        </Field>
-        <Field label="목표">
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {GOAL_PRESETS.map((g) => (
-              <button
-                key={g}
-                type="button"
-                onClick={() => addGoal(g)}
-                className="h-9 px-3 rounded-full border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50"
-              >
-                + {g}
-              </button>
-            ))}
-          </div>
-          <input
-            className={inputClass}
-            value={form.goal}
-            onChange={(e) => set('goal', e.target.value)}
-            placeholder="예: 중등 내신 대비"
-            maxLength={2000}
-          />
-        </Field>
-        <Field label="학부모 요구사항·고민">
-          <textarea
-            className={textareaClass}
-            value={form.parentNeeds}
-            onChange={(e) => set('parentNeeds', e.target.value)}
-            placeholder="예: 문법이 약함, 주 3회 이하 희망, 소수 정예반 선호"
-            maxLength={2000}
-          />
-        </Field>
-        <Field label="메모">
-          <textarea
-            className={textareaClass}
-            value={form.memo}
-            onChange={(e) => set('memo', e.target.value)}
-            placeholder="자유 메모"
-            maxLength={5000}
-          />
-        </Field>
+        <FormSection title="목표 및 요구사항">
+          <Field label="목표">
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {GOAL_PRESETS.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => addGoal(g)}
+                  className="h-9 px-3 rounded-full border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  + {g}
+                </button>
+              ))}
+            </div>
+            <input
+              className={inputClass}
+              value={form.goal}
+              onChange={(e) => set('goal', e.target.value)}
+              placeholder="예: 중등 내신 대비"
+              maxLength={2000}
+            />
+          </Field>
+          <Field label="학부모 요구사항·고민">
+            <textarea
+              className={textareaClass}
+              value={form.parentNeeds}
+              onChange={(e) => set('parentNeeds', e.target.value)}
+              placeholder="예: 문법이 약함, 주 3회 이하 희망, 소수 정예반 선호"
+              maxLength={2000}
+            />
+          </Field>
+        </FormSection>
+
+        <FormSection title="메모">
+          <Field label="메모">
+            <textarea
+              className={textareaClass}
+              value={form.memo}
+              onChange={(e) => set('memo', e.target.value)}
+              placeholder="자유 메모"
+              maxLength={5000}
+            />
+          </Field>
+        </FormSection>
 
         {!init && (
           <p className="text-xs text-gray-500">&lsquo;문의&rsquo;·&lsquo;상담예약&rsquo; 상태에서 기록을 추가하면 자동으로 &lsquo;상담완료&rsquo;로 바뀝니다.</p>
@@ -170,5 +180,25 @@ export function ConsultationFormDialog(props: Props) {
         <FormActions onCancel={props.onClose} pending={isPending} submitLabel="저장" pendingLabel="저장 중..." />
       </form>
     </ModalShell>
+  )
+}
+
+function FormSection({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description?: string
+  children: React.ReactNode
+}) {
+  return (
+    <fieldset className="space-y-4">
+      <legend className="w-full border-b border-gray-200 pb-2 mb-1">
+        <span className="text-sm font-semibold text-gray-900">{title}</span>
+        {description && <span className="ml-2 text-xs text-gray-500">{description}</span>}
+      </legend>
+      {children}
+    </fieldset>
   )
 }

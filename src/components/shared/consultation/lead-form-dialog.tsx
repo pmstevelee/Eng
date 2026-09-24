@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AlertTriangle, UserPlus, Pencil } from 'lucide-react'
@@ -9,7 +9,8 @@ import {
   GRADE_OPTIONS,
   LEAD_CHANNEL_LABEL,
   LEAD_STATUS_LABEL,
-  formatPhone,
+  formatPhoneInput,
+  isValidPhone,
   normalizePhone,
   type LeadChannelValue,
 } from '@/lib/consultation/constants'
@@ -69,25 +70,38 @@ export function LeadFormDialog(props: Props) {
   const set = <K extends keyof LeadFormValues>(key: K, value: LeadFormValues[K]) =>
     setForm((f) => ({ ...f, [key]: value }))
 
-  const handlePhoneBlur = async () => {
-    const digits = normalizePhone(form.phone)
-    if (digits.length < 9) {
+  const [phoneTouched, setPhoneTouched] = useState(false)
+  const phoneDigits = normalizePhone(form.phone)
+  const phoneValid = isValidPhone(phoneDigits)
+  const phoneError =
+    phoneTouched && phoneDigits.length > 0 && !phoneValid ? '연락처 형식이 올바르지 않습니다. (예: 010-1234-5678)' : ''
+  const excludeLeadId = props.mode === 'edit' ? props.leadId : undefined
+
+  // 번호가 완성되면(형식 유효) 같은 학원 내 중복 문의를 바로 확인
+  useEffect(() => {
+    if (!phoneValid) {
       setDuplicate(null)
       return
     }
-    set('phone', formatPhone(digits))
-    const result = await checkDuplicatePhone(digits, academyId || undefined)
-    if (result.error || result.total === undefined) return
-    const others =
-      props.mode === 'edit'
-        ? { total: result.total - 1, visible: (result.visible ?? []).filter((d) => d.id !== props.leadId) }
-        : { total: result.total, visible: result.visible ?? [] }
-    setDuplicate(others.total > 0 ? others : null)
-  }
+    let cancelled = false
+    const timer = setTimeout(async () => {
+      const result = await checkDuplicatePhone(phoneDigits, academyId || undefined, excludeLeadId)
+      if (cancelled || result.error || result.total === undefined) return
+      setDuplicate(result.total > 0 ? { total: result.total, visible: result.visible ?? [] } : null)
+    }, 300)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [phoneDigits, phoneValid, academyId, excludeLeadId])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    if (!phoneValid) {
+      setPhoneTouched(true)
+      return
+    }
     startTransition(async () => {
       if (props.mode === 'create') {
         const result = await createLead({
@@ -144,15 +158,18 @@ export function LeadFormDialog(props: Props) {
           </Field>
           <Field label="학부모 연락처" required className="sm:col-span-2">
             <input
-              className={inputClass}
+              className={phoneError ? `${inputClass} border-accent-red` : inputClass}
               type="tel"
               inputMode="numeric"
               value={form.phone}
-              onChange={(e) => set('phone', e.target.value)}
-              onBlur={handlePhoneBlur}
+              onChange={(e) => set('phone', formatPhoneInput(e.target.value))}
+              onBlur={() => setPhoneTouched(true)}
               placeholder="010-1234-5678"
+              maxLength={13}
+              aria-invalid={!!phoneError}
               required
             />
+            {phoneError && <p className="text-xs text-accent-red mt-1">{phoneError}</p>}
           </Field>
         </div>
 
@@ -171,11 +188,16 @@ export function LeadFormDialog(props: Props) {
                       className="text-primary-700 hover:underline"
                       target="_blank"
                     >
-                      {d.studentName} · {LEAD_STATUS_LABEL[d.status]}
+                      {d.studentName} · {LEAD_STATUS_LABEL[d.status]} — 기존 문의 보기 ↗
                     </Link>
                   </li>
                 ))}
               </ul>
+            )}
+            {duplicate.visible.length < duplicate.total && (
+              <p className="mt-1.5 text-xs text-gray-700">
+                다른 담당자의 문의 {duplicate.total - duplicate.visible.length}건은 학원장에게 확인하세요.
+              </p>
             )}
             <p className="mt-1.5 text-xs text-gray-700">형제·자매 문의라면 그대로 등록해도 됩니다.</p>
           </div>
@@ -248,7 +270,6 @@ export function LeadFormDialog(props: Props) {
                   onChange={(e) => {
                     setAcademyId(e.target.value)
                     setAssigneeId('')
-                    setDuplicate(null)
                   }}
                   required
                 >

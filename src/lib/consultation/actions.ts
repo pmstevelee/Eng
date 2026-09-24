@@ -15,6 +15,7 @@ import {
   LOST_REASON_LABEL,
   CONSULTATION_TYPE_LABEL,
   MANUAL_LEAD_STATUSES,
+  isValidPhone,
   normalizePhone,
   type ConsultationTypeValue,
   type LeadChannelValue,
@@ -50,7 +51,7 @@ function isConsultationType(v: string): v is ConsultationTypeValue {
 
 function validatePhone(phone: string): string | null {
   const digits = normalizePhone(phone)
-  return digits.length >= 9 && digits.length <= 11 ? digits : null
+  return isValidPhone(digits) ? digits : null
 }
 
 // ─── 중복 문의 확인 ────────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ export type DuplicateLead = { id: string; studentName: string; status: LeadStatu
 export async function checkDuplicatePhone(
   phone: string,
   academyId?: string,
+  excludeLeadId?: string,
 ): Promise<ActionResult<{ total: number; visible: DuplicateLead[] }>> {
   const actor = await getConsultationActor()
   if (!actor) return { error: NO_PERMISSION }
@@ -71,13 +73,24 @@ export async function checkDuplicatePhone(
   const digits = validatePhone(phone)
   if (!digits) return { total: 0, visible: [] }
 
-  const targetAcademyId = resolveTargetAcademy(actor, academyId)
+  // 수정 중인 문의는 그 문의의 소속 학원 기준으로 확인하고 자기 자신은 제외
+  let targetAcademyId = resolveTargetAcademy(actor, academyId)
+  if (excludeLeadId) {
+    const self = await findScopedLead(actor, excludeLeadId)
+    if (!self) return { error: NOT_FOUND }
+    targetAcademyId = self.academyId
+  }
   if (!targetAcademyId) return { error: NO_PERMISSION }
 
+  const where = {
+    academyId: targetAcademyId,
+    phone: digits,
+    ...(excludeLeadId ? { id: { not: excludeLeadId } } : {}),
+  }
   const [total, visible] = await Promise.all([
-    prisma.lead.count({ where: { academyId: targetAcademyId, phone: digits } }),
+    prisma.lead.count({ where }),
     prisma.lead.findMany({
-      where: { AND: [leadScopeWhere(actor), { academyId: targetAcademyId, phone: digits }] },
+      where: { AND: [leadScopeWhere(actor), where] },
       select: { id: true, studentName: true, status: true },
       orderBy: { createdAt: 'desc' },
       take: 5,
@@ -121,7 +134,7 @@ function parseLeadInput(input: LeadInput): { error: string } | { data: ParsedLea
   const studentName = input.studentName.trim()
   if (!studentName) return { error: '학생 이름을 입력해주세요.' }
   const phone = validatePhone(input.phone)
-  if (!phone) return { error: '연락처를 올바르게 입력해주세요. (숫자 9~11자리)' }
+  if (!phone) return { error: '연락처 형식이 올바르지 않습니다. (예: 010-1234-5678)' }
   if (!isChannel(input.channel)) return { error: '문의 채널을 선택해주세요.' }
 
   return {
@@ -220,7 +233,7 @@ export async function changeLeadStatus(
     return { error: '이미 등록 전환된 문의는 상태를 변경할 수 없습니다.' }
   }
   if (!(MANUAL_LEAD_STATUSES as string[]).includes(input.status)) {
-    return { error: '등록 상태는 [학생 등록 전환]으로만 변경할 수 있습니다.' }
+    return { error: '등록 상태는 [학생으로 등록]으로만 변경할 수 있습니다.' }
   }
   const status = input.status as LeadStatusValue
 

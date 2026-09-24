@@ -78,7 +78,7 @@ export function StatusChangeDialog(props: Props) {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-gray-500">&lsquo;등록&rsquo; 상태는 [학생 등록 전환]으로 계정을 만들면 자동 변경됩니다.</p>
+            <p className="text-xs text-gray-500">&lsquo;등록&rsquo; 상태는 [학생으로 등록]으로 계정을 만들면 자동 변경됩니다.</p>
           </>
         )}
 

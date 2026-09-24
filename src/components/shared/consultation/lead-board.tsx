@@ -38,7 +38,7 @@ type PendingDialog =
 /**
  * 상담 칸반 보드
  * - 카드 드래그로 상태 변경 (서버에서 권한 검증 + LeadStatusHistory 기록)
- * - '이탈'로 이동: 사유 선택 모달 필수 / '등록'으로 이동: 학생 등록 전환 모달
+ * - '이탈'로 이동: 사유 선택 모달 필수 / '등록'으로 이동: 학생으로 등록 모달
  * - 터치 기기는 HTML5 드래그가 동작하지 않아 카드의 '상태 이동' 선택으로 대체
  */
 export function LeadBoard({ basePath, columns: initialColumns, showAssignee, showAcademy, listHref }: Props) {

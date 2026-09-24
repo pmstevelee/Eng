@@ -57,7 +57,7 @@ export function ConvertToStudentDialog(props: Props) {
   }
 
   return (
-    <ModalShell title="학생 등록 전환" icon={GraduationCap} onClose={props.onClose}>
+    <ModalShell title="학생으로 등록" icon={GraduationCap} onClose={props.onClose}>
       <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 space-y-4">
         <div className="rounded-xl bg-primary-100 px-4 py-3 text-sm text-gray-900">
           <span className="font-semibold">{props.studentName}</span> 학생의 로그인 계정을 만들고 상태를

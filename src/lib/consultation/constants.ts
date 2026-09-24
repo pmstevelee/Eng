@@ -105,6 +105,36 @@ export function formatPhone(phone: string): string {
   return d
 }
 
+/**
+ * 국내 전화번호 형식 검증 (숫자만 받은 값 기준)
+ * - 서울(02): 9~10자리 / 휴대폰(01X)·지역번호·인터넷전화: 10~11자리 / 010은 11자리
+ */
+export function isValidPhone(digits: string): boolean {
+  if (!/^0\d+$/.test(digits)) return false
+  if (digits.startsWith('02')) return digits.length >= 9 && digits.length <= 10
+  if (digits.startsWith('010')) return digits.length === 11
+  return digits.length >= 10 && digits.length <= 11
+}
+
+/** 입력 중 하이픈 자동 포맷 (010-1234-5678, 02-123-4567, 031-123-4567) */
+export function formatPhoneInput(raw: string): string {
+  const d = normalizePhone(raw).slice(0, 11)
+  if (d.startsWith('02')) {
+    if (d.length <= 2) return d
+    if (d.length <= 5) return `${d.slice(0, 2)}-${d.slice(2)}`
+    if (d.length <= 9) return `${d.slice(0, 2)}-${d.slice(2, 5)}-${d.slice(5)}`
+    return `${d.slice(0, 2)}-${d.slice(2, 6)}-${d.slice(6, 10)}`
+  }
+  if (d.length <= 3) return d
+  // 010은 항상 3-4-4, 그 외는 10자리까지 3-3-4 → 11자리에서 3-4-4
+  if (d.startsWith('010') || d.length === 11) {
+    if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`
+    return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`
+  }
+  if (d.length <= 6) return `${d.slice(0, 3)}-${d.slice(3)}`
+  return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`
+}
+
 /** 목록 화면용 마스킹: 010-****-5678 */
 export function maskPhone(phone: string): string {
   const parts = formatPhone(phone).split('-')
