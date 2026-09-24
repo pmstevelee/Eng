@@ -40,6 +40,7 @@ import { AppointmentFormDialog } from './appointment-form-dialog'
 import { ConsultationFormDialog, type ConsultationFormInitial } from './consultation-form-dialog'
 import { ConvertToStudentDialog } from './convert-to-student-dialog'
 import { FollowUpSection } from './follow-up-section'
+import { NotificationHistory } from './notification-history'
 import { LeadFormDialog } from './lead-form-dialog'
 import { StatusBadge } from './modal-shell'
 import { StatusChangeDialog } from './status-change-dialog'
@@ -367,6 +368,9 @@ export function LeadDetailClient({
           assigneeOptions={assigneeOptions}
           defaultAssigneeId={lead.assigneeId ?? assigneeOptions[0]?.id ?? null}
         />
+
+        {/* 사이드: 알림 발송 이력 */}
+        <NotificationHistory logs={lead.notificationLogs} />
 
         {/* 사이드: 상태 변경 이력 */}
         <aside className="rounded-xl border border-gray-200 bg-white p-5">

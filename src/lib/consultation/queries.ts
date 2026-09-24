@@ -289,6 +289,19 @@ export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
           assignee: { select: { name: true } },
         },
       },
+      notificationLogs: {
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: {
+          id: true,
+          templateKey: true,
+          channel: true,
+          status: true,
+          errorMessage: true,
+          sentAt: true,
+          createdAt: true,
+        },
+      },
       statusHistory: {
         orderBy: { changedAt: 'desc' },
         select: {
@@ -324,6 +337,11 @@ export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
       scheduledAt: a.scheduledAt.toISOString(),
     })),
     noShowCount: lead.appointments.filter((a) => a.status === 'NO_SHOW').length,
+    notificationLogs: lead.notificationLogs.map((n) => ({
+      ...n,
+      sentAt: n.sentAt?.toISOString() ?? null,
+      createdAt: n.createdAt.toISOString(),
+    })),
     followUpTasks: lead.followUpTasks.map((t) => ({
       ...t,
       dueAt: t.dueAt.toISOString(),

@@ -233,6 +233,19 @@ enum ConsultationType {
   FOLLOW_UP // 추가 상담
 }
 
+enum MessageChannel {
+  ALIMTALK // 카카오 알림톡 (실패 시 SOLAPI가 SMS/LMS 대체발송)
+  SMS
+  LMS
+}
+
+enum MessageSendStatus {
+  PENDING // 발송 중
+  SENT // SOLAPI 접수 완료
+  FAILED // 접수 실패
+  SKIPPED // 발송 안 함 (log 모드 등)
+}
+
 enum AppointmentStatus {
   SCHEDULED // 예정
   COMPLETED // 완료
@@ -293,6 +306,7 @@ model Academy {
   wordTestAssignments    WordTestAssignment[]
   leads                  Lead[]
   followUpTasks          FollowUpTask[]
+  notificationLogs       NotificationLog[]
 
   @@index([parentAcademyId])
   @@map("academies")
@@ -1426,6 +1440,7 @@ model Lead {
   statusHistory LeadStatusHistory[]
   appointments  ConsultationAppointment[]
   followUpTasks FollowUpTask[]
+  notificationLogs NotificationLog[]
 
   // 형제가 같은 학부모 번호로 문의할 수 있어 unique 대신 인덱스 + 앱 단 중복 경고
   @@index([academyId, phone])
@@ -1493,6 +1508,7 @@ model ConsultationAppointment {
   rescheduledFrom ConsultationAppointment? @relation("AppointmentReschedule", fields: [rescheduledFromId], references: [id], onDelete: SetNull)
   rescheduledTo   ConsultationAppointment? @relation("AppointmentReschedule")
   consultation    Consultation?            @relation(fields: [consultationId], references: [id], onDelete: SetNull)
+  notificationLogs NotificationLog[]
 
   @@index([counselorId, scheduledAt])
   @@index([leadId, scheduledAt])
@@ -1521,4 +1537,31 @@ model FollowUpTask {
   @@index([assigneeId, completedAt, dueAt])
   @@index([leadId])
   @@map("follow_up_tasks")
+}
+
+/// 학부모 알림 발송 기록 (SOLAPI)
+model NotificationLog {
+  id            String            @id @default(uuid())
+  academyId     String            @map("academy_id")
+  leadId        String?           @map("lead_id")
+  appointmentId String?           @map("appointment_id")
+  phone         String // 수신번호 (숫자만)
+  templateKey   String            @map("template_key")
+  variables     Json
+  channel       MessageChannel
+  status        MessageSendStatus @default(PENDING)
+  errorMessage  String?           @map("error_message")
+  /// 같은 알림 중복 발송 방지 (예: "reminder:{appointmentId}")
+  dedupeKey     String            @unique @map("dedupe_key")
+  providerMessageId String?       @map("provider_message_id")
+  sentAt        DateTime?         @map("sent_at")
+  createdAt     DateTime          @default(now()) @map("created_at")
+
+  academy     Academy                  @relation(fields: [academyId], references: [id], onDelete: Cascade)
+  lead        Lead?                    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  appointment ConsultationAppointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([leadId, createdAt])
+  @@index([academyId, createdAt])
+  @@map("notification_logs")
 }

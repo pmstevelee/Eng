@@ -5,6 +5,7 @@
   "outputDirectory": ".next",
   "installCommand": "npm install",
   "crons": [
-    { "path": "/api/cron/billing", "schedule": "0 17 * * *" }
+    { "path": "/api/cron/billing", "schedule": "0 17 * * *" },
+    { "path": "/api/cron/consultation", "schedule": "0 1 * * *" }
   ]
 }

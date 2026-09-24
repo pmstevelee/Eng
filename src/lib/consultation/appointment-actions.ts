@@ -1,9 +1,11 @@
 'use server'
 
+import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import { findScopedLead, getConsultationActor, isValidAssignee, leadScopeWhere, type ConsultationActor } from './access'
 import { APPOINTMENT_DURATION_OPTIONS, formatKstDateTime } from './constants'
+import { notifyAppointment } from './notify'
 
 type ActionResult<T = object> = ({ error: string } & Partial<T>) | ({ error?: undefined } & T)
 
@@ -23,11 +25,19 @@ export type AppointmentInput = {
   counselorId?: string
   /** 같은 담당자 일정 겹침 경고를 확인하고 저장 */
   confirmOverlap?: boolean
+  /** 학부모에게 예약 확정 알림 발송 */
+  notifyParent?: boolean
 }
 
 export type AppointmentConflict = { id: string; studentName: string; scheduledAt: string; durationMinutes: number }
 
-type SaveResult = ActionResult<{ conflicts?: AppointmentConflict[] }>
+type SaveResult = ActionResult<{ conflicts?: AppointmentConflict[]; notifyError?: string }>
+
+/** 예약 확정 알림 — 실패해도 예약은 유지하고 안내 문구만 반환 */
+async function sendConfirmation(appointmentId: string): Promise<string | undefined> {
+  const result = await notifyAppointment(appointmentId, 'confirmed')
+  return result?.status === 'FAILED' ? `예약은 저장되었지만 알림 발송에 실패했습니다. (${result.error})` : undefined
+}
 
 type ParsedAppointment = { scheduledAt: Date; durationMinutes: number; counselorId: string }
 
@@ -114,8 +124,9 @@ export async function createAppointment(leadId: string, input: AppointmentInput)
   }
 
   const advance = lead.status === 'NEW'
+  const appointmentId = randomUUID()
   await prisma.$transaction([
-    prisma.consultationAppointment.create({ data: { ...parsed.data, leadId: lead.id } }),
+    prisma.consultationAppointment.create({ data: { ...parsed.data, id: appointmentId, leadId: lead.id } }),
     ...(advance
       ? [
           prisma.lead.update({ where: { id: lead.id }, data: { status: 'SCHEDULED', lastActivityAt: new Date() } }),
@@ -126,8 +137,9 @@ export async function createAppointment(leadId: string, input: AppointmentInput)
       : [prisma.lead.update({ where: { id: lead.id }, data: { lastActivityAt: new Date() } })]),
   ])
 
+  const notifyError = input.notifyParent ? await sendConfirmation(appointmentId) : undefined
   revalidateConsultation()
-  return {}
+  return { notifyError }
 }
 
 // ─── 일정 변경 / 취소 / 노쇼 ───────────────────────────────────────────────────
@@ -153,16 +165,18 @@ export async function rescheduleAppointment(appointmentId: string, input: Appoin
     if (conflicts.length > 0) return { conflicts }
   }
 
+  const newAppointmentId = randomUUID()
   await prisma.$transaction([
     prisma.consultationAppointment.update({ where: { id: current.id, status: 'SCHEDULED' }, data: { status: 'CANCELED' } }),
     prisma.consultationAppointment.create({
-      data: { ...parsed.data, leadId: current.lead.id, rescheduledFromId: current.id },
+      data: { ...parsed.data, id: newAppointmentId, leadId: current.lead.id, rescheduledFromId: current.id },
     }),
     touchLead(current.lead.id),
   ])
 
+  const notifyError = input.notifyParent ? await sendConfirmation(newAppointmentId) : undefined
   revalidateConsultation()
-  return {}
+  return { notifyError }
 }
 
 export async function cancelAppointment(appointmentId: string): Promise<ActionResult> {

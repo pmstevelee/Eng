@@ -48,6 +48,7 @@ export function AppointmentFormDialog(props: Props) {
     time: TIME_OPTIONS.includes(initTime) ? initTime : '15:00',
     durationMinutes: init?.durationMinutes ?? 30,
     counselorId: init?.counselorId ?? props.defaultCounselorId ?? '',
+    notifyParent: true,
   })
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
     setForm((f) => ({ ...f, [key]: value }))
@@ -67,6 +68,7 @@ export function AppointmentFormDialog(props: Props) {
         durationMinutes: form.durationMinutes,
         counselorId: showCounselor ? form.counselorId || undefined : undefined,
         confirmOverlap,
+        notifyParent: form.notifyParent,
       }
       const result = init ? await rescheduleAppointment(init.id, input) : await createAppointment(props.leadId, input)
       if (result.error) {
@@ -77,6 +79,8 @@ export function AppointmentFormDialog(props: Props) {
         setConflicts(result.conflicts)
         return
       }
+      // 예약은 저장됨 — 알림 실패는 알리고 닫기 (발송 이력은 문의 상세에서 확인)
+      if (result.notifyError) alert(result.notifyError)
       props.onClose()
       router.refresh()
     })
@@ -143,6 +147,19 @@ export function AppointmentFormDialog(props: Props) {
             </Field>
           )}
         </div>
+
+        <label className="flex items-center gap-3 min-h-11 rounded-xl border border-gray-200 px-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.notifyParent}
+            onChange={(e) => setForm((f) => ({ ...f, notifyParent: e.target.checked }))}
+            className="w-5 h-5 rounded accent-primary-700"
+          />
+          <span className="text-sm text-gray-900">
+            학부모에게 {init ? '변경된 일정' : '예약 확정'} 알림 발송
+            <span className="block text-xs text-gray-500">카카오 알림톡 (실패 시 문자로 대체발송)</span>
+          </span>
+        </label>
 
         {conflicts.length > 0 && (
           <div className="rounded-xl border border-accent-gold bg-accent-gold-light px-4 py-3 text-sm space-y-2">
