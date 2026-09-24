@@ -19,6 +19,9 @@ type Props = {
   currentStatus: LeadStatusValue
   currentLostReason: LostReasonValue | null
   currentLostReasonNote: string | null
+  /** 칸반 드롭 등으로 목표 상태가 정해진 경우 (lockStatus면 선택 버튼 숨김) */
+  initialStatus?: LeadStatusValue
+  lockStatus?: boolean
   onClose: () => void
 }
 
@@ -26,7 +29,7 @@ export function StatusChangeDialog(props: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
-  const [status, setStatus] = useState<LeadStatusValue>(props.currentStatus)
+  const [status, setStatus] = useState<LeadStatusValue>(props.initialStatus ?? props.currentStatus)
   const [lostReason, setLostReason] = useState<LostReasonValue | ''>(props.currentLostReason ?? '')
   const [lostReasonNote, setLostReasonNote] = useState(props.currentLostReasonNote ?? '')
 
@@ -49,27 +52,35 @@ export function StatusChangeDialog(props: Props) {
   }
 
   return (
-    <ModalShell title="상태 변경" icon={ArrowRightLeft} onClose={props.onClose}>
+    <ModalShell
+      title={props.lockStatus ? `'${LEAD_STATUS_LABEL[status]}'(으)로 변경` : '상태 변경'}
+      icon={ArrowRightLeft}
+      onClose={props.onClose}
+    >
       <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 space-y-4">
-        <div className="grid grid-cols-2 gap-2">
-          {MANUAL_LEAD_STATUSES.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setStatus(s)}
-              className={cn(
-                'h-11 rounded-xl border text-sm font-medium transition-colors',
-                status === s
-                  ? 'border-primary-700 bg-primary-100 text-primary-700'
-                  : 'border-gray-200 text-gray-700 hover:bg-gray-50',
-              )}
-            >
-              {LEAD_STATUS_LABEL[s]}
-              {s === props.currentStatus && <span className="ml-1 text-xs text-gray-500">(현재)</span>}
-            </button>
-          ))}
-        </div>
-        <p className="text-xs text-gray-500">&lsquo;등록&rsquo; 상태는 [학생 등록 전환]으로 계정을 만들면 자동 변경됩니다.</p>
+        {!props.lockStatus && (
+          <>
+            <div className="grid grid-cols-2 gap-2">
+              {MANUAL_LEAD_STATUSES.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setStatus(s)}
+                  className={cn(
+                    'h-11 rounded-xl border text-sm font-medium transition-colors',
+                    status === s
+                      ? 'border-primary-700 bg-primary-100 text-primary-700'
+                      : 'border-gray-200 text-gray-700 hover:bg-gray-50',
+                  )}
+                >
+                  {LEAD_STATUS_LABEL[s]}
+                  {s === props.currentStatus && <span className="ml-1 text-xs text-gray-500">(현재)</span>}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500">&lsquo;등록&rsquo; 상태는 [학생 등록 전환]으로 계정을 만들면 자동 변경됩니다.</p>
+          </>
+        )}
 
         {status === 'LOST' && (
           <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4">

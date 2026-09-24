@@ -1,20 +1,43 @@
 import { notFound, redirect } from 'next/navigation'
 import { MessagesSquare } from 'lucide-react'
 import { getConsultationActor } from '@/lib/consultation/access'
-import { isLeadStatus } from '@/lib/consultation/constants'
+import { LEAD_CHANNEL_LABEL, isLeadStatus, type LeadChannelValue } from '@/lib/consultation/constants'
 import {
   LEAD_PAGE_SIZE,
   getAcademyOptions,
+  getAssigneeFilterOptions,
   getAssigneeOptions,
   getClassOptions,
+  getLeadBoard,
   getLeadDetail,
   getLeadList,
+  type LeadFilters,
 } from '@/lib/consultation/queries'
 import { BRANCH_ALL, getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
 import { LeadDetailClient } from './lead-detail-client'
 import { LeadListClient } from './lead-list-client'
 
-export type LeadListSearchParams = { status?: string; q?: string; page?: string }
+export type LeadListSearchParams = {
+  view?: string
+  status?: string
+  q?: string
+  page?: string
+  assignee?: string
+  channel?: string
+  from?: string
+  to?: string
+}
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+function parseDate(v: string | undefined): string {
+  if (!v || !DATE_RE.test(v) || Number.isNaN(new Date(`${v}T00:00:00+09:00`).getTime())) return ''
+  return v
+}
+
+function parseChannel(v: string | undefined): LeadChannelValue | '' {
+  return v && Object.prototype.hasOwnProperty.call(LEAD_CHANNEL_LABEL, v) ? (v as LeadChannelValue) : ''
+}
 
 type Role = 'ACADEMY_OWNER' | 'TEACHER'
 
@@ -32,11 +55,18 @@ export async function LeadListPage({ role, searchParams }: { role: Role; searchP
   const actor = await getConsultationActor()
   if (!actor || actor.role !== role) redirect('/login')
 
-  const status = searchParams.status && isLeadStatus(searchParams.status) ? searchParams.status : ''
-  const query = searchParams.q?.trim() ?? ''
-  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1)
-
   const isOwner = actor.role === 'ACADEMY_OWNER'
+  const view = searchParams.view === 'list' ? 'list' : 'board'
+  const status = view === 'list' && searchParams.status && isLeadStatus(searchParams.status) ? searchParams.status : ''
+  const query = searchParams.q?.trim().slice(0, 50) ?? ''
+  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1)
+  const filterValues = {
+    // 담당자 필터는 학원장만 (교사는 본인 담당만 보이므로 무의미)
+    assignee: isOwner ? (searchParams.assignee?.slice(0, 64) ?? '') : '',
+    channel: parseChannel(searchParams.channel),
+    from: parseDate(searchParams.from),
+    to: parseDate(searchParams.to),
+  }
 
   // 학원장: 헤더 지점 선택기에 맞춰 조회 범위 결정
   let viewAcademyIds: string[] | undefined
@@ -49,11 +79,23 @@ export async function LeadListPage({ role, searchParams }: { role: Role; searchP
     }
   }
 
-  const [list, academyOptions, assigneeOptions] = await Promise.all([
-    getLeadList(actor, { viewAcademyIds, status: status || undefined, query, page }),
+  const filters: LeadFilters = {
+    viewAcademyIds,
+    query,
+    assignee: filterValues.assignee || undefined,
+    channel: filterValues.channel || undefined,
+    from: filterValues.from || undefined,
+    to: filterValues.to || undefined,
+  }
+
+  const [list, board, academyOptions, assigneeOptions, assigneeFilterOptions] = await Promise.all([
+    view === 'list' ? getLeadList(actor, { ...filters, status: status || undefined, page }) : null,
+    view === 'board' ? getLeadBoard(actor, filters) : null,
     getAcademyOptions(actor),
     getAssigneeOptions(actor, defaultAcademyId),
+    getAssigneeFilterOptions(actor, viewAcademyIds ?? actor.academyIds),
   ])
+  const boardTotal = board?.reduce((sum, col) => sum + col.total, 0) ?? 0
 
   return (
     <div className="space-y-6">
@@ -71,10 +113,14 @@ export async function LeadListPage({ role, searchParams }: { role: Role; searchP
 
       <LeadListClient
         basePath={BASE_PATH[role]}
-        items={list.items}
-        statusCounts={list.statusCounts}
-        allCount={list.allCount}
-        totalCount={list.totalCount}
+        view={view}
+        filters={filterValues}
+        assigneeFilterOptions={assigneeFilterOptions}
+        board={board}
+        items={list?.items ?? []}
+        statusCounts={list?.statusCounts ?? {}}
+        allCount={list?.allCount ?? boardTotal}
+        totalCount={list?.totalCount ?? boardTotal}
         page={page}
         pageSize={LEAD_PAGE_SIZE}
         status={status}

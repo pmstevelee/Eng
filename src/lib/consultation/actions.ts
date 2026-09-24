@@ -365,6 +365,25 @@ export async function deleteConsultation(consultationId: string): Promise<Action
 
 // ─── 등록 전환 ─────────────────────────────────────────────────────────────────
 
+/** 칸반에서 등록 전환 다이얼로그를 열 때 필요한 반 선택지 (Lead 소속 학원 기준) */
+export async function getConvertOptions(
+  leadId: string,
+): Promise<ActionResult<{ classOptions: { id: string; name: string }[]; grade: string | null }>> {
+  const actor = await getConsultationActor()
+  if (!actor) return { error: NO_PERMISSION }
+
+  const lead = await findScopedLead(actor, leadId)
+  if (!lead) return { error: NOT_FOUND }
+  if (lead.studentId || lead.status === 'ENROLLED') return { error: '이미 학생으로 등록된 문의입니다.' }
+
+  const classOptions = await prisma.class.findMany({
+    where: { academyId: lead.academyId, isActive: true },
+    select: { id: true, name: true },
+    orderBy: { name: 'asc' },
+  })
+  return { classOptions, grade: lead.grade }
+}
+
 /**
  * 문의자를 학생 계정으로 전환 — 학원장 또는 담당 교사.
  * 기존 학생 생성 로직(createStudentAccount)을 재사용하고,
