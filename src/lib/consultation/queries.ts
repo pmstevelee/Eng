@@ -4,9 +4,13 @@ import type { Prisma } from '@/generated/prisma'
 import { prisma } from '@/lib/prisma/client'
 import { leadScopeWhere, type ConsultationActor } from './access'
 import {
+  DEFAULT_STALE_DAYS,
   LEAD_STATUS_ORDER,
+  STALE_EXCLUDED_STATUSES,
+  readStaleDays,
   kstDateStart,
   normalizePhone,
+  todayKst,
   type AppointmentStatusValue,
   type LeadChannelValue,
   type LeadStatusValue,
@@ -28,6 +32,8 @@ export type LeadListItem = {
   consultationCount: number
   lastConsultedAt: string | null
   createdAt: string
+  /** 마지막 활동 후 방치 기준 일수 경과 (등록·이탈 제외) */
+  isStale: boolean
 }
 
 export type LeadListResult = {
@@ -93,6 +99,8 @@ function buildBaseWhere(actor: ConsultationActor, params: LeadFilters): Prisma.L
 
 const LEAD_CARD_SELECT = {
   id: true,
+  academyId: true,
+  lastActivityAt: true,
   studentName: true,
   parentName: true,
   phone: true,
@@ -109,8 +117,32 @@ const LEAD_CARD_SELECT = {
 
 type LeadCardRow = Prisma.LeadGetPayload<{ select: typeof LEAD_CARD_SELECT }>
 
-function toListItem(r: LeadCardRow): LeadListItem {
+/**
+ * 학원별 방치 기준 일수 — 학원 설정 → 본원 설정 → 기본값 순.
+ * (지점 교사도 학원장이 본원에서 정한 기준을 따르도록 본원 설정까지 확인)
+ */
+export async function getStaleDaysByAcademy(academyIds: string[]): Promise<Map<string, number>> {
+  const rows = await prisma.academy.findMany({
+    where: { id: { in: academyIds } },
+    select: { id: true, settingsJson: true, parentAcademy: { select: { settingsJson: true } } },
+  })
+  return new Map(
+    rows.map((a) => [
+      a.id,
+      readStaleDays(a.settingsJson) ?? readStaleDays(a.parentAcademy?.settingsJson) ?? DEFAULT_STALE_DAYS,
+    ]),
+  )
+}
+
+function isStaleLead(r: { academyId: string; status: string; lastActivityAt: Date }, staleDays: Map<string, number>) {
+  if ((STALE_EXCLUDED_STATUSES as string[]).includes(r.status)) return false
+  const days = staleDays.get(r.academyId) ?? DEFAULT_STALE_DAYS
+  return Date.now() - r.lastActivityAt.getTime() >= days * 24 * 60 * 60 * 1000
+}
+
+function toListItem(r: LeadCardRow, staleDays: Map<string, number>): LeadListItem {
   return {
+    isStale: isStaleLead(r, staleDays),
     id: r.id,
     studentName: r.studentName,
     parentName: r.parentName,
@@ -131,7 +163,7 @@ export async function getLeadList(actor: ConsultationActor, params: LeadListPara
   const baseWhere = buildBaseWhere(actor, params)
   const where: Prisma.LeadWhereInput = params.status ? { AND: [baseWhere, { status: params.status }] } : baseWhere
 
-  const [grouped, totalCount, rows] = await Promise.all([
+  const [grouped, totalCount, rows, staleDays] = await Promise.all([
     prisma.lead.groupBy({ by: ['status'], where: baseWhere, _count: { _all: true } }),
     prisma.lead.count({ where }),
     prisma.lead.findMany({
@@ -141,6 +173,7 @@ export async function getLeadList(actor: ConsultationActor, params: LeadListPara
       take: LEAD_PAGE_SIZE,
       select: LEAD_CARD_SELECT,
     }),
+    getStaleDaysByAcademy(actor.academyIds),
   ])
 
   const statusCounts: Record<string, number> = {}
@@ -154,7 +187,7 @@ export async function getLeadList(actor: ConsultationActor, params: LeadListPara
     totalCount,
     statusCounts,
     allCount,
-    items: rows.map(toListItem),
+    items: rows.map((r) => toListItem(r, staleDays)),
   }
 }
 
@@ -167,8 +200,9 @@ export type LeadBoardColumn = { status: LeadStatusValue; total: number; items: L
 export async function getLeadBoard(actor: ConsultationActor, params: LeadFilters): Promise<LeadBoardColumn[]> {
   const baseWhere = buildBaseWhere(actor, params)
 
-  const [grouped, ...columns] = await Promise.all([
+  const [grouped, staleDays, ...columns] = await Promise.all([
     prisma.lead.groupBy({ by: ['status'], where: baseWhere, _count: { _all: true } }),
+    getStaleDaysByAcademy(actor.academyIds),
     ...LEAD_STATUS_ORDER.map((status) =>
       prisma.lead.findMany({
         where: { AND: [baseWhere, { status }] },
@@ -183,7 +217,7 @@ export async function getLeadBoard(actor: ConsultationActor, params: LeadFilters
   return LEAD_STATUS_ORDER.map((status, i) => ({
     status,
     total: totals.get(status) ?? 0,
-    items: columns[i].map(toListItem),
+    items: columns[i].map((r) => toListItem(r, staleDays)),
   }))
 }
 
@@ -242,6 +276,19 @@ export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
           counselor: { select: { name: true } },
         },
       },
+      followUpTasks: {
+        orderBy: [{ completedAt: { sort: 'desc', nulls: 'first' } }, { dueAt: 'asc' }],
+        take: 50,
+        select: {
+          id: true,
+          dueAt: true,
+          content: true,
+          completedAt: true,
+          assigneeId: true,
+          createdById: true,
+          assignee: { select: { name: true } },
+        },
+      },
       statusHistory: {
         orderBy: { changedAt: 'desc' },
         select: {
@@ -277,6 +324,11 @@ export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
       scheduledAt: a.scheduledAt.toISOString(),
     })),
     noShowCount: lead.appointments.filter((a) => a.status === 'NO_SHOW').length,
+    followUpTasks: lead.followUpTasks.map((t) => ({
+      ...t,
+      dueAt: t.dueAt.toISOString(),
+      completedAt: t.completedAt?.toISOString() ?? null,
+    })),
     siblings,
   }
 }
@@ -407,4 +459,72 @@ export async function getAppointments(
     leadStatus: r.lead.status as LeadStatusValue,
     canOpen: actor.role === 'ACADEMY_OWNER' || r.lead.assigneeId === actor.userId,
   }))
+}
+
+// ─── 팔로업 할 일 ──────────────────────────────────────────────────────────────
+
+export type TodayTaskItem = {
+  id: string
+  dueAt: string
+  content: string
+  overdue: boolean
+  assigneeName: string | null
+  leadId: string
+  studentName: string
+  canOpen: boolean
+}
+
+/**
+ * 오늘 할 일: 오늘 마감 + 기한 지난 미완료 할 일
+ * - 교사: 본인 배정 할 일 / 학원장: 조회 범위 학원 전체
+ */
+export async function getTodayTasks(
+  actor: ConsultationActor,
+  viewAcademyIds?: string[],
+): Promise<{ items: TodayTaskItem[]; total: number }> {
+  const todayStart = kstDateStart(todayKst())
+  const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000)
+  const where: Prisma.FollowUpTaskWhereInput = {
+    completedAt: null,
+    dueAt: { lt: tomorrowStart },
+    ...(actor.role === 'TEACHER'
+      ? { academyId: actor.academyId, assigneeId: actor.userId }
+      : { academyId: { in: (viewAcademyIds ?? actor.academyIds).filter((id) => actor.academyIds.includes(id)) } }),
+  }
+
+  const [rows, total] = await Promise.all([
+    prisma.followUpTask.findMany({
+      where,
+      orderBy: { dueAt: 'asc' },
+      take: 20,
+      select: {
+        id: true,
+        dueAt: true,
+        content: true,
+        assignee: { select: { name: true } },
+        lead: { select: { id: true, studentName: true, assigneeId: true } },
+      },
+    }),
+    prisma.followUpTask.count({ where }),
+  ])
+
+  return {
+    total,
+    items: rows.map((t) => ({
+      id: t.id,
+      dueAt: t.dueAt.toISOString(),
+      content: t.content,
+      overdue: t.dueAt < todayStart,
+      assigneeName: t.assignee?.name ?? null,
+      leadId: t.lead.id,
+      studentName: t.lead.studentName,
+      canOpen: actor.role === 'ACADEMY_OWNER' || t.lead.assigneeId === actor.userId,
+    })),
+  }
+}
+
+/** 학원장 화면의 방치 기준 일수 (본원 기준) */
+export async function getOwnerStaleDays(actor: ConsultationActor): Promise<number> {
+  const map = await getStaleDaysByAcademy([actor.academyId])
+  return map.get(actor.academyId) ?? DEFAULT_STALE_DAYS
 }

@@ -138,3 +138,15 @@ export function StatusBadge({ className, label }: { className: string; label: st
     </span>
   )
 }
+
+/** 방치 표시 (마지막 활동 후 기준 일수 경과) */
+export function StaleBadge() {
+  return (
+    <span
+      title="마지막 활동 후 기준 일수가 지났습니다"
+      className="inline-flex items-center rounded-full bg-accent-gold-light text-[#9A6B00] px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap"
+    >
+      방치
+    </span>
+  )
+}

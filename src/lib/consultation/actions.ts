@@ -250,7 +250,10 @@ export async function changeLeadStatus(
   if (status === lead.status && status !== 'LOST') return {}
 
   await prisma.$transaction([
-    prisma.lead.update({ where: { id: lead.id }, data: { status, lostReason, lostReasonNote } }),
+    prisma.lead.update({
+      where: { id: lead.id },
+      data: { status, lostReason, lostReasonNote, lastActivityAt: new Date() },
+    }),
     ...(status !== lead.status
       ? [
           prisma.leadStatusHistory.create({
@@ -358,12 +361,12 @@ export async function createConsultation(
       : []),
     ...(autoAdvance
       ? [
-          prisma.lead.update({ where: { id: lead.id }, data: { status: 'CONSULTED' } }),
+          prisma.lead.update({ where: { id: lead.id }, data: { status: 'CONSULTED', lastActivityAt: new Date() } }),
           prisma.leadStatusHistory.create({
             data: { leadId: lead.id, fromStatus: lead.status, toStatus: 'CONSULTED', changedById: actor.userId },
           }),
         ]
-      : [prisma.lead.update({ where: { id: lead.id }, data: { updatedAt: new Date() } })]),
+      : [prisma.lead.update({ where: { id: lead.id }, data: { lastActivityAt: new Date() } })]),
   ])
 
   revalidateConsultation()

@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useCallback, useSyncExternalStore } from 'react'
+import { useState, useCallback, useEffect, useSyncExternalStore } from 'react'
+import { usePathname } from 'next/navigation'
+import { getOverdueFollowUpCount } from '@/lib/consultation/follow-up-actions'
 import { Sidebar } from './sidebar'
 import { Header } from './header'
 import { NAV_ITEMS } from './nav-items'
@@ -30,6 +32,38 @@ function getCollapsedSnapshot() {
 }
 function getCollapsedServerSnapshot() {
   return false
+}
+
+const CONSULTATION_HREF: Partial<Record<Role, string>> = {
+  ACADEMY_OWNER: '/owner/consultations',
+  TEACHER: '/teacher/consultations',
+}
+
+/**
+ * 상담관리 메뉴 배지(기한 지난 할 일 수).
+ * 레이아웃 렌더를 막지 않도록 마운트 후 비동기로 조회하고, 상담관리 화면 이동 시 갱신한다.
+ */
+function useConsultationBadge(role: Role): Record<string, number> {
+  const pathname = usePathname()
+  const href = CONSULTATION_HREF[role]
+  // 상담관리 안에서는 경로가 바뀔 때마다, 밖에서는 최초 1회만 조회
+  const refreshKey = href && pathname.startsWith(href) ? pathname : 'outside'
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    if (!href) return
+    let canceled = false
+    getOverdueFollowUpCount()
+      .then((n) => {
+        if (!canceled) setCount(n)
+      })
+      .catch(() => {})
+    return () => {
+      canceled = true
+    }
+  }, [href, refreshKey])
+
+  return href && count > 0 ? { [href]: count } : {}
 }
 
 export function DashboardLayout({
@@ -63,6 +97,8 @@ export function DashboardLayout({
     try { localStorage.setItem('sidebar-collapsed', String(next)) } catch {}
   }, [isCollapsed])
 
+  const navBadges = useConsultationBadge(role)
+
   const handleCloseMobile = useCallback(() => setIsMobileOpen(false), [])
   const handleOpenMobile = useCallback(() => setIsMobileOpen(true), [])
 
@@ -70,6 +106,7 @@ export function DashboardLayout({
     <div className="flex h-[100dvh] overflow-hidden bg-gray-50">
       <Sidebar
         navItems={navItems}
+        badges={navBadges}
         isCollapsed={isCollapsed}
         isMobileOpen={isMobileOpen}
         userName={userName}

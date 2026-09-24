@@ -11,6 +11,8 @@ import { BranchSwitcher, type BranchOption } from './branch-switcher'
 
 interface SidebarProps {
   navItems: NavItem[]
+  /** 메뉴 href별 숫자 배지 */
+  badges?: Record<string, number>
   isCollapsed: boolean
   isMobileOpen: boolean
   userName: string
@@ -30,11 +32,13 @@ const NavLink = memo(function NavLink({
   item,
   collapsed,
   isActive,
+  badge,
   onClick,
 }: {
   item: NavItem
   collapsed: boolean
   isActive: boolean
+  badge?: number
   onClick?: () => void
 }) {
   const Icon = item.icon
@@ -44,8 +48,9 @@ const NavLink = memo(function NavLink({
       prefetch
       onClick={onClick}
       title={collapsed ? item.label : undefined}
+      aria-label={badge ? `${item.label} (기한 지난 할 일 ${badge}건)` : undefined}
       className={cn(
-        'flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+        'relative flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
         collapsed ? 'justify-center' : '',
         isActive
           ? 'bg-primary-700 text-white'
@@ -54,6 +59,14 @@ const NavLink = memo(function NavLink({
     >
       <Icon size={18} className="shrink-0" />
       {!collapsed && <span className="truncate">{item.label}</span>}
+      {!!badge &&
+        (collapsed ? (
+          <span className="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-accent-red" />
+        ) : (
+          <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-accent-red text-white text-[11px] font-semibold flex items-center justify-center tabular-nums">
+            {badge > 99 ? '99+' : badge}
+          </span>
+        ))}
     </Link>
   )
 })
@@ -78,6 +91,7 @@ function getActiveHref(pathname: string, navItems: NavItem[]) {
 
 export function Sidebar({
   navItems,
+  badges,
   isCollapsed,
   isMobileOpen,
   userName,
@@ -188,6 +202,7 @@ export function Sidebar({
               item={item}
               collapsed={isCollapsed}
               isActive={item.href === activeHref}
+              badge={badges?.[item.href]}
             />
           ))}
         </nav>
@@ -268,6 +283,7 @@ export function Sidebar({
               item={item}
               collapsed={false}
               isActive={item.href === activeHref}
+              badge={badges?.[item.href]}
               onClick={onCloseMobile}
             />
           ))}

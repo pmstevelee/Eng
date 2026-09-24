@@ -256,3 +256,28 @@ export function formatDateKeyShort(date: string): string {
 export function isDateKey(v: string | undefined | null): v is string {
   return !!v && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(new Date(`${v}T00:00:00Z`).getTime())
 }
+
+// ─── 팔로업 · 방치 ─────────────────────────────────────────────────────────────
+
+/** 마지막 활동 후 이 일수가 지나면 '방치' 표시 (학원 설정으로 변경 가능) */
+export const DEFAULT_STALE_DAYS = 7
+export const STALE_DAY_OPTIONS = [3, 5, 7, 10, 14, 30]
+
+/** 방치 판정 제외 상태 */
+export const STALE_EXCLUDED_STATUSES: LeadStatusValue[] = ['ENROLLED', 'LOST']
+
+/** Academy.settingsJson.consultation.staleDays 읽기 (없거나 잘못된 값이면 null) */
+export function readStaleDays(settingsJson: unknown): number | null {
+  if (!settingsJson || typeof settingsJson !== 'object' || Array.isArray(settingsJson)) return null
+  const consultation = (settingsJson as Record<string, unknown>).consultation
+  if (!consultation || typeof consultation !== 'object' || Array.isArray(consultation)) return null
+  const days = (consultation as Record<string, unknown>).staleDays
+  return typeof days === 'number' && STALE_DAY_OPTIONS.includes(days) ? days : null
+}
+
+/** 할 일 빠른 마감 선택 */
+export const FOLLOW_UP_QUICK_DUE = [
+  { label: '내일', days: 1 },
+  { label: '3일 후', days: 3 },
+  { label: '1주 후', days: 7 },
+]

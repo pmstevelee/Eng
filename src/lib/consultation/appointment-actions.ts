@@ -74,6 +74,11 @@ async function findConflicts(data: ParsedAppointment, excludeId?: string): Promi
     }))
 }
 
+/** 문의 마지막 활동 시각 갱신 (방치 판정용) */
+function touchLead(leadId: string) {
+  return prisma.lead.update({ where: { id: leadId }, data: { lastActivityAt: new Date() } })
+}
+
 /** 권한 범위 안의 예약 1건 */
 async function findScopedAppointment(actor: ConsultationActor, appointmentId: string) {
   return prisma.consultationAppointment.findFirst({
@@ -113,12 +118,12 @@ export async function createAppointment(leadId: string, input: AppointmentInput)
     prisma.consultationAppointment.create({ data: { ...parsed.data, leadId: lead.id } }),
     ...(advance
       ? [
-          prisma.lead.update({ where: { id: lead.id }, data: { status: 'SCHEDULED' } }),
+          prisma.lead.update({ where: { id: lead.id }, data: { status: 'SCHEDULED', lastActivityAt: new Date() } }),
           prisma.leadStatusHistory.create({
             data: { leadId: lead.id, fromStatus: 'NEW', toStatus: 'SCHEDULED', changedById: actor.userId },
           }),
         ]
-      : [prisma.lead.update({ where: { id: lead.id }, data: { updatedAt: new Date() } })]),
+      : [prisma.lead.update({ where: { id: lead.id }, data: { lastActivityAt: new Date() } })]),
   ])
 
   revalidateConsultation()
@@ -153,6 +158,7 @@ export async function rescheduleAppointment(appointmentId: string, input: Appoin
     prisma.consultationAppointment.create({
       data: { ...parsed.data, leadId: current.lead.id, rescheduledFromId: current.id },
     }),
+    touchLead(current.lead.id),
   ])
 
   revalidateConsultation()
@@ -167,7 +173,10 @@ export async function cancelAppointment(appointmentId: string): Promise<ActionRe
   if (!current) return { error: APPOINTMENT_NOT_FOUND }
   if (current.status !== 'SCHEDULED') return { error: '예정된 예약만 취소할 수 있습니다.' }
 
-  await prisma.consultationAppointment.update({ where: { id: current.id, status: 'SCHEDULED' }, data: { status: 'CANCELED' } })
+  await prisma.$transaction([
+    prisma.consultationAppointment.update({ where: { id: current.id, status: 'SCHEDULED' }, data: { status: 'CANCELED' } }),
+    touchLead(current.lead.id),
+  ])
   revalidateConsultation()
   return {}
 }
@@ -184,7 +193,10 @@ export async function markAppointmentNoShow(appointmentId: string): Promise<Acti
     return { error: `예약 시각(${formatKstDateTime(current.scheduledAt)}) 이후에 노쇼 처리할 수 있습니다.` }
   }
 
-  await prisma.consultationAppointment.update({ where: { id: current.id, status: 'SCHEDULED' }, data: { status: 'NO_SHOW' } })
+  await prisma.$transaction([
+    prisma.consultationAppointment.update({ where: { id: current.id, status: 'SCHEDULED' }, data: { status: 'NO_SHOW' } }),
+    touchLead(current.lead.id),
+  ])
   revalidateConsultation()
   return {}
 }

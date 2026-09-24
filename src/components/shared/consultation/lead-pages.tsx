@@ -20,11 +20,14 @@ import {
   getLeadBoard,
   getLeadDetail,
   getLeadList,
+  getOwnerStaleDays,
+  getTodayTasks,
   type LeadFilters,
 } from '@/lib/consultation/queries'
 import { BRANCH_ALL, getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
 import { AppointmentCalendar } from './appointment-calendar'
 import { ConsultationTabs } from './consultation-tabs'
+import { TodayTasksPanel } from './follow-up-section'
 import { LeadDetailClient } from './lead-detail-client'
 import { LeadListClient } from './lead-list-client'
 
@@ -99,12 +102,14 @@ export async function LeadListPage({ role, searchParams }: { role: Role; searchP
     to: filterValues.to || undefined,
   }
 
-  const [list, board, academyOptions, assigneeOptions, assigneeFilterOptions] = await Promise.all([
+  const [list, board, academyOptions, assigneeOptions, assigneeFilterOptions, todayTasks, staleDays] = await Promise.all([
     view === 'list' ? getLeadList(actor, { ...filters, status: status || undefined, page }) : null,
     view === 'board' ? getLeadBoard(actor, filters) : null,
     getAcademyOptions(actor),
     getAssigneeOptions(actor, defaultAcademyId),
     getAssigneeFilterOptions(actor, viewAcademyIds ?? actor.academyIds),
+    getTodayTasks(actor, viewAcademyIds),
+    isOwner ? getOwnerStaleDays(actor) : Promise.resolve(null),
   ])
   const boardTotal = board?.reduce((sum, col) => sum + col.total, 0) ?? 0
 
@@ -116,6 +121,14 @@ export async function LeadListPage({ role, searchParams }: { role: Role; searchP
         description={
           isOwner ? '신규 문의부터 등록 전환까지 상담 진행 상황을 관리합니다.' : '내가 담당한 상담 문의를 관리합니다.'
         }
+      />
+
+      <TodayTasksPanel
+        basePath={BASE_PATH[role]}
+        items={todayTasks.items}
+        total={todayTasks.total}
+        showAssignee={isOwner}
+        staleDays={staleDays}
       />
 
       <LeadListClient
@@ -241,6 +254,7 @@ export async function LeadDetailPage({ role, leadId }: { role: Role; leadId: str
   return (
     <LeadDetailClient
       basePath={BASE_PATH[role]}
+      currentUserId={actor.userId}
       studentBasePath={STUDENT_BASE_PATH[role]}
       isOwner={actor.role === 'ACADEMY_OWNER'}
       showAcademy={actor.role === 'ACADEMY_OWNER' && actor.academyIds.length > 1}

@@ -39,6 +39,7 @@ import type { LeadDetail } from '@/lib/consultation/queries'
 import { AppointmentFormDialog } from './appointment-form-dialog'
 import { ConsultationFormDialog, type ConsultationFormInitial } from './consultation-form-dialog'
 import { ConvertToStudentDialog } from './convert-to-student-dialog'
+import { FollowUpSection } from './follow-up-section'
 import { LeadFormDialog } from './lead-form-dialog'
 import { StatusBadge } from './modal-shell'
 import { StatusChangeDialog } from './status-change-dialog'
@@ -47,6 +48,7 @@ type Option = { id: string; name: string }
 
 type Props = {
   basePath: string
+  currentUserId: string
   studentBasePath: string
   isOwner: boolean
   showAcademy: boolean
@@ -63,7 +65,16 @@ type Dialog =
   | { kind: 'convert' }
   | null
 
-export function LeadDetailClient({ basePath, studentBasePath, isOwner, showAcademy, lead, assigneeOptions, classOptions }: Props) {
+export function LeadDetailClient({
+  basePath,
+  currentUserId,
+  studentBasePath,
+  isOwner,
+  showAcademy,
+  lead,
+  assigneeOptions,
+  classOptions,
+}: Props) {
   const router = useRouter()
   const [dialog, setDialog] = useState<Dialog>(null)
   const [isPending, startTransition] = useTransition()
@@ -345,6 +356,16 @@ export function LeadDetailClient({ basePath, studentBasePath, isOwner, showAcade
           onReschedule={(a) => setDialog({ kind: 'appointment', reschedule: a })}
           onCancel={handleCancelAppointment}
           onNoShow={handleNoShow}
+        />
+
+        {/* 사이드: 팔로업 할 일 */}
+        <FollowUpSection
+          leadId={lead.id}
+          tasks={lead.followUpTasks}
+          isOwner={isOwner}
+          currentUserId={currentUserId}
+          assigneeOptions={assigneeOptions}
+          defaultAssigneeId={lead.assigneeId ?? assigneeOptions[0]?.id ?? null}
         />
 
         {/* 사이드: 상태 변경 이력 */}
