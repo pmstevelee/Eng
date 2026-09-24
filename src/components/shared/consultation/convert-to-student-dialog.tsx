@@ -11,6 +11,8 @@ type Props = {
   leadId: string
   studentName: string
   defaultGrade: string | null
+  /** 문의 단계 레벨테스트 측정 레벨 (있으면 시작 레벨 기본값) */
+  placementLevel?: number | null
   classOptions: { id: string; name: string }[]
   onClose: () => void
 }
@@ -33,7 +35,7 @@ export function ConvertToStudentDialog(props: Props) {
     password: '',
     classId: '',
     grade: props.defaultGrade ?? '',
-    currentLevel: '1',
+    currentLevel: String(props.placementLevel ?? 1),
   })
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => setForm((f) => ({ ...f, [key]: value }))
 
@@ -145,7 +147,14 @@ export function ConvertToStudentDialog(props: Props) {
           </Field>
         </div>
 
-        <Field label="시작 레벨" hint="등록 후 레벨 테스트 결과에 따라 조정할 수 있습니다.">
+        <Field
+          label="시작 레벨"
+          hint={
+            props.placementLevel
+              ? `레벨테스트 결과(Lv.${props.placementLevel})가 기본값이며, 결과는 학생 레벨 평가 이력으로 함께 옮겨집니다.`
+              : '등록 후 레벨 테스트 결과에 따라 조정할 수 있습니다.'
+          }
+        >
           <select className={inputClass} value={form.currentLevel} onChange={(e) => set('currentLevel', e.target.value)}>
             {Array.from({ length: 10 }, (_, i) => i + 1).map((l) => (
               <option key={l} value={l}>

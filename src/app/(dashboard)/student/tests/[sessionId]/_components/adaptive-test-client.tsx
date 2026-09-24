@@ -39,11 +39,24 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E']
 const POPUP_FEATURES =
   'width=1280,height=820,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes'
 
+/**
+ * 응시 진행 방식 주입 (비회원 레벨테스트 등).
+ * 지정하지 않으면 학생 응시 서버 액션을 사용한다.
+ * runner 사용 시 채점·이력은 서버가 관리하므로 문항 ID와 답안만 전달한다.
+ */
+export type AdaptiveRunner = {
+  start: () => Promise<AdaptiveNextResult>
+  submitAnswer: (questionId: string, answer: string) => Promise<AdaptiveNextResult>
+  submitWriting: (questionIndex: number, answer: string) => Promise<AdaptiveNextResult>
+  onComplete: () => void
+}
+
 type Props = {
   sessionId: string
   studentName: string
   testTitle: string
   isPopup?: boolean
+  runner?: AdaptiveRunner
 }
 
 type Phase = 'intro' | 'loading' | 'question' | 'writing' | 'complete' | 'error'
@@ -257,7 +270,7 @@ function ListeningAudio({ audioUrl, maxPlayCount = 2 }: { audioUrl: string; maxP
 
 // ─── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
 
-export function AdaptiveTestClient({ sessionId, studentName, testTitle, isPopup = false }: Props) {
+export function AdaptiveTestClient({ sessionId, studentName, testTitle, isPopup = false, runner }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
@@ -317,6 +330,10 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle, isPopup 
 
     if (result.type === 'complete') {
       setPhase('complete')
+      if (runner) {
+        runner.onComplete()
+        return
+      }
       setTimeout(() => {
         router.push(`/student/tests/${sessionId}/result`)
       }, 1500)
@@ -353,7 +370,7 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle, isPopup 
 
   // ── 시작 ─────────────────────────────────────────────────────────────────────
   function handleStart() {
-    if (!isPopup) {
+    if (!isPopup && !runner) {
       // 대시보드에서 클릭: 팝업 창으로 열고 원래 페이지는 목록으로 이동
       window.open(`/test/${sessionId}`, `test-${sessionId}`, POPUP_FEATURES)
       router.push('/student/tests')
@@ -363,7 +380,7 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle, isPopup 
     setPhase('loading')
     setLoadingMsg('첫 번째 문제를 준비하고 있습니다...')
     startTransition(async () => {
-      const result = await startAdaptiveSession(sessionId)
+      const result = runner ? await runner.start() : await startAdaptiveSession(sessionId)
       handleNextResult(result)
     })
   }
@@ -387,14 +404,16 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle, isPopup 
     setLoadingMsg('다음 문제를 준비하고 있습니다...')
 
     startTransition(async () => {
-      const result = await submitAdaptiveAnswer(
-        sessionId,
-        currentQuestion.questionId,
-        answer,
-        isCorrect,
-        currentQuestion.domain,
-        newHistory,
-      )
+      const result = runner
+        ? await runner.submitAnswer(currentQuestion.questionId, answer)
+        : await submitAdaptiveAnswer(
+            sessionId,
+            currentQuestion.questionId,
+            answer,
+            isCorrect,
+            currentQuestion.domain,
+            newHistory,
+          )
       handleNextResult(result)
     })
   }
@@ -407,13 +426,15 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle, isPopup 
     setLoadingMsg('쓰기 답안을 저장하고 있습니다...')
 
     startTransition(async () => {
-      const result = await submitWritingAnswer(
-        sessionId,
-        writingAnswer,
-        writingState.questionIndex,
-        writingState.estimatedLevel,
-        history,
-      )
+      const result = runner
+        ? await runner.submitWriting(writingState.questionIndex, writingAnswer)
+        : await submitWritingAnswer(
+            sessionId,
+            writingAnswer,
+            writingState.questionIndex,
+            writingState.estimatedLevel,
+            history,
+          )
       handleNextResult(result)
     })
   }
@@ -508,12 +529,22 @@ export function AdaptiveTestClient({ sessionId, studentName, testTitle, isPopup 
         <AlertCircle className="h-12 w-12 text-[#D92916]" />
         <h2 className="text-lg font-bold text-gray-900">오류가 발생했습니다</h2>
         <p className="text-sm text-gray-500">{errorMsg}</p>
-        <button
-          onClick={() => router.push('/student/tests')}
-          className="mt-2 px-6 py-2.5 rounded-xl bg-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-200"
-        >
-          테스트 목록으로
-        </button>
+        {runner ? (
+          // 진행 상태는 서버에 저장되어 있어 새로고침하면 이어서 응시
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-2 px-6 min-h-11 rounded-xl bg-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-200"
+          >
+            다시 시도
+          </button>
+        ) : (
+          <button
+            onClick={() => router.push('/student/tests')}
+            className="mt-2 px-6 py-2.5 rounded-xl bg-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-200"
+          >
+            테스트 목록으로
+          </button>
+        )}
       </div>
     )
   }

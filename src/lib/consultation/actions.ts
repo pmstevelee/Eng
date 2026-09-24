@@ -2,6 +2,7 @@
 
 import { randomUUID } from 'crypto'
 import { revalidatePath, revalidateTag } from 'next/cache'
+import type { Prisma } from '@/generated/prisma'
 import { prisma } from '@/lib/prisma/client'
 import { createStudentAccount, rollbackStudentAccount } from '@/lib/students/create-student-account'
 import {
@@ -471,6 +472,40 @@ export async function convertLeadToStudent(
       await tx.leadStatusHistory.create({
         data: { leadId: lead.id, fromStatus: lead.status, toStatus: 'ENROLLED', changedById: actor.userId },
       })
+
+      // 문의 단계 레벨테스트 결과를 학생의 첫 레벨 평가(PLACEMENT)로 이관
+      // 신규 학생이라 기존 평가가 없어 isCurrent 충돌 없음 · 승급 엔진의 조건 1 기준이 된다
+      const attempt = await tx.placementAttempt.findFirst({
+        where: { leadId: lead.id, status: 'COMPLETED', overallLevel: { not: null } },
+        orderBy: { completedAt: 'desc' },
+        select: { id: true, completedAt: true, assessedLevels: true, placementResult: true },
+      })
+      const levels = attempt?.assessedLevels as Record<string, number | null> | null
+      if (attempt && levels && typeof levels.overall === 'number') {
+        await tx.levelAssessment.create({
+          data: {
+            studentId,
+            testSessionId: null,
+            assessmentType: 'PLACEMENT',
+            grammarLevel: levels.grammar ?? levels.overall,
+            vocabularyLevel: levels.vocabulary ?? levels.overall,
+            readingLevel: levels.reading ?? levels.overall,
+            listeningLevel: levels.listening ?? null,
+            writingLevel: levels.writing ?? levels.overall,
+            overallLevel: levels.overall,
+            detailJson: {
+              ...(attempt.placementResult && typeof attempt.placementResult === 'object' && !Array.isArray(attempt.placementResult)
+                ? (attempt.placementResult as Prisma.JsonObject)
+                : {}),
+              source: 'LEAD_PLACEMENT',
+              placementAttemptId: attempt.id,
+            },
+            assessedAt: attempt.completedAt ?? new Date(),
+            assessedBy: 'SYSTEM',
+            isCurrent: true,
+          },
+        })
+      }
     })
   } catch (err) {
     await rollbackStudentAccount(studentId).catch((e) => console.error('rollbackStudentAccount error:', e))

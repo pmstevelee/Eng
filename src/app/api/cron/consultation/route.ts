@@ -9,6 +9,7 @@ export const maxDuration = 300 // 5분
 /**
  * 상담관리 일일 작업 — Vercel Cron 매일 01:00 UTC (= 10:00 KST)
  * - 내일(KST) 예정된 상담 예약에 전날 리마인드 발송 (dedupeKey로 중복 방지, 취소 예약은 발송 직전 재확인)
+ * - 기간이 지난 레벨테스트 응시 링크 만료 처리 (응시 중인 링크는 하루 유예)
  */
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET
@@ -47,6 +48,17 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  console.log(`[cron/consultation] ${tomorrow} 리마인드`, summary)
-  return NextResponse.json({ date: tomorrow, reminders: summary })
+  const now = Date.now()
+  const expired = await prisma.placementInvite.updateMany({
+    where: {
+      OR: [
+        { status: 'SENT', expiresAt: { lt: new Date(now) } },
+        { status: 'STARTED', expiresAt: { lt: new Date(now - 24 * 60 * 60 * 1000) } },
+      ],
+    },
+    data: { status: 'EXPIRED' },
+  })
+
+  console.log(`[cron/consultation] ${tomorrow} 리마인드`, summary, `링크 만료 ${expired.count}건`)
+  return NextResponse.json({ date: tomorrow, reminders: summary, expiredInvites: expired.count })
 }

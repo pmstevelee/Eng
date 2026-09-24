@@ -289,6 +289,25 @@ export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
           assignee: { select: { name: true } },
         },
       },
+      placementInvites: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: { id: true, status: true, token: true, expiresAt: true, createdAt: true },
+      },
+      placementAttempts: {
+        where: { status: 'COMPLETED' },
+        orderBy: { completedAt: 'desc' },
+        take: 1,
+        select: {
+          id: true,
+          overallLevel: true,
+          assessedLevels: true,
+          placementResult: true,
+          completedAt: true,
+          resultToken: true,
+          resultExpiresAt: true,
+        },
+      },
       notificationLogs: {
         orderBy: { createdAt: 'desc' },
         take: 20,
@@ -337,6 +356,17 @@ export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
       scheduledAt: a.scheduledAt.toISOString(),
     })),
     noShowCount: lead.appointments.filter((a) => a.status === 'NO_SHOW').length,
+    placementInvite: lead.placementInvites[0]
+      ? {
+          ...lead.placementInvites[0],
+          expiresAt: lead.placementInvites[0].expiresAt.toISOString(),
+          createdAt: lead.placementInvites[0].createdAt.toISOString(),
+        }
+      : null,
+    placementResult: toPlacementSummary(lead.placementAttempts[0]),
+    placementResultSent: lead.notificationLogs.some(
+      (n) => n.templateKey === 'PLACEMENT_TEST_RESULT' && (n.status === 'SENT' || n.status === 'SKIPPED'),
+    ),
     notificationLogs: lead.notificationLogs.map((n) => ({
       ...n,
       sentAt: n.sentAt?.toISOString() ?? null,
@@ -348,6 +378,66 @@ export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
       completedAt: t.completedAt?.toISOString() ?? null,
     })),
     siblings,
+  }
+}
+
+// ─── 레벨테스트 결과 요약 ──────────────────────────────────────────────────────
+
+export type PlacementDomainKey = 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'LISTENING' | 'WRITING'
+
+export type PlacementSummary = {
+  attemptId: string
+  overallLevel: number
+  /** null = 미측정 (듣기 문항 부족) */
+  domains: { domain: PlacementDomainKey; level: number | null }[]
+  weakestDomain: PlacementDomainKey | null
+  strongestDomain: PlacementDomainKey | null
+  imbalanceWarning: boolean
+  completedAt: string
+  resultToken: string | null
+  resultExpiresAt: string | null
+}
+
+type AttemptSummaryRow = {
+  id: string
+  overallLevel: number | null
+  assessedLevels: Prisma.JsonValue
+  placementResult: Prisma.JsonValue
+  completedAt: Date | null
+  resultToken: string | null
+  resultExpiresAt: Date | null
+}
+
+function jsonObject(v: Prisma.JsonValue): Record<string, unknown> {
+  return v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {}
+}
+
+/** 완료된 비회원 응시 → 화면용 요약 (문항·답안 정보는 포함하지 않음) */
+export function toPlacementSummary(row: AttemptSummaryRow | undefined): PlacementSummary | null {
+  if (!row || row.overallLevel === null || !row.completedAt) return null
+  const levels = jsonObject(row.assessedLevels)
+  const result = jsonObject(row.placementResult)
+  const level = (key: string): number | null => (typeof levels[key] === 'number' ? (levels[key] as number) : null)
+  const domainKey = (v: unknown): PlacementDomainKey | null =>
+    typeof v === 'string' && ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING'].includes(v)
+      ? (v as PlacementDomainKey)
+      : null
+  return {
+    attemptId: row.id,
+    overallLevel: row.overallLevel,
+    domains: [
+      { domain: 'GRAMMAR', level: level('grammar') },
+      { domain: 'VOCABULARY', level: level('vocabulary') },
+      { domain: 'READING', level: level('reading') },
+      { domain: 'LISTENING', level: level('listening') },
+      { domain: 'WRITING', level: level('writing') },
+    ],
+    weakestDomain: domainKey(result.weakestDomain),
+    strongestDomain: domainKey(result.strongestDomain),
+    imbalanceWarning: result.imbalanceWarning === true,
+    completedAt: row.completedAt.toISOString(),
+    resultToken: row.resultToken,
+    resultExpiresAt: row.resultExpiresAt?.toISOString() ?? null,
   }
 }
 

@@ -246,6 +246,18 @@ enum MessageSendStatus {
   SKIPPED // 발송 안 함 (log 모드 등)
 }
 
+enum PlacementInviteStatus {
+  SENT // 링크 발급
+  STARTED // 응시 시작
+  COMPLETED // 응시 완료
+  EXPIRED // 만료
+}
+
+enum PlacementAttemptStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
 enum AppointmentStatus {
   SCHEDULED // 예정
   COMPLETED // 완료
@@ -307,6 +319,8 @@ model Academy {
   leads                  Lead[]
   followUpTasks          FollowUpTask[]
   notificationLogs       NotificationLog[]
+  placementInvites       PlacementInvite[]
+  placementAttempts      PlacementAttempt[]
 
   @@index([parentAcademyId])
   @@map("academies")
@@ -355,6 +369,7 @@ model User {
   counseledAppointments      ConsultationAppointment[] @relation("AppointmentCounselor")
   assignedFollowUpTasks      FollowUpTask[]           @relation("FollowUpTaskAssignee")
   createdFollowUpTasks       FollowUpTask[]           @relation("FollowUpTaskCreator")
+  createdPlacementInvites    PlacementInvite[]        @relation("PlacementInviteCreator")
 
   @@index([academyId])
   @@map("users")
@@ -1441,6 +1456,8 @@ model Lead {
   appointments  ConsultationAppointment[]
   followUpTasks FollowUpTask[]
   notificationLogs NotificationLog[]
+  placementInvites  PlacementInvite[]
+  placementAttempts PlacementAttempt[]
 
   // 형제가 같은 학부모 번호로 문의할 수 있어 unique 대신 인덱스 + 앱 단 중복 경고
   @@index([academyId, phone])
@@ -1564,4 +1581,56 @@ model NotificationLog {
   @@index([leadId, createdAt])
   @@index([academyId, createdAt])
   @@map("notification_logs")
+}
+
+/// 비회원(문의) 레벨테스트 응시 링크
+model PlacementInvite {
+  id          String                @id @default(uuid())
+  academyId   String                @map("academy_id")
+  leadId      String                @map("lead_id")
+  /// 추측 불가능한 랜덤 토큰 (URL에 사용)
+  token       String                @unique
+  expiresAt   DateTime              @map("expires_at")
+  status      PlacementInviteStatus @default(SENT)
+  attemptId   String?               @unique @map("attempt_id")
+  createdById String?               @map("created_by_id")
+  createdAt   DateTime              @default(now()) @map("created_at")
+
+  academy   Academy           @relation(fields: [academyId], references: [id], onDelete: Cascade)
+  lead      Lead              @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  attempt   PlacementAttempt? @relation(fields: [attemptId], references: [id], onDelete: SetNull)
+  createdBy User?             @relation("PlacementInviteCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([leadId, createdAt])
+  @@index([status, expiresAt])
+  @@map("placement_invites")
+}
+
+/// 비회원(문의) 레벨테스트 응시 기록 — 기존 TestSession과 분리 (학생 응시 기능에 영향 없음)
+model PlacementAttempt {
+  id              String                 @id @default(uuid())
+  academyId       String                 @map("academy_id")
+  leadId          String                 @map("lead_id")
+  status          PlacementAttemptStatus @default(IN_PROGRESS)
+  /// 서버가 관리하는 응답 이력 [{ questionId, difficulty, isCorrect, domain, answer }]
+  history         Json                   @default("[]")
+  /// 답을 기다리는 현재 문항 (question 또는 writing)
+  pending         Json?
+  writingAnswers  Json                   @default("[]") @map("writing_answers")
+  overallLevel    Int?                   @map("overall_level")
+  assessedLevels  Json?                  @map("assessed_levels")
+  placementResult Json?                  @map("placement_result")
+  /// 학부모용 결과 페이지 토큰 (완료 시 발급, 30일 후 만료)
+  resultToken     String?                @unique @map("result_token")
+  resultExpiresAt DateTime?              @map("result_expires_at")
+  startedAt       DateTime               @default(now()) @map("started_at")
+  completedAt     DateTime?              @map("completed_at")
+  updatedAt       DateTime               @updatedAt @map("updated_at")
+
+  academy Academy          @relation(fields: [academyId], references: [id], onDelete: Cascade)
+  lead    Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  invite  PlacementInvite?
+
+  @@index([leadId, completedAt])
+  @@map("placement_attempts")
 }

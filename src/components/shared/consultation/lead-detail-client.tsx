@@ -41,6 +41,7 @@ import { ConsultationFormDialog, type ConsultationFormInitial } from './consulta
 import { ConvertToStudentDialog } from './convert-to-student-dialog'
 import { FollowUpSection } from './follow-up-section'
 import { NotificationHistory } from './notification-history'
+import { PlacementSection } from './placement-section'
 import { LeadFormDialog } from './lead-form-dialog'
 import { StatusBadge } from './modal-shell'
 import { StatusChangeDialog } from './status-change-dialog'
@@ -270,8 +271,19 @@ export function LeadDetailClient({
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+        <div className="lg:col-span-2 space-y-5">
+        {/* 본문: 레벨테스트 (상담 참고용) */}
+        <PlacementSection
+          leadId={lead.id}
+          studentName={lead.studentName}
+          enrolled={enrolled}
+          invite={lead.placementInvite}
+          result={lead.placementResult}
+          resultSent={lead.placementResultSent}
+        />
+
         {/* 본문: 상담 기록 타임라인 (최신순) */}
-        <section className="lg:col-span-2 rounded-xl border border-gray-200 bg-white p-5">
+        <section className="rounded-xl border border-gray-200 bg-white p-5">
           <div className="flex items-center justify-between gap-2 mb-4">
             <h2 className="text-base font-semibold text-gray-900">
               상담 기록 <span className="text-gray-500 font-normal">{lead.consultations.length}건</span>
@@ -345,6 +357,8 @@ export function LeadDetailClient({
             </ol>
           )}
         </section>
+
+        </div>
 
         <div className="space-y-5 lg:sticky lg:top-4">
         {/* 사이드: 상담 예약 */}
@@ -454,6 +468,7 @@ export function LeadDetailClient({
           leadId={lead.id}
           studentName={lead.studentName}
           defaultGrade={lead.grade}
+          placementLevel={lead.placementResult?.overallLevel ?? null}
           classOptions={classOptions}
           onClose={() => setDialog(null)}
         />
