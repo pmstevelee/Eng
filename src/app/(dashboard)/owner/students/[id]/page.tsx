@@ -5,6 +5,7 @@ import { ChevronLeft, BookOpen, FileDown, MessagesSquare } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { StudentConsultationPanel } from '@/components/shared/consultation/student-consultation-panel'
+import { getStudentRiskBadge } from '@/lib/consultation/risk-queries'
 import StudentDetailClient from './_components/student-detail-client'
 
 const getStudentDetail = (academyId: string, studentId: string) =>
@@ -93,7 +94,7 @@ export default async function StudentDetailPage({
 
   const { id: studentId } = await params
 
-  const data = await getStudentDetail(owner.academyId, studentId)
+  const [data, risk] = await Promise.all([getStudentDetail(owner.academyId, studentId), getStudentRiskBadge(studentId)])
   if (!data) notFound()
 
   const { student, classes } = data
@@ -186,7 +187,7 @@ export default async function StudentDetailPage({
         </div>
       </div>
 
-      <StudentDetailClient student={studentData} classes={classData} />
+      <StudentDetailClient student={studentData} classes={classData} risk={risk} />
 
       {/* 상담: 재원생 상담 기록·예약·학부모 리포트 (등록 전 문의 시절 기록 포함) */}
       <section id="consultation" className="space-y-3 scroll-mt-4">

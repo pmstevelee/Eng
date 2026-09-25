@@ -238,7 +238,25 @@ enum ConsultationType {
   FOLLOW_UP // 추가 상담
   REGULAR // 재원생 정기 상담
   RETENTION // 퇴원 방지 상담
-  WITHDRAWAL // 퇴원 상담 (학생 상태는 변경하지 않음)
+  WITHDRAWAL // 퇴원 상담 (학생 상태는 변경하지 않음 — 퇴원 처리는 학원장이 별도로)
+}
+
+/// 퇴원 위험 등급 (규칙 기반, 매일 계산)
+enum RiskLevel {
+  NORMAL
+  WATCH // 주의 (기준 1개 해당)
+  RISK // 위험 (기준 2개 이상 해당)
+}
+
+/// 퇴원 사유
+enum WithdrawalReason {
+  PRICE // 비용
+  SCHEDULE // 시간
+  OTHER_ACADEMY // 타 학원
+  MOVE // 이사
+  LOW_SATISFACTION // 만족도
+  STUDY_BREAK // 학업 중단
+  OTHER
 }
 
 enum MessageChannel {
@@ -331,6 +349,7 @@ model Academy {
   notificationLogs       NotificationLog[]
   placementInvites       PlacementInvite[]
   placementAttempts      PlacementAttempt[]
+  riskSnapshots          StudentRiskSnapshot[]
 
   @@index([parentAcademyId])
   @@map("academies")
@@ -428,6 +447,7 @@ model Student {
   consultations             Consultation[]
   consultationAppointments  ConsultationAppointment[]
   notificationLogs          NotificationLog[]
+  riskSnapshot              StudentRiskSnapshot?
 
   @@index([classId])
   @@index([status])
@@ -1520,6 +1540,9 @@ model Consultation {
   /// 학부모 공유 리포트 토큰 (추측 불가, 발급 후 30일 만료)
   reportToken     String?          @unique @map("report_token")
   reportExpiresAt DateTime?        @map("report_expires_at")
+  /// 퇴원 처리 기록 (type=WITHDRAWAL) — 퇴원일(KST 자정)·사유
+  withdrawnOn      DateTime?         @map("withdrawn_on")
+  withdrawalReason WithdrawalReason? @map("withdrawal_reason")
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
 
@@ -1685,4 +1708,21 @@ model PlacementAttempt {
 
   @@index([leadId, completedAt])
   @@map("placement_attempts")
+}
+
+/// 퇴원 위험 신호 — 학생별 최신 계산 결과 1건 (매일 cron으로 덮어씀)
+model StudentRiskSnapshot {
+  id           String    @id @default(uuid())
+  academyId    String    @map("academy_id")
+  studentId    String    @unique @map("student_id")
+  level        RiskLevel
+  /// RiskReasons (해당 기준·판정 제외 기준·당시 기준값) — lib/consultation/risk-constants.ts
+  reasons      Json
+  calculatedAt DateTime  @map("calculated_at")
+
+  academy Academy @relation(fields: [academyId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([academyId, level])
+  @@map("student_risk_snapshots")
 }

@@ -16,6 +16,9 @@ import {
   updateStudentLevel,
   removeStudentFromAcademy,
 } from '../../actions'
+import { RiskBadge } from '@/components/shared/consultation/risk-badge'
+import { WithdrawalDialog } from '@/components/shared/consultation/withdrawal-dialog'
+import type { StudentRiskBadge } from '@/lib/consultation/risk-queries'
 
 type StudentData = {
   id: string
@@ -57,6 +60,8 @@ type ClassOption = {
 type Props = {
   student: StudentData
   classes: ClassOption[]
+  /** 퇴원 위험 신호 (주의·위험일 때만) */
+  risk: StudentRiskBadge | null
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -91,11 +96,12 @@ const SESSION_STATUS_COLOR: Record<string, string> = {
   GRADED: 'bg-accent-green-light text-accent-green',
 }
 
-export default function StudentDetailClient({ student, classes }: Props) {
+export default function StudentDetailClient({ student, classes, risk }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
+  const [showWithdrawal, setShowWithdrawal] = useState(false)
 
   const [selectedClassId, setSelectedClassId] = useState<string>(student.classId ?? '')
   const [selectedLevel, setSelectedLevel] = useState<number>(student.currentLevel)
@@ -186,12 +192,24 @@ export default function StudentDetailClient({ student, classes }: Props) {
               </p>
             </div>
           </div>
-          <span
-            className={`inline-flex items-center text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLOR[currentStatus]}`}
-          >
-            {STATUS_LABEL[currentStatus]}
-          </span>
+          <div className="flex flex-wrap justify-end gap-1.5">
+            {currentStatus === 'ACTIVE' && risk && <RiskBadge level={risk.level} reasons={risk.reasons} />}
+            <span
+              className={`inline-flex items-center text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLOR[currentStatus]}`}
+            >
+              {STATUS_LABEL[currentStatus]}
+            </span>
+          </div>
         </div>
+        {currentStatus === 'ACTIVE' && risk && risk.reasons.length > 0 && (
+          <ul className="mt-4 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 space-y-0.5">
+            {risk.reasons.map((r) => (
+              <li key={r} className="text-sm text-gray-900">
+                · {r}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* 메인 그리드 */}
@@ -278,7 +296,28 @@ export default function StudentDetailClient({ student, classes }: Props) {
                 </button>
               ))}
             </div>
+            {currentStatus !== 'WITHDRAWN' && (
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-3">
+                <p className="text-xs text-gray-500">퇴원일·사유를 기록으로 남기며 퇴원하려면 퇴원 처리를 이용하세요.</p>
+                <button
+                  type="button"
+                  onClick={() => setShowWithdrawal(true)}
+                  disabled={isPending}
+                  className="h-11 px-4 rounded-xl border border-accent-red text-sm font-medium text-accent-red hover:bg-accent-red-light disabled:opacity-50 transition-colors"
+                >
+                  퇴원 처리
+                </button>
+              </div>
+            )}
           </div>
+          {showWithdrawal && (
+            <WithdrawalDialog
+              studentId={student.id}
+              studentName={student.name}
+              onClose={() => setShowWithdrawal(false)}
+              onDone={() => setCurrentStatus('WITHDRAWN')}
+            />
+          )}
 
           {/* 테스트 이력 */}
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

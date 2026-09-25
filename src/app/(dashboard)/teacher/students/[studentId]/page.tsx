@@ -4,7 +4,9 @@ import { ArrowLeft, BookOpen, FileDown, MessagesSquare } from 'lucide-react'
 import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { RiskBadge } from '@/components/shared/consultation/risk-badge'
 import { StudentConsultationPanel } from '@/components/shared/consultation/student-consultation-panel'
+import { toRiskBadge } from '@/lib/consultation/risk-queries'
 import { StudentDetailClient } from './student-detail-client'
 import { getPromotionProgress } from '@/lib/assessment/promotion-engine'
 import { getStudentWordDetail } from '@/lib/words/student-word-stats'
@@ -113,6 +115,7 @@ export default async function StudentDetailPage({
       user: { select: { name: true, email: true } },
       class: { select: { id: true, name: true } },
       lead: { select: { id: true, assigneeId: true } },
+      riskSnapshot: { select: { level: true, reasons: true } },
     },
   })
 
@@ -130,6 +133,7 @@ export default async function StudentDetailPage({
 
   // 교사는 본인 담당 문의만 열람 가능 (leadScopeWhere와 동일 기준)
   const leadId = student.lead?.assigneeId === user.id ? student.lead.id : null
+  const risk = toRiskBadge(student.riskSnapshot, student.status)
 
 
   return (
@@ -149,7 +153,10 @@ export default async function StudentDetailPage({
               {student.user.name.charAt(0)}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{student.user.name}</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-bold text-gray-900">{student.user.name}</h1>
+                {risk && <RiskBadge level={risk.level} reasons={risk.reasons} />}
+              </div>
               <p className="text-sm text-gray-500">
                 {student.class?.name ?? '반 미배정'} · Level {student.currentLevel} · {student.user.email}
               </p>
@@ -190,6 +197,15 @@ export default async function StudentDetailPage({
             </a>
           </div>
         </div>
+        {risk && risk.reasons.length > 0 && (
+          <ul className="mt-4 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 space-y-0.5">
+            {risk.reasons.map((r) => (
+              <li key={r} className="text-sm text-gray-900">
+                · {r}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <StudentDetailClient

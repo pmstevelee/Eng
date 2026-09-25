@@ -28,6 +28,7 @@ import {
   formatPhoneInput,
   type StudentConsultationTypeValue,
 } from '@/lib/consultation/constants'
+import { WITHDRAWAL_REASON_LABEL } from '@/lib/consultation/risk-constants'
 import {
   deleteStudentConsultation,
   issueReportLink,
@@ -398,6 +399,13 @@ function TimelineItem({
         )}
       </div>
 
+      {c.withdrawal && (
+        <p className="mt-2 text-sm text-gray-900">
+          <span className="font-semibold">퇴원일</span> {formatKstDate(`${c.withdrawal.on}T00:00:00+09:00`)}
+          <span className="text-gray-500"> · </span>
+          <span className="font-semibold">사유</span> {WITHDRAWAL_REASON_LABEL[c.withdrawal.reason]}
+        </p>
+      )}
       <dl className="mt-2 space-y-2 text-sm">
         <RecordRow label="영어 학습 이력" value={c.learningHistory} />
         <RecordRow label="타 학원 경험" value={c.prevAcademy} />

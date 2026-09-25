@@ -12,6 +12,7 @@ import {
   readWebFormSettings,
 } from '@/lib/consultation/constants'
 import { getAssigneeOptions } from '@/lib/consultation/queries'
+import { readRiskSettings } from '@/lib/consultation/risk-constants'
 import { prisma } from '@/lib/prisma/client'
 import { ConsultationSettingsClient, type AcademyConsultationSettings } from './_components/consultation-settings-client'
 
@@ -47,6 +48,7 @@ export default async function ConsultationSettingsPage() {
         staleDays: readStaleDays(main?.settingsJson) ?? DEFAULT_STALE_DAYS,
         retentionMonths: readRetentionMonths(main?.settingsJson) ?? DEFAULT_RETENTION_MONTHS,
       }}
+      risk={readRiskSettings(main?.settingsJson)}
       academies={items}
     />
   )

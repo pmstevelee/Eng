@@ -16,6 +16,7 @@ import {
   type RegularCycleValue,
 } from './constants'
 import { asLearningSummary, type LearningSummary } from './learning-summary-types'
+import type { WithdrawalReasonValue } from './risk-constants'
 
 // ─── 학생 상담 타임라인 ────────────────────────────────────────────────────────
 
@@ -37,6 +38,8 @@ export type StudentConsultationItem = {
   report: { url: string; expiresAt: string; expired: boolean } | null
   /** 리포트 알림 발송 성공(또는 log 모드) 여부 */
   reportSent: boolean
+  /** 퇴원 처리 기록 (퇴원일 KST YYYY-MM-DD · 사유) */
+  withdrawal: { on: string; reason: WithdrawalReasonValue } | null
 }
 
 export type StudentAppointmentItem = {
@@ -79,6 +82,8 @@ export async function getStudentConsultationData(actor: ConsultationActor, stude
           reportSnapshot: true,
           reportToken: true,
           reportExpiresAt: true,
+          withdrawnOn: true,
+          withdrawalReason: true,
           notificationLogs: {
             where: { templateKey: 'STUDENT_REPORT', status: { in: ['SENT', 'SKIPPED'] } },
             select: { id: true },
@@ -153,6 +158,8 @@ export async function getStudentConsultationData(actor: ConsultationActor, stude
             }
           : null,
       reportSent: c.notificationLogs.length > 0,
+      withdrawal:
+        c.withdrawnOn && c.withdrawalReason ? { on: toKstDateKey(c.withdrawnOn), reason: c.withdrawalReason } : null,
     })),
     ...leadConsultations.map((c) => ({
       id: c.id,
@@ -170,6 +177,7 @@ export async function getStudentConsultationData(actor: ConsultationActor, stude
       snapshot: null,
       report: null,
       reportSent: false,
+      withdrawal: null,
     })),
   ].sort((a, b) => b.consultedAt.localeCompare(a.consultedAt))
 

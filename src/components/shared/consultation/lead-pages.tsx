@@ -26,6 +26,7 @@ import {
   markWebInquirySeen,
   type LeadFilters,
 } from '@/lib/consultation/queries'
+import { getRiskStudents } from '@/lib/consultation/risk-queries'
 import { getRegularDueStudents } from '@/lib/consultation/student-consultation-queries'
 import { BRANCH_ALL, getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
 import { AppointmentCalendar } from './appointment-calendar'
@@ -34,6 +35,7 @@ import { TodayTasksPanel } from './follow-up-section'
 import { LeadDetailClient } from './lead-detail-client'
 import { LeadListClient } from './lead-list-client'
 import { RegularDueList } from './regular-due-list'
+import { RiskStudentList } from './risk-student-list'
 
 export type LeadListSearchParams = {
   view?: string
@@ -203,9 +205,12 @@ export async function RegularConsultationPage({ role }: { role: Role }) {
   if (isOwner) {
     viewAcademyIds = await getViewableAcademyIds(actor.userId, await getSelectedBranchId())
   }
-  const due = await getRegularDueStudents(actor, viewAcademyIds)
+  const [due, risk] = await Promise.all([
+    getRegularDueStudents(actor, viewAcademyIds),
+    getRiskStudents(actor, viewAcademyIds),
+  ])
   // 상담 담당자 선택지는 학생 소속 학원 기준 (학원장만 — 교사는 본인 고정)
-  const academyIds = Array.from(new Set(due.items.map((i) => i.academyId)))
+  const academyIds = Array.from(new Set([...due.items, ...risk.items].map((i) => i.academyId)))
   const options = await Promise.all(academyIds.map((id) => getAssigneeOptions(actor, id)))
   const counselorOptionsByAcademy = Object.fromEntries(academyIds.map((id, i) => [id, options[i]]))
 
@@ -214,8 +219,20 @@ export async function RegularConsultationPage({ role }: { role: Role }) {
       <ConsultationHeader
         role={role}
         active="students"
-        description={isOwner ? '정기상담 시기가 된 재원생을 확인합니다.' : '담당 반 학생 중 정기상담 시기가 된 학생입니다.'}
+        description={
+          isOwner
+            ? '퇴원 위험 신호가 있거나 정기상담 시기가 된 재원생을 확인합니다.'
+            : '담당 반 학생 중 퇴원 위험 신호가 있거나 정기상담 시기가 된 학생입니다.'
+        }
       />
+      <RiskStudentList
+        data={risk}
+        isOwner={isOwner}
+        studentBasePath={STUDENT_BASE_PATH[role]}
+        counselorOptionsByAcademy={counselorOptionsByAcademy}
+        currentUserId={actor.userId}
+      />
+      <h2 className="text-base font-bold text-gray-900 pt-2">정기상담</h2>
       <RegularDueList
         items={due.items}
         enabled={due.enabled}

@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
 import { getStudentWordStats, EMPTY_WORD_STAT } from '@/lib/words/student-word-stats'
+import { toRiskBadge } from '@/lib/consultation/risk-queries'
 import StudentsListClient from './_components/students-list-client'
 
 const PAGE_SIZE = 20
@@ -99,6 +100,7 @@ const getDynamicStudentsData = (
             grade: true,
             class: { select: { id: true, name: true } },
             user: { select: { name: true, email: true, lastLoginAt: true } },
+            riskSnapshot: { select: { level: true, reasons: true } },
             testSessions: {
               where: { status: { in: ['COMPLETED', 'GRADED'] } },
               orderBy: { completedAt: 'desc' },
@@ -129,6 +131,7 @@ const getDynamicStudentsData = (
             ? { ...s.testSessions[0], completedAt: s.testSessions[0].completedAt?.toISOString() ?? null }
             : null,
           wordStat: wordStats[s.id] ?? EMPTY_WORD_STAT,
+          risk: toRiskBadge(s.riskSnapshot, s.status),
         })),
       ] as const
     },
@@ -184,6 +187,7 @@ export default async function OwnerStudentsPage({
     lastLoginAt: s.user.lastLoginAt,
     latestTest: s.latestTest,
     wordStat: s.wordStat,
+    risk: s.risk,
   }))
 
   const classData = classes.map((c) => ({ id: c.id, name: c.name }))

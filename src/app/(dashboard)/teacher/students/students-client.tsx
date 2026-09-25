@@ -14,6 +14,8 @@ import {
   TrendingUp,
   ChevronRight,
 } from 'lucide-react'
+import { RiskBadge } from '@/components/shared/consultation/risk-badge'
+import type { StudentRiskBadge } from '@/lib/consultation/risk-queries'
 import { saveBulkTeacherComment, bulkCheckAttendance } from './actions'
 
 type ClassItem = { id: string; name: string; levelRange: string | null }
@@ -46,6 +48,8 @@ type StudentItem = {
   testSessions: SessionSummary[]
   attendanceRate: number | null
   wordStat: WordStat
+  /** 퇴원 위험 신호 (주의·위험일 때만) */
+  risk: StudentRiskBadge | null
 }
 
 // 단어학습 상세 정보 요약: 학습 단어 수 / 마스터 수 / 정답률
@@ -173,6 +177,7 @@ function StudentCard({
                 Lv.{student.currentLevel}
               </span>
               <StatusBadge status={status} />
+              {student.risk && <RiskBadge level={student.risk.level} reasons={student.risk.reasons} />}
             </div>
           </div>
         </div>
@@ -327,7 +332,10 @@ function StudentsTable({
                   )}
                 </td>
                 <td className="px-3 py-3">
-                  <StatusBadge status={status} />
+                  <div className="flex flex-wrap items-center gap-1">
+                    <StatusBadge status={status} />
+                    {student.risk && <RiskBadge level={student.risk.level} reasons={student.risk.reasons} />}
+                  </div>
                 </td>
                 <td className="px-3 py-3">
                   <Link

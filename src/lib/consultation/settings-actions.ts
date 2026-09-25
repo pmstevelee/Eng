@@ -15,6 +15,7 @@ import {
   type RegularCycleValue,
   type WebFormSettings,
 } from './constants'
+import { isValidRiskSettings, type RiskSettings } from './risk-constants'
 
 type ActionResult = { error: string } | { error?: undefined }
 
@@ -61,6 +62,35 @@ export async function updateConsultationGeneralSettings(input: {
             retentionMonths: input.retentionMonths,
           }),
         },
+      }),
+    ),
+  )
+
+  revalidateSettings(actor.academyIds)
+  return {}
+}
+
+/** 퇴원 위험 신호 기준 — 학원장, 본원·지점 전체에 적용 (다음 계산부터 반영) */
+export async function updateRiskSettings(input: RiskSettings): Promise<ActionResult> {
+  const actor = await getConsultationActor()
+  if (!actor || actor.role !== 'ACADEMY_OWNER') return { error: NO_PERMISSION }
+  if (!isValidRiskSettings(input)) return { error: '기준 값을 선택해주세요.' }
+
+  const academies = await prisma.academy.findMany({
+    where: { id: { in: actor.academyIds } },
+    select: { id: true, settingsJson: true },
+  })
+  const risk = {
+    enabled: { ...input.enabled },
+    inactiveDays: input.inactiveDays,
+    studyDropPct: input.studyDropPct,
+    accuracyDropPp: input.accuracyDropPp,
+  }
+  await prisma.$transaction(
+    academies.map((a) =>
+      prisma.academy.update({
+        where: { id: a.id },
+        data: { settingsJson: mergeConsultation(a.settingsJson, { risk }) },
       }),
     ),
   )

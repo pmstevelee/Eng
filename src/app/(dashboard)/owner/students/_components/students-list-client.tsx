@@ -1,5 +1,7 @@
 'use client'
 
+import { RiskBadge } from '@/components/shared/consultation/risk-badge'
+import type { StudentRiskBadge } from '@/lib/consultation/risk-queries'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Search, ChevronLeft, ChevronRight, AlertCircle, UserPlus, Pencil, Trash2, MoreHorizontal } from 'lucide-react'
@@ -40,6 +42,8 @@ type Student = {
   lastLoginAt: string | null
   latestTest: LatestTest
   wordStat: WordStat
+  /** 퇴원 위험 신호 (주의·위험일 때만) */
+  risk: StudentRiskBadge | null
 }
 
 const DOMAIN_LABEL: Record<string, string> = {
@@ -484,9 +488,12 @@ export default function StudentsListClient({
 
                       {/* 상태 */}
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center text-xs font-medium px-2.5 py-0.5 rounded-full ${STATUS_COLOR[student.status]}`}>
-                          {STATUS_LABEL[student.status]}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className={`inline-flex items-center text-xs font-medium px-2.5 py-0.5 rounded-full ${STATUS_COLOR[student.status]}`}>
+                            {STATUS_LABEL[student.status]}
+                          </span>
+                          {student.risk && <RiskBadge level={student.risk.level} reasons={student.risk.reasons} />}
+                        </div>
                       </td>
 
                       {/* 가입일 */}

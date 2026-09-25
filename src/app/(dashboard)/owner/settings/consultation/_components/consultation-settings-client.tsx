@@ -20,8 +20,19 @@ import {
   type WebFormSettings,
 } from '@/lib/consultation/constants'
 import {
+  RISK_ACCURACY_DROP_OPTIONS,
+  RISK_CRITERION_LABEL,
+  RISK_INACTIVE_DAY_OPTIONS,
+  RISK_MIN_ANSWERS,
+  RISK_STUDY_DROP_OPTIONS,
+  RISK_WINDOW_DAYS,
+  type RiskCriterionKey,
+  type RiskSettings,
+} from '@/lib/consultation/risk-constants'
+import {
   updateAcademyConsultationSettings,
   updateConsultationGeneralSettings,
+  updateRiskSettings,
 } from '@/lib/consultation/settings-actions'
 import { cn } from '@/lib/utils'
 
@@ -38,6 +49,7 @@ export type AcademyConsultationSettings = {
 type Props = {
   baseUrl: string
   general: { staleDays: number; retentionMonths: number }
+  risk: RiskSettings
   academies: AcademyConsultationSettings[]
 }
 
@@ -77,13 +89,14 @@ function SaveRow({ pending, message, onSave }: { pending: boolean; message: { ok
   )
 }
 
-export function ConsultationSettingsClient({ baseUrl, general, academies }: Props) {
+export function ConsultationSettingsClient({ baseUrl, general, risk, academies }: Props) {
   const [activeId, setActiveId] = useState(academies[0]?.id ?? '')
   const active = academies.find((a) => a.id === activeId) ?? academies[0]
 
   return (
     <div className="space-y-6">
       <GeneralSettings initial={general} />
+      <RiskSettingsCard initial={risk} />
 
       {academies.length > 1 && (
         <nav className="flex gap-1 overflow-x-auto overflow-y-hidden border-b border-gray-200" aria-label="학원 선택">
@@ -165,6 +178,121 @@ function GeneralSettings({ initial }: { initial: Props['general'] }) {
           </select>
           <p className="text-xs text-gray-500 mt-1.5">상담신청 폼의 개인정보 동의 문구(보유 기간)에 자동으로 표시됩니다.</p>
         </div>
+      </div>
+      <SaveRow pending={pending} message={message} onSave={save} />
+    </SectionCard>
+  )
+}
+
+// ─── 퇴원 위험 신호 ─────────────────────────────────────────────────────────────
+
+function RiskSettingsCard({ initial }: { initial: RiskSettings }) {
+  const router = useRouter()
+  const [value, setValue] = useState<RiskSettings>(initial)
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+  const [pending, startTransition] = useTransition()
+
+  function toggle(key: RiskCriterionKey, on: boolean) {
+    setValue((v) => ({ ...v, enabled: { ...v.enabled, [key]: on } }))
+  }
+
+  function save() {
+    setMessage(null)
+    startTransition(async () => {
+      const res = await updateRiskSettings(value)
+      if (res.error) setMessage({ ok: false, text: res.error })
+      else {
+        setMessage({ ok: true, text: '저장되었습니다. 다음 계산(매일 오전 10시)부터 반영됩니다.' })
+        router.refresh()
+      }
+    })
+  }
+
+  const rows: { key: RiskCriterionKey; id: string; control: React.ReactNode; help: string }[] = [
+    {
+      key: 'INACTIVE',
+      id: 'risk-inactive',
+      help: '마지막 학습일부터 오늘까지 학습 기록이 없는 기간입니다.',
+      control: (
+        <select
+          id="risk-inactive"
+          className={selectClass}
+          value={value.inactiveDays}
+          disabled={!value.enabled.INACTIVE}
+          onChange={(e) => setValue((v) => ({ ...v, inactiveDays: Number(e.target.value) }))}
+        >
+          {RISK_INACTIVE_DAY_OPTIONS.map((d) => (
+            <option key={d} value={d}>
+              {d}일 이상
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      key: 'STUDY_DROP',
+      id: 'risk-study-drop',
+      help: `최근 ${RISK_WINDOW_DAYS}일 학습일수를 직전 ${RISK_WINDOW_DAYS}일과 비교합니다. 등록 28일 미만이거나 직전 학습일이 2일 미만이면 판정하지 않습니다.`,
+      control: (
+        <select
+          id="risk-study-drop"
+          className={selectClass}
+          value={value.studyDropPct}
+          disabled={!value.enabled.STUDY_DROP}
+          onChange={(e) => setValue((v) => ({ ...v, studyDropPct: Number(e.target.value) }))}
+        >
+          {RISK_STUDY_DROP_OPTIONS.map((p) => (
+            <option key={p} value={p}>
+              {p}% 이상 감소
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      key: 'ACCURACY_DROP',
+      id: 'risk-accuracy-drop',
+      help: `테스트·연습 문제 정답률을 직전 ${RISK_WINDOW_DAYS}일과 비교합니다. 기간별로 ${RISK_MIN_ANSWERS}문항 미만이면 판정하지 않습니다.`,
+      control: (
+        <select
+          id="risk-accuracy-drop"
+          className={selectClass}
+          value={value.accuracyDropPp}
+          disabled={!value.enabled.ACCURACY_DROP}
+          onChange={(e) => setValue((v) => ({ ...v, accuracyDropPp: Number(e.target.value) }))}
+        >
+          {RISK_ACCURACY_DROP_OPTIONS.map((p) => (
+            <option key={p} value={p}>
+              {p}%p 이상 하락
+            </option>
+          ))}
+        </select>
+      ),
+    },
+  ]
+
+  return (
+    <SectionCard
+      title="퇴원 위험 신호"
+      description="매일 학습 기록으로 계산합니다. 기준 2개 이상 해당하면 '위험', 1개면 '주의'로 표시합니다. 본원과 모든 지점에 함께 적용됩니다."
+    >
+      <div className="grid gap-5 xl:grid-cols-3">
+        {rows.map((row) => (
+          <div key={row.key}>
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <label htmlFor={row.id} className="text-sm font-semibold text-gray-900">
+                {RISK_CRITERION_LABEL[row.key]}
+              </label>
+              <Switch
+                checked={value.enabled[row.key]}
+                onCheckedChange={(on) => toggle(row.key, on)}
+                aria-label={`${RISK_CRITERION_LABEL[row.key]} 사용`}
+              />
+            </div>
+            {row.control}
+            <p className="text-xs text-gray-500 mt-1.5">{row.help}</p>
+          </div>
+        ))}
       </div>
       <SaveRow pending={pending} message={message} onSave={save} />
     </SectionCard>

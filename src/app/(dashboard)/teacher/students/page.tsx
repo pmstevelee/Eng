@@ -3,6 +3,7 @@ import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { getStudentWordStats, EMPTY_WORD_STAT } from '@/lib/words/student-word-stats'
+import { toRiskBadge } from '@/lib/consultation/risk-queries'
 import { StudentsClient } from './students-client'
 
 export const metadata = { title: '학생 학습관리' }
@@ -27,6 +28,7 @@ const getCachedTeacherStudents = (teacherId: string) =>
             currentLevel: true,
             user: { select: { name: true, email: true } },
             class: { select: { id: true, name: true } },
+            riskSnapshot: { select: { level: true, reasons: true } },
             testSessions: {
               where: { status: { in: ['COMPLETED', 'GRADED'] } },
               orderBy: { completedAt: 'desc' },
@@ -93,6 +95,8 @@ const getCachedTeacherStudents = (teacherId: string) =>
           })),
           attendanceRate: attRateById[s.id] ?? null,
           wordStat: wordStats[s.id] ?? EMPTY_WORD_STAT,
+          // 목록은 재원(ACTIVE) 학생만 조회
+          risk: toRiskBadge(s.riskSnapshot, 'ACTIVE'),
         })),
       }
     },
