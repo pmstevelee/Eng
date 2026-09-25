@@ -45,6 +45,7 @@ import { PlacementSection } from './placement-section'
 import { LeadFormDialog } from './lead-form-dialog'
 import { StatusBadge } from './modal-shell'
 import { StatusChangeDialog } from './status-change-dialog'
+import { WebInquiryHistory } from './web-inquiry-history'
 
 type Option = { id: string; name: string }
 
@@ -272,6 +273,9 @@ export function LeadDetailClient({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
         <div className="lg:col-span-2 space-y-5">
+        {/* 본문: 웹 상담신청 접수 내역 */}
+        <WebInquiryHistory activities={lead.activities} newSince={lead.webInquiryAt} />
+
         {/* 본문: 레벨테스트 (상담 참고용) */}
         <PlacementSection
           leadId={lead.id}

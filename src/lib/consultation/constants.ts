@@ -281,3 +281,113 @@ export const FOLLOW_UP_QUICK_DUE = [
   { label: '3일 후', days: 3 },
   { label: '1주 후', days: 7 },
 ]
+
+// ─── 상담관리 설정 · 웹 상담신청 폼 ─────────────────────────────────────────────
+
+/** 미등록 문의 개인정보 보관기간 (개월) — 3단계 E의 자동 파기 기준, 신청 폼 동의 문구에도 표시 */
+export const DEFAULT_RETENTION_MONTHS = 12
+export const RETENTION_MONTH_OPTIONS = [3, 6, 12, 24, 36]
+
+/** 12 → "1년", 6 → "6개월", 18 → "1년 6개월" */
+export function formatRetention(months: number): string {
+  const y = Math.floor(months / 12)
+  const m = months % 12
+  if (y && m) return `${y}년 ${m}개월`
+  return y ? `${y}년` : `${m}개월`
+}
+
+export type WebFormFieldKey = 'grade' | 'school' | 'schedule' | 'message'
+
+export const WEB_FORM_FIELD_LABEL: Record<WebFormFieldKey, string> = {
+  grade: '학년',
+  school: '학교',
+  schedule: '희망 요일·시간',
+  message: '문의 내용',
+}
+export const WEB_FORM_FIELD_KEYS = Object.keys(WEB_FORM_FIELD_LABEL) as WebFormFieldKey[]
+
+export const WEB_FORM_INTRO_MAX = 500
+
+export type WebFormSettings = {
+  enabled: boolean
+  /** 폼 상단 안내 문구 */
+  intro: string
+  /** 선택 항목 표시 여부 */
+  fields: Record<WebFormFieldKey, boolean>
+  /** 신청자에게 접수 확인 알림톡(INQUIRY_RECEIVED) 발송 */
+  sendReceipt: boolean
+}
+
+export const DEFAULT_WEB_FORM: WebFormSettings = {
+  enabled: false,
+  intro: '',
+  fields: { grade: true, school: true, schedule: true, message: true },
+  sendReceipt: false,
+}
+
+function asObject(v: unknown): Record<string, unknown> | null {
+  return v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : null
+}
+
+function readConsultationObject(settingsJson: unknown): Record<string, unknown> | null {
+  return asObject(asObject(settingsJson)?.consultation)
+}
+
+/** settingsJson.consultation.retentionMonths (없거나 잘못된 값이면 null) */
+export function readRetentionMonths(settingsJson: unknown): number | null {
+  const v = readConsultationObject(settingsJson)?.retentionMonths
+  return typeof v === 'number' && RETENTION_MONTH_OPTIONS.includes(v) ? v : null
+}
+
+/** settingsJson.consultation.defaultAssigneeId — 웹 신청 자동 배정 담당자 */
+export function readDefaultAssigneeId(settingsJson: unknown): string | null {
+  const v = readConsultationObject(settingsJson)?.defaultAssigneeId
+  return typeof v === 'string' && v ? v : null
+}
+
+/** settingsJson.consultation.webForm (없는 값은 기본값으로 채움) */
+export function readWebFormSettings(settingsJson: unknown): WebFormSettings {
+  const raw = asObject(readConsultationObject(settingsJson)?.webForm)
+  if (!raw) return { ...DEFAULT_WEB_FORM, fields: { ...DEFAULT_WEB_FORM.fields } }
+  const rawFields = asObject(raw.fields) ?? {}
+  const fields = { ...DEFAULT_WEB_FORM.fields }
+  for (const key of WEB_FORM_FIELD_KEYS) {
+    if (typeof rawFields[key] === 'boolean') fields[key] = rawFields[key] as boolean
+  }
+  return {
+    enabled: raw.enabled === true,
+    intro: typeof raw.intro === 'string' ? raw.intro.slice(0, WEB_FORM_INTRO_MAX) : '',
+    fields,
+    sendReceipt: raw.sendReceipt === true,
+  }
+}
+
+/** 신청 폼 주소: 영문 소문자·숫자·하이픈 3~40자, 하이픈으로 시작/끝 불가 */
+export const SLUG_RULE_TEXT = '영문 소문자, 숫자, 하이픈(-)으로 3~40자'
+export function isValidSlug(v: string): boolean {
+  return /^[a-z0-9](?:[a-z0-9-]{1,38})[a-z0-9]$/.test(v) && !v.includes('--')
+}
+
+/** ?src= 유입경로 값 정리 (영문·숫자·한글·-_. 최대 30자, 그 외 문자는 제거) */
+export function sanitizeSource(v: string | null | undefined): string | null {
+  const cleaned = (v ?? '').replace(/[^0-9A-Za-z가-힣._-]/g, '').slice(0, 30)
+  return cleaned || null
+}
+
+export type LeadActivityTypeValue = 'WEB_INQUIRY' | 'WEB_REINQUIRY'
+
+export const LEAD_ACTIVITY_LABEL: Record<LeadActivityTypeValue, string> = {
+  WEB_INQUIRY: '웹 상담신청',
+  WEB_REINQUIRY: '웹 재문의',
+}
+
+/** 웹 신청 제출 내용 (LeadActivity.payload) */
+export type WebInquiryPayload = {
+  parentName: string
+  studentName: string
+  grade?: string
+  school?: string
+  preferredSchedule?: string
+  message?: string
+  source?: string
+}

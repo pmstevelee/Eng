@@ -1,12 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { headers } from 'next/headers'
 import { prisma } from '@/lib/prisma/client'
 import { sendNotification } from '@/lib/notifications/send'
 import { INVITE_VALID_DAYS, generateToken } from '@/lib/placement/runner'
 import { findScopedLead, getConsultationActor } from './access'
 import { academyDisplayName } from './notify'
+import { appBaseUrl } from './app-url'
 
 type ActionResult<T = object> = ({ error: string } & Partial<T>) | ({ error?: undefined } & T)
 
@@ -25,16 +25,6 @@ const ACADEMY_SELECT = {
 function revalidateConsultation() {
   revalidatePath('/owner/consultations', 'layout')
   revalidatePath('/teacher/consultations', 'layout')
-}
-
-/** 알림 링크용 절대 URL 기준 (APP_BASE_URL 우선, 없으면 현재 요청 호스트) */
-function appBaseUrl(): string {
-  const configured = process.env.APP_BASE_URL?.replace(/\/$/, '')
-  if (configured) return configured
-  const h = headers()
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'login.wegoupenglish.com'
-  const proto = h.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https')
-  return `${proto}://${host}`
 }
 
 const KST_DATE_LABEL = new Intl.DateTimeFormat('ko-KR', {

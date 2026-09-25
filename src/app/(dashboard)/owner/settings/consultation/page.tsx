@@ -1,0 +1,50 @@
+import { redirect } from 'next/navigation'
+import { getConsultationActor } from '@/lib/consultation/access'
+import { appBaseUrl } from '@/lib/consultation/app-url'
+import {
+  DEFAULT_RETENTION_MONTHS,
+  DEFAULT_STALE_DAYS,
+  readDefaultAssigneeId,
+  readRetentionMonths,
+  readStaleDays,
+  readWebFormSettings,
+} from '@/lib/consultation/constants'
+import { getAssigneeOptions } from '@/lib/consultation/queries'
+import { prisma } from '@/lib/prisma/client'
+import { ConsultationSettingsClient, type AcademyConsultationSettings } from './_components/consultation-settings-client'
+
+export default async function ConsultationSettingsPage() {
+  const actor = await getConsultationActor()
+  if (!actor || actor.role !== 'ACADEMY_OWNER') redirect('/login')
+
+  const academies = await prisma.academy.findMany({
+    where: { id: { in: actor.academyIds }, isDeleted: false },
+    select: { id: true, name: true, branchName: true, parentAcademyId: true, branchOrder: true, slug: true, settingsJson: true },
+    orderBy: { branchOrder: 'asc' },
+  })
+  // 본원 먼저, 지점은 순서대로
+  academies.sort((a, b) => (a.parentAcademyId ? 1 : 0) - (b.parentAcademyId ? 1 : 0))
+
+  const assigneeOptions = await Promise.all(academies.map((a) => getAssigneeOptions(actor, a.id)))
+  const main = academies.find((a) => a.id === actor.academyId) ?? academies[0]
+
+  const items: AcademyConsultationSettings[] = academies.map((a, i) => ({
+    id: a.id,
+    label: a.parentAcademyId ? (a.branchName ?? a.name) : '본원',
+    slug: a.slug ?? '',
+    defaultAssigneeId: readDefaultAssigneeId(a.settingsJson) ?? '',
+    webForm: readWebFormSettings(a.settingsJson),
+    assigneeOptions: assigneeOptions[i],
+  }))
+
+  return (
+    <ConsultationSettingsClient
+      baseUrl={appBaseUrl()}
+      general={{
+        staleDays: readStaleDays(main?.settingsJson) ?? DEFAULT_STALE_DAYS,
+        retentionMonths: readRetentionMonths(main?.settingsJson) ?? DEFAULT_RETENTION_MONTHS,
+      }}
+      academies={items}
+    />
+  )
+}

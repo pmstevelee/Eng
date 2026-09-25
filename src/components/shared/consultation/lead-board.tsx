@@ -18,7 +18,7 @@ import {
 } from '@/lib/consultation/constants'
 import type { LeadBoardColumn, LeadListItem } from '@/lib/consultation/queries'
 import { ConvertToStudentDialog } from './convert-to-student-dialog'
-import { StatusBadge, StaleBadge } from './modal-shell'
+import { StatusBadge, StaleBadge, WebInquiryBadge } from './modal-shell'
 import { StatusChangeDialog } from './status-change-dialog'
 
 type Props = {
@@ -261,6 +261,7 @@ function LeadCard({
         >
           {lead.studentName}
         </Link>
+        {lead.hasNewWebInquiry && <WebInquiryBadge />}
         {lead.isStale && <StaleBadge />}
         <span className="flex-1" />
         {saving ? (

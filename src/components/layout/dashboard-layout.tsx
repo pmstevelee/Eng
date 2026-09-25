@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useSyncExternalStore } from 'react'
 import { usePathname } from 'next/navigation'
-import { getOverdueFollowUpCount } from '@/lib/consultation/follow-up-actions'
+import { getConsultationBadgeCount } from '@/lib/consultation/follow-up-actions'
 import { Sidebar } from './sidebar'
 import { Header } from './header'
 import { NAV_ITEMS } from './nav-items'
@@ -40,7 +40,7 @@ const CONSULTATION_HREF: Partial<Record<Role, string>> = {
 }
 
 /**
- * 상담관리 메뉴 배지(기한 지난 할 일 수).
+ * 상담관리 메뉴 배지(기한 지난 할 일 + 확인 전 웹 상담신청 수).
  * 레이아웃 렌더를 막지 않도록 마운트 후 비동기로 조회하고, 상담관리 화면 이동 시 갱신한다.
  */
 function useConsultationBadge(role: Role): Record<string, number> {
@@ -53,7 +53,7 @@ function useConsultationBadge(role: Role): Record<string, number> {
   useEffect(() => {
     if (!href) return
     let canceled = false
-    getOverdueFollowUpCount()
+    getConsultationBadgeCount()
       .then((n) => {
         if (!canceled) setCount(n)
       })

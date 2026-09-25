@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
-import { MessagesSquare } from 'lucide-react'
+import Link from 'next/link'
+import { MessagesSquare, Settings } from 'lucide-react'
 import { getConsultationActor } from '@/lib/consultation/access'
 import {
   LEAD_CHANNEL_LABEL,
@@ -22,6 +23,7 @@ import {
   getLeadList,
   getOwnerStaleDays,
   getTodayTasks,
+  markWebInquirySeen,
   type LeadFilters,
 } from '@/lib/consultation/queries'
 import { BRANCH_ALL, getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
@@ -170,10 +172,19 @@ function ConsultationHeader({
         <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
           <MessagesSquare size={20} className="text-primary-700" />
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">상담관리</h1>
           <p className="text-sm text-gray-500">{description}</p>
         </div>
+        {role === 'ACADEMY_OWNER' && (
+          <Link
+            href="/owner/settings/consultation"
+            className="h-11 px-3 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 inline-flex items-center gap-1.5 shrink-0"
+          >
+            <Settings size={16} />
+            <span className="hidden sm:inline">상담관리 설정</span>
+          </Link>
+        )}
       </div>
       <ConsultationTabs basePath={BASE_PATH[role]} active={active} />
     </div>
@@ -249,6 +260,8 @@ export async function LeadDetailPage({ role, leadId }: { role: Role; leadId: str
   const [assigneeOptions, classOptions] = await Promise.all([
     getAssigneeOptions(actor, lead.academyId),
     lead.studentId ? Promise.resolve([]) : getClassOptions(lead.academyId),
+    // 이번 화면에서는 '새 신청' 표시를 보여주고, 다음 방문부터 해제
+    lead.webInquiryAt ? markWebInquirySeen(lead.id) : null,
   ])
 
   return (

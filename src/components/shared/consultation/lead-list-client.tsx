@@ -18,7 +18,7 @@ import {
 import type { LeadBoardColumn, LeadListItem } from '@/lib/consultation/queries'
 import { LeadBoard } from './lead-board'
 import { LeadFormDialog } from './lead-form-dialog'
-import { StatusBadge, StaleBadge } from './modal-shell'
+import { StatusBadge, StaleBadge, WebInquiryBadge } from './modal-shell'
 
 type Option = { id: string; name: string }
 
@@ -298,6 +298,7 @@ export function LeadListClient(props: Props) {
                       >
                         {lead.studentName}
                       </Link>
+                      {lead.hasNewWebInquiry && <span className="ml-1.5 align-middle"><WebInquiryBadge /></span>}
                       {lead.isStale && <span className="ml-1.5 align-middle"><StaleBadge /></span>}
                       {lead.parentName && <p className="text-xs text-gray-500">학부모 {lead.parentName}</p>}
                     </td>
@@ -343,6 +344,7 @@ export function LeadListClient(props: Props) {
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-semibold text-gray-900 flex items-center gap-1.5">
                       {lead.studentName}
+                      {lead.hasNewWebInquiry && <WebInquiryBadge />}
                       {lead.isStale && <StaleBadge />}
                     </span>
                     <StatusBadge className={LEAD_STATUS_BADGE[lead.status]} label={LEAD_STATUS_LABEL[lead.status]} />

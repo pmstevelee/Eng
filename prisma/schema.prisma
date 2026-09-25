@@ -228,6 +228,11 @@ enum LostReason {
   OTHER // 기타
 }
 
+enum LeadActivityType {
+  WEB_INQUIRY // 웹 상담신청 (신규 문의 생성)
+  WEB_REINQUIRY // 웹 재문의 (동일 연락처 기존 문의에 추가)
+}
+
 enum ConsultationType {
   INITIAL // 신규 상담
   FOLLOW_UP // 추가 상담
@@ -281,6 +286,8 @@ model Academy {
 
   // 구독/SaaS 필드
   businessName          String?            @map("business_name")
+  /// 외부 상담신청 폼 주소 (/apply/{slug}) — 학원장이 설정에서 지정
+  slug                  String?            @unique
   ownerId               String?            @map("owner_id")
   inviteCode            String             @unique @default(uuid()) @map("invite_code")
   subscriptionStatus    SubscriptionStatus @default(TRIAL) @map("subscription_status")
@@ -1445,6 +1452,7 @@ model Lead {
   studentId         String?     @unique @map("student_id") // 등록 전환 후 생성된 학생
   privacyConsentAt  DateTime?   @map("privacy_consent_at")
   lastActivityAt    DateTime    @default(now()) @map("last_activity_at") // 상담 기록·상태 변경·예약·할 일 (방치 판정용)
+  webInquiryAt      DateTime?   @map("web_inquiry_at") // 확인 전 웹 신청(신규·재문의) 접수 시각 — 담당자/학원장이 상세를 열면 해제
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
 
@@ -1458,13 +1466,30 @@ model Lead {
   notificationLogs NotificationLog[]
   placementInvites  PlacementInvite[]
   placementAttempts PlacementAttempt[]
+  activities        LeadActivity[]
 
   // 형제가 같은 학부모 번호로 문의할 수 있어 unique 대신 인덱스 + 앱 단 중복 경고
   @@index([academyId, phone])
   @@index([academyId, status])
   @@index([assigneeId])
   @@index([academyId, lastActivityAt])
+  @@index([academyId, webInquiryAt])
   @@map("leads")
+}
+
+/// 문의 활동 기록 (웹 상담신청 접수 등 상담 기록 외 이벤트)
+model LeadActivity {
+  id        String           @id @default(uuid())
+  leadId    String           @map("lead_id")
+  type      LeadActivityType
+  /// 웹 신청 제출 내용 등 (신청 당시 값 그대로 보관)
+  payload   Json             @default("{}")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt])
+  @@map("lead_activities")
 }
 
 /// 상담 1회 기록

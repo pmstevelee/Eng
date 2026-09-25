@@ -140,6 +140,18 @@ export function StatusBadge({ className, label }: { className: string; label: st
 }
 
 /** 방치 표시 (마지막 활동 후 기준 일수 경과) */
+/** 확인 전 웹 상담신청(신규·재문의) 표시 */
+export function WebInquiryBadge() {
+  return (
+    <span
+      title="확인하지 않은 웹 상담신청이 있습니다"
+      className="inline-flex items-center rounded-full bg-primary-700 text-white px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap"
+    >
+      웹 신청
+    </span>
+  )
+}
+
 export function StaleBadge() {
   return (
     <span

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import type { Prisma } from '@/generated/prisma'
 import { prisma } from '@/lib/prisma/client'
 import { findScopedLead, getConsultationActor, isValidAssignee, leadScopeWhere, type ConsultationActor } from './access'
+import { countNewWebInquiries } from './queries'
 import { STALE_DAY_OPTIONS, addDaysToDateKey, isDateKey, kstDateStart, todayKst } from './constants'
 
 type ActionResult<T = object> = ({ error: string } & Partial<T>) | ({ error?: undefined } & T)
@@ -115,10 +116,18 @@ export async function deleteFollowUpTask(taskId: string): Promise<ActionResult> 
   return {}
 }
 
-/** 사이드바 배지: 기한이 지난 미완료 할 일 수 (교사=본인 배정, 학원장=소유 학원 전체) */
-export async function getOverdueFollowUpCount(): Promise<number> {
+/**
+ * 사이드바 배지: 기한 지난 미완료 할 일 + 확인 전 웹 상담신청
+ * (교사=본인 배정·담당, 학원장=소유 학원 전체)
+ */
+export async function getConsultationBadgeCount(): Promise<number> {
   const actor = await getConsultationActor()
   if (!actor) return 0
+  const [overdue, webInquiries] = await Promise.all([countOverdueTasks(actor), countNewWebInquiries(actor)])
+  return overdue + webInquiries
+}
+
+function countOverdueTasks(actor: ConsultationActor): Promise<number> {
   return prisma.followUpTask.count({
     where: {
       academyId: { in: actor.academyIds },

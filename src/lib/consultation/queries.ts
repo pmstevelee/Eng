@@ -12,6 +12,8 @@ import {
   normalizePhone,
   todayKst,
   type AppointmentStatusValue,
+  type LeadActivityTypeValue,
+  type WebInquiryPayload,
   type LeadChannelValue,
   type LeadStatusValue,
 } from './constants'
@@ -34,6 +36,8 @@ export type LeadListItem = {
   createdAt: string
   /** 마지막 활동 후 방치 기준 일수 경과 (등록·이탈 제외) */
   isStale: boolean
+  /** 확인하지 않은 웹 신청(신규·재문의)이 있음 */
+  hasNewWebInquiry: boolean
 }
 
 export type LeadListResult = {
@@ -101,6 +105,7 @@ const LEAD_CARD_SELECT = {
   id: true,
   academyId: true,
   lastActivityAt: true,
+  webInquiryAt: true,
   studentName: true,
   parentName: true,
   phone: true,
@@ -143,6 +148,7 @@ function isStaleLead(r: { academyId: string; status: string; lastActivityAt: Dat
 function toListItem(r: LeadCardRow, staleDays: Map<string, number>): LeadListItem {
   return {
     isStale: isStaleLead(r, staleDays),
+    hasNewWebInquiry: r.webInquiryAt !== null,
     id: r.id,
     studentName: r.studentName,
     parentName: r.parentName,
@@ -221,6 +227,34 @@ export async function getLeadBoard(actor: ConsultationActor, params: LeadFilters
   }))
 }
 
+/** LeadActivity.payload(JSON) → 웹 신청 내용 (문자열 항목만 추림) */
+function toWebInquiryPayload(v: Prisma.JsonValue): WebInquiryPayload {
+  const o = v && typeof v === 'object' && !Array.isArray(v) ? v : {}
+  const str = (key: string) => {
+    const x = (o as Record<string, unknown>)[key]
+    return typeof x === 'string' && x ? x : undefined
+  }
+  return {
+    parentName: str('parentName') ?? '',
+    studentName: str('studentName') ?? '',
+    grade: str('grade'),
+    school: str('school'),
+    preferredSchedule: str('preferredSchedule'),
+    message: str('message'),
+    source: str('source'),
+  }
+}
+
+/** 담당자·학원장이 문의 상세를 열면 '새 웹 신청' 표시 해제 */
+export async function markWebInquirySeen(leadId: string): Promise<void> {
+  await prisma.lead.updateMany({ where: { id: leadId, webInquiryAt: { not: null } }, data: { webInquiryAt: null } })
+}
+
+/** 확인 전 웹 신청 수 (사이드바 배지) */
+export async function countNewWebInquiries(actor: ConsultationActor): Promise<number> {
+  return prisma.lead.count({ where: { ...leadScopeWhere(actor), webInquiryAt: { not: null } } })
+}
+
 export type LeadDetail = NonNullable<Awaited<ReturnType<typeof getLeadDetail>>>
 
 export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
@@ -243,6 +277,7 @@ export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
       assigneeId: true,
       studentId: true,
       privacyConsentAt: true,
+      webInquiryAt: true,
       createdAt: true,
       updatedAt: true,
       assignee: { select: { name: true } },
@@ -321,6 +356,11 @@ export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
           createdAt: true,
         },
       },
+      activities: {
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: { id: true, type: true, payload: true, createdAt: true },
+      },
       statusHistory: {
         orderBy: { changedAt: 'desc' },
         select: {
@@ -345,6 +385,13 @@ export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
   return {
     ...lead,
     privacyConsentAt: lead.privacyConsentAt?.toISOString() ?? null,
+    webInquiryAt: lead.webInquiryAt?.toISOString() ?? null,
+    activities: lead.activities.map((a) => ({
+      id: a.id,
+      type: a.type as LeadActivityTypeValue,
+      payload: toWebInquiryPayload(a.payload),
+      createdAt: a.createdAt.toISOString(),
+    })),
     createdAt: lead.createdAt.toISOString(),
     updatedAt: lead.updatedAt.toISOString(),
     academyLabel: lead.academy.parentAcademyId ? (lead.academy.branchName ?? lead.academy.name) : '본원',
