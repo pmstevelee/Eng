@@ -1,23 +1,24 @@
 import Link from 'next/link'
-import { CalendarDays, GraduationCap, ListChecks } from 'lucide-react'
+import { BarChart3, CalendarDays, GraduationCap, ListChecks } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-/** 상담관리 상단 탭: 문의 목록 / 재원생 상담 / 상담 일정 */
+/** 상담관리 상단 탭: 문의 목록 / 재원생 상담 / 상담 일정 / 통계 */
 export function ConsultationTabs({
   basePath,
   active,
 }: {
   basePath: string
-  active: 'leads' | 'students' | 'schedule'
+  active: 'leads' | 'students' | 'schedule' | 'stats'
 }) {
   const tabs = [
     { key: 'leads', label: '문의 목록', href: basePath, icon: ListChecks },
     { key: 'students', label: '재원생 상담', href: `${basePath}/students`, icon: GraduationCap },
     { key: 'schedule', label: '상담 일정', href: `${basePath}/schedule`, icon: CalendarDays },
+    { key: 'stats', label: '통계', href: `${basePath}/stats`, icon: BarChart3 },
   ] as const
 
   return (
-    <nav className="flex gap-1 border-b border-gray-200" aria-label="상담관리 메뉴">
+    <nav className="flex gap-1 border-b border-gray-200 overflow-x-auto overflow-y-hidden [scrollbar-width:none]" aria-label="상담관리 메뉴">
       {tabs.map((t) => (
         <Link
           key={t.key}

@@ -27,6 +27,8 @@ import {
   type LeadFilters,
 } from '@/lib/consultation/queries'
 import { getRiskStudents } from '@/lib/consultation/risk-queries'
+import { parseStatsRange } from '@/lib/consultation/stats-constants'
+import { getConsultationStats } from '@/lib/consultation/stats-queries'
 import { getRegularDueStudents } from '@/lib/consultation/student-consultation-queries'
 import { BRANCH_ALL, getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
 import { AppointmentCalendar } from './appointment-calendar'
@@ -36,6 +38,7 @@ import { LeadDetailClient } from './lead-detail-client'
 import { LeadListClient } from './lead-list-client'
 import { RegularDueList } from './regular-due-list'
 import { RiskStudentList } from './risk-student-list'
+import { StatsDashboard } from './stats-dashboard'
 
 export type LeadListSearchParams = {
   view?: string
@@ -167,7 +170,7 @@ function ConsultationHeader({
   description,
 }: {
   role: Role
-  active: 'leads' | 'students' | 'schedule'
+  active: 'leads' | 'students' | 'schedule' | 'stats'
   description: string
 }) {
   return (
@@ -298,6 +301,36 @@ export async function AppointmentSchedulePage({
         showCounselor={isOwner}
         appointments={appointments}
       />
+    </div>
+  )
+}
+
+export type StatsSearchParams = {
+  period?: string
+  from?: string
+  to?: string
+}
+
+/** 상담 통계 페이지 — 학원장: 선택한 학원 전체 / 교사: 본인 담당 실적만 */
+export async function ConsultationStatsPage({ role, searchParams }: { role: Role; searchParams: StatsSearchParams }) {
+  const actor = await getConsultationActor()
+  if (!actor || actor.role !== role) redirect('/login')
+
+  const isOwner = actor.role === 'ACADEMY_OWNER'
+  const range = parseStatsRange(searchParams.period, searchParams.from, searchParams.to)
+  const viewAcademyIds = isOwner ? await getViewableAcademyIds(actor.userId, await getSelectedBranchId()) : undefined
+  const stats = await getConsultationStats(actor, range, viewAcademyIds)
+
+  return (
+    <div className="space-y-6">
+      <ConsultationHeader
+        role={role}
+        active="stats"
+        description={
+          isOwner ? '문의부터 등록·퇴원까지 상담 실적을 기간별로 확인합니다.' : '내가 담당한 문의와 반 학생의 상담 실적입니다.'
+        }
+      />
+      <StatsDashboard data={stats} />
     </div>
   )
 }

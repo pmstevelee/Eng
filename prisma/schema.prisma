@@ -1499,7 +1499,8 @@ model Lead {
   // 형제가 같은 학부모 번호로 문의할 수 있어 unique 대신 인덱스 + 앱 단 중복 경고
   @@index([academyId, phone])
   @@index([academyId, status])
-  @@index([assigneeId])
+  @@index([assigneeId, createdAt])
+  @@index([academyId, createdAt]) // 통계: 기간 내 생성 문의
   @@index([academyId, lastActivityAt])
   @@index([academyId, webInquiryAt])
   @@map("leads")
@@ -1554,7 +1555,8 @@ model Consultation {
 
   @@index([leadId, consultedAt])
   @@index([studentId, consultedAt])
-  @@index([counselorId])
+  @@index([counselorId, consultedAt])
+  @@index([type, withdrawnOn]) // 통계: 기간 내 퇴원 처리
   @@map("consultations")
 }
 
@@ -1571,6 +1573,7 @@ model LeadStatusHistory {
   changedBy User? @relation("LeadStatusChanger", fields: [changedById], references: [id], onDelete: SetNull)
 
   @@index([leadId, changedAt])
+  @@index([toStatus, changedAt]) // 통계: 기간 내 등록 처리
   @@map("lead_status_history")
 }
 
