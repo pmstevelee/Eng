@@ -5,15 +5,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Check, ListTodo, Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import {
-  createFollowUpTask,
-  deleteFollowUpTask,
-  setFollowUpTaskDone,
-  updateStaleDays,
-} from '@/lib/consultation/follow-up-actions'
+import { createFollowUpTask, deleteFollowUpTask, setFollowUpTaskDone } from '@/lib/consultation/follow-up-actions'
 import {
   FOLLOW_UP_QUICK_DUE,
-  STALE_DAY_OPTIONS,
   addDaysToDateKey,
   formatDateKeyShort,
   toKstDateKey,
@@ -270,7 +264,7 @@ export function TodayTasksPanel({
   items: TodayTaskItem[]
   total: number
   showAssignee: boolean
-  /** 학원장만: 방치 기준 일수 설정 */
+  /** 학원장만: 방치 기준 일수 (변경은 상담관리 설정에서) */
   staleDays: number | null
 }) {
   const router = useRouter()
@@ -301,21 +295,12 @@ export function TodayTasksPanel({
           )}
         </h2>
         {staleDays !== null && (
-          <label className="flex items-center gap-2 text-sm text-gray-500">
-            방치 표시 기준
-            <select
-              value={staleDays}
-              disabled={isPending}
-              onChange={(e) => run(() => updateStaleDays(parseInt(e.target.value, 10)))}
-              className="h-11 px-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-700"
-            >
-              {STALE_DAY_OPTIONS.map((d) => (
-                <option key={d} value={d}>
-                  {d}일
-                </option>
-              ))}
-            </select>
-          </label>
+          <Link
+            href="/owner/settings/consultation"
+            className="min-h-11 inline-flex items-center text-sm text-gray-500 hover:text-primary-700"
+          >
+            방치 표시 기준 {staleDays}일 · 변경
+          </Link>
         )}
       </div>
 

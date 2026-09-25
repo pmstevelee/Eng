@@ -2,7 +2,7 @@ import 'server-only'
 
 import { prisma } from '@/lib/prisma/client'
 import { sendNotification, type SendNotificationResult } from '@/lib/notifications/send'
-import { formatPhone } from './constants'
+import { formatPhone, readConsultationNotifications } from './constants'
 
 const ACADEMY_NOTIFY_SELECT = {
   name: true,
@@ -10,6 +10,7 @@ const ACADEMY_NOTIFY_SELECT = {
   branchName: true,
   phone: true,
   parentAcademyId: true,
+  settingsJson: true,
   parentAcademy: { select: { name: true, businessName: true, phone: true } },
 } as const
 
@@ -19,6 +20,7 @@ type AcademyNotifyRow = {
   branchName: string | null
   phone: string | null
   parentAcademyId: string | null
+  settingsJson?: unknown
   parentAcademy: { name: string; businessName: string | null; phone: string | null } | null
 }
 
@@ -120,6 +122,10 @@ export async function notifyAppointment(appointmentId: string, kind: Appointment
     target = student
   } else {
     return null
+  }
+  // 전날 리마인드는 학원 설정에서 끌 수 있음 (예약 확정 알림은 예약 화면에서 건별 선택)
+  if (kind === 'reminder' && !readConsultationNotifications(target.academy.settingsJson).appointmentReminder) {
+    return { status: 'SKIPPED' }
   }
   if (!target.phone) return { status: 'FAILED', error: NO_PARENT_PHONE }
 

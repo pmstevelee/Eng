@@ -12,6 +12,7 @@ import {
   isValidPhone,
   normalizePhone,
   readDefaultAssigneeId,
+  readConsultationNotifications,
   readRetentionMonths,
   readWebFormSettings,
   sanitizeSource,
@@ -309,6 +310,7 @@ async function notifyStaff(
   studentName: string,
   isReinquiry: boolean,
 ): Promise<void> {
+  if (!readConsultationNotifications(academy.settingsJson).staffWebInquiry) return
   const ownerId = academy.ownerId ?? academy.parentAcademy?.ownerId ?? null
   const recipientIds = Array.from(new Set([ownerId, assigneeId].filter((id): id is string => !!id)))
   if (recipientIds.length === 0) return

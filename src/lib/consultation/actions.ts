@@ -380,7 +380,7 @@ export async function updateConsultation(consultationId: string, input: Consulta
   if (!actor) return { error: NO_PERMISSION }
 
   const consultation = await prisma.consultation.findFirst({
-    where: { id: consultationId, lead: leadScopeWhere(actor) },
+    where: { id: consultationId, lead: { ...leadScopeWhere(actor), purgedAt: null } },
     select: { id: true },
   })
   if (!consultation) return { error: '상담 기록을 찾을 수 없거나 접근 권한이 없습니다.' }

@@ -12,6 +12,7 @@ import {
   WEB_FORM_INTRO_MAX,
   isRegularCycle,
   isValidSlug,
+  type ConsultationNotificationSettings,
   type RegularCycleValue,
   type WebFormSettings,
 } from './constants'
@@ -38,15 +39,23 @@ function revalidateSettings(academyIds: string[]) {
   for (const id of academyIds) revalidateTag(`academy-${id}`)
 }
 
-/** 공통 설정 (방치 기준·보관기간) — 학원장, 본원·지점 전체에 적용 */
+/** 공통 설정 (방치 기준·보관기간, 전달한 항목만 변경) — 학원장, 본원·지점 전체에 적용 */
 export async function updateConsultationGeneralSettings(input: {
-  staleDays: number
-  retentionMonths: number
+  staleDays?: number
+  retentionMonths?: number
 }): Promise<ActionResult> {
   const actor = await getConsultationActor()
   if (!actor || actor.role !== 'ACADEMY_OWNER') return { error: NO_PERMISSION }
-  if (!STALE_DAY_OPTIONS.includes(input.staleDays)) return { error: '방치 기준 일수를 선택해주세요.' }
-  if (!RETENTION_MONTH_OPTIONS.includes(input.retentionMonths)) return { error: '보관 기간을 선택해주세요.' }
+  const patch: Prisma.JsonObject = {}
+  if (input.staleDays !== undefined) {
+    if (!STALE_DAY_OPTIONS.includes(input.staleDays)) return { error: '방치 기준 일수를 선택해주세요.' }
+    patch.staleDays = input.staleDays
+  }
+  if (input.retentionMonths !== undefined) {
+    if (!RETENTION_MONTH_OPTIONS.includes(input.retentionMonths)) return { error: '보관 기간을 선택해주세요.' }
+    patch.retentionMonths = input.retentionMonths
+  }
+  if (Object.keys(patch).length === 0) return {}
 
   const academies = await prisma.academy.findMany({
     where: { id: { in: actor.academyIds } },
@@ -57,10 +66,7 @@ export async function updateConsultationGeneralSettings(input: {
       prisma.academy.update({
         where: { id: a.id },
         data: {
-          settingsJson: mergeConsultation(a.settingsJson, {
-            staleDays: input.staleDays,
-            retentionMonths: input.retentionMonths,
-          }),
+          settingsJson: mergeConsultation(a.settingsJson, patch),
         },
       }),
     ),
@@ -91,6 +97,34 @@ export async function updateRiskSettings(input: RiskSettings): Promise<ActionRes
       prisma.academy.update({
         where: { id: a.id },
         data: { settingsJson: mergeConsultation(a.settingsJson, { risk }) },
+      }),
+    ),
+  )
+
+  revalidateSettings(actor.academyIds)
+  return {}
+}
+
+/** 상담 알림 on/off — 학원장, 본원·지점 전체에 적용 */
+export async function updateConsultationNotificationSettings(
+  input: ConsultationNotificationSettings,
+): Promise<ActionResult> {
+  const actor = await getConsultationActor()
+  if (!actor || actor.role !== 'ACADEMY_OWNER') return { error: NO_PERMISSION }
+  if (typeof input.appointmentReminder !== 'boolean' || typeof input.staffWebInquiry !== 'boolean') {
+    return { error: '알림 설정 값을 확인해주세요.' }
+  }
+
+  const academies = await prisma.academy.findMany({
+    where: { id: { in: actor.academyIds } },
+    select: { id: true, settingsJson: true },
+  })
+  const notifications = { appointmentReminder: input.appointmentReminder, staffWebInquiry: input.staffWebInquiry }
+  await prisma.$transaction(
+    academies.map((a) =>
+      prisma.academy.update({
+        where: { id: a.id },
+        data: { settingsJson: mergeConsultation(a.settingsJson, { notifications }) },
       }),
     ),
   )

@@ -14,6 +14,7 @@ import {
   NotebookPen,
   Pencil,
   Phone,
+  ShieldAlert,
   Trash2,
   UserCheck,
 } from 'lucide-react'
@@ -43,6 +44,7 @@ import { FollowUpSection } from './follow-up-section'
 import { NotificationHistory } from './notification-history'
 import { PlacementSection } from './placement-section'
 import { LeadFormDialog } from './lead-form-dialog'
+import { PurgeLeadDialog } from './purge-lead-dialog'
 import { StatusBadge } from './modal-shell'
 import { StatusChangeDialog } from './status-change-dialog'
 import { WebInquiryHistory } from './web-inquiry-history'
@@ -66,6 +68,7 @@ type Dialog =
   | { kind: 'consultation'; initial?: ConsultationFormInitial; appointment?: { id: string; scheduledAt: string } }
   | { kind: 'appointment'; reschedule?: LeadDetail['appointments'][number] }
   | { kind: 'convert' }
+  | { kind: 'purge' }
   | null
 
 export function LeadDetailClient({
@@ -156,6 +159,9 @@ export function LeadDetailClient({
               <ActionButton icon={CalendarPlus} label="상담 예약" onClick={() => setDialog({ kind: 'appointment' })} />
             )}
             <ActionButton icon={Pencil} label="정보 수정" onClick={() => setDialog({ kind: 'edit' })} />
+            {isOwner && !enrolled && (
+              <ActionButton icon={ShieldAlert} label="개인정보 파기" danger onClick={() => setDialog({ kind: 'purge' })} />
+            )}
             {isOwner && <ActionButton icon={Trash2} label="삭제" danger onClick={handleDelete} disabled={isPending} />}
           </div>
         </div>
@@ -475,6 +481,17 @@ export function LeadDetailClient({
           placementLevel={lead.placementResult?.overallLevel ?? null}
           classOptions={classOptions}
           onClose={() => setDialog(null)}
+        />
+      )}
+      {dialog?.kind === 'purge' && (
+        <PurgeLeadDialog
+          leadId={lead.id}
+          studentName={lead.studentName}
+          onClose={() => setDialog(null)}
+          onDone={() => {
+            setDialog(null)
+            router.refresh()
+          }}
         />
       )}
     </div>

@@ -18,7 +18,7 @@ import {
 } from '@/lib/consultation/constants'
 import type { LeadBoardColumn, LeadListItem } from '@/lib/consultation/queries'
 import { ConvertToStudentDialog } from './convert-to-student-dialog'
-import { StatusBadge, StaleBadge, WebInquiryBadge } from './modal-shell'
+import { PurgedBadge, StatusBadge, StaleBadge, WebInquiryBadge } from './modal-shell'
 import { StatusChangeDialog } from './status-change-dialog'
 
 type Props = {
@@ -235,7 +235,8 @@ function LeadCard({
   onMove: (to: LeadStatusValue) => void
 }) {
   const router = useRouter()
-  const draggable = lead.status !== 'ENROLLED' && !saving
+  // 파기된 문의는 상태를 바꿀 수 없음 (기록 추가로 개인정보가 다시 쌓이지 않도록)
+  const draggable = lead.status !== 'ENROLLED' && !lead.purged && !saving
 
   return (
     <article
@@ -261,6 +262,7 @@ function LeadCard({
         >
           {lead.studentName}
         </Link>
+        {lead.purged && <PurgedBadge />}
         {lead.hasNewWebInquiry && <WebInquiryBadge />}
         {lead.isStale && <StaleBadge />}
         <span className="flex-1" />
@@ -270,10 +272,12 @@ function LeadCard({
           draggable && <GripVertical size={14} className="text-gray-300 group-hover:text-gray-500 shrink-0 mt-0.5" />
         )}
       </div>
-      <p className="text-xs text-gray-700 mt-1 tabular-nums">
-        {maskPhone(lead.phone)}
-        {lead.grade && ` · ${lead.grade}`}
-      </p>
+      {!lead.purged && (
+        <p className="text-xs text-gray-700 mt-1 tabular-nums">
+          {maskPhone(lead.phone)}
+          {lead.grade && ` · ${lead.grade}`}
+        </p>
+      )}
       {lead.school && <p className="text-xs text-gray-500 truncate">{lead.school}</p>}
       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-2 text-[11px] text-gray-500">
         <span>{LEAD_CHANNEL_LABEL[lead.channel as LeadChannelValue] ?? lead.channel}</span>

@@ -38,6 +38,8 @@ export type LeadListItem = {
   isStale: boolean
   /** 확인하지 않은 웹 신청(신규·재문의)이 있음 */
   hasNewWebInquiry: boolean
+  /** 개인정보 파기됨 — 이름·연락처 등이 지워져 상세 열람 불가 */
+  purged: boolean
 }
 
 export type LeadListResult = {
@@ -106,6 +108,7 @@ const LEAD_CARD_SELECT = {
   academyId: true,
   lastActivityAt: true,
   webInquiryAt: true,
+  purgedAt: true,
   studentName: true,
   parentName: true,
   phone: true,
@@ -139,8 +142,11 @@ export async function getStaleDaysByAcademy(academyIds: string[]): Promise<Map<s
   )
 }
 
-function isStaleLead(r: { academyId: string; status: string; lastActivityAt: Date }, staleDays: Map<string, number>) {
-  if ((STALE_EXCLUDED_STATUSES as string[]).includes(r.status)) return false
+function isStaleLead(
+  r: { academyId: string; status: string; lastActivityAt: Date; purgedAt: Date | null },
+  staleDays: Map<string, number>,
+) {
+  if (r.purgedAt || (STALE_EXCLUDED_STATUSES as string[]).includes(r.status)) return false
   const days = staleDays.get(r.academyId) ?? DEFAULT_STALE_DAYS
   return Date.now() - r.lastActivityAt.getTime() >= days * 24 * 60 * 60 * 1000
 }
@@ -149,6 +155,7 @@ function toListItem(r: LeadCardRow, staleDays: Map<string, number>): LeadListIte
   return {
     isStale: isStaleLead(r, staleDays),
     hasNewWebInquiry: r.webInquiryAt !== null,
+    purged: r.purgedAt !== null,
     id: r.id,
     studentName: r.studentName,
     parentName: r.parentName,
@@ -257,9 +264,10 @@ export async function countNewWebInquiries(actor: ConsultationActor): Promise<nu
 
 export type LeadDetail = NonNullable<Awaited<ReturnType<typeof getLeadDetail>>>
 
+/** 문의 상세 — 개인정보가 파기된 문의는 null (getPurgedLeadSummary로 따로 조회) */
 export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
   const lead = await prisma.lead.findFirst({
-    where: { id: leadId, ...leadScopeWhere(actor) },
+    where: { id: leadId, purgedAt: null, ...leadScopeWhere(actor) },
     select: {
       id: true,
       academyId: true,
@@ -357,6 +365,7 @@ export async function getLeadDetail(actor: ConsultationActor, leadId: string) {
         },
       },
       activities: {
+        where: { type: { in: ['WEB_INQUIRY', 'WEB_REINQUIRY'] } },
         orderBy: { createdAt: 'desc' },
         take: 20,
         select: { id: true, type: true, payload: true, createdAt: true },

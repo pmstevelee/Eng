@@ -26,6 +26,7 @@ import {
   markWebInquirySeen,
   type LeadFilters,
 } from '@/lib/consultation/queries'
+import { getPurgedLeadSummary } from '@/lib/consultation/purge'
 import { getRiskStudents } from '@/lib/consultation/risk-queries'
 import { parseStatsRange } from '@/lib/consultation/stats-constants'
 import { getConsultationStats } from '@/lib/consultation/stats-queries'
@@ -36,6 +37,7 @@ import { ConsultationTabs } from './consultation-tabs'
 import { TodayTasksPanel } from './follow-up-section'
 import { LeadDetailClient } from './lead-detail-client'
 import { LeadListClient } from './lead-list-client'
+import { PurgedLeadView } from './purged-lead-view'
 import { RegularDueList } from './regular-due-list'
 import { RiskStudentList } from './risk-student-list'
 import { StatsDashboard } from './stats-dashboard'
@@ -342,7 +344,12 @@ export async function LeadDetailPage({ role, leadId }: { role: Role; leadId: str
 
   // 권한 범위 밖(다른 학원·타 교사 담당)이면 존재 여부도 노출하지 않음
   const lead = await getLeadDetail(actor, leadId)
-  if (!lead) notFound()
+  if (!lead) {
+    // 개인정보가 파기된 문의는 통계용 정보만 표시
+    const purged = await getPurgedLeadSummary(actor, leadId)
+    if (!purged) notFound()
+    return <PurgedLeadView basePath={BASE_PATH[role]} lead={purged} />
+  }
 
   const [assigneeOptions, classOptions] = await Promise.all([
     getAssigneeOptions(actor, lead.academyId),

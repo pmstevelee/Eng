@@ -18,7 +18,7 @@ import {
 import type { LeadBoardColumn, LeadListItem } from '@/lib/consultation/queries'
 import { LeadBoard } from './lead-board'
 import { LeadFormDialog } from './lead-form-dialog'
-import { StatusBadge, StaleBadge, WebInquiryBadge } from './modal-shell'
+import { PurgedBadge, StatusBadge, StaleBadge, WebInquiryBadge } from './modal-shell'
 
 type Option = { id: string; name: string }
 
@@ -298,11 +298,12 @@ export function LeadListClient(props: Props) {
                       >
                         {lead.studentName}
                       </Link>
+                      {lead.purged && <span className="ml-1.5 align-middle"><PurgedBadge /></span>}
                       {lead.hasNewWebInquiry && <span className="ml-1.5 align-middle"><WebInquiryBadge /></span>}
                       {lead.isStale && <span className="ml-1.5 align-middle"><StaleBadge /></span>}
                       {lead.parentName && <p className="text-xs text-gray-500">학부모 {lead.parentName}</p>}
                     </td>
-                    <td className="px-4 py-3 text-gray-700 tabular-nums">{maskPhone(lead.phone)}</td>
+                    <td className="px-4 py-3 text-gray-700 tabular-nums">{lead.purged ? '-' : maskPhone(lead.phone)}</td>
                     <td className="px-4 py-3 text-gray-700">
                       {[lead.grade, lead.school].filter(Boolean).join(' · ') || '-'}
                     </td>
@@ -344,16 +345,19 @@ export function LeadListClient(props: Props) {
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-semibold text-gray-900 flex items-center gap-1.5">
                       {lead.studentName}
+                      {lead.purged && <PurgedBadge />}
                       {lead.hasNewWebInquiry && <WebInquiryBadge />}
                       {lead.isStale && <StaleBadge />}
                     </span>
                     <StatusBadge className={LEAD_STATUS_BADGE[lead.status]} label={LEAD_STATUS_LABEL[lead.status]} />
                   </div>
-                  <p className="text-sm text-gray-700 mt-1 tabular-nums">
-                    {maskPhone(lead.phone)}
-                    {lead.grade && ` · ${lead.grade}`}
-                    {lead.school && ` · ${lead.school}`}
-                  </p>
+                  {!lead.purged && (
+                    <p className="text-sm text-gray-700 mt-1 tabular-nums">
+                      {maskPhone(lead.phone)}
+                      {lead.grade && ` · ${lead.grade}`}
+                      {lead.school && ` · ${lead.school}`}
+                    </p>
+                  )}
                   <p className="text-xs text-gray-500 mt-1">
                     {LEAD_CHANNEL_LABEL[lead.channel as LeadChannelValue] ?? lead.channel}
                     {props.showAssigneeColumn && ` · 담당 ${lead.assigneeName ?? '미배정'}`}

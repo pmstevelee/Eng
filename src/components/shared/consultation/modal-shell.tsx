@@ -162,3 +162,15 @@ export function StaleBadge() {
     </span>
   )
 }
+
+/** 개인정보 파기된 문의 */
+export function PurgedBadge() {
+  return (
+    <span
+      title="보관기간이 지나 개인정보가 파기되었습니다"
+      className="inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap"
+    >
+      파기됨
+    </span>
+  )
+}

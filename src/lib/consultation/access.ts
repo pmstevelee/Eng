@@ -48,10 +48,13 @@ export function leadScopeWhere(actor: ConsultationActor): Prisma.LeadWhereInput 
   return { academyId: { in: actor.academyIds } }
 }
 
-/** 권한 범위 안의 Lead 1건 조회 (없거나 권한 밖이면 null) */
+/**
+ * 권한 범위 안의 Lead 1건 조회 (없거나 권한 밖이면 null).
+ * 개인정보가 파기된 문의도 null — 파기 후 기록 추가·수정으로 개인정보가 다시 쌓이지 않도록.
+ */
 export async function findScopedLead(actor: ConsultationActor, leadId: string) {
   return prisma.lead.findFirst({
-    where: { id: leadId, ...leadScopeWhere(actor) },
+    where: { id: leadId, purgedAt: null, ...leadScopeWhere(actor) },
     select: { id: true, academyId: true, status: true, studentId: true, assigneeId: true, studentName: true, grade: true },
   })
 }

@@ -5,12 +5,14 @@ import {
   DEFAULT_REGULAR_CYCLE,
   DEFAULT_RETENTION_MONTHS,
   DEFAULT_STALE_DAYS,
+  readConsultationNotifications,
   readDefaultAssigneeId,
   readRegularCycle,
   readRetentionMonths,
   readStaleDays,
   readWebFormSettings,
 } from '@/lib/consultation/constants'
+import { getPurgeSchedule } from '@/lib/consultation/purge'
 import { getAssigneeOptions } from '@/lib/consultation/queries'
 import { readRiskSettings } from '@/lib/consultation/risk-constants'
 import { prisma } from '@/lib/prisma/client'
@@ -28,7 +30,10 @@ export default async function ConsultationSettingsPage() {
   // 본원 먼저, 지점은 순서대로
   academies.sort((a, b) => (a.parentAcademyId ? 1 : 0) - (b.parentAcademyId ? 1 : 0))
 
-  const assigneeOptions = await Promise.all(academies.map((a) => getAssigneeOptions(actor, a.id)))
+  const [assigneeOptions, purgeSchedule] = await Promise.all([
+    Promise.all(academies.map((a) => getAssigneeOptions(actor, a.id))),
+    getPurgeSchedule(actor),
+  ])
   const main = academies.find((a) => a.id === actor.academyId) ?? academies[0]
 
   const items: AcademyConsultationSettings[] = academies.map((a, i) => ({
@@ -49,6 +54,9 @@ export default async function ConsultationSettingsPage() {
         retentionMonths: readRetentionMonths(main?.settingsJson) ?? DEFAULT_RETENTION_MONTHS,
       }}
       risk={readRiskSettings(main?.settingsJson)}
+      notifications={readConsultationNotifications(main?.settingsJson)}
+      purgeSchedule={purgeSchedule}
+      showAcademyLabel={academies.length > 1}
       academies={items}
     />
   )

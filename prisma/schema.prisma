@@ -231,6 +231,13 @@ enum LostReason {
 enum LeadActivityType {
   WEB_INQUIRY // 웹 상담신청 (신규 문의 생성)
   WEB_REINQUIRY // 웹 재문의 (동일 연락처 기존 문의에 추가)
+  RETENTION_EXTENDED // 개인정보 보관 연장 (학원장이 파기 예정 목록에서 연장)
+}
+
+/// 개인정보 파기 실행 방식
+enum LeadPurgeTrigger {
+  AUTO // 매일 예약 작업
+  MANUAL // 학원장 즉시 파기
 }
 
 enum ConsultationType {
@@ -350,6 +357,7 @@ model Academy {
   placementInvites       PlacementInvite[]
   placementAttempts      PlacementAttempt[]
   riskSnapshots          StudentRiskSnapshot[]
+  leadPurgeLogs          LeadPurgeLog[]
 
   @@index([parentAcademyId])
   @@map("academies")
@@ -1481,6 +1489,8 @@ model Lead {
   privacyConsentAt  DateTime?   @map("privacy_consent_at")
   lastActivityAt    DateTime    @default(now()) @map("last_activity_at") // 상담 기록·상태 변경·예약·할 일 (방치 판정용)
   webInquiryAt      DateTime?   @map("web_inquiry_at") // 확인 전 웹 신청(신규·재문의) 접수 시각 — 담당자/학원장이 상세를 열면 해제
+  /// 개인정보 파기 시각 — 이름·연락처·상담 내용은 지우고 통계용 필드(채널·유입경로·상태·사유·날짜·담당자)만 남김
+  purgedAt          DateTime?   @map("purged_at")
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
 
@@ -1501,7 +1511,7 @@ model Lead {
   @@index([academyId, status])
   @@index([assigneeId, createdAt])
   @@index([academyId, createdAt]) // 통계: 기간 내 생성 문의
-  @@index([academyId, lastActivityAt])
+  @@index([academyId, lastActivityAt]) // 방치 판정 · 개인정보 파기 대상 조회
   @@index([academyId, webInquiryAt])
   @@map("leads")
 }
@@ -1728,4 +1738,19 @@ model StudentRiskSnapshot {
 
   @@index([academyId, level])
   @@map("student_risk_snapshots")
+}
+
+/// 문의 개인정보 파기 실행 기록 (건수만 — 파기된 개인정보는 남기지 않음)
+model LeadPurgeLog {
+  id        String           @id @default(uuid())
+  academyId String           @map("academy_id")
+  trigger   LeadPurgeTrigger
+  count     Int
+  actorId   String?          @map("actor_id") // 즉시 파기한 학원장 (자동 파기는 null)
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  academy Academy @relation(fields: [academyId], references: [id], onDelete: Cascade)
+
+  @@index([academyId, createdAt])
+  @@map("lead_purge_logs")
 }

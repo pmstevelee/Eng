@@ -325,9 +325,9 @@ export const FOLLOW_UP_QUICK_DUE = [
 
 // ─── 상담관리 설정 · 웹 상담신청 폼 ─────────────────────────────────────────────
 
-/** 미등록 문의 개인정보 보관기간 (개월) — 3단계 E의 자동 파기 기준, 신청 폼 동의 문구에도 표시 */
+/** 미등록 문의 개인정보 보관기간 (개월) — 자동 파기 기준, 신청 폼 동의 문구에도 표시 */
 export const DEFAULT_RETENTION_MONTHS = 12
-export const RETENTION_MONTH_OPTIONS = [3, 6, 12, 24, 36]
+export const RETENTION_MONTH_OPTIONS = [6, 12, 24, 36]
 
 /** 12 → "1년", 6 → "6개월", 18 → "1년 6개월" */
 export function formatRetention(months: number): string {
@@ -448,11 +448,12 @@ export function sanitizeSource(v: string | null | undefined): string | null {
   return cleaned || null
 }
 
-export type LeadActivityTypeValue = 'WEB_INQUIRY' | 'WEB_REINQUIRY'
+export type LeadActivityTypeValue = 'WEB_INQUIRY' | 'WEB_REINQUIRY' | 'RETENTION_EXTENDED'
 
 export const LEAD_ACTIVITY_LABEL: Record<LeadActivityTypeValue, string> = {
   WEB_INQUIRY: '웹 상담신청',
   WEB_REINQUIRY: '웹 재문의',
+  RETENTION_EXTENDED: '개인정보 보관 연장',
 }
 
 /** 웹 신청 제출 내용 (LeadActivity.payload) */
@@ -464,4 +465,60 @@ export type WebInquiryPayload = {
   preferredSchedule?: string
   message?: string
   source?: string
+}
+
+// ─── 개인정보 보관기간 · 자동 파기 ──────────────────────────────────────────────
+
+/** 자동 파기 대상 상태 (등록 전환된 문의는 학생 정보로 관리되므로 제외) */
+export const PURGE_TARGET_STATUSES: LeadStatusValue[] = ['LOST', 'ON_HOLD']
+
+/** 파기 예정 목록에 미리 보여주는 기간 (일) */
+export const PURGE_NOTICE_DAYS = 30
+
+/** 파기된 문의의 학생 이름 자리 표시 */
+export const PURGED_LEAD_NAME = '(파기됨)'
+
+/** 마지막 활동일 + 보관기간 = 파기 예정일 (UTC 월 단위 계산) */
+export function addMonthsToDate(date: Date, months: number): Date {
+  const d = new Date(date)
+  const day = d.getUTCDate()
+  d.setUTCDate(1)
+  d.setUTCMonth(d.getUTCMonth() + months)
+  const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate()
+  d.setUTCDate(Math.min(day, last))
+  return d
+}
+
+// ─── 상담 알림 on/off ──────────────────────────────────────────────────────────
+
+export type ConsultationNotificationSettings = {
+  /** 상담 전날 학부모 리마인드 (예약 작업 자동 발송) */
+  appointmentReminder: boolean
+  /** 웹 상담신청 접수 시 학원장·담당자 앱 알림 */
+  staffWebInquiry: boolean
+}
+
+export const DEFAULT_CONSULTATION_NOTIFICATIONS: ConsultationNotificationSettings = {
+  appointmentReminder: true,
+  staffWebInquiry: true,
+}
+
+export const CONSULTATION_NOTIFICATION_LABEL: Record<keyof ConsultationNotificationSettings, { title: string; help: string }> = {
+  appointmentReminder: {
+    title: '상담 전날 리마인드',
+    help: '예약된 상담 전날 오전 10시에 보호자에게 알림톡(또는 문자)을 자동으로 보냅니다.',
+  },
+  staffWebInquiry: {
+    title: '웹 상담신청 앱 알림',
+    help: '상담신청 폼으로 신청·재문의가 들어오면 학원장과 담당자에게 앱 알림을 보냅니다.',
+  },
+}
+
+/** settingsJson.consultation.notifications (없는 값은 기본값 = 켜짐) */
+export function readConsultationNotifications(settingsJson: unknown): ConsultationNotificationSettings {
+  const raw = asObject(readConsultationObject(settingsJson)?.notifications) ?? {}
+  return {
+    appointmentReminder: raw.appointmentReminder !== false,
+    staffWebInquiry: raw.staffWebInquiry !== false,
+  }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma/client'
 import { addDaysToDateKey, kstDateStart, todayKst } from '@/lib/consultation/constants'
 import { notifyAppointment } from '@/lib/consultation/notify'
+import { runDailyLeadPurge } from '@/lib/consultation/purge'
 import { runDailyRiskCalculation } from '@/lib/consultation/risk-engine'
 
 export const dynamic = 'force-dynamic'
@@ -12,6 +13,7 @@ export const maxDuration = 300 // 5분
  * - 내일(KST) 예정된 상담 예약(문의·재원생)에 전날 리마인드 발송 (dedupeKey로 중복 방지, 취소 예약은 발송 직전 재확인)
  * - 기간이 지난 레벨테스트 응시 링크 만료 처리 (응시 중인 링크는 하루 유예)
  * - 재원생 퇴원 위험 신호 계산 (학원별 설정 기준, 학생별 스냅샷 교체)
+ * - 보관기간이 지난 미등록 문의(이탈·보류) 개인정보 파기 (학원별 건수 기록)
  */
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET
@@ -84,7 +86,24 @@ export async function GET(req: NextRequest) {
         .map((k) => `${r.academyId}:${k}`),
     )
 
+  const purgeResults = await runDailyLeadPurge()
+  const purge = {
+    academies: purgeResults.length,
+    purged: purgeResults.reduce((sum, r) => sum + r.purged, 0),
+  }
+
   console.log(`[cron/consultation] ${tomorrow} 리마인드`, summary, `링크 만료 ${expired.count}건`, '위험 신호', risk)
   if (noData.length > 0) console.log('[cron/consultation] 데이터 부족으로 판정 불가한 기준', noData)
-  return NextResponse.json({ date: tomorrow, reminders: summary, expiredInvites: expired.count, risk, riskNoData: noData })
+  console.log(
+    `[cron/consultation] 개인정보 파기 ${purge.purged}건`,
+    purgeResults.filter((r) => r.purged > 0).map((r) => `${r.academyId}:${r.purged}`),
+  )
+  return NextResponse.json({
+    date: tomorrow,
+    reminders: summary,
+    expiredInvites: expired.count,
+    risk,
+    riskNoData: noData,
+    purge,
+  })
 }

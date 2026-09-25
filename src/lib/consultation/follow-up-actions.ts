@@ -5,7 +5,7 @@ import type { Prisma } from '@/generated/prisma'
 import { prisma } from '@/lib/prisma/client'
 import { findScopedLead, getConsultationActor, isValidAssignee, leadScopeWhere, type ConsultationActor } from './access'
 import { countNewWebInquiries } from './queries'
-import { STALE_DAY_OPTIONS, addDaysToDateKey, isDateKey, kstDateStart, todayKst } from './constants'
+import { addDaysToDateKey, isDateKey, kstDateStart, todayKst } from './constants'
 
 type ActionResult<T = object> = ({ error: string } & Partial<T>) | ({ error?: undefined } & T)
 
@@ -136,36 +136,4 @@ function countOverdueTasks(actor: ConsultationActor): Promise<number> {
       dueAt: { lt: kstDateStart(todayKst()) },
     },
   })
-}
-
-/** 방치 기준 일수 변경 — 학원장, 본원·지점 전체에 적용 */
-export async function updateStaleDays(days: number): Promise<ActionResult> {
-  const actor = await getConsultationActor()
-  if (!actor || actor.role !== 'ACADEMY_OWNER') return { error: NO_PERMISSION }
-  if (!STALE_DAY_OPTIONS.includes(days)) return { error: '기준 일수를 선택해주세요.' }
-
-  const academies = await prisma.academy.findMany({
-    where: { id: { in: actor.academyIds } },
-    select: { id: true, settingsJson: true },
-  })
-
-  await prisma.$transaction(
-    academies.map((a) => {
-      const settings =
-        a.settingsJson && typeof a.settingsJson === 'object' && !Array.isArray(a.settingsJson)
-          ? (a.settingsJson as Prisma.JsonObject)
-          : {}
-      const consultation =
-        settings.consultation && typeof settings.consultation === 'object' && !Array.isArray(settings.consultation)
-          ? (settings.consultation as Prisma.JsonObject)
-          : {}
-      return prisma.academy.update({
-        where: { id: a.id },
-        data: { settingsJson: { ...settings, consultation: { ...consultation, staleDays: days } } },
-      })
-    }),
-  )
-
-  revalidateConsultation()
-  return {}
 }

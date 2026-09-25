@@ -6,6 +6,8 @@ import QRCode from 'qrcode'
 import { Check, Copy, Download, ExternalLink, Loader2 } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import {
+  CONSULTATION_NOTIFICATION_LABEL,
+  PURGE_NOTICE_DAYS,
   REGULAR_CYCLE_LABEL,
   RETENTION_MONTH_OPTIONS,
   SLUG_RULE_TEXT,
@@ -16,6 +18,7 @@ import {
   formatRetention,
   isValidSlug,
   sanitizeSource,
+  type ConsultationNotificationSettings,
   type RegularCycleValue,
   type WebFormSettings,
 } from '@/lib/consultation/constants'
@@ -29,12 +32,15 @@ import {
   type RiskCriterionKey,
   type RiskSettings,
 } from '@/lib/consultation/risk-constants'
+import type { PurgeSchedule } from '@/lib/consultation/purge'
 import {
   updateAcademyConsultationSettings,
   updateConsultationGeneralSettings,
+  updateConsultationNotificationSettings,
   updateRiskSettings,
 } from '@/lib/consultation/settings-actions'
 import { cn } from '@/lib/utils'
+import { PurgeScheduleCard } from './purge-schedule-card'
 
 export type AcademyConsultationSettings = {
   id: string
@@ -50,6 +56,9 @@ type Props = {
   baseUrl: string
   general: { staleDays: number; retentionMonths: number }
   risk: RiskSettings
+  notifications: ConsultationNotificationSettings
+  purgeSchedule: PurgeSchedule
+  showAcademyLabel: boolean
   academies: AcademyConsultationSettings[]
 }
 
@@ -89,14 +98,25 @@ function SaveRow({ pending, message, onSave }: { pending: boolean; message: { ok
   )
 }
 
-export function ConsultationSettingsClient({ baseUrl, general, risk, academies }: Props) {
+export function ConsultationSettingsClient({
+  baseUrl,
+  general,
+  risk,
+  notifications,
+  purgeSchedule,
+  showAcademyLabel,
+  academies,
+}: Props) {
   const [activeId, setActiveId] = useState(academies[0]?.id ?? '')
   const active = academies.find((a) => a.id === activeId) ?? academies[0]
 
   return (
     <div className="space-y-6">
-      <GeneralSettings initial={general} />
+      <StaleSettingsCard initial={general.staleDays} />
       <RiskSettingsCard initial={risk} />
+      <NotificationSettingsCard initial={notifications} />
+      <RetentionSettingsCard initial={general.retentionMonths} />
+      <PurgeScheduleCard data={purgeSchedule} retentionMonths={general.retentionMonths} showAcademy={showAcademyLabel} />
 
       {academies.length > 1 && (
         <nav className="flex gap-1 overflow-x-auto overflow-y-hidden border-b border-gray-200" aria-label="학원 선택">
@@ -125,61 +145,124 @@ export function ConsultationSettingsClient({ baseUrl, general, risk, academies }
 
 // ─── 공통 설정 ─────────────────────────────────────────────────────────────────
 
-function GeneralSettings({ initial }: { initial: Props['general'] }) {
+function useSave() {
   const router = useRouter()
-  const [staleDays, setStaleDays] = useState(initial.staleDays)
-  const [retentionMonths, setRetentionMonths] = useState(initial.retentionMonths)
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const [pending, startTransition] = useTransition()
 
-  function save() {
+  function save(action: () => Promise<{ error?: string }>, okText = '저장되었습니다.') {
     setMessage(null)
     startTransition(async () => {
-      const res = await updateConsultationGeneralSettings({ staleDays, retentionMonths })
+      const res = await action()
       if (res.error) setMessage({ ok: false, text: res.error })
       else {
-        setMessage({ ok: true, text: '저장되었습니다.' })
+        setMessage({ ok: true, text: okText })
         router.refresh()
       }
     })
   }
+  return { message, pending, save }
+}
+
+function StaleSettingsCard({ initial }: { initial: number }) {
+  const [staleDays, setStaleDays] = useState(initial)
+  const { message, pending, save } = useSave()
 
   return (
-    <SectionCard title="공통 설정" description="본원과 모든 지점에 함께 적용됩니다.">
-      <div className="grid gap-5 md:grid-cols-2">
-        <div>
-          <label htmlFor="stale-days" className="block text-sm font-semibold text-gray-900 mb-1.5">
-            방치 표시 기준
-          </label>
-          <select id="stale-days" className={selectClass} value={staleDays} onChange={(e) => setStaleDays(Number(e.target.value))}>
-            {STALE_DAY_OPTIONS.map((d) => (
-              <option key={d} value={d}>
-                마지막 활동 후 {d}일
-              </option>
-            ))}
-          </select>
-          <p className="text-xs text-gray-500 mt-1.5">이 기간 동안 활동이 없는 문의에 &lsquo;방치&rsquo; 표시를 합니다.</p>
-        </div>
-        <div>
-          <label htmlFor="retention" className="block text-sm font-semibold text-gray-900 mb-1.5">
-            미등록 문의 개인정보 보관 기간
-          </label>
-          <select
-            id="retention"
-            className={selectClass}
-            value={retentionMonths}
-            onChange={(e) => setRetentionMonths(Number(e.target.value))}
-          >
-            {RETENTION_MONTH_OPTIONS.map((m) => (
-              <option key={m} value={m}>
-                상담 종료 후 {formatRetention(m)}
-              </option>
-            ))}
-          </select>
-          <p className="text-xs text-gray-500 mt-1.5">상담신청 폼의 개인정보 동의 문구(보유 기간)에 자동으로 표시됩니다.</p>
-        </div>
+    <SectionCard title="방치 표시 기준" description="본원과 모든 지점에 함께 적용됩니다.">
+      <div className="max-w-sm">
+        <label htmlFor="stale-days" className="sr-only">
+          방치 표시 기준
+        </label>
+        <select id="stale-days" className={selectClass} value={staleDays} onChange={(e) => setStaleDays(Number(e.target.value))}>
+          {STALE_DAY_OPTIONS.map((d) => (
+            <option key={d} value={d}>
+              마지막 활동 후 {d}일
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-500 mt-1.5">이 기간 동안 활동이 없는 문의에 &lsquo;방치&rsquo; 표시를 합니다.</p>
       </div>
-      <SaveRow pending={pending} message={message} onSave={save} />
+      <SaveRow pending={pending} message={message} onSave={() => save(() => updateConsultationGeneralSettings({ staleDays }))} />
+    </SectionCard>
+  )
+}
+
+function RetentionSettingsCard({ initial }: { initial: number }) {
+  const [retentionMonths, setRetentionMonths] = useState(initial)
+  const { message, pending, save } = useSave()
+
+  return (
+    <SectionCard
+      title="개인정보 보관기간"
+      description="등록하지 않은 문의(이탈·보류)의 개인정보를 마지막 활동일로부터 이 기간 동안 보관한 뒤 매일 자동으로 파기합니다. 본원과 모든 지점에 함께 적용됩니다."
+    >
+      <p className="rounded-xl bg-accent-gold-light px-4 py-3 text-sm text-gray-900">
+        학원의 개인정보 처리방침과 일치하도록 설정하세요.
+      </p>
+      <div className="max-w-sm">
+        <label htmlFor="retention" className="block text-sm font-semibold text-gray-900 mb-1.5">
+          미등록 문의자 정보 보관기간
+        </label>
+        <select
+          id="retention"
+          className={selectClass}
+          value={retentionMonths}
+          onChange={(e) => setRetentionMonths(Number(e.target.value))}
+        >
+          {RETENTION_MONTH_OPTIONS.map((m) => (
+            <option key={m} value={m}>
+              마지막 활동 후 {formatRetention(m)}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-500 mt-1.5">상담신청 폼의 개인정보 동의 문구(보유 기간)에도 자동으로 표시됩니다.</p>
+      </div>
+      <ul className="text-xs text-gray-500 space-y-1 list-disc list-inside">
+        <li>파기되는 정보: 학생·보호자 이름, 연락처, 학교, 상담 기록 내용·메모, 웹 신청 내용, 알림 발송 연락처</li>
+        <li>통계용으로 남는 정보: 채널, 유입경로, 상태, 이탈 사유, 날짜, 담당자</li>
+        <li>등록 전환된 문의는 학생 정보로 관리되어 파기 대상이 아닙니다.</li>
+      </ul>
+      <SaveRow
+        pending={pending}
+        message={message}
+        onSave={() =>
+          save(
+            () => updateConsultationGeneralSettings({ retentionMonths }),
+            `저장되었습니다. 파기 예정 목록(${PURGE_NOTICE_DAYS}일 이내)도 새 기준으로 다시 계산됩니다.`,
+          )
+        }
+      />
+    </SectionCard>
+  )
+}
+
+function NotificationSettingsCard({ initial }: { initial: ConsultationNotificationSettings }) {
+  const [value, setValue] = useState(initial)
+  const { message, pending, save } = useSave()
+  const keys = Object.keys(CONSULTATION_NOTIFICATION_LABEL) as (keyof ConsultationNotificationSettings)[]
+
+  return (
+    <SectionCard
+      title="알림"
+      description="자동으로 보내는 알림을 켜고 끕니다. 웹 신청 접수 확인 알림은 학원별 '웹 상담신청 폼'에서 설정합니다."
+    >
+      <div className="divide-y divide-gray-100">
+        {keys.map((key) => (
+          <div key={key} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{CONSULTATION_NOTIFICATION_LABEL[key].title}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{CONSULTATION_NOTIFICATION_LABEL[key].help}</p>
+            </div>
+            <Switch
+              checked={value[key]}
+              onCheckedChange={(on) => setValue((v) => ({ ...v, [key]: on }))}
+              aria-label={CONSULTATION_NOTIFICATION_LABEL[key].title}
+            />
+          </div>
+        ))}
+      </div>
+      <SaveRow pending={pending} message={message} onSave={() => save(() => updateConsultationNotificationSettings(value))} />
     </SectionCard>
   )
 }
