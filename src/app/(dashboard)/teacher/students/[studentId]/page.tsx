@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpen, FileDown, MessagesSquare } from 'lucide-react'
 import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { StudentConsultationPanel } from '@/components/shared/consultation/student-consultation-panel'
 import { StudentDetailClient } from './student-detail-client'
 import { getPromotionProgress } from '@/lib/assessment/promotion-engine'
 import { getStudentWordDetail } from '@/lib/words/student-word-stats'
@@ -94,8 +95,10 @@ const getStudentDetailData = (studentId: string, teacherId: string) =>
 
 export default async function StudentDetailPage({
   params,
+  searchParams,
 }: {
   params: { studentId: string }
+  searchParams: { tab?: string }
 }) {
   const user = await getCurrentUser()
   if (!user || user.role !== 'TEACHER' || !user.academyId) redirect('/login')
@@ -201,6 +204,8 @@ export default async function StudentDetailPage({
         levelAssessments={serializedLevelAssessments}
         promotionProgress={promotionProgress}
         wordDetail={wordDetail}
+        initialTab={searchParams.tab === 'consultation' ? 'consultation' : undefined}
+        consultation={<StudentConsultationPanel studentId={student.id} />}
       />
     </div>
   )

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { AlertTriangle, CalendarClock } from 'lucide-react'
 import {
   createAppointment,
+  createStudentAppointment,
   rescheduleAppointment,
   type AppointmentConflict,
 } from '@/lib/consultation/appointment-actions'
@@ -19,9 +20,11 @@ import { Field, FormActions, FormError, ModalShell, inputClass } from './modal-s
 
 type Option = { id: string; name: string }
 
-type Props = {
-  leadId: string
+/** 문의 예약(leadId) 또는 재원생 예약(studentId) */
+type Props = ({ leadId: string; studentId?: undefined } | { studentId: string; leadId?: undefined }) & {
   studentName: string
+  /** 알림을 보낼 수 없는 경우 안내 (예: 재원생 학부모 연락처 없음) — 체크박스 비활성 */
+  notifyUnavailableReason?: string
   /** 일정 변경 시 기존 예약 */
   reschedule?: { id: string; scheduledAt: string; durationMinutes: number; counselorId: string | null }
   /** 학원장만: 상담 담당자 선택지 (교사는 본인 고정이라 빈 배열) */
@@ -48,7 +51,7 @@ export function AppointmentFormDialog(props: Props) {
     time: TIME_OPTIONS.includes(initTime) ? initTime : '15:00',
     durationMinutes: init?.durationMinutes ?? 30,
     counselorId: init?.counselorId ?? props.defaultCounselorId ?? '',
-    notifyParent: true,
+    notifyParent: !props.notifyUnavailableReason,
   })
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
     setForm((f) => ({ ...f, [key]: value }))
@@ -70,7 +73,11 @@ export function AppointmentFormDialog(props: Props) {
         confirmOverlap,
         notifyParent: form.notifyParent,
       }
-      const result = init ? await rescheduleAppointment(init.id, input) : await createAppointment(props.leadId, input)
+      const result = init
+        ? await rescheduleAppointment(init.id, input)
+        : props.leadId !== undefined
+          ? await createAppointment(props.leadId, input)
+          : await createStudentAppointment(props.studentId, input)
       if (result.error) {
         setError(result.error)
         return
@@ -148,16 +155,19 @@ export function AppointmentFormDialog(props: Props) {
           )}
         </div>
 
-        <label className="flex items-center gap-3 min-h-11 rounded-xl border border-gray-200 px-3 cursor-pointer">
+        <label className="flex items-center gap-3 min-h-11 rounded-xl border border-gray-200 px-3 cursor-pointer has-[:disabled]:cursor-not-allowed has-[:disabled]:bg-gray-50">
           <input
             type="checkbox"
+            disabled={!!props.notifyUnavailableReason}
             checked={form.notifyParent}
             onChange={(e) => setForm((f) => ({ ...f, notifyParent: e.target.checked }))}
             className="w-5 h-5 rounded accent-primary-700"
           />
           <span className="text-sm text-gray-900">
             학부모에게 {init ? '변경된 일정' : '예약 확정'} 알림 발송
-            <span className="block text-xs text-gray-500">카카오 알림톡 (실패 시 문자로 대체발송)</span>
+            <span className="block text-xs text-gray-500">
+              {props.notifyUnavailableReason ?? '카카오 알림톡 (실패 시 문자로 대체발송)'}
+            </span>
           </span>
         </label>
 

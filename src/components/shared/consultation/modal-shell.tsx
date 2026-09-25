@@ -10,7 +10,7 @@ type ModalShellProps = {
   icon?: LucideIcon
   onClose: () => void
   children: React.ReactNode
-  size?: 'md' | 'lg'
+  size?: 'md' | 'lg' | 'xl'
 }
 
 /** 상담관리 다이얼로그 공통 틀 (기존 학생 추가 다이얼로그와 동일한 스타일) */
@@ -36,7 +36,7 @@ export function ModalShell({ title, icon: Icon, onClose, children, size = 'md' }
         aria-label={title}
         className={cn(
           'bg-white rounded-t-2xl sm:rounded-2xl w-full sm:mx-4 max-h-[92vh] flex flex-col border border-gray-200',
-          size === 'md' ? 'sm:max-w-md' : 'sm:max-w-2xl',
+          size === 'md' ? 'sm:max-w-md' : size === 'lg' ? 'sm:max-w-2xl' : 'sm:max-w-5xl',
         )}
       >
         <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-200 shrink-0">

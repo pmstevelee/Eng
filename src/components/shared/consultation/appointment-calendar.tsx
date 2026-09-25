@@ -176,7 +176,6 @@ export function AppointmentCalendar(props: Props) {
       {(view === 'week' || view === null) && (
         <div className={cn(view === null && 'hidden md:block')}>
           <WeekGrid
-            basePath={props.basePath}
             today={props.today}
             weekDays={weekDays}
             byDate={byDate}
@@ -271,14 +270,12 @@ function layoutDay(items: AppointmentCalendarItem[]): Positioned[] {
 }
 
 function WeekGrid({
-  basePath,
   today,
   weekDays,
   byDate,
   showCounselor,
   onSelectDay,
 }: {
-  basePath: string
   today: string
   weekDays: string[]
   byDate: Map<string, AppointmentCalendarItem[]>
@@ -338,7 +335,6 @@ function WeekGrid({
               {layoutDay(byDate.get(d) ?? []).map(({ item, top, height, lane, lanes }) => (
                 <AppointmentBlock
                   key={item.id}
-                  basePath={basePath}
                   item={item}
                   showCounselor={showCounselor}
                   style={{
@@ -358,12 +354,10 @@ function WeekGrid({
 }
 
 function AppointmentBlock({
-  basePath,
   item,
   showCounselor,
   style,
 }: {
-  basePath: string
   item: AppointmentCalendarItem
   showCounselor: boolean
   style: React.CSSProperties
@@ -371,7 +365,7 @@ function AppointmentBlock({
   const className = cn(
     'absolute rounded-md border-l-4 px-1.5 py-1 text-xs overflow-hidden leading-tight',
     BLOCK_STYLE[item.status],
-    item.canOpen && 'hover:ring-2 hover:ring-primary-700',
+    item.openHref && 'hover:ring-2 hover:ring-primary-700',
   )
   const title = `${formatKstTime(item.scheduledAt)} ${item.studentName} (${APPOINTMENT_STATUS_LABEL[item.status]})`
   const content = (
@@ -383,8 +377,8 @@ function AppointmentBlock({
       </p>
     </>
   )
-  return item.canOpen ? (
-    <Link href={`${basePath}/${item.leadId}`} className={className} style={style} title={title}>
+  return item.openHref ? (
+    <Link href={item.openHref} className={className} style={style} title={title}>
       {content}
     </Link>
   ) : (
@@ -475,7 +469,7 @@ function DayList({
                     {a.grade && <span className="ml-1.5 text-xs text-gray-500 font-normal">{a.grade}</span>}
                   </p>
                   <p className="text-xs text-gray-500 truncate">
-                    {LEAD_STATUS_LABEL[a.leadStatus]}
+                    {a.leadStatus ? LEAD_STATUS_LABEL[a.leadStatus] : '재원생'}
                     {showCounselor && ` · ${a.counselorName ?? '(삭제된 사용자)'}`}
                   </p>
                 </div>
@@ -484,8 +478,8 @@ function DayList({
             )
             return (
               <li key={a.id}>
-                {a.canOpen ? (
-                  <Link href={`${basePath}/${a.leadId}`} className="block hover:bg-gray-50">
+                {a.openHref ? (
+                  <Link href={a.openHref} className="block hover:bg-gray-50">
                     {body}
                   </Link>
                 ) : (

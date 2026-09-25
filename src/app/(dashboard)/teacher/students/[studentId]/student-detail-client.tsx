@@ -32,6 +32,7 @@ import {
   SpellCheck,
   Star,
   Flame,
+  MessagesSquare,
 } from 'lucide-react'
 import { saveTeacherComment, updateAttendance, regenerateLearningPath, overrideStudentLevel, deployLevelTestToStudent } from '../actions'
 import type { PromotionProgress } from '@/lib/assessment/promotion-engine'
@@ -1373,6 +1374,7 @@ const TABS = [
   { id: 'path', label: '학습 경로', icon: BookOpen },
   { id: 'comment', label: '교사 코멘트', icon: MessageSquare },
   { id: 'attendance', label: '출석', icon: Calendar },
+  { id: 'consultation', label: '상담', icon: MessagesSquare },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -1389,6 +1391,8 @@ export function StudentDetailClient({
   levelAssessments,
   promotionProgress,
   wordDetail,
+  initialTab,
+  consultation,
 }: {
   studentId: string
   studentName: string
@@ -1401,8 +1405,11 @@ export function StudentDetailClient({
   levelAssessments: LevelAssessmentData[]
   promotionProgress: PromotionProgress
   wordDetail: StudentWordDetail
+  initialTab?: TabId
+  /** 상담 탭 내용 (서버 컴포넌트에서 렌더링) */
+  consultation: React.ReactNode
 }) {
-  const [activeTab, setActiveTab] = useState<TabId>('score')
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab ?? 'score')
 
   return (
     <div className="space-y-4">
@@ -1446,6 +1453,7 @@ export function StudentDetailClient({
       {activeTab === 'attendance' && (
         <AttendanceTab studentId={studentId} classId={classId} attendance={attendance} />
       )}
+      {activeTab === 'consultation' && consultation}
     </div>
   )
 }

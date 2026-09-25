@@ -3,7 +3,14 @@
 import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
-import { findScopedLead, getConsultationActor, isValidAssignee, leadScopeWhere, type ConsultationActor } from './access'
+import {
+  appointmentScopeWhere,
+  findScopedLead,
+  findScopedStudent,
+  getConsultationActor,
+  isValidAssignee,
+  type ConsultationActor,
+} from './access'
 import { APPOINTMENT_DURATION_OPTIONS, formatKstDateTime } from './constants'
 import { notifyAppointment } from './notify'
 
@@ -11,11 +18,17 @@ type ActionResult<T = object> = ({ error: string } & Partial<T>) | ({ error?: un
 
 const NO_PERMISSION = '권한이 없습니다.'
 const NOT_FOUND = '문의를 찾을 수 없거나 접근 권한이 없습니다.'
+const STUDENT_NOT_FOUND = '학생을 찾을 수 없거나 접근 권한이 없습니다.'
 const APPOINTMENT_NOT_FOUND = '예약을 찾을 수 없거나 접근 권한이 없습니다.'
 
 function revalidateConsultation() {
   revalidatePath('/owner/consultations', 'layout')
   revalidatePath('/teacher/consultations', 'layout')
+}
+
+function revalidateStudent(studentId: string) {
+  revalidatePath(`/owner/students/${studentId}`)
+  revalidatePath(`/teacher/students/${studentId}`)
 }
 
 export type AppointmentInput = {
@@ -71,37 +84,49 @@ async function findConflicts(data: ParsedAppointment, excludeId?: string): Promi
       scheduledAt: { gt: new Date(start - maxDuration * 60_000), lt: new Date(end) },
       ...(excludeId ? { id: { not: excludeId } } : {}),
     },
-    select: { id: true, scheduledAt: true, durationMinutes: true, lead: { select: { studentName: true } } },
+    select: {
+      id: true,
+      scheduledAt: true,
+      durationMinutes: true,
+      lead: { select: { studentName: true } },
+      student: { select: { user: { select: { name: true } } } },
+    },
     orderBy: { scheduledAt: 'asc' },
   })
   return rows
     .filter((r) => r.scheduledAt.getTime() + r.durationMinutes * 60_000 > start)
     .map((r) => ({
       id: r.id,
-      studentName: r.lead.studentName,
+      studentName: r.lead?.studentName ?? r.student?.user.name ?? '',
       scheduledAt: r.scheduledAt.toISOString(),
       durationMinutes: r.durationMinutes,
     }))
 }
 
-/** 문의 마지막 활동 시각 갱신 (방치 판정용) */
-function touchLead(leadId: string) {
-  return prisma.lead.update({ where: { id: leadId }, data: { lastActivityAt: new Date() } })
+/** 문의 마지막 활동 시각 갱신 (방치 판정용) — 재원생 예약은 해당 없음 */
+function touchLead(leadId: string | null) {
+  return leadId ? [prisma.lead.update({ where: { id: leadId }, data: { lastActivityAt: new Date() } })] : []
 }
 
-/** 권한 범위 안의 예약 1건 */
+/** 권한 범위 안의 예약 1건 (문의 예약 또는 재원생 예약) */
 async function findScopedAppointment(actor: ConsultationActor, appointmentId: string) {
-  return prisma.consultationAppointment.findFirst({
-    where: { id: appointmentId, lead: leadScopeWhere(actor) },
+  const row = await prisma.consultationAppointment.findFirst({
+    where: { id: appointmentId, ...appointmentScopeWhere(actor) },
     select: {
       id: true,
       status: true,
       scheduledAt: true,
       durationMinutes: true,
       counselorId: true,
-      lead: { select: { id: true, academyId: true, status: true, studentId: true } },
+      leadId: true,
+      studentId: true,
+      lead: { select: { academyId: true } },
+      student: { select: { user: { select: { academyId: true } } } },
     },
   })
+  const academyId = row?.lead?.academyId ?? row?.student?.user.academyId
+  if (!row || !academyId) return null
+  return { ...row, academyId }
 }
 
 // ─── 예약 생성 ─────────────────────────────────────────────────────────────────
@@ -142,6 +167,31 @@ export async function createAppointment(leadId: string, input: AppointmentInput)
   return { notifyError }
 }
 
+/** 재원생 상담 예약 */
+export async function createStudentAppointment(studentId: string, input: AppointmentInput): Promise<SaveResult> {
+  const actor = await getConsultationActor()
+  if (!actor) return { error: NO_PERMISSION }
+
+  const student = await findScopedStudent(actor, studentId)
+  if (!student) return { error: STUDENT_NOT_FOUND }
+
+  const parsed = await parseAppointmentInput(actor, student.academyId, input)
+  if ('error' in parsed) return { error: parsed.error }
+
+  if (!input.confirmOverlap) {
+    const conflicts = await findConflicts(parsed.data)
+    if (conflicts.length > 0) return { conflicts }
+  }
+
+  const appointmentId = randomUUID()
+  await prisma.consultationAppointment.create({ data: { ...parsed.data, id: appointmentId, studentId: student.id } })
+
+  const notifyError = input.notifyParent ? await sendConfirmation(appointmentId) : undefined
+  revalidateConsultation()
+  revalidateStudent(student.id)
+  return { notifyError }
+}
+
 // ─── 일정 변경 / 취소 / 노쇼 ───────────────────────────────────────────────────
 
 /** 일정 변경: 기존 예약은 취소 처리하고 새 예약에 이전 예약을 연결 */
@@ -154,7 +204,7 @@ export async function rescheduleAppointment(appointmentId: string, input: Appoin
   if (current.status !== 'SCHEDULED') return { error: '예정된 예약만 일정을 변경할 수 있습니다.' }
 
   // 학원장이 지정하지 않으면 기존 담당자 유지
-  const parsed = await parseAppointmentInput(actor, current.lead.academyId, {
+  const parsed = await parseAppointmentInput(actor, current.academyId, {
     ...input,
     counselorId: input.counselorId ?? current.counselorId ?? undefined,
   })
@@ -169,13 +219,20 @@ export async function rescheduleAppointment(appointmentId: string, input: Appoin
   await prisma.$transaction([
     prisma.consultationAppointment.update({ where: { id: current.id, status: 'SCHEDULED' }, data: { status: 'CANCELED' } }),
     prisma.consultationAppointment.create({
-      data: { ...parsed.data, id: newAppointmentId, leadId: current.lead.id, rescheduledFromId: current.id },
+      data: {
+        ...parsed.data,
+        id: newAppointmentId,
+        leadId: current.leadId,
+        studentId: current.studentId,
+        rescheduledFromId: current.id,
+      },
     }),
-    touchLead(current.lead.id),
+    ...touchLead(current.leadId),
   ])
 
   const notifyError = input.notifyParent ? await sendConfirmation(newAppointmentId) : undefined
   revalidateConsultation()
+  if (current.studentId) revalidateStudent(current.studentId)
   return { notifyError }
 }
 
@@ -189,9 +246,10 @@ export async function cancelAppointment(appointmentId: string): Promise<ActionRe
 
   await prisma.$transaction([
     prisma.consultationAppointment.update({ where: { id: current.id, status: 'SCHEDULED' }, data: { status: 'CANCELED' } }),
-    touchLead(current.lead.id),
+    ...touchLead(current.leadId),
   ])
   revalidateConsultation()
+  if (current.studentId) revalidateStudent(current.studentId)
   return {}
 }
 
@@ -209,8 +267,9 @@ export async function markAppointmentNoShow(appointmentId: string): Promise<Acti
 
   await prisma.$transaction([
     prisma.consultationAppointment.update({ where: { id: current.id, status: 'SCHEDULED' }, data: { status: 'NO_SHOW' } }),
-    touchLead(current.lead.id),
+    ...touchLead(current.leadId),
   ])
   revalidateConsultation()
+  if (current.studentId) revalidateStudent(current.studentId)
   return {}
 }

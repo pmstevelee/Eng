@@ -553,12 +553,12 @@ export type AppointmentCalendarItem = {
   status: AppointmentStatusValue
   counselorId: string | null
   counselorName: string | null
-  leadId: string
   studentName: string
   grade: string | null
-  leadStatus: LeadStatusValue
-  /** 문의 상세를 열 수 있는지 (교사는 본인 담당 문의만) */
-  canOpen: boolean
+  /** 문의 예약이면 문의 상태, 재원생 예약이면 null */
+  leadStatus: LeadStatusValue | null
+  /** 상세 화면 주소 (문의 상세 또는 학생 상세) — 열 권한이 없으면 null */
+  openHref: string | null
 }
 
 /**
@@ -574,17 +574,20 @@ export async function getAppointments(
   const start = kstDateStart(params.from)
   const end = new Date(kstDateStart(params.to).getTime() + 24 * 60 * 60 * 1000)
 
+  const academyIds =
+    actor.role === 'TEACHER'
+      ? [actor.academyId]
+      : (params.viewAcademyIds ?? actor.academyIds).filter((id) => actor.academyIds.includes(id))
+  // 문의 예약은 문의 소속 학원, 재원생 예약은 학생 소속 학원 기준
+  const academyWhere: Prisma.ConsultationAppointmentWhereInput = {
+    OR: [{ lead: { academyId: { in: academyIds } } }, { student: { user: { academyId: { in: academyIds } } } }],
+  }
   const where: Prisma.ConsultationAppointmentWhereInput =
     actor.role === 'TEACHER'
-      ? { counselorId: actor.userId, lead: { academyId: actor.academyId } }
-      : {
-          lead: {
-            academyId: {
-              in: (params.viewAcademyIds ?? actor.academyIds).filter((id) => actor.academyIds.includes(id)),
-            },
-          },
-          ...(params.counselorId ? { counselorId: params.counselorId } : {}),
-        }
+      ? { counselorId: actor.userId, ...academyWhere }
+      : { ...academyWhere, ...(params.counselorId ? { counselorId: params.counselorId } : {}) }
+  const consultationBase = actor.role === 'TEACHER' ? '/teacher/consultations' : '/owner/consultations'
+  const studentBase = actor.role === 'TEACHER' ? '/teacher/students' : '/owner/students'
 
   const rows = await prisma.consultationAppointment.findMany({
     where: { ...where, status: { not: 'CANCELED' }, scheduledAt: { gte: start, lt: end } },
@@ -598,6 +601,9 @@ export async function getAppointments(
       counselorId: true,
       counselor: { select: { name: true } },
       lead: { select: { id: true, studentName: true, grade: true, status: true, assigneeId: true } },
+      student: {
+        select: { id: true, grade: true, user: { select: { name: true } }, class: { select: { teacherId: true } } },
+      },
     },
   })
 
@@ -608,11 +614,16 @@ export async function getAppointments(
     status: r.status as AppointmentStatusValue,
     counselorId: r.counselorId,
     counselorName: r.counselor?.name ?? null,
-    leadId: r.lead.id,
-    studentName: r.lead.studentName,
-    grade: r.lead.grade,
-    leadStatus: r.lead.status as LeadStatusValue,
-    canOpen: actor.role === 'ACADEMY_OWNER' || r.lead.assigneeId === actor.userId,
+    studentName: r.lead?.studentName ?? r.student?.user.name ?? '',
+    grade: r.lead?.grade ?? r.student?.grade ?? null,
+    leadStatus: r.lead ? (r.lead.status as LeadStatusValue) : null,
+    openHref: r.lead
+      ? actor.role === 'ACADEMY_OWNER' || r.lead.assigneeId === actor.userId
+        ? `${consultationBase}/${r.lead.id}`
+        : null
+      : r.student && (actor.role === 'ACADEMY_OWNER' || r.student.class?.teacherId === actor.userId)
+        ? `${studentBase}/${r.student.id}${actor.role === 'TEACHER' ? '?tab=consultation' : '#consultation'}`
+        : null,
   }))
 }
 

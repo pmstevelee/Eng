@@ -10,7 +10,9 @@ import {
   STALE_DAY_OPTIONS,
   WEB_FORM_FIELD_KEYS,
   WEB_FORM_INTRO_MAX,
+  isRegularCycle,
   isValidSlug,
+  type RegularCycleValue,
   type WebFormSettings,
 } from './constants'
 
@@ -70,10 +72,11 @@ export async function updateConsultationGeneralSettings(input: {
 export type AcademyConsultationSettingsInput = {
   slug: string
   defaultAssigneeId: string
+  regularCycle: RegularCycleValue
   webForm: WebFormSettings
 }
 
-/** 학원별 설정 (신청 폼 주소·기본 담당자·웹 신청 폼) */
+/** 학원별 설정 (신청 폼 주소·기본 담당자·정기상담 주기·웹 신청 폼) */
 export async function updateAcademyConsultationSettings(
   academyId: string,
   input: AcademyConsultationSettingsInput,
@@ -86,6 +89,8 @@ export async function updateAcademyConsultationSettings(
   const slug = input.slug.trim().toLowerCase()
   if (slug && !isValidSlug(slug)) return { error: `신청 폼 주소는 ${SLUG_RULE_TEXT}로 입력해주세요.` }
   if (input.webForm.enabled && !slug) return { error: '신청 폼을 사용하려면 주소를 입력해주세요.' }
+
+  if (!isRegularCycle(input.regularCycle)) return { error: '정기상담 주기를 선택해주세요.' }
 
   const intro = input.webForm.intro.trim()
   if (intro.length > WEB_FORM_INTRO_MAX) return { error: `안내 문구는 ${WEB_FORM_INTRO_MAX}자 이내로 입력해주세요.` }
@@ -111,6 +116,7 @@ export async function updateAcademyConsultationSettings(
         slug: slug || null,
         settingsJson: mergeConsultation(academy.settingsJson, {
           defaultAssigneeId,
+          regularCycle: input.regularCycle,
           webForm: {
             enabled: input.webForm.enabled === true,
             intro,

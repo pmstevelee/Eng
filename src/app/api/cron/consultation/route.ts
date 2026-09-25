@@ -8,7 +8,7 @@ export const maxDuration = 300 // 5분
 
 /**
  * 상담관리 일일 작업 — Vercel Cron 매일 01:00 UTC (= 10:00 KST)
- * - 내일(KST) 예정된 상담 예약에 전날 리마인드 발송 (dedupeKey로 중복 방지, 취소 예약은 발송 직전 재확인)
+ * - 내일(KST) 예정된 상담 예약(문의·재원생)에 전날 리마인드 발송 (dedupeKey로 중복 방지, 취소 예약은 발송 직전 재확인)
  * - 기간이 지난 레벨테스트 응시 링크 만료 처리 (응시 중인 링크는 하루 유예)
  */
 export async function GET(req: NextRequest) {
@@ -29,7 +29,11 @@ export async function GET(req: NextRequest) {
     where: {
       status: 'SCHEDULED',
       scheduledAt: { gte: from, lt: to },
-      lead: { status: { notIn: ['ENROLLED', 'LOST'] } },
+      // 문의 예약: 등록·이탈 제외 / 재원생 예약: 퇴원 학생·학부모 연락처 없는 학생 제외
+      OR: [
+        { lead: { status: { notIn: ['ENROLLED', 'LOST'] } } },
+        { student: { status: { not: 'WITHDRAWN' }, parentPhone: { not: null } } },
+      ],
     },
     select: { id: true },
     orderBy: { scheduledAt: 'asc' },

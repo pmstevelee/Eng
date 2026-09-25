@@ -9,6 +9,7 @@ export type TemplateKey =
   | 'PLACEMENT_TEST_LINK'
   | 'PLACEMENT_TEST_RESULT'
   | 'INQUIRY_RECEIVED'
+  | 'STUDENT_REPORT'
 
 type TemplateDef<V extends string> = {
   label: string
@@ -96,6 +97,22 @@ export const NOTIFICATION_TEMPLATES = {
       '감사합니다.',
     ].join('\n'),
   },
+  STUDENT_REPORT: {
+    label: '학습 리포트 안내',
+    templateIdEnv: 'SOLAPI_TEMPLATE_STUDENT_REPORT',
+    variables: ['학원명', '학생명', '리포트링크'],
+    body: [
+      '[#{학원명}] 학습 리포트 안내',
+      '',
+      '안녕하세요, #{학원명}입니다.',
+      '#{학생명} 학생의 학습 리포트를 보내드립니다.',
+      '',
+      '■ 리포트 보기: #{리포트링크}',
+      '',
+      '리포트 링크는 발송일로부터 30일간 확인하실 수 있습니다.',
+      '궁금하신 점은 학원으로 문의해 주세요.',
+    ].join('\n'),
+  },
 } as const satisfies Record<TemplateKey, TemplateDef<string>>
 
 export type TemplateVariables<K extends TemplateKey> = Record<
@@ -109,6 +126,7 @@ export const TEMPLATE_LABEL: Record<TemplateKey, string> = {
   PLACEMENT_TEST_LINK: NOTIFICATION_TEMPLATES.PLACEMENT_TEST_LINK.label,
   PLACEMENT_TEST_RESULT: NOTIFICATION_TEMPLATES.PLACEMENT_TEST_RESULT.label,
   INQUIRY_RECEIVED: NOTIFICATION_TEMPLATES.INQUIRY_RECEIVED.label,
+  STUDENT_REPORT: NOTIFICATION_TEMPLATES.STUDENT_REPORT.label,
 }
 
 export function isTemplateKey(v: string): v is TemplateKey {

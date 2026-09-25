@@ -4,6 +4,7 @@ import { unstable_cache } from 'next/cache'
 import { ChevronLeft, BookOpen, FileDown, MessagesSquare } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { StudentConsultationPanel } from '@/components/shared/consultation/student-consultation-panel'
 import StudentDetailClient from './_components/student-detail-client'
 
 const getStudentDetail = (academyId: string, studentId: string) =>
@@ -186,6 +187,12 @@ export default async function StudentDetailPage({
       </div>
 
       <StudentDetailClient student={studentData} classes={classData} />
+
+      {/* 상담: 재원생 상담 기록·예약·학부모 리포트 (등록 전 문의 시절 기록 포함) */}
+      <section id="consultation" className="space-y-3 scroll-mt-4">
+        <h2 className="text-lg font-bold text-gray-900">상담</h2>
+        <StudentConsultationPanel studentId={student.id} />
+      </section>
     </div>
   )
 }

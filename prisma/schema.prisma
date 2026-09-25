@@ -236,6 +236,9 @@ enum LeadActivityType {
 enum ConsultationType {
   INITIAL // 신규 상담
   FOLLOW_UP // 추가 상담
+  REGULAR // 재원생 정기 상담
+  RETENTION // 퇴원 방지 상담
+  WITHDRAWAL // 퇴원 상담 (학생 상태는 변경하지 않음)
 }
 
 enum MessageChannel {
@@ -396,6 +399,8 @@ model Student {
   weeklyGoalTarget    Int           @default(20) @map("weekly_goal_target")
   weeklyGoalCurrent   Int           @default(0) @map("weekly_goal_current")
   weeklyGoalResetAt   DateTime      @default(now()) @map("weekly_goal_reset_at")
+  /// 학부모 연락처 (숫자만) — 상담 예약·리포트 알림 수신번호
+  parentPhone         String?       @map("parent_phone")
 
   user  User   @relation(fields: [userId], references: [id])
   class Class? @relation(fields: [classId], references: [id])
@@ -420,6 +425,9 @@ model Student {
   wordTestAttempts          WordTestAttempt[]
   wordSetAssignments        WordSetAssignment[]
   lead                      Lead?
+  consultations             Consultation[]
+  consultationAppointments  ConsultationAppointment[]
+  notificationLogs          NotificationLog[]
 
   @@index([classId])
   @@index([status])
@@ -1492,10 +1500,11 @@ model LeadActivity {
   @@map("lead_activities")
 }
 
-/// 상담 1회 기록
+/// 상담 1회 기록 — 문의(leadId) 또는 재원생(studentId) 중 하나는 반드시 있음 (DB CHECK 제약)
 model Consultation {
   id              String           @id @default(uuid())
-  leadId          String           @map("lead_id")
+  leadId          String?          @map("lead_id")
+  studentId       String?          @map("student_id")
   counselorId     String?          @map("counselor_id") // 상담자 계정 삭제 시에도 기록 유지
   consultedAt     DateTime         @map("consulted_at")
   type            ConsultationType @default(INITIAL)
@@ -1503,15 +1512,25 @@ model Consultation {
   prevAcademy     String?          @map("prev_academy") // 타 학원 경험
   goal            String? // 목표 (내신/수능/회화 등)
   parentNeeds     String?          @map("parent_needs") // 학부모 요구사항
-  memo            String?
+  memo            String? // 교사 내부 메모 (학부모 리포트에 절대 노출 금지)
+  /// 학부모 공유용 코멘트 (리포트에 노출)
+  parentComment   String?          @map("parent_comment")
+  /// 상담 시점 학습 요약 (LearningSummary) — 나중에 봐도 당시 수치 유지
+  reportSnapshot  Json?            @map("report_snapshot")
+  /// 학부모 공유 리포트 토큰 (추측 불가, 발급 후 30일 만료)
+  reportToken     String?          @unique @map("report_token")
+  reportExpiresAt DateTime?        @map("report_expires_at")
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
 
-  lead        Lead                     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  lead        Lead?                    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  student     Student?                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
   counselor   User?                    @relation("ConsultationCounselor", fields: [counselorId], references: [id], onDelete: SetNull)
   appointment ConsultationAppointment?
+  notificationLogs NotificationLog[]
 
   @@index([leadId, consultedAt])
+  @@index([studentId, consultedAt])
   @@index([counselorId])
   @@map("consultations")
 }
@@ -1532,10 +1551,11 @@ model LeadStatusHistory {
   @@map("lead_status_history")
 }
 
-/// 상담 예약 일정
+/// 상담 예약 일정 — 문의(leadId) 또는 재원생(studentId) 중 하나는 반드시 있음 (DB CHECK 제약)
 model ConsultationAppointment {
   id                String            @id @default(uuid())
-  leadId            String            @map("lead_id")
+  leadId            String?           @map("lead_id")
+  studentId         String?           @map("student_id")
   counselorId       String?           @map("counselor_id") // 상담자 계정 삭제 시에도 예약 이력 유지
   scheduledAt       DateTime          @map("scheduled_at")
   durationMinutes   Int               @default(30) @map("duration_minutes")
@@ -1545,7 +1565,8 @@ model ConsultationAppointment {
   createdAt         DateTime          @default(now()) @map("created_at")
   updatedAt         DateTime          @updatedAt @map("updated_at")
 
-  lead            Lead                     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  lead            Lead?                    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  student         Student?                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
   counselor       User?                    @relation("AppointmentCounselor", fields: [counselorId], references: [id], onDelete: SetNull)
   rescheduledFrom ConsultationAppointment? @relation("AppointmentReschedule", fields: [rescheduledFromId], references: [id], onDelete: SetNull)
   rescheduledTo   ConsultationAppointment? @relation("AppointmentReschedule")
@@ -1554,6 +1575,7 @@ model ConsultationAppointment {
 
   @@index([counselorId, scheduledAt])
   @@index([leadId, scheduledAt])
+  @@index([studentId, scheduledAt])
   @@index([scheduledAt, status])
   @@map("consultation_appointments")
 }
@@ -1586,7 +1608,9 @@ model NotificationLog {
   id            String            @id @default(uuid())
   academyId     String            @map("academy_id")
   leadId        String?           @map("lead_id")
+  studentId     String?           @map("student_id")
   appointmentId String?           @map("appointment_id")
+  consultationId String?          @map("consultation_id")
   phone         String // 수신번호 (숫자만)
   templateKey   String            @map("template_key")
   variables     Json
@@ -1601,9 +1625,12 @@ model NotificationLog {
 
   academy     Academy                  @relation(fields: [academyId], references: [id], onDelete: Cascade)
   lead        Lead?                    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  student     Student?                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
   appointment ConsultationAppointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  consultation Consultation?           @relation(fields: [consultationId], references: [id], onDelete: SetNull)
 
   @@index([leadId, createdAt])
+  @@index([studentId, createdAt])
   @@index([academyId, createdAt])
   @@map("notification_logs")
 }

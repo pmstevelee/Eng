@@ -78,3 +78,48 @@ export async function isValidAssignee(
   })
   return !!user
 }
+
+// ─── 재원생 상담 ───────────────────────────────────────────────────────────────
+
+/**
+ * 모든 재원생 상담 조회에 붙이는 권한 조건.
+ * - 학원장: 소유 학원(본원+지점) 소속 학생
+ * - 교사: 소속 학원 & 본인이 담당하는 반의 학생
+ */
+export function studentScopeWhere(actor: ConsultationActor): Prisma.StudentWhereInput {
+  if (actor.role === 'TEACHER') {
+    return { user: { academyId: actor.academyId, isDeleted: false }, class: { teacherId: actor.userId } }
+  }
+  return { user: { academyId: { in: actor.academyIds }, isDeleted: false } }
+}
+
+/** 상담 기록 권한 조건 — 문의 기록은 문의 권한, 재원생 기록은 학생 권한 기준 */
+export function consultationScopeWhere(actor: ConsultationActor): Prisma.ConsultationWhereInput {
+  return { OR: [{ lead: leadScopeWhere(actor) }, { student: studentScopeWhere(actor) }] }
+}
+
+/** 상담 예약 권한 조건 — 문의 예약은 문의 권한, 재원생 예약은 학생 권한 기준 */
+export function appointmentScopeWhere(actor: ConsultationActor): Prisma.ConsultationAppointmentWhereInput {
+  return { OR: [{ lead: leadScopeWhere(actor) }, { student: studentScopeWhere(actor) }] }
+}
+
+/** 권한 범위 안의 학생 1건 (없거나 권한 밖이면 null) */
+export async function findScopedStudent(actor: ConsultationActor, studentId: string) {
+  const student = await prisma.student.findFirst({
+    where: { id: studentId, ...studentScopeWhere(actor) },
+    select: {
+      id: true,
+      status: true,
+      parentPhone: true,
+      user: { select: { name: true, academyId: true } },
+    },
+  })
+  if (!student || !student.user.academyId) return null
+  return {
+    id: student.id,
+    status: student.status,
+    parentPhone: student.parentPhone,
+    name: student.user.name,
+    academyId: student.user.academyId,
+  }
+}

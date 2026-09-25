@@ -76,6 +76,32 @@ export const CONSULTATION_TYPE_LABEL: Record<ConsultationTypeValue, string> = {
   FOLLOW_UP: '추가 상담',
 }
 
+/** 재원생 상담 유형 (문의 상담은 CONSULTATION_TYPE_LABEL) */
+export type StudentConsultationTypeValue = 'REGULAR' | 'FOLLOW_UP' | 'RETENTION' | 'WITHDRAWAL'
+
+export const STUDENT_CONSULTATION_TYPE_LABEL: Record<StudentConsultationTypeValue, string> = {
+  REGULAR: '정기 상담',
+  FOLLOW_UP: '추가 상담',
+  RETENTION: '퇴원 방지 상담',
+  WITHDRAWAL: '퇴원 상담',
+}
+
+export type AnyConsultationTypeValue = ConsultationTypeValue | StudentConsultationTypeValue
+
+/** 타임라인 표시용 — 문의·재원생 상담 유형 전체 */
+export const ALL_CONSULTATION_TYPE_LABEL: Record<AnyConsultationTypeValue, string> = {
+  ...CONSULTATION_TYPE_LABEL,
+  ...STUDENT_CONSULTATION_TYPE_LABEL,
+}
+
+export const CONSULTATION_TYPE_BADGE: Record<AnyConsultationTypeValue, string> = {
+  INITIAL: 'bg-primary-100 text-primary-700',
+  FOLLOW_UP: 'bg-gray-100 text-gray-700',
+  REGULAR: 'bg-accent-green-light text-[#16803D]',
+  RETENTION: 'bg-accent-gold-light text-[#9A6B00]',
+  WITHDRAWAL: 'bg-accent-red-light text-accent-red',
+}
+
 export const GRADE_OPTIONS = [
   '미취학',
   '초1', '초2', '초3', '초4', '초5', '초6',
@@ -227,6 +253,21 @@ export function addDaysToDateKey(date: string, days: number): string {
   return new Date(kstDateStart(date).getTime() + days * DAY_MS + KST_OFFSET_MS).toISOString().slice(0, 10)
 }
 
+/** YYYY-MM-DD에 개월 수 더하기 (말일 보정: 1/31 + 1개월 = 2/28) */
+export function addMonthsToDateKey(date: string, months: number): string {
+  const [y, m, d] = date.split('-').map(Number)
+  const total = y * 12 + (m - 1) + months
+  const ny = Math.floor(total / 12)
+  const nm = total % 12
+  const lastDay = new Date(Date.UTC(ny, nm + 1, 0)).getUTCDate()
+  return `${ny}-${String(nm + 1).padStart(2, '0')}-${String(Math.min(d, lastDay)).padStart(2, '0')}`
+}
+
+/** 두 날짜(YYYY-MM-DD) 사이 일수 (b - a) */
+export function diffDateKeys(a: string, b: string): number {
+  return Math.round((kstDateStart(b).getTime() - kstDateStart(a).getTime()) / DAY_MS)
+}
+
 /** 해당 날짜가 속한 주의 월요일 (YYYY-MM-DD) */
 export function weekStartKst(date: string): string {
   const dow = new Date(`${date}T00:00:00Z`).getUTCDay() // 0=일
@@ -344,6 +385,39 @@ export function readDefaultAssigneeId(settingsJson: unknown): string | null {
   const v = readConsultationObject(settingsJson)?.defaultAssigneeId
   return typeof v === 'string' && v ? v : null
 }
+
+// ─── 재원생 정기상담 주기 ─────────────────────────────────────────────────────
+
+export type RegularCycleValue = 'MONTHLY' | 'BIMONTHLY' | 'QUARTERLY' | 'OFF'
+
+export const REGULAR_CYCLE_LABEL: Record<RegularCycleValue, string> = {
+  MONTHLY: '매월',
+  BIMONTHLY: '격월',
+  QUARTERLY: '분기',
+  OFF: '사용 안 함',
+}
+
+/** 주기별 개월 수 (OFF는 대상 없음) */
+export const REGULAR_CYCLE_MONTHS: Record<Exclude<RegularCycleValue, 'OFF'>, number> = {
+  MONTHLY: 1,
+  BIMONTHLY: 2,
+  QUARTERLY: 3,
+}
+
+export const DEFAULT_REGULAR_CYCLE: RegularCycleValue = 'OFF'
+
+export function isRegularCycle(v: unknown): v is RegularCycleValue {
+  return typeof v === 'string' && Object.prototype.hasOwnProperty.call(REGULAR_CYCLE_LABEL, v)
+}
+
+/** settingsJson.consultation.regularCycle (없거나 잘못된 값이면 null) */
+export function readRegularCycle(settingsJson: unknown): RegularCycleValue | null {
+  const v = readConsultationObject(settingsJson)?.regularCycle
+  return isRegularCycle(v) ? v : null
+}
+
+/** 학부모 공유 리포트 링크 유효기간 */
+export const REPORT_LINK_DAYS = 30
 
 /** settingsJson.consultation.webForm (없는 값은 기본값으로 채움) */
 export function readWebFormSettings(settingsJson: unknown): WebFormSettings {

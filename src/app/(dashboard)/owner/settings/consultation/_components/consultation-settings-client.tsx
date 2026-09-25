@@ -6,6 +6,7 @@ import QRCode from 'qrcode'
 import { Check, Copy, Download, ExternalLink, Loader2 } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import {
+  REGULAR_CYCLE_LABEL,
   RETENTION_MONTH_OPTIONS,
   SLUG_RULE_TEXT,
   STALE_DAY_OPTIONS,
@@ -15,6 +16,7 @@ import {
   formatRetention,
   isValidSlug,
   sanitizeSource,
+  type RegularCycleValue,
   type WebFormSettings,
 } from '@/lib/consultation/constants'
 import {
@@ -28,6 +30,7 @@ export type AcademyConsultationSettings = {
   label: string
   slug: string
   defaultAssigneeId: string
+  regularCycle: RegularCycleValue
   webForm: WebFormSettings
   assigneeOptions: { id: string; name: string }[]
 }
@@ -182,6 +185,7 @@ function AcademySettings({
   const router = useRouter()
   const [slug, setSlug] = useState(academy.slug)
   const [defaultAssigneeId, setDefaultAssigneeId] = useState(academy.defaultAssigneeId)
+  const [regularCycle, setRegularCycle] = useState<RegularCycleValue>(academy.regularCycle)
   const [form, setForm] = useState<WebFormSettings>(academy.webForm)
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const [pending, startTransition] = useTransition()
@@ -193,7 +197,12 @@ function AcademySettings({
     setMessage(null)
     if (slugInvalid) return setMessage({ ok: false, text: `주소는 ${SLUG_RULE_TEXT}로 입력해주세요.` })
     startTransition(async () => {
-      const res = await updateAcademyConsultationSettings(academy.id, { slug, defaultAssigneeId, webForm: form })
+      const res = await updateAcademyConsultationSettings(academy.id, {
+        slug,
+        defaultAssigneeId,
+        regularCycle,
+        webForm: form,
+      })
       if (res.error) setMessage({ ok: false, text: res.error })
       else {
         setMessage({ ok: true, text: '저장되었습니다.' })
@@ -204,6 +213,29 @@ function AcademySettings({
 
   return (
     <>
+      <SectionCard
+        title={`재원생 정기상담 주기${suffix}`}
+        description="마지막 정기상담일로부터 주기가 지난 학생을 [재원생 상담] 탭에 표시합니다."
+      >
+        <div className="max-w-sm">
+          <label htmlFor={`regular-cycle-${academy.id}`} className="sr-only">
+            정기상담 주기
+          </label>
+          <select
+            id={`regular-cycle-${academy.id}`}
+            className={selectClass}
+            value={regularCycle}
+            onChange={(e) => setRegularCycle(e.target.value as RegularCycleValue)}
+          >
+            {(Object.keys(REGULAR_CYCLE_LABEL) as RegularCycleValue[]).map((c) => (
+              <option key={c} value={c}>
+                {REGULAR_CYCLE_LABEL[c]}
+              </option>
+            ))}
+          </select>
+        </div>
+      </SectionCard>
+
       <SectionCard title={`기본 담당자${suffix}`} description="웹 상담신청으로 들어온 새 문의를 자동으로 배정합니다.">
         <div className="max-w-sm">
           <label htmlFor="default-assignee" className="sr-only">

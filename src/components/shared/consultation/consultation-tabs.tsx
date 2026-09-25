@@ -1,11 +1,18 @@
 import Link from 'next/link'
-import { CalendarDays, ListChecks } from 'lucide-react'
+import { CalendarDays, GraduationCap, ListChecks } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-/** 상담관리 상단 탭: 문의 목록 / 상담 일정 */
-export function ConsultationTabs({ basePath, active }: { basePath: string; active: 'leads' | 'schedule' }) {
+/** 상담관리 상단 탭: 문의 목록 / 재원생 상담 / 상담 일정 */
+export function ConsultationTabs({
+  basePath,
+  active,
+}: {
+  basePath: string
+  active: 'leads' | 'students' | 'schedule'
+}) {
   const tabs = [
     { key: 'leads', label: '문의 목록', href: basePath, icon: ListChecks },
+    { key: 'students', label: '재원생 상담', href: `${basePath}/students`, icon: GraduationCap },
     { key: 'schedule', label: '상담 일정', href: `${basePath}/schedule`, icon: CalendarDays },
   ] as const
 
@@ -17,7 +24,7 @@ export function ConsultationTabs({ basePath, active }: { basePath: string; activ
           href={t.href}
           aria-current={active === t.key ? 'page' : undefined}
           className={cn(
-            'h-11 px-4 -mb-px inline-flex items-center gap-1.5 border-b-2 text-sm font-medium transition-colors',
+            'h-11 px-4 -mb-px inline-flex items-center gap-1.5 border-b-2 text-sm font-medium transition-colors whitespace-nowrap',
             active === t.key
               ? 'border-primary-700 text-primary-700'
               : 'border-transparent text-gray-500 hover:text-gray-900',

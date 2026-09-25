@@ -21,7 +21,9 @@ export function getNotificationMode(): NotificationMode {
 export type SendNotificationInput<K extends TemplateKey> = {
   academyId: string
   leadId?: string
+  studentId?: string
   appointmentId?: string
+  consultationId?: string
   phone: string
   templateKey: K
   variables: TemplateVariables<K>
@@ -116,7 +118,9 @@ async function claimDedupeKey(
   const data = {
     academyId: input.academyId,
     leadId: input.leadId ?? null,
+    studentId: input.studentId ?? null,
     appointmentId: input.appointmentId ?? null,
+    consultationId: input.consultationId ?? null,
     phone,
     templateKey: input.templateKey,
     variables,

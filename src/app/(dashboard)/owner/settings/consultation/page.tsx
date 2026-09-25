@@ -2,9 +2,11 @@ import { redirect } from 'next/navigation'
 import { getConsultationActor } from '@/lib/consultation/access'
 import { appBaseUrl } from '@/lib/consultation/app-url'
 import {
+  DEFAULT_REGULAR_CYCLE,
   DEFAULT_RETENTION_MONTHS,
   DEFAULT_STALE_DAYS,
   readDefaultAssigneeId,
+  readRegularCycle,
   readRetentionMonths,
   readStaleDays,
   readWebFormSettings,
@@ -33,6 +35,7 @@ export default async function ConsultationSettingsPage() {
     label: a.parentAcademyId ? (a.branchName ?? a.name) : '본원',
     slug: a.slug ?? '',
     defaultAssigneeId: readDefaultAssigneeId(a.settingsJson) ?? '',
+    regularCycle: readRegularCycle(a.settingsJson) ?? DEFAULT_REGULAR_CYCLE,
     webForm: readWebFormSettings(a.settingsJson),
     assigneeOptions: assigneeOptions[i],
   }))
