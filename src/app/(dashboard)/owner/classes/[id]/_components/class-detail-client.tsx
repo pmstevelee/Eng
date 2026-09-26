@@ -31,6 +31,8 @@ import {
   removeStudentFromClass,
 } from '../../actions'
 import type { ScheduleData } from '../../actions'
+import type { ClassScheduleRow } from '@/lib/attendance/constants'
+import { ClassScheduleEditor } from './class-schedule-editor'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,11 +62,12 @@ type Props = {
   studentScoreDistribution: Array<{ name: string; avg: number }>
   allClasses: Array<{ id: string; name: string }>
   unassignedStudents: Array<{ id: string; name: string; level: number }>
+  /** 정기 시간표 (ClassSchedule) — 없으면 기존 반 정보에서 불러온 초기값 */
+  scheduleRows: ClassScheduleRow[]
+  scheduleFromLegacy: boolean
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const DAYS = ['월', '화', '수', '목', '금', '토']
 
 function formatMonth(m: string): string {
   const [year, month] = m.split('-')
@@ -538,87 +541,33 @@ function EmptyChart({ message }: { message: string }) {
 // ─── Tab 3: Schedule ──────────────────────────────────────────────────────────
 
 function ScheduleTab({
+  classId,
   schedule,
   teacher,
+  scheduleRows,
+  scheduleFromLegacy,
 }: {
+  classId: string
   schedule: ScheduleData | null
   teacher: ClassItem['teacher']
+  scheduleRows: ClassScheduleRow[]
+  scheduleFromLegacy: boolean
 }) {
-  if (!schedule || !schedule.days?.length) {
-    return (
-      <div className="bg-white rounded-xl border border-gray-200 py-16 flex flex-col items-center gap-3">
-        <AlertCircle size={24} className="text-gray-300" />
-        <p className="text-sm text-gray-400">시간표가 설정되지 않았습니다.</p>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-4">
-      {/* 주간 시간표 */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-700">주간 시간표</h3>
-        </div>
-
-        <div className="grid grid-cols-6 border-b border-gray-100">
-          {DAYS.map((day) => (
-            <div
-              key={day}
-              className={`text-center py-2.5 text-sm font-medium border-r border-gray-100 last:border-r-0 ${
-                schedule.days.includes(day)
-                  ? 'bg-primary-100 text-primary-700'
-                  : 'text-gray-300 bg-gray-50'
-              }`}
-            >
-              {day}
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-6">
-          {DAYS.map((day) => (
-            <div
-              key={day}
-              className={`border-r border-gray-100 last:border-r-0 min-h-[80px] flex items-center justify-center ${
-                schedule.days.includes(day) ? 'bg-white' : 'bg-gray-50'
-              }`}
-            >
-              {schedule.days.includes(day) ? (
-                <div className="text-center p-2">
-                  <p className="text-sm font-semibold text-primary-700">
-                    {schedule.startTime}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5">~</p>
-                  <p className="text-sm font-semibold text-primary-700">{schedule.endTime}</p>
-                </div>
-              ) : null}
-            </div>
-          ))}
-        </div>
-      </div>
+      <ClassScheduleEditor
+        classId={classId}
+        initialRows={scheduleRows}
+        prefilledFromLegacy={scheduleFromLegacy}
+      />
 
       {/* 수업 정보 */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="text-sm font-semibold text-gray-700 mb-4">수업 정보</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <p className="text-xs text-gray-500 mb-1">수업 요일</p>
-            <p className="text-sm font-medium text-gray-900">
-              {schedule.days.length > 0 ? schedule.days.join(', ') : '—'}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 mb-1">수업 시간</p>
-            <p className="text-sm font-medium text-gray-900">
-              {schedule.startTime} – {schedule.endTime}
-            </p>
-          </div>
-          <div>
             <p className="text-xs text-gray-500 mb-1">교실</p>
-            <p className="text-sm font-medium text-gray-900">
-              {schedule.room || '—'}
-            </p>
+            <p className="text-sm font-medium text-gray-900">{schedule?.room || '—'}</p>
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-1">담당 교사</p>
@@ -642,6 +591,8 @@ export default function ClassDetailClient({
   studentScoreDistribution,
   allClasses,
   unassignedStudents,
+  scheduleRows,
+  scheduleFromLegacy,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('students')
 
@@ -717,7 +668,13 @@ export default function ClassDetailClient({
         />
       )}
       {activeTab === 'schedule' && (
-        <ScheduleTab schedule={classItem.schedule} teacher={classItem.teacher} />
+        <ScheduleTab
+          classId={classItem.id}
+          schedule={classItem.schedule}
+          teacher={classItem.teacher}
+          scheduleRows={scheduleRows}
+          scheduleFromLegacy={scheduleFromLegacy}
+        />
       )}
     </div>
   )

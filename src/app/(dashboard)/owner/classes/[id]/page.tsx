@@ -4,6 +4,17 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import ClassDetailClient from './_components/class-detail-client'
 import type { ScheduleData } from '../actions'
+import { DAY_OF_WEEK_LABEL, isValidTime, type ClassScheduleRow } from '@/lib/attendance/constants'
+
+/** 저장된 정기 시간표가 없을 때 기존 반 정보(요일 + 공통 시각)를 편집기 초기값으로 변환 */
+function legacyScheduleRows(schedule: ScheduleData | null): ClassScheduleRow[] {
+  if (!schedule || !isValidTime(schedule.startTime) || !isValidTime(schedule.endTime)) return []
+  return schedule.days
+    .map((d) => DAY_OF_WEEK_LABEL.indexOf(d as (typeof DAY_OF_WEEK_LABEL)[number]))
+    .filter((d) => d >= 0)
+    .sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7))
+    .map((dayOfWeek) => ({ dayOfWeek, startTime: schedule.startTime, endTime: schedule.endTime }))
+}
 
 function parseSchedule(json: unknown): ScheduleData | null {
   if (!json || typeof json !== 'object' || Array.isArray(json)) return null
@@ -131,7 +142,14 @@ export default async function ClassDetailPage({
 
   const { id: classId } = await params
 
-  const data = await getClassDetail(user.academyId, classId)
+  // 시간표는 저장 직후 반영되도록 캐시 밖에서 조회
+  const [data, scheduleRows] = await Promise.all([
+    getClassDetail(user.academyId, classId),
+    prisma.classSchedule.findMany({
+      where: { classId, class: { academyId: user.academyId } },
+      select: { dayOfWeek: true, startTime: true, endTime: true },
+    }),
+  ])
   if (!data) notFound()
 
   const { cls, allSessions, domainSessions, unassignedStudents, allClasses } = data
@@ -183,6 +201,13 @@ export default async function ClassDetailPage({
     .filter((s) => s.avgScore !== null)
     .map((s) => ({ name: s.name, avg: s.avgScore! }))
 
+  const schedule = parseSchedule(cls.scheduleJson)
+  // 월요일부터 표시
+  scheduleRows.sort(
+    (a, b) => ((a.dayOfWeek + 6) % 7) - ((b.dayOfWeek + 6) % 7) || a.startTime.localeCompare(b.startTime),
+  )
+  const legacyRows = scheduleRows.length === 0 ? legacyScheduleRows(schedule) : []
+
   return (
     <ClassDetailClient
       classItem={{
@@ -190,9 +215,11 @@ export default async function ClassDetailPage({
         name: cls.name,
         levelRange: cls.levelRange,
         isActive: cls.isActive,
-        schedule: parseSchedule(cls.scheduleJson),
+        schedule,
         teacher: cls.teacher,
       }}
+      scheduleRows={scheduleRows.length > 0 ? scheduleRows : legacyRows}
+      scheduleFromLegacy={legacyRows.length > 0}
       students={students}
       monthlyScores={monthlyScores}
       domainAvg={domainAvg}

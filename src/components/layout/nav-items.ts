@@ -22,6 +22,10 @@ import {
   Languages,
   Activity,
   MessagesSquare,
+  CalendarCheck,
+  ClipboardCheck,
+  CalendarDays,
+  SlidersHorizontal,
 } from 'lucide-react'
 import type { Role } from '@/types'
 
@@ -29,6 +33,8 @@ export type NavItem = {
   label: string
   href: string
   icon: LucideIcon
+  /** 하위 메뉴 — 상위 메뉴 경로 안에 있을 때 펼쳐서 표시 */
+  children?: NavItem[]
 }
 
 export const ROLE_LABEL: Record<Role, string> = {
@@ -50,6 +56,16 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
   ACADEMY_OWNER: [
     { label: '대시보드', href: '/owner', icon: LayoutDashboard },
     { label: '학생관리', href: '/owner/students', icon: Users },
+    {
+      label: '출결관리',
+      href: '/owner/attendance',
+      icon: CalendarCheck,
+      children: [
+        { label: '오늘 출결', href: '/owner/attendance/today', icon: ClipboardCheck },
+        { label: '월간 출석부', href: '/owner/attendance/monthly', icon: CalendarDays },
+        { label: '출결 설정', href: '/owner/attendance/settings', icon: SlidersHorizontal },
+      ],
+    },
     { label: '상담관리', href: '/owner/consultations', icon: MessagesSquare },
     { label: '교사관리', href: '/owner/teachers', icon: UserCheck },
     { label: '반관리', href: '/owner/classes', icon: GraduationCap },
@@ -67,6 +83,16 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '문제 뱅크', href: '/teacher/tests/questions', icon: Library },
     { label: '단어학습 관리', href: '/teacher/words', icon: Languages },
     { label: '학생학습관리', href: '/teacher/students', icon: Users },
+    {
+      label: '출결관리',
+      href: '/teacher/attendance',
+      icon: CalendarCheck,
+      // 출결 설정은 학원장 전용
+      children: [
+        { label: '오늘 출결', href: '/teacher/attendance/today', icon: ClipboardCheck },
+        { label: '월간 출석부', href: '/teacher/attendance/monthly', icon: CalendarDays },
+      ],
+    },
     { label: '상담관리', href: '/teacher/consultations', icon: MessagesSquare },
     { label: '커뮤니케이션', href: '/teacher/communication', icon: MessageSquare },
     { label: '일정', href: '/teacher/schedule', icon: Calendar },

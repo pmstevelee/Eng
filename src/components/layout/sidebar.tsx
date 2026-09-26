@@ -32,12 +32,17 @@ const NavLink = memo(function NavLink({
   item,
   collapsed,
   isActive,
+  isGroupActive = false,
+  isChild = false,
   badge,
   onClick,
 }: {
   item: NavItem
   collapsed: boolean
   isActive: boolean
+  /** 하위 메뉴가 활성인 상위 메뉴 */
+  isGroupActive?: boolean
+  isChild?: boolean
   badge?: number
   onClick?: () => void
 }) {
@@ -49,15 +54,19 @@ const NavLink = memo(function NavLink({
       onClick={onClick}
       title={collapsed ? item.label : undefined}
       aria-label={badge ? `${item.label} (기한 지난 할 일 ${badge}건)` : undefined}
+      aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'relative flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+        'relative flex items-center gap-3 mx-2 px-3 rounded-lg text-sm font-medium transition-colors',
+        isChild ? 'ml-7 py-2 min-h-[40px]' : 'py-2.5',
         collapsed ? 'justify-center' : '',
         isActive
           ? 'bg-primary-700 text-white'
-          : 'text-blue-200 hover:bg-primary-800 hover:text-white',
+          : isGroupActive
+            ? 'text-white hover:bg-primary-800'
+            : 'text-blue-200 hover:bg-primary-800 hover:text-white',
       )}
     >
-      <Icon size={18} className="shrink-0" />
+      <Icon size={isChild ? 16 : 18} className="shrink-0" />
       {!collapsed && <span className="truncate">{item.label}</span>}
       {!!badge &&
         (collapsed ? (
@@ -78,15 +87,65 @@ function isPathActive(pathname: string, href: string) {
 }
 
 // 여러 메뉴가 동시에 매칭될 경우(예: /owner/tests, /owner/tests/questions)
-// 가장 구체적인(긴 href) 메뉴 하나만 활성화
+// 가장 구체적인(긴 href) 메뉴 하나만 활성화 (하위 메뉴 포함)
 function getActiveHref(pathname: string, navItems: NavItem[]) {
   let active: string | null = null
-  for (const item of navItems) {
+  for (const item of navItems.flatMap((i) => [i, ...(i.children ?? [])])) {
     if (isPathActive(pathname, item.href) && (!active || item.href.length > active.length)) {
       active = item.href
     }
   }
   return active
+}
+
+/** 상위 메뉴 + (펼친 사이드바에서 해당 경로 안일 때) 하위 메뉴 */
+function NavTree({
+  navItems,
+  pathname,
+  activeHref,
+  collapsed,
+  badges,
+  onClick,
+}: {
+  navItems: NavItem[]
+  pathname: string
+  activeHref: string | null
+  collapsed: boolean
+  badges?: Record<string, number>
+  onClick?: () => void
+}) {
+  return (
+    <>
+      {navItems.map((item) => {
+        const groupOpen = !!item.children?.length && isPathActive(pathname, item.href)
+        return (
+          <div key={item.href} className="space-y-0.5">
+            <NavLink
+              item={item}
+              collapsed={collapsed}
+              // 접힌 사이드바에서는 하위 메뉴가 안 보이므로 상위 메뉴를 활성 표시
+              isActive={item.href === activeHref || (collapsed && groupOpen)}
+              isGroupActive={groupOpen}
+              badge={badges?.[item.href]}
+              onClick={onClick}
+            />
+            {groupOpen &&
+              !collapsed &&
+              item.children!.map((child) => (
+                <NavLink
+                  key={child.href}
+                  item={child}
+                  collapsed={false}
+                  isChild
+                  isActive={child.href === activeHref}
+                  onClick={onClick}
+                />
+              ))}
+          </div>
+        )
+      })}
+    </>
+  )
 }
 
 export function Sidebar({
@@ -196,15 +255,13 @@ export function Sidebar({
 
         {/* 내비게이션 */}
         <nav className="flex-1 py-3 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.href}
-              item={item}
-              collapsed={isCollapsed}
-              isActive={item.href === activeHref}
-              badge={badges?.[item.href]}
-            />
-          ))}
+          <NavTree
+            navItems={navItems}
+            pathname={pathname}
+            activeHref={activeHref}
+            collapsed={isCollapsed}
+            badges={badges}
+          />
         </nav>
 
         {/* 하단: 사용자 정보 + 로그아웃 */}
@@ -277,16 +334,14 @@ export function Sidebar({
 
         {/* 내비게이션 */}
         <nav className="flex-1 py-3 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.href}
-              item={item}
-              collapsed={false}
-              isActive={item.href === activeHref}
-              badge={badges?.[item.href]}
-              onClick={onCloseMobile}
-            />
-          ))}
+          <NavTree
+            navItems={navItems}
+            pathname={pathname}
+            activeHref={activeHref}
+            collapsed={false}
+            badges={badges}
+            onClick={onCloseMobile}
+          />
         </nav>
 
         {/* 사용자 정보 + 로그아웃 */}

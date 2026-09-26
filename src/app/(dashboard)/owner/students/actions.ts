@@ -5,6 +5,7 @@ import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { createStudentAccount } from '@/lib/students/create-student-account'
+import { isValidParentMobile, keypadCodeFor } from '@/lib/attendance/constants'
 
 function getAdminClient() {
   return createSupabaseAdmin(
@@ -57,7 +58,11 @@ export async function updateStudentStatus(
 
   await prisma.student.update({
     where: { id: studentId },
-    data: { status },
+    // 퇴원일: 퇴원 처리 시 기록, 재원·휴원으로 되돌리면 해제
+    data: {
+      status,
+      withdrawnAt: status === 'WITHDRAWN' ? (student.status === 'WITHDRAWN' ? student.withdrawnAt : new Date()) : null,
+    },
   })
 
   revalidateTag(`academy-${owner.academyId}-students`)
@@ -138,7 +143,7 @@ export async function createStudent(data: {
 
 export async function updateStudentProfile(
   studentId: string,
-  data: { name: string; email: string; grade?: string; password?: string },
+  data: { name: string; email: string; grade?: string; password?: string; parentPhone?: string },
 ): Promise<{ error?: string }> {
   const owner = await getOwner()
   if (!owner) return { error: '권한이 없습니다.' }
@@ -147,6 +152,11 @@ export async function updateStudentProfile(
   if (!data.email.trim()) return { error: '이메일을 입력해주세요.' }
   if (data.password !== undefined && data.password.length > 0 && data.password.length < 6) {
     return { error: '비밀번호는 최소 6자 이상이어야 합니다.' }
+  }
+  // 학부모 휴대폰: 숫자만 저장, 빈 값이면 삭제 (undefined면 변경하지 않음)
+  const parentPhone = data.parentPhone === undefined ? undefined : data.parentPhone.replace(/\D/g, '')
+  if (parentPhone && !isValidParentMobile(parentPhone)) {
+    return { error: '학부모 휴대폰 번호는 010으로 시작하는 11자리로 입력해주세요.' }
   }
 
   const student = await prisma.student.findFirst({
@@ -180,7 +190,13 @@ export async function updateStudentProfile(
     }),
     prisma.student.update({
       where: { id: studentId },
-      data: { grade: data.grade ?? null },
+      data: {
+        grade: data.grade ?? null,
+        ...(parentPhone !== undefined && {
+          parentPhone: parentPhone || null,
+          keypadCode: keypadCodeFor(parentPhone),
+        }),
+      },
     }),
   ])
 

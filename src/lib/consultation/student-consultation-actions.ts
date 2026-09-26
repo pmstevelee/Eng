@@ -20,6 +20,7 @@ import {
 import { buildLearningSummary } from './learning-summary'
 import type { LearningSummary } from './learning-summary-types'
 import { notifyStudentReport } from './notify'
+import { keypadCodeFor } from '@/lib/attendance/constants'
 
 type ActionResult<T = object> = ({ error: string } & Partial<T>) | ({ error?: undefined } & T)
 
@@ -98,7 +99,10 @@ export async function updateParentPhone(studentId: string, phone: string): Promi
   const digits = normalizePhone(phone)
   if (digits && !isValidPhone(digits)) return { error: '연락처 형식이 올바르지 않습니다. (예: 010-1234-5678)' }
 
-  await prisma.student.update({ where: { id: student.id }, data: { parentPhone: digits || null } })
+  await prisma.student.update({
+    where: { id: student.id },
+    data: { parentPhone: digits || null, keypadCode: keypadCodeFor(digits) },
+  })
   revalidateStudentConsultation(student.id)
   return {}
 }

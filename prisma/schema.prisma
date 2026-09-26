@@ -165,6 +165,21 @@ enum AttendanceStatus {
   ABSENT
   LATE
   EXCUSED
+  EARLY_LEAVE // 조퇴
+  MAKEUP // 보강
+  UNCHECKED // 미체크 (출결관리 기본값)
+}
+
+/// 출결 방식 — CLASS: 수업(반)별 출석, ACADEMY: 원 단위 등원·하원
+enum AttendanceMode {
+  CLASS
+  ACADEMY
+}
+
+enum AttendanceSource {
+  MANUAL
+  KEYPAD
+  AUTO
 }
 
 enum AnnouncementTarget {
@@ -358,6 +373,8 @@ model Academy {
   placementAttempts      PlacementAttempt[]
   riskSnapshots          StudentRiskSnapshot[]
   leadPurgeLogs          LeadPurgeLog[]
+  attendanceSetting      AttendanceSetting?
+  attendanceRecords      AttendanceRecord[]
 
   @@index([parentAcademyId])
   @@map("academies")
@@ -407,6 +424,8 @@ model User {
   assignedFollowUpTasks      FollowUpTask[]           @relation("FollowUpTaskAssignee")
   createdFollowUpTasks       FollowUpTask[]           @relation("FollowUpTaskCreator")
   createdPlacementInvites    PlacementInvite[]        @relation("PlacementInviteCreator")
+  updatedAttendanceRecords   AttendanceRecord[]       @relation("AttendanceRecordUpdater")
+  attendanceChangeLogs       AttendanceChangeLog[]    @relation("AttendanceChanger")
 
   @@index([academyId])
   @@map("users")
@@ -428,6 +447,10 @@ model Student {
   weeklyGoalResetAt   DateTime      @default(now()) @map("weekly_goal_reset_at")
   /// 학부모 연락처 (숫자만) — 상담 예약·리포트 알림 수신번호
   parentPhone         String?       @map("parent_phone")
+  /// 출결 키패드 번호 — parentPhone 뒷 4자리 (저장 시 자동 계산)
+  keypadCode          String?       @map("keypad_code")
+  /// 퇴원일
+  withdrawnAt         DateTime?     @map("withdrawn_at")
 
   user  User   @relation(fields: [userId], references: [id])
   class Class? @relation(fields: [classId], references: [id])
@@ -456,9 +479,11 @@ model Student {
   consultationAppointments  ConsultationAppointment[]
   notificationLogs          NotificationLog[]
   riskSnapshot              StudentRiskSnapshot?
+  attendanceRecords         AttendanceRecord[]
 
   @@index([classId])
   @@index([status])
+  @@index([keypadCode])
   @@map("students")
 }
 
@@ -483,6 +508,8 @@ model Class {
   tests                  Test[]
   announcements          Announcement[]
   wordTestClassAssignments WordTestClassAssignment[]
+  schedules              ClassSchedule[]
+  sessions               ClassSession[]
 
   @@index([academyId])
   @@index([teacherId])
@@ -1753,4 +1780,116 @@ model LeadPurgeLog {
 
   @@index([academyId, createdAt])
   @@map("lead_purge_logs")
+}
+
+// ─── 출결관리 ────────────────────────────────────────────────────────────────
+
+/// 학원별 출결 설정 (학원당 1건, 없으면 기본값으로 자동 생성)
+model AttendanceSetting {
+  id                  String         @id @default(uuid())
+  academyId           String         @unique @map("academy_id")
+  mode                AttendanceMode @default(ACADEMY)
+  /// 지각 허용시간(분, 0~60)
+  lateGraceMinutes    Int            @default(10) @map("late_grace_minutes")
+  /// 수업 종료 시 미체크 학생 자동 결석
+  autoAbsentOnEnd     Boolean        @default(true) @map("auto_absent_on_end")
+  notifyCheckIn       Boolean        @default(true) @map("notify_check_in")
+  notifyCheckOut      Boolean        @default(true) @map("notify_check_out")
+  notifyAbsent        Boolean        @default(false) @map("notify_absent")
+  /// 하원 알림에 학습 요약 포함
+  includeStudySummary Boolean        @default(true) @map("include_study_summary")
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+
+  academy Academy @relation(fields: [academyId], references: [id], onDelete: Cascade)
+
+  @@map("attendance_settings")
+}
+
+/// 반의 정기 시간표 (요일별 여러 행 가능)
+model ClassSchedule {
+  id        String   @id @default(uuid())
+  classId   String   @map("class_id")
+  /// 0=일 ~ 6=토
+  dayOfWeek Int      @map("day_of_week")
+  /// "HH:mm" (Asia/Seoul)
+  startTime String   @map("start_time")
+  endTime   String   @map("end_time")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@index([classId, dayOfWeek])
+  @@map("class_schedules")
+}
+
+/// 특정 날짜의 수업 1회
+model ClassSession {
+  id        String    @id @default(uuid())
+  classId   String    @map("class_id")
+  /// 수업 날짜 (KST 기준 날짜)
+  date      DateTime  @db.Date
+  startAt   DateTime  @map("start_at")
+  endAt     DateTime  @map("end_at")
+  /// 교사가 수업 종료 처리한 시각
+  endedAt   DateTime? @map("ended_at")
+  cancelled Boolean   @default(false)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  class   Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  records AttendanceRecord[]
+
+  @@unique([classId, date, startAt])
+  @@index([date])
+  @@map("class_sessions")
+}
+
+/// 출결 기록 — 반 출결(sessionId 필수) / 원 출결(sessionId null, 학생·날짜당 1건은 서버 로직으로 보장)
+model AttendanceRecord {
+  id          String           @id @default(uuid())
+  academyId   String           @map("academy_id")
+  studentId   String           @map("student_id")
+  sessionId   String?          @map("session_id")
+  /// 출결 날짜 (KST 기준 날짜)
+  date        DateTime         @db.Date
+  /// 기록 당시 출결 방식 — 설정을 바꿔도 과거 기록은 유지
+  mode        AttendanceMode
+  status      AttendanceStatus @default(UNCHECKED)
+  checkInAt   DateTime?        @map("check_in_at")
+  checkOutAt  DateTime?        @map("check_out_at")
+  source      AttendanceSource @default(MANUAL)
+  reason      String?
+  updatedById String?          @map("updated_by_id")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  academy    Academy               @relation(fields: [academyId], references: [id], onDelete: Cascade)
+  student    Student               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  /// 반 삭제 시에도 기록은 보존 (sessionId만 null)
+  session    ClassSession?         @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  updatedBy  User?                 @relation("AttendanceRecordUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  changeLogs AttendanceChangeLog[]
+
+  @@unique([studentId, sessionId])
+  @@index([academyId, date])
+  @@index([studentId, date])
+  @@index([sessionId])
+  @@map("attendance_records")
+}
+
+/// 출결 상태 변경 이력
+model AttendanceChangeLog {
+  id          String           @id @default(uuid())
+  recordId    String           @map("record_id")
+  fromStatus  AttendanceStatus @map("from_status")
+  toStatus    AttendanceStatus @map("to_status")
+  /// 변경자 (계정 삭제 시 null)
+  changedById String?          @map("changed_by_id")
+  changedAt   DateTime         @default(now()) @map("changed_at")
+
+  record    AttendanceRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  changedBy User?            @relation("AttendanceChanger", fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([recordId, changedAt])
+  @@map("attendance_change_logs")
 }

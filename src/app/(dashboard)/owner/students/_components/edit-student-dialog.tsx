@@ -3,12 +3,16 @@
 import { useState, useTransition, useEffect } from 'react'
 import { X, Pencil, Eye, EyeOff } from 'lucide-react'
 import { updateStudentProfile } from '../actions'
+import { formatPhoneInput, normalizePhone } from '@/lib/consultation/constants'
+import { isValidParentMobile, keypadCodeFor } from '@/lib/attendance/constants'
 
 type StudentToEdit = {
   id: string
   name: string
   email: string
   grade?: string | null
+  parentPhone: string | null
+  keypadCode: string | null
 }
 
 type Props = {
@@ -22,6 +26,7 @@ export default function EditStudentDialog({ student, onClose }: Props) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [grade, setGrade] = useState('')
+  const [parentPhone, setParentPhone] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
@@ -31,6 +36,7 @@ export default function EditStudentDialog({ student, onClose }: Props) {
       setName(student.name)
       setEmail(student.email)
       setGrade(student.grade ?? '')
+      setParentPhone(student.parentPhone ? formatPhoneInput(student.parentPhone) : '')
       setPassword('')
       setShowPassword(false)
       setError('')
@@ -38,6 +44,11 @@ export default function EditStudentDialog({ student, onClose }: Props) {
   }, [student])
 
   if (!student) return null
+
+  const parentDigits = normalizePhone(parentPhone)
+  const parentPhoneInvalid = parentDigits.length > 0 && !isValidParentMobile(parentDigits)
+  // 입력 중에는 유효한 번호일 때만 미리 보여주고, 비우면 키패드 번호도 삭제됨
+  const keypadPreview = parentDigits.length === 0 ? null : parentPhoneInvalid ? student.keypadCode : keypadCodeFor(parentDigits)
 
   const handleClose = () => {
     setError('')
@@ -47,12 +58,17 @@ export default function EditStudentDialog({ student, onClose }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    if (parentPhoneInvalid) {
+      setError('학부모 휴대폰 번호는 010으로 시작하는 11자리로 입력해주세요.')
+      return
+    }
     startTransition(async () => {
       const result = await updateStudentProfile(student.id, {
         name: name.trim(),
         email: email.trim(),
         grade: grade || undefined,
         password: password || undefined,
+        parentPhone: parentDigits,
       })
       if (result.error) {
         setError(result.error)
@@ -134,6 +150,36 @@ export default function EditStudentDialog({ student, onClose }: Props) {
               <option value="일반">일반</option>
               <option value="기타">기타</option>
             </select>
+          </div>
+
+          {/* 학부모 휴대폰 */}
+          <div>
+            <label htmlFor="edit-parent-phone" className="block text-sm font-medium text-gray-700 mb-1.5">
+              학부모 휴대폰 번호
+            </label>
+            <input
+              id="edit-parent-phone"
+              type="tel"
+              inputMode="numeric"
+              value={parentPhone}
+              onChange={(e) => setParentPhone(formatPhoneInput(e.target.value))}
+              placeholder="010-1234-5678"
+              aria-invalid={parentPhoneInvalid}
+              aria-describedby="edit-parent-phone-help"
+              className={`w-full h-11 px-3 rounded-xl border text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-700 focus:border-transparent ${
+                parentPhoneInvalid ? 'border-accent-red' : 'border-gray-200'
+              }`}
+            />
+            <div id="edit-parent-phone-help" className="mt-1 flex items-center justify-between gap-2">
+              {parentPhoneInvalid ? (
+                <p className="text-xs text-accent-red">010으로 시작하는 11자리를 입력하세요.</p>
+              ) : (
+                <p className="text-xs text-gray-400">출결 알림 수신 번호입니다.</p>
+              )}
+              {keypadPreview && (
+                <p className="text-xs font-semibold text-primary-700 shrink-0">키패드 번호: {keypadPreview}</p>
+              )}
+            </div>
           </div>
 
           {/* 새 비밀번호 */}

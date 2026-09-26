@@ -39,6 +39,8 @@ type Student = {
   status: 'ACTIVE' | 'ON_LEAVE' | 'WITHDRAWN'
   createdAt: string
   grade?: string | null
+  parentPhone: string | null
+  keypadCode: string | null
   lastLoginAt: string | null
   latestTest: LatestTest
   wordStat: WordStat
