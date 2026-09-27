@@ -69,6 +69,7 @@ enum PaymentType {
   ANNUAL
   STUDENT_OVERAGE
   STORAGE_OVERAGE
+  NOTIFICATION_CREDIT // 학부모 알림 크레딧 충전
 }
 
 enum CreditType {
@@ -98,10 +99,10 @@ enum AuditActorType {
 }
 
 enum OverageMode {
-  REALTIME    // 매번 사용 시 즉시 결제
-  WEEKLY      // 매주 일요일 일괄 결제 (기본값)
-  MONTHLY     // 매월 말일 일괄 결제
-  BLOCK       // 한도 도달 시 사용 차단
+  REALTIME // 매번 사용 시 즉시 결제
+  WEEKLY // 매주 일요일 일괄 결제 (기본값)
+  MONTHLY // 매월 말일 일괄 결제
+  BLOCK // 한도 도달 시 사용 차단
 }
 
 enum Role {
@@ -194,24 +195,24 @@ enum TestStatus {
 }
 
 enum QuestionSource {
-  SYSTEM           // 시스템 초기 생성
-  AI_GENERATED     // AI가 생성 (유사문제 등)
-  TEACHER_CREATED  // 교사가 직접 생성
-  AI_SHARED        // AI 유사문제 중 공용 풀에 공유된 것
+  SYSTEM // 시스템 초기 생성
+  AI_GENERATED // AI가 생성 (유사문제 등)
+  TEACHER_CREATED // 교사가 직접 생성
+  AI_SHARED // AI 유사문제 중 공용 풀에 공유된 것
 }
 
 enum QuestionReportType {
-  WRONG_ANSWER  // 정답 오류
-  TYPO          // 오탈자
-  UNCLEAR       // 문제 불명확
-  AUDIO_ERROR   // 음원 오류
-  OTHER         // 기타
+  WRONG_ANSWER // 정답 오류
+  TYPO // 오탈자
+  UNCLEAR // 문제 불명확
+  AUDIO_ERROR // 음원 오류
+  OTHER // 기타
 }
 
 enum QuestionReportStatus {
-  PENDING    // 처리 대기
-  RESOLVED   // 처리 완료
-  DISMISSED  // 반려
+  PENDING // 처리 대기
+  RESOLVED // 처리 완료
+  DISMISSED // 반려
 }
 
 // ─── 상담관리 ─────────────────────────────────────────────────────────────────
@@ -317,15 +318,15 @@ enum AppointmentStatus {
 
 /// 1. 학원
 model Academy {
-  id           String    @id @default(uuid())
+  id           String   @id @default(uuid())
   name         String
   address      String?
   phone        String?
-  logoUrl      String?   @map("logo_url")
-  planType     PlanType  @default(BASIC) @map("plan_type")
-  settingsJson Json?     @map("settings_json")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  logoUrl      String?  @map("logo_url")
+  planType     PlanType @default(BASIC) @map("plan_type")
+  settingsJson Json?    @map("settings_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   // 구독/SaaS 필드
   businessName          String?            @map("business_name")
@@ -344,39 +345,42 @@ model Academy {
   deletedAt             DateTime?          @map("deleted_at")
 
   // 다지점 관련 필드
-  parentAcademyId  String?   @map("parent_academy_id")
-  branchName       String?   @map("branch_name")
-  branchOrder      Int       @default(0) @map("branch_order")
+  parentAcademyId String? @map("parent_academy_id")
+  branchName      String? @map("branch_name")
+  branchOrder     Int     @default(0) @map("branch_order")
 
-  owner         User?          @relation("AcademyOwner", fields: [ownerId], references: [id])
-  users         User[]         @relation("AcademyUsers")
-  classes       Class[]
-  tests         Test[]
-  questions     Question[]
-  notifications Notification[]
-  badges        Badge[]
-  enrollments   Enrollment[]
-  subscription          Subscription?
-  subscriptionHistory   SubscriptionHistory[]
-  announcements Announcement[]
-  questionUsageLogs QuestionUsageLog[]
+  owner               User?                 @relation("AcademyOwner", fields: [ownerId], references: [id])
+  users               User[]                @relation("AcademyUsers")
+  classes             Class[]
+  tests               Test[]
+  questions           Question[]
+  notifications       Notification[]
+  badges              Badge[]
+  enrollments         Enrollment[]
+  subscription        Subscription?
+  subscriptionHistory SubscriptionHistory[]
+  announcements       Announcement[]
+  questionUsageLogs   QuestionUsageLog[]
 
   // 다지점 자기참조 관계
-  parentAcademy  Academy?  @relation("AcademyBranches", fields: [parentAcademyId], references: [id])
-  branches       Academy[] @relation("AcademyBranches")
-  wordSets               WordSet[]
-  wordTestAssignments    WordTestAssignment[]
-  leads                  Lead[]
-  followUpTasks          FollowUpTask[]
-  notificationLogs       NotificationLog[]
-  placementInvites       PlacementInvite[]
-  placementAttempts      PlacementAttempt[]
-  riskSnapshots          StudentRiskSnapshot[]
-  leadPurgeLogs          LeadPurgeLog[]
-  attendanceSetting      AttendanceSetting?
-  attendanceRecords      AttendanceRecord[]
-  keypadDevices          KeypadDevice[]
-  keypadRegistrations    KeypadRegistrationCode[]
+  parentAcademy       Academy?                 @relation("AcademyBranches", fields: [parentAcademyId], references: [id])
+  branches            Academy[]                @relation("AcademyBranches")
+  wordSets            WordSet[]
+  wordTestAssignments WordTestAssignment[]
+  leads               Lead[]
+  followUpTasks       FollowUpTask[]
+  notificationLogs    NotificationLog[]
+  placementInvites    PlacementInvite[]
+  placementAttempts   PlacementAttempt[]
+  riskSnapshots       StudentRiskSnapshot[]
+  leadPurgeLogs       LeadPurgeLog[]
+  attendanceSetting   AttendanceSetting?
+  attendanceRecords   AttendanceRecord[]
+  keypadDevices       KeypadDevice[]
+  keypadRegistrations KeypadRegistrationCode[]
+  creditWallet        CreditWallet?
+  creditTransactions  CreditTransaction[]
+  notificationJobs    NotificationJob[]
 
   @@index([parentAcademyId])
   @@map("academies")
@@ -403,32 +407,32 @@ model User {
   isDeleted       Boolean   @default(false) @map("is_deleted")
   deletedAt       DateTime? @map("deleted_at")
 
-  academy        Academy? @relation("AcademyUsers", fields: [academyId], references: [id])
+  academy        Academy?  @relation("AcademyUsers", fields: [academyId], references: [id])
   ownedAcademies Academy[] @relation("AcademyOwner")
 
-  student          Student?
-  taughtClasses    Class[]          @relation("TeacherClasses")
-  createdTests     Test[]           @relation("TestCreator")
-  createdQuestions  Question[]
-  writtenComments   TeacherComment[] @relation("CommentAuthor")
-  generatedReports  Report[]         @relation("ReportGenerator")
-  notifications     Notification[]
-  announcements     Announcement[]   @relation("AnnouncementAuthor")
-  levelAssessments  LevelAssessment[] @relation("AssessmentOverrider")
-  questionReports   QuestionReport[] @relation("ReportedBy")
-  resolvedReports   QuestionReport[] @relation("ResolvedBy")
-  ownedWordSets              WordSet[]                @relation("OwnedWordSets")
-  wordTestAssignments        WordTestAssignment[]     @relation("TeacherWordTestAssignments")
-  assignedLeads              Lead[]                   @relation("LeadAssignee")
-  consultations              Consultation[]           @relation("ConsultationCounselor")
-  leadStatusChanges          LeadStatusHistory[]      @relation("LeadStatusChanger")
-  counseledAppointments      ConsultationAppointment[] @relation("AppointmentCounselor")
-  assignedFollowUpTasks      FollowUpTask[]           @relation("FollowUpTaskAssignee")
-  createdFollowUpTasks       FollowUpTask[]           @relation("FollowUpTaskCreator")
-  createdPlacementInvites    PlacementInvite[]        @relation("PlacementInviteCreator")
-  updatedAttendanceRecords   AttendanceRecord[]       @relation("AttendanceRecordUpdater")
-  attendanceChangeLogs       AttendanceChangeLog[]    @relation("AttendanceChanger")
-  keypadRegistrations        KeypadRegistrationCode[] @relation("KeypadRegistrationCreator")
+  student                  Student?
+  taughtClasses            Class[]                   @relation("TeacherClasses")
+  createdTests             Test[]                    @relation("TestCreator")
+  createdQuestions         Question[]
+  writtenComments          TeacherComment[]          @relation("CommentAuthor")
+  generatedReports         Report[]                  @relation("ReportGenerator")
+  notifications            Notification[]
+  announcements            Announcement[]            @relation("AnnouncementAuthor")
+  levelAssessments         LevelAssessment[]         @relation("AssessmentOverrider")
+  questionReports          QuestionReport[]          @relation("ReportedBy")
+  resolvedReports          QuestionReport[]          @relation("ResolvedBy")
+  ownedWordSets            WordSet[]                 @relation("OwnedWordSets")
+  wordTestAssignments      WordTestAssignment[]      @relation("TeacherWordTestAssignments")
+  assignedLeads            Lead[]                    @relation("LeadAssignee")
+  consultations            Consultation[]            @relation("ConsultationCounselor")
+  leadStatusChanges        LeadStatusHistory[]       @relation("LeadStatusChanger")
+  counseledAppointments    ConsultationAppointment[] @relation("AppointmentCounselor")
+  assignedFollowUpTasks    FollowUpTask[]            @relation("FollowUpTaskAssignee")
+  createdFollowUpTasks     FollowUpTask[]            @relation("FollowUpTaskCreator")
+  createdPlacementInvites  PlacementInvite[]         @relation("PlacementInviteCreator")
+  updatedAttendanceRecords AttendanceRecord[]        @relation("AttendanceRecordUpdater")
+  attendanceChangeLogs     AttendanceChangeLog[]     @relation("AttendanceChanger")
+  keypadRegistrations      KeypadRegistrationCode[]  @relation("KeypadRegistrationCreator")
 
   @@index([academyId])
   @@map("users")
@@ -436,53 +440,54 @@ model User {
 
 /// 3. 학생 상세
 model Student {
-  id           String        @id @default(uuid())
-  userId       String        @unique @map("user_id")
-  grade               String?
-  currentLevel        Int           @default(1) @map("current_level") // 1~10
-  classId             String?       @map("class_id")
-  status              StudentStatus @default(ACTIVE)
-  createdAt           DateTime      @default(now()) @map("created_at")
-  updatedAt           DateTime      @updatedAt @map("updated_at")
-  totalXp             Int           @default(0) @map("total_xp")
-  weeklyGoalTarget    Int           @default(20) @map("weekly_goal_target")
-  weeklyGoalCurrent   Int           @default(0) @map("weekly_goal_current")
-  weeklyGoalResetAt   DateTime      @default(now()) @map("weekly_goal_reset_at")
+  id                String        @id @default(uuid())
+  userId            String        @unique @map("user_id")
+  grade             String?
+  currentLevel      Int           @default(1) @map("current_level") // 1~10
+  classId           String?       @map("class_id")
+  status            StudentStatus @default(ACTIVE)
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+  totalXp           Int           @default(0) @map("total_xp")
+  weeklyGoalTarget  Int           @default(20) @map("weekly_goal_target")
+  weeklyGoalCurrent Int           @default(0) @map("weekly_goal_current")
+  weeklyGoalResetAt DateTime      @default(now()) @map("weekly_goal_reset_at")
   /// 학부모 연락처 (숫자만) — 상담 예약·리포트 알림 수신번호
-  parentPhone         String?       @map("parent_phone")
+  parentPhone       String?       @map("parent_phone")
   /// 출결 키패드 번호 — parentPhone 뒷 4자리 (저장 시 자동 계산)
-  keypadCode          String?       @map("keypad_code")
+  keypadCode        String?       @map("keypad_code")
   /// 퇴원일
-  withdrawnAt         DateTime?     @map("withdrawn_at")
+  withdrawnAt       DateTime?     @map("withdrawn_at")
 
   user  User   @relation(fields: [userId], references: [id])
   class Class? @relation(fields: [classId], references: [id])
 
-  testSessions     TestSession[]
-  skillAssessments SkillAssessment[]
-  learningPaths    LearningPath[]
-  teacherComments  TeacherComment[]
-  reports          Report[]
-  attendance       Attendance[]
-  badgeEarnings    BadgeEarning[]
-  enrollments      Enrollment[]
-  streak           StudentStreak?
-  dailyMissions    DailyMission[]
-  practiceLogs     PracticeLog[]
-  xpHistory        StudentXp[]
-  levelAssessments LevelAssessment[]
-  promotionStatus  LevelPromotionStatus?
-  wordProgress              WordProgress[]
-  wordTests                 WordTest[]
+  testSessions               TestSession[]
+  skillAssessments           SkillAssessment[]
+  learningPaths              LearningPath[]
+  teacherComments            TeacherComment[]
+  reports                    Report[]
+  attendance                 Attendance[]
+  badgeEarnings              BadgeEarning[]
+  enrollments                Enrollment[]
+  streak                     StudentStreak?
+  dailyMissions              DailyMission[]
+  practiceLogs               PracticeLog[]
+  xpHistory                  StudentXp[]
+  levelAssessments           LevelAssessment[]
+  promotionStatus            LevelPromotionStatus?
+  wordProgress               WordProgress[]
+  wordTests                  WordTest[]
   wordTestStudentAssignments WordTestStudentAssignment[]
-  wordTestAttempts          WordTestAttempt[]
-  wordSetAssignments        WordSetAssignment[]
-  lead                      Lead?
-  consultations             Consultation[]
-  consultationAppointments  ConsultationAppointment[]
-  notificationLogs          NotificationLog[]
-  riskSnapshot              StudentRiskSnapshot?
-  attendanceRecords         AttendanceRecord[]
+  wordTestAttempts           WordTestAttempt[]
+  wordSetAssignments         WordSetAssignment[]
+  lead                       Lead?
+  consultations              Consultation[]
+  consultationAppointments   ConsultationAppointment[]
+  notificationLogs           NotificationLog[]
+  notificationJobs           NotificationJob[]
+  riskSnapshot               StudentRiskSnapshot?
+  attendanceRecords          AttendanceRecord[]
 
   @@index([classId])
   @@index([status])
@@ -502,17 +507,17 @@ model Class {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  academy  Academy @relation(fields: [academyId], references: [id])
-  teacher  User?   @relation("TeacherClasses", fields: [teacherId], references: [id])
+  academy Academy @relation(fields: [academyId], references: [id])
+  teacher User?   @relation("TeacherClasses", fields: [teacherId], references: [id])
 
-  students               Student[]
-  attendance             Attendance[]
-  enrollments            Enrollment[]
-  tests                  Test[]
-  announcements          Announcement[]
+  students                 Student[]
+  attendance               Attendance[]
+  enrollments              Enrollment[]
+  tests                    Test[]
+  announcements            Announcement[]
   wordTestClassAssignments WordTestClassAssignment[]
-  schedules              ClassSchedule[]
-  sessions               ClassSession[]
+  schedules                ClassSchedule[]
+  sessions                 ClassSession[]
 
   @@index([academyId])
   @@index([teacherId])
@@ -541,9 +546,9 @@ model Test {
   adaptiveConfig Json?   @map("adaptive_config")
 
   // 단원 테스트 필드 (승급 조건 연동)
-  targetLevel        Int?    @map("target_level")         // 이 테스트의 대상 레벨 (1~10)
-  unitName           String? @map("unit_name")            // 단원명 (예: "Unit 3: 관계대명사")
-  learningObjectives String? @map("learning_objectives")  // 학습 목표
+  targetLevel        Int?    @map("target_level") // 이 테스트의 대상 레벨 (1~10)
+  unitName           String? @map("unit_name") // 단원명 (예: "Unit 3: 관계대명사")
+  learningObjectives String? @map("learning_objectives") // 학습 목표
 
   // 영역 카테고리 (null = 전체 영역)
   domain QuestionDomain?
@@ -633,14 +638,14 @@ model Question {
 
 /// 8. 문제 응답
 model QuestionResponse {
-  id                 String    @id @default(uuid())
-  sessionId          String    @map("session_id")
-  questionId         String    @map("question_id")
-  answer             String?
-  answerJson         Json?     @map("answer_json")
-  isCorrect          Boolean?  @map("is_correct")
-  timeSpentSec       Int?      @map("time_spent_sec")
-  createdAt          DateTime  @default(now()) @map("created_at")
+  id           String   @id @default(uuid())
+  sessionId    String   @map("session_id")
+  questionId   String   @map("question_id")
+  answer       String?
+  answerJson   Json?    @map("answer_json")
+  isCorrect    Boolean? @map("is_correct")
+  timeSpentSec Int?     @map("time_spent_sec")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   // 스페이스드 리피티션
   reviewDueAt        DateTime? @map("review_due_at")
@@ -729,16 +734,16 @@ model Report {
 
 /// 13. 알림
 model Notification {
-  id             String           @id @default(uuid())
-  userId         String           @map("user_id")
-  academyId      String?          @map("academy_id")
-  type           NotificationType @default(INFO)
-  title          String
-  message        String
-  link           String?
-  relatedId      String?          @map("related_id")
-  isRead         Boolean          @default(false) @map("is_read")
-  createdAt      DateTime         @default(now()) @map("created_at")
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  academyId String?          @map("academy_id")
+  type      NotificationType @default(INFO)
+  title     String
+  message   String
+  link      String?
+  relatedId String?          @map("related_id")
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
 
   user    User     @relation(fields: [userId], references: [id])
   academy Academy? @relation(fields: [academyId], references: [id])
@@ -800,7 +805,7 @@ model Badge {
   criteria    Json?
   createdAt   DateTime   @default(now()) @map("created_at")
 
-  academy  Academy?      @relation(fields: [academyId], references: [id])
+  academy  Academy?       @relation(fields: [academyId], references: [id])
   earnings BadgeEarning[]
 
   @@map("badges")
@@ -823,21 +828,21 @@ model StudentStreak {
 
 /// 16-b. 오늘의 미션
 model DailyMission {
-  id               String    @id @default(uuid())
-  studentId        String    @map("student_id")
-  missionDate      DateTime  @map("mission_date")
-  questionIds      Json      @map("question_ids")
-  domainFocus      String?   @map("domain_focus")
-  isCompleted      Boolean   @default(false) @map("is_completed")
-  completedAt      DateTime? @map("completed_at")
-  createdAt        DateTime  @default(now()) @map("created_at")
-  status           String    @default("GENERATED")
-  missionsJson     Json?     @map("missions_json")
-  totalMissions    Int       @default(0) @map("total_missions")
-  completedMissions Int      @default(0) @map("completed_missions")
-  startedAt        DateTime? @map("started_at")
-  xpEarned         Int       @default(0) @map("xp_earned")
-  streakCounted    Boolean   @default(false) @map("streak_counted")
+  id                String    @id @default(uuid())
+  studentId         String    @map("student_id")
+  missionDate       DateTime  @map("mission_date")
+  questionIds       Json      @map("question_ids")
+  domainFocus       String?   @map("domain_focus")
+  isCompleted       Boolean   @default(false) @map("is_completed")
+  completedAt       DateTime? @map("completed_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  status            String    @default("GENERATED")
+  missionsJson      Json?     @map("missions_json")
+  totalMissions     Int       @default(0) @map("total_missions")
+  completedMissions Int       @default(0) @map("completed_missions")
+  startedAt         DateTime? @map("started_at")
+  xpEarned          Int       @default(0) @map("xp_earned")
+  streakCounted     Boolean   @default(false) @map("streak_counted")
 
   student Student @relation(fields: [studentId], references: [id])
 
@@ -927,11 +932,11 @@ model Subscription {
   createdAt          DateTime           @default(now()) @map("created_at")
   updatedAt          DateTime           @updatedAt @map("updated_at")
 
-  academy        Academy          @relation(fields: [academyId], references: [id])
-  billingKey     BillingKey?
-  payments       Payment[]
-  usageRecords   UsageRecord[]
-  schedules      PaymentSchedule[]
+  academy      Academy           @relation(fields: [academyId], references: [id])
+  billingKey   BillingKey?
+  payments     Payment[]
+  usageRecords UsageRecord[]
+  schedules    PaymentSchedule[]
 
   @@index([status])
   @@index([currentPeriodEnd])
@@ -940,12 +945,12 @@ model Subscription {
 
 /// 26. 포트원 빌링키
 model BillingKey {
-  id                  String   @id @default(uuid())
-  subscriptionId      String   @unique @map("subscription_id")
-  portoneBillingKey   String   @unique @map("portone_billing_key")
-  cardCompany         String?  @map("card_company")
-  cardNumberMasked    String?  @map("card_number_masked")
-  issuedAt            DateTime @map("issued_at")
+  id                String   @id @default(uuid())
+  subscriptionId    String   @unique @map("subscription_id")
+  portoneBillingKey String   @unique @map("portone_billing_key")
+  cardCompany       String?  @map("card_company")
+  cardNumberMasked  String?  @map("card_number_masked")
+  issuedAt          DateTime @map("issued_at")
 
   subscription Subscription @relation(fields: [subscriptionId], references: [id])
 
@@ -967,6 +972,8 @@ model Payment {
   failureReason  String?       @map("failure_reason")
   paidAt         DateTime?     @map("paid_at")
   canceledAt     DateTime?     @map("canceled_at")
+  /// 결제 시점 상품 스냅샷 (알림 크레딧: { creditPackageId, name, credits })
+  metadata       Json?
   createdAt      DateTime      @default(now()) @map("created_at")
 
   subscription Subscription @relation(fields: [subscriptionId], references: [id])
@@ -981,15 +988,15 @@ model Payment {
 
 /// 28. 사용량 기록
 model UsageRecord {
-  id               String   @id @default(uuid())
-  subscriptionId   String   @map("subscription_id")
-  academyId        String   @map("academy_id")
-  periodStart      DateTime @map("period_start")
-  periodEnd        DateTime @map("period_end")
-  aiWritingCount   Int      @default(0) @map("ai_writing_count")
-  aiQuestionCount  Int      @default(0) @map("ai_question_count")
-  storageUsedMb    Int      @default(0) @map("storage_used_mb")
-  studentCount     Int      @default(0) @map("student_count")
+  id              String   @id @default(uuid())
+  subscriptionId  String   @map("subscription_id")
+  academyId       String   @map("academy_id")
+  periodStart     DateTime @map("period_start")
+  periodEnd       DateTime @map("period_end")
+  aiWritingCount  Int      @default(0) @map("ai_writing_count")
+  aiQuestionCount Int      @default(0) @map("ai_question_count")
+  storageUsedMb   Int      @default(0) @map("storage_used_mb")
+  studentCount    Int      @default(0) @map("student_count")
 
   subscription Subscription @relation(fields: [subscriptionId], references: [id])
 
@@ -1001,13 +1008,13 @@ model UsageRecord {
 
 /// 29. AI 크레딧
 model AiCredit {
-  id         String     @id @default(uuid())
-  academyId  String     @map("academy_id")
-  type       CreditType
-  amount     Int
-  expiresAt  DateTime?  @map("expires_at")
-  paymentId  String?    @map("payment_id")
-  createdAt  DateTime   @default(now()) @map("created_at")
+  id        String     @id @default(uuid())
+  academyId String     @map("academy_id")
+  type      CreditType
+  amount    Int
+  expiresAt DateTime?  @map("expires_at")
+  paymentId String?    @map("payment_id")
+  createdAt DateTime   @default(now()) @map("created_at")
 
   @@index([academyId])
   @@index([type])
@@ -1038,7 +1045,7 @@ model PaymentSchedule {
 model PracticeLog {
   id           String          @id @default(uuid())
   studentId    String          @map("student_id")
-  mode         String          // "adaptive" | "domain" | "review"
+  mode         String // "adaptive" | "domain" | "review"
   domain       QuestionDomain?
   totalCount   Int             @map("total_count")
   correctCount Int             @map("correct_count")
@@ -1073,8 +1080,8 @@ model QuestionUsageLog {
 /// 22. 문제 뱅크 통계 캐시
 model QuestionBankStats {
   id              String   @id @default(uuid())
-  domain          String   // GRAMMAR, VOCABULARY, READING, WRITING
-  difficulty      Int      // 1~10
+  domain          String // GRAMMAR, VOCABULARY, READING, WRITING
+  difficulty      Int // 1~10
   totalCount      Int      @default(0) @map("total_count")
   verifiedCount   Int      @default(0) @map("verified_count")
   avgQualityScore Float?   @map("avg_quality_score")
@@ -1086,21 +1093,21 @@ model QuestionBankStats {
 
 /// 23. 레벨 평가 이력 (적응형 배치고사 결과)
 model LevelAssessment {
-  id             String    @id @default(uuid())
-  studentId      String    @map("student_id")
-  testSessionId  String?   @map("test_session_id")
-  overrideBy     String?   @map("override_by") // 교사 수동 조정 시 user id
-  assessmentType String    @map("assessment_type") // PLACEMENT, PERIODIC, PROMOTION, TEACHER_OVERRIDE
-  grammarLevel   Int       @map("grammar_level")
+  id              String   @id @default(uuid())
+  studentId       String   @map("student_id")
+  testSessionId   String?  @map("test_session_id")
+  overrideBy      String?  @map("override_by") // 교사 수동 조정 시 user id
+  assessmentType  String   @map("assessment_type") // PLACEMENT, PERIODIC, PROMOTION, TEACHER_OVERRIDE
+  grammarLevel    Int      @map("grammar_level")
   vocabularyLevel Int      @map("vocabulary_level")
-  readingLevel   Int       @map("reading_level")
-  listeningLevel Int?      @map("listening_level")   // null: 듣기 문제 부족으로 미측정
-  writingLevel   Int       @map("writing_level")
-  overallLevel   Int       @map("overall_level")
-  detailJson     Json      @map("detail_json")
-  assessedAt     DateTime  @default(now()) @map("assessed_at")
-  assessedBy     String    @map("assessed_by") // SYSTEM, TEACHER_OVERRIDE
-  isCurrent      Boolean   @default(true) @map("is_current")
+  readingLevel    Int      @map("reading_level")
+  listeningLevel  Int?     @map("listening_level") // null: 듣기 문제 부족으로 미측정
+  writingLevel    Int      @map("writing_level")
+  overallLevel    Int      @map("overall_level")
+  detailJson      Json     @map("detail_json")
+  assessedAt      DateTime @default(now()) @map("assessed_at")
+  assessedBy      String   @map("assessed_by") // SYSTEM, TEACHER_OVERRIDE
+  isCurrent       Boolean  @default(true) @map("is_current")
 
   student     Student      @relation(fields: [studentId], references: [id])
   testSession TestSession? @relation(fields: [testSessionId], references: [id])
@@ -1118,12 +1125,12 @@ model LevelPromotionStatus {
   studentId        String    @unique @map("student_id")
   currentLevel     Int       @map("current_level")
   targetLevel      Int       @map("target_level")
-  condition1Met    Boolean   @default(false) @map("condition1_met")    // 레벨 테스트: 4영역 중 3개 이상 목표 레벨 충족
-  condition1Detail Json?     @map("condition1_detail")                  // 영역별 측정 레벨
-  condition2Met    Boolean   @default(false) @map("condition2_met")    // 단원 테스트: 이수율 70%↑ + 평균 60점↑
-  condition2Detail Json?     @map("condition2_detail")                  // 이수율, 평균점수
-  condition3Met    Boolean   @default(false) @map("condition3_met")    // 학습 활동: 문제 50개↑ 또는 미션 20일↑
-  condition3Detail Json?     @map("condition3_detail")                  // 문제 수, 미션 완료일
+  condition1Met    Boolean   @default(false) @map("condition1_met") // 레벨 테스트: 4영역 중 3개 이상 목표 레벨 충족
+  condition1Detail Json?     @map("condition1_detail") // 영역별 측정 레벨
+  condition2Met    Boolean   @default(false) @map("condition2_met") // 단원 테스트: 이수율 70%↑ + 평균 60점↑
+  condition2Detail Json?     @map("condition2_detail") // 이수율, 평균점수
+  condition3Met    Boolean   @default(false) @map("condition3_met") // 학습 활동: 문제 50개↑ 또는 미션 20일↑
+  condition3Detail Json?     @map("condition3_detail") // 문제 수, 미션 완료일
   allConditionsMet Boolean   @default(false) @map("all_conditions_met")
   promotedAt       DateTime? @map("promoted_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
@@ -1137,7 +1144,7 @@ model LevelPromotionStatus {
 /// 31. 포트원 웹훅 이벤트 (멱등성 보장)
 model WebhookEvent {
   id          String        @id @default(uuid())
-  eventId     String        @unique @map("event_id")  // 포트원 webhook id
+  eventId     String        @unique @map("event_id") // 포트원 webhook id
   eventType   String        @map("event_type")
   payload     Json
   status      WebhookStatus @default(RECEIVED)
@@ -1153,15 +1160,15 @@ model WebhookEvent {
 
 /// 32. 결제 감사 로그
 model PaymentAuditLog {
-  id         String         @id @default(uuid())
-  actorType  AuditActorType @map("actor_type")
-  actorId    String?        @map("actor_id")     // userId or "SYSTEM"
-  action     String                               // e.g. PAYMENT_VERIFIED, SUBSCRIPTION_ACTIVATED
-  target     String                               // e.g. "Payment:pay_xxx"
-  metadata   Json?
-  ip         String?
-  userAgent  String?        @map("user_agent")
-  createdAt  DateTime       @default(now()) @map("created_at")
+  id        String         @id @default(uuid())
+  actorType AuditActorType @map("actor_type")
+  actorId   String?        @map("actor_id") // userId or "SYSTEM"
+  action    String // e.g. PAYMENT_VERIFIED, SUBSCRIPTION_ACTIVATED
+  target    String // e.g. "Payment:pay_xxx"
+  metadata  Json?
+  ip        String?
+  userAgent String?        @map("user_agent")
+  createdAt DateTime       @default(now()) @map("created_at")
 
   @@index([actorType, actorId])
   @@index([action])
@@ -1182,9 +1189,9 @@ model QuestionReport {
   resolveNote String?              @map("resolve_note")
   createdAt   DateTime             @default(now()) @map("created_at")
 
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  reporter   User     @relation("ReportedBy", fields: [reportedBy], references: [id])
-  resolver   User?    @relation("ResolvedBy", fields: [resolvedBy], references: [id])
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  reporter User     @relation("ReportedBy", fields: [reportedBy], references: [id])
+  resolver User?    @relation("ResolvedBy", fields: [resolvedBy], references: [id])
 
   @@index([questionId])
   @@index([reportedBy])
@@ -1259,24 +1266,24 @@ enum ExamCategory {
 
 /// 단어 마스터 (Oxford 기반)
 model Word {
-  id            String      @id @default(uuid())
-  term          String
-  partOfSpeech  String      @map("part_of_speech")
-  cefrLevel     Int         @map("cefr_level") // 위고업 1~10
-  oxfordCefr    OxfordCefr  @map("oxford_cefr")
-  contextNote   String?     @map("context_note")
-  homonymIndex  Int?        @map("homonym_index")
-  meaning       String?
-  definition    String?
-  example       String?
-  audioUrl      String?     @map("audio_url")
-  source        WordSource  @default(OXFORD_3000)
-  createdAt     DateTime    @default(now()) @map("created_at")
-  updatedAt     DateTime    @updatedAt @map("updated_at")
+  id           String     @id @default(uuid())
+  term         String
+  partOfSpeech String     @map("part_of_speech")
+  cefrLevel    Int        @map("cefr_level") // 위고업 1~10
+  oxfordCefr   OxfordCefr @map("oxford_cefr")
+  contextNote  String?    @map("context_note")
+  homonymIndex Int?       @map("homonym_index")
+  meaning      String?
+  definition   String?
+  example      String?
+  audioUrl     String?    @map("audio_url")
+  source       WordSource @default(OXFORD_3000)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
 
-  wordSetItems    WordSetItem[]
-  wordProgress    WordProgress[]
-  examCategories  WordExamCategory[]
+  wordSetItems   WordSetItem[]
+  wordProgress   WordProgress[]
+  examCategories WordExamCategory[]
 
   @@unique([term, partOfSpeech, homonymIndex])
   @@index([cefrLevel])
@@ -1301,7 +1308,7 @@ model WordExamCategory {
 
 /// 단어 세트
 model WordSet {
-  id          String        @id @default(uuid())
+  id           String        @id @default(uuid())
   title        String
   description  String?
   cefrLevel    Int           @map("cefr_level")
@@ -1313,8 +1320,8 @@ model WordSet {
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  owner     User?     @relation("OwnedWordSets", fields: [ownerId], references: [id])
-  academy   Academy?  @relation(fields: [academyId], references: [id])
+  owner   User?    @relation("OwnedWordSets", fields: [ownerId], references: [id])
+  academy Academy? @relation(fields: [academyId], references: [id])
 
   items               WordSetItem[]
   wordTests           WordTest[]
@@ -1345,10 +1352,10 @@ model WordSetAssignment {
 
 /// 단어 세트 항목 (N:M + 순서)
 model WordSetItem {
-  id      String  @id @default(uuid())
-  setId   String  @map("set_id")
-  wordId  String  @map("word_id")
-  order   Int
+  id     String @id @default(uuid())
+  setId  String @map("set_id")
+  wordId String @map("word_id")
+  order  Int
 
   wordSet WordSet @relation(fields: [setId], references: [id], onDelete: Cascade)
   word    Word    @relation(fields: [wordId], references: [id], onDelete: Cascade)
@@ -1360,19 +1367,19 @@ model WordSetItem {
 
 /// 학생 단어 학습 진도 (스페이스드 리피티션)
 model WordProgress {
-  id            String      @id @default(uuid())
-  studentId     String      @map("student_id")
-  wordId        String      @map("word_id")
-  stage         LearnStage  @default(FLASHCARD)
-  easeFactor    Float       @default(2.5) @map("ease_factor")
-  intervalDays  Int         @default(0) @map("interval_days")
-  repetitions   Int         @default(0)
-  nextReviewAt  DateTime?   @map("next_review_at")
-  correctCount  Int         @default(0) @map("correct_count")
-  wrongCount    Int         @default(0) @map("wrong_count")
-  lastStudiedAt DateTime?   @map("last_studied_at")
-  createdAt     DateTime    @default(now()) @map("created_at")
-  updatedAt     DateTime    @updatedAt @map("updated_at")
+  id            String     @id @default(uuid())
+  studentId     String     @map("student_id")
+  wordId        String     @map("word_id")
+  stage         LearnStage @default(FLASHCARD)
+  easeFactor    Float      @default(2.5) @map("ease_factor")
+  intervalDays  Int        @default(0) @map("interval_days")
+  repetitions   Int        @default(0)
+  nextReviewAt  DateTime?  @map("next_review_at")
+  correctCount  Int        @default(0) @map("correct_count")
+  wrongCount    Int        @default(0) @map("wrong_count")
+  lastStudiedAt DateTime?  @map("last_studied_at")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   word    Word    @relation(fields: [wordId], references: [id], onDelete: Cascade)
@@ -1384,14 +1391,14 @@ model WordProgress {
 
 /// 단어 테스트 결과 (개인 자율학습용)
 model WordTest {
-  id             String      @id @default(uuid())
-  studentId      String      @map("student_id")
-  setId          String?     @map("set_id")
+  id             String       @id @default(uuid())
+  studentId      String       @map("student_id")
+  setId          String?      @map("set_id")
   mode           WordTestMode
   score          Int
-  totalQuestions Int         @map("total_questions")
+  totalQuestions Int          @map("total_questions")
   answers        Json
-  takenAt        DateTime    @default(now()) @map("taken_at")
+  takenAt        DateTime     @default(now()) @map("taken_at")
 
   student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   wordSet WordSet? @relation(fields: [setId], references: [id], onDelete: SetNull)
@@ -1417,9 +1424,9 @@ model WordTestAssignment {
   createdAt       DateTime     @default(now()) @map("created_at")
   updatedAt       DateTime     @updatedAt @map("updated_at")
 
-  teacher  User    @relation("TeacherWordTestAssignments", fields: [teacherId], references: [id])
-  academy  Academy @relation(fields: [academyId], references: [id])
-  wordSet  WordSet @relation(fields: [setId], references: [id])
+  teacher User    @relation("TeacherWordTestAssignments", fields: [teacherId], references: [id])
+  academy Academy @relation(fields: [academyId], references: [id])
+  wordSet WordSet @relation(fields: [setId], references: [id])
 
   classAssignments   WordTestClassAssignment[]
   studentAssignments WordTestStudentAssignment[]
@@ -1465,7 +1472,7 @@ model ActivityLog {
   userId    String   @map("user_id")
   role      Role
   academyId String?  @map("academy_id")
-  action    String   // ACTIVITY_ACTIONS 상수 참고 (예: LOGIN, TEST_SUBMIT, PRACTICE_SUBMIT)
+  action    String // ACTIVITY_ACTIONS 상수 참고 (예: LOGIN, TEST_SUBMIT, PRACTICE_SUBMIT)
   metadata  Json?
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -1484,7 +1491,7 @@ model WordTestAttempt {
   score          Int
   totalQuestions Int       @map("total_questions")
   isPassed       Boolean   @map("is_passed")
-  answers        Json      // WordTestAnswerRecord[]
+  answers        Json // WordTestAnswerRecord[]
   takenAt        DateTime  @default(now()) @map("taken_at")
   completedAt    DateTime? @map("completed_at")
 
@@ -1524,14 +1531,14 @@ model Lead {
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
 
-  academy       Academy             @relation(fields: [academyId], references: [id], onDelete: Cascade)
-  assignee      User?               @relation("LeadAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
-  student       Student?            @relation(fields: [studentId], references: [id], onDelete: SetNull)
-  consultations Consultation[]
-  statusHistory LeadStatusHistory[]
-  appointments  ConsultationAppointment[]
-  followUpTasks FollowUpTask[]
-  notificationLogs NotificationLog[]
+  academy           Academy                   @relation(fields: [academyId], references: [id], onDelete: Cascade)
+  assignee          User?                     @relation("LeadAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  student           Student?                  @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  consultations     Consultation[]
+  statusHistory     LeadStatusHistory[]
+  appointments      ConsultationAppointment[]
+  followUpTasks     FollowUpTask[]
+  notificationLogs  NotificationLog[]
   placementInvites  PlacementInvite[]
   placementAttempts PlacementAttempt[]
   activities        LeadActivity[]
@@ -1563,34 +1570,34 @@ model LeadActivity {
 
 /// 상담 1회 기록 — 문의(leadId) 또는 재원생(studentId) 중 하나는 반드시 있음 (DB CHECK 제약)
 model Consultation {
-  id              String           @id @default(uuid())
-  leadId          String?          @map("lead_id")
-  studentId       String?          @map("student_id")
-  counselorId     String?          @map("counselor_id") // 상담자 계정 삭제 시에도 기록 유지
-  consultedAt     DateTime         @map("consulted_at")
-  type            ConsultationType @default(INITIAL)
-  learningHistory String?          @map("learning_history") // 영어 학습 이력
-  prevAcademy     String?          @map("prev_academy") // 타 학원 경험
-  goal            String? // 목표 (내신/수능/회화 등)
-  parentNeeds     String?          @map("parent_needs") // 학부모 요구사항
-  memo            String? // 교사 내부 메모 (학부모 리포트에 절대 노출 금지)
+  id               String            @id @default(uuid())
+  leadId           String?           @map("lead_id")
+  studentId        String?           @map("student_id")
+  counselorId      String?           @map("counselor_id") // 상담자 계정 삭제 시에도 기록 유지
+  consultedAt      DateTime          @map("consulted_at")
+  type             ConsultationType  @default(INITIAL)
+  learningHistory  String?           @map("learning_history") // 영어 학습 이력
+  prevAcademy      String?           @map("prev_academy") // 타 학원 경험
+  goal             String? // 목표 (내신/수능/회화 등)
+  parentNeeds      String?           @map("parent_needs") // 학부모 요구사항
+  memo             String? // 교사 내부 메모 (학부모 리포트에 절대 노출 금지)
   /// 학부모 공유용 코멘트 (리포트에 노출)
-  parentComment   String?          @map("parent_comment")
+  parentComment    String?           @map("parent_comment")
   /// 상담 시점 학습 요약 (LearningSummary) — 나중에 봐도 당시 수치 유지
-  reportSnapshot  Json?            @map("report_snapshot")
+  reportSnapshot   Json?             @map("report_snapshot")
   /// 학부모 공유 리포트 토큰 (추측 불가, 발급 후 30일 만료)
-  reportToken     String?          @unique @map("report_token")
-  reportExpiresAt DateTime?        @map("report_expires_at")
+  reportToken      String?           @unique @map("report_token")
+  reportExpiresAt  DateTime?         @map("report_expires_at")
   /// 퇴원 처리 기록 (type=WITHDRAWAL) — 퇴원일(KST 자정)·사유
   withdrawnOn      DateTime?         @map("withdrawn_on")
   withdrawalReason WithdrawalReason? @map("withdrawal_reason")
-  createdAt       DateTime         @default(now()) @map("created_at")
-  updatedAt       DateTime         @updatedAt @map("updated_at")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
 
-  lead        Lead?                    @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  student     Student?                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  counselor   User?                    @relation("ConsultationCounselor", fields: [counselorId], references: [id], onDelete: SetNull)
-  appointment ConsultationAppointment?
+  lead             Lead?                    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  student          Student?                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  counselor        User?                    @relation("ConsultationCounselor", fields: [counselorId], references: [id], onDelete: SetNull)
+  appointment      ConsultationAppointment?
   notificationLogs NotificationLog[]
 
   @@index([leadId, consultedAt])
@@ -1631,12 +1638,12 @@ model ConsultationAppointment {
   createdAt         DateTime          @default(now()) @map("created_at")
   updatedAt         DateTime          @updatedAt @map("updated_at")
 
-  lead            Lead?                    @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  student         Student?                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  counselor       User?                    @relation("AppointmentCounselor", fields: [counselorId], references: [id], onDelete: SetNull)
-  rescheduledFrom ConsultationAppointment? @relation("AppointmentReschedule", fields: [rescheduledFromId], references: [id], onDelete: SetNull)
-  rescheduledTo   ConsultationAppointment? @relation("AppointmentReschedule")
-  consultation    Consultation?            @relation(fields: [consultationId], references: [id], onDelete: SetNull)
+  lead             Lead?                    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  student          Student?                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  counselor        User?                    @relation("AppointmentCounselor", fields: [counselorId], references: [id], onDelete: SetNull)
+  rescheduledFrom  ConsultationAppointment? @relation("AppointmentReschedule", fields: [rescheduledFromId], references: [id], onDelete: SetNull)
+  rescheduledTo    ConsultationAppointment? @relation("AppointmentReschedule")
+  consultation     Consultation?            @relation(fields: [consultationId], references: [id], onDelete: SetNull)
   notificationLogs NotificationLog[]
 
   @@index([counselorId, scheduledAt])
@@ -1671,29 +1678,29 @@ model FollowUpTask {
 
 /// 학부모 알림 발송 기록 (SOLAPI)
 model NotificationLog {
-  id            String            @id @default(uuid())
-  academyId     String            @map("academy_id")
-  leadId        String?           @map("lead_id")
-  studentId     String?           @map("student_id")
-  appointmentId String?           @map("appointment_id")
-  consultationId String?          @map("consultation_id")
-  phone         String // 수신번호 (숫자만)
-  templateKey   String            @map("template_key")
-  variables     Json
-  channel       MessageChannel
-  status        MessageSendStatus @default(PENDING)
-  errorMessage  String?           @map("error_message")
+  id                String            @id @default(uuid())
+  academyId         String            @map("academy_id")
+  leadId            String?           @map("lead_id")
+  studentId         String?           @map("student_id")
+  appointmentId     String?           @map("appointment_id")
+  consultationId    String?           @map("consultation_id")
+  phone             String // 수신번호 (숫자만)
+  templateKey       String            @map("template_key")
+  variables         Json
+  channel           MessageChannel
+  status            MessageSendStatus @default(PENDING)
+  errorMessage      String?           @map("error_message")
   /// 같은 알림 중복 발송 방지 (예: "reminder:{appointmentId}")
-  dedupeKey     String            @unique @map("dedupe_key")
-  providerMessageId String?       @map("provider_message_id")
-  sentAt        DateTime?         @map("sent_at")
-  createdAt     DateTime          @default(now()) @map("created_at")
+  dedupeKey         String            @unique @map("dedupe_key")
+  providerMessageId String?           @map("provider_message_id")
+  sentAt            DateTime?         @map("sent_at")
+  createdAt         DateTime          @default(now()) @map("created_at")
 
-  academy     Academy                  @relation(fields: [academyId], references: [id], onDelete: Cascade)
-  lead        Lead?                    @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  student     Student?                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  appointment ConsultationAppointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
-  consultation Consultation?           @relation(fields: [consultationId], references: [id], onDelete: SetNull)
+  academy      Academy                  @relation(fields: [academyId], references: [id], onDelete: Cascade)
+  lead         Lead?                    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  student      Student?                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  appointment  ConsultationAppointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  consultation Consultation?            @relation(fields: [consultationId], references: [id], onDelete: SetNull)
 
   @@index([leadId, createdAt])
   @@index([studentId, createdAt])
@@ -1866,12 +1873,13 @@ model AttendanceRecord {
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
 
-  academy    Academy               @relation(fields: [academyId], references: [id], onDelete: Cascade)
-  student    Student               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academy          Academy               @relation(fields: [academyId], references: [id], onDelete: Cascade)
+  student          Student               @relation(fields: [studentId], references: [id], onDelete: Cascade)
   /// 반 삭제 시에도 기록은 보존 (sessionId만 null)
-  session    ClassSession?         @relation(fields: [sessionId], references: [id], onDelete: SetNull)
-  updatedBy  User?                 @relation("AttendanceRecordUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
-  changeLogs AttendanceChangeLog[]
+  session          ClassSession?         @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  updatedBy        User?                 @relation("AttendanceRecordUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  changeLogs       AttendanceChangeLog[]
+  notificationJobs NotificationJob[]
 
   @@unique([studentId, sessionId])
   @@index([academyId, date])
@@ -1935,4 +1943,132 @@ model KeypadRegistrationCode {
 
   @@index([academyId, createdAt])
   @@map("keypad_registration_codes")
+}
+
+// ─── 알림 크레딧 · 출결 알림 발송 ─────────────────────────────────────────────
+
+enum CreditTransactionType {
+  CHARGE // 충전 (결제)
+  USE // 알림 발송 차감
+  REFUND // 결제 취소에 따른 회수
+  ADMIN_ADJUST // 시스템 관리자 수동 조정
+}
+
+enum CreditChannel {
+  ALIMTALK
+  SMS
+}
+
+enum NotificationJobType {
+  CHECK_IN
+  CHECK_OUT
+  ABSENT_ALERT
+}
+
+enum NotificationJobStatus {
+  PENDING // 발송 대기 (providerMessageId가 있으면 SOLAPI 결과 대기)
+  SENT
+  FAILED
+  SKIPPED_NO_CREDIT
+  SKIPPED_DUPLICATE
+}
+
+/// 학원(본원) 알림 크레딧 지갑 — 지점은 본원 지갑을 함께 사용
+model CreditWallet {
+  id                  String   @id @default(uuid())
+  academyId           String   @unique @map("academy_id")
+  balance             Int      @default(0)
+  lowBalanceThreshold Int      @default(500) @map("low_balance_threshold")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  academy Academy @relation(fields: [academyId], references: [id], onDelete: Cascade)
+
+  @@map("credit_wallets")
+}
+
+/// 크레딧 증감 원장 — amount는 차감이면 음수
+model CreditTransaction {
+  id                String                @id @default(uuid())
+  academyId         String                @map("academy_id")
+  type              CreditTransactionType
+  amount            Int
+  balanceAfter      Int                   @map("balance_after")
+  /// 충전·회수 결제 (Payment.paymentId = 토스 orderId)
+  paymentId         String?               @map("payment_id")
+  notificationJobId String?               @map("notification_job_id")
+  memo              String?
+  /// 수동 조정한 관리자
+  actorId           String?               @map("actor_id")
+  createdAt         DateTime              @default(now()) @map("created_at")
+
+  academy         Academy          @relation(fields: [academyId], references: [id], onDelete: Cascade)
+  notificationJob NotificationJob? @relation(fields: [notificationJobId], references: [id], onDelete: SetNull)
+
+  /// 같은 결제로 두 번 충전·회수되지 않도록
+  @@unique([paymentId, type])
+  @@index([academyId, createdAt])
+  @@index([notificationJobId])
+  @@map("credit_transactions")
+}
+
+/// 채널별 건당 크레딧 (시스템 관리자)
+model CreditPricing {
+  id               String        @id @default(uuid())
+  channel          CreditChannel @unique
+  creditPerMessage Int           @map("credit_per_message")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  @@map("credit_pricings")
+}
+
+/// 충전 상품 (시스템 관리자)
+model CreditPackage {
+  id        String   @id @default(uuid())
+  name      String
+  credits   Int
+  priceKrw  Int      @map("price_krw")
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("credit_packages")
+}
+
+/// 출결 알림 발송 작업 (크론이 SOLAPI로 발송)
+model NotificationJob {
+  id                String                @id @default(uuid())
+  academyId         String                @map("academy_id")
+  studentId         String                @map("student_id")
+  /// 출결 기록 (미등원 안내는 기록이 없을 수 있음)
+  recordId          String?               @map("record_id")
+  /// 미등원 안내 대상 수업
+  sessionId         String?               @map("session_id")
+  type              NotificationJobType
+  phone             String
+  variables         Json
+  status            NotificationJobStatus @default(PENDING)
+  /// 실제 발송 채널 (SOLAPI 대체발송 결과 반영)
+  channel           CreditChannel?
+  providerMessageId String?               @map("provider_message_id")
+  attempts          Int                   @default(0)
+  errorMessage      String?               @map("error_message")
+  /// 미등원 안내 중복 방지 키 (수업 회차당 1회 — 잔액 부족·중복으로 건너뛴 건도 키를 선점)
+  dedupeKey         String?               @unique @map("dedupe_key")
+  /// 크론 처리 중 잠금 (동시 실행 시 이중 발송 방지)
+  lockedUntil       DateTime?             @map("locked_until")
+  /// 크레딧 정산 완료 시각 (SENT 후 SOLAPI 최종 결과 확인)
+  settledAt         DateTime?             @map("settled_at")
+  createdAt         DateTime              @default(now()) @map("created_at")
+  sentAt            DateTime?             @map("sent_at")
+
+  academy      Academy             @relation(fields: [academyId], references: [id], onDelete: Cascade)
+  student      Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  record       AttendanceRecord?   @relation(fields: [recordId], references: [id], onDelete: SetNull)
+  transactions CreditTransaction[]
+
+  @@index([status, createdAt])
+  @@index([studentId, type, createdAt])
+  @@index([academyId, createdAt])
+  @@map("notification_jobs")
 }

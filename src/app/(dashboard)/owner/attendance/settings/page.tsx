@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { getOwnerBranches } from '@/lib/branch'
 import { listKeypadDevices } from '@/lib/attendance/keypad-device'
 import { getOrCreateAttendanceSetting } from '@/lib/attendance/settings'
+import { getCreditPricing, getWallet, walletAcademyIdOf } from '@/lib/credits/wallet'
 import { AttendanceSettingsClient } from './_components/attendance-settings-client'
 import { KeypadDevicesSection } from './_components/keypad-devices-section'
 
@@ -25,7 +26,12 @@ export default async function AttendanceSettingsPage({
 
   const { academy } = await searchParams
   const academyId = academies.some((a) => a.id === academy) ? academy! : academies[0].id
-  const [setting, devices] = await Promise.all([getOrCreateAttendanceSetting(academyId), listKeypadDevices(academyId)])
+  const [setting, devices, pricing, wallet] = await Promise.all([
+    getOrCreateAttendanceSetting(academyId),
+    listKeypadDevices(academyId),
+    getCreditPricing(),
+    walletAcademyIdOf(academyId).then(getWallet),
+  ])
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -38,6 +44,7 @@ export default async function AttendanceSettingsPage({
         academyId={academyId}
         academies={academies}
         initial={setting}
+        credit={{ perMessage: pricing.ALIMTALK, smsPerMessage: pricing.SMS, balance: wallet.balance }}
       />
       <KeypadDevicesSection academyId={academyId} devices={devices} />
     </div>

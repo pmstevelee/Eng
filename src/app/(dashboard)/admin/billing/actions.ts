@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma/client'
 import { getCurrentUser } from '@/lib/auth'
 import { cancelPayment, payWithBillingKey } from '@/lib/tosspayments/server'
 import { writeAuditLog } from '@/lib/webhooks/handler'
+import { refundCreditsForPayment } from '@/lib/credits/wallet'
 import {
   PaymentStatus,
   PaymentType,
@@ -117,6 +118,9 @@ export async function refundPayment(
       where: { paymentId },
       data: { status: PaymentStatus.REFUNDED, canceledAt: new Date() },
     })
+
+    // 알림 크레딧 충전 결제 → 충전분 회수 (웹훅으로도 다시 호출되지만 1회만 처리됨)
+    if (payment.type === PaymentType.NOTIFICATION_CREDIT) await refundCreditsForPayment(paymentId)
 
     await writeAuditLog({
       actorType: AuditActorType.ADMIN,

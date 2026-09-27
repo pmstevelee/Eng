@@ -14,6 +14,7 @@ const TYPE_LABELS: Record<PaymentType, string> = {
   ANNUAL: '연간 구독',
   STUDENT_OVERAGE: '학생 초과',
   STORAGE_OVERAGE: '스토리지 초과',
+  NOTIFICATION_CREDIT: '알림 크레딧 충전',
 }
 
 const TYPE_COLORS: Record<PaymentType, string> = {
@@ -24,6 +25,7 @@ const TYPE_COLORS: Record<PaymentType, string> = {
   ANNUAL: 'bg-blue-50 text-[#1865F2]',
   STUDENT_OVERAGE: 'bg-orange-50 text-[#E35C20]',
   STORAGE_OVERAGE: 'bg-orange-50 text-[#E35C20]',
+  NOTIFICATION_CREDIT: 'bg-green-50 text-[#1FAF54]',
 }
 
 const STATUS_LABELS: Partial<Record<PaymentStatus, { label: string; color: string }>> = {

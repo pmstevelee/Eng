@@ -10,6 +10,11 @@ export type TemplateKey =
   | 'PLACEMENT_TEST_RESULT'
   | 'INQUIRY_RECEIVED'
   | 'STUDENT_REPORT'
+  | 'ATTENDANCE_CHECK_IN'
+  | 'ATTENDANCE_CHECK_IN_LATE'
+  | 'ATTENDANCE_CHECK_OUT'
+  | 'ATTENDANCE_CHECK_OUT_SUMMARY'
+  | 'ATTENDANCE_ABSENT'
 
 type TemplateDef<V extends string> = {
   label: string
@@ -113,6 +118,53 @@ export const NOTIFICATION_TEMPLATES = {
       '궁금하신 점은 학원으로 문의해 주세요.',
     ].join('\n'),
   },
+  // ─── 출결 알림 (출결관리 4단계, 발송 큐 경유 · 크레딧 차감) ───
+  ATTENDANCE_CHECK_IN: {
+    label: '등원 알림',
+    templateIdEnv: 'SOLAPI_TEMPLATE_ATTENDANCE_CHECK_IN',
+    variables: ['학원명', '학생명', '시각'],
+    body: ['[#{학원명}] 등원 안내', '', '#{학생명} 학생이 #{시각}에 학원에 등원했습니다.'].join('\n'),
+  },
+  ATTENDANCE_CHECK_IN_LATE: {
+    label: '등원 알림 (지각)',
+    templateIdEnv: 'SOLAPI_TEMPLATE_ATTENDANCE_CHECK_IN_LATE',
+    variables: ['학원명', '학생명', '시각', '수업시작'],
+    body: [
+      '[#{학원명}] 등원 안내',
+      '',
+      '#{학생명} 학생이 #{시각}에 학원에 등원했습니다.',
+      '(수업 시작 시각: #{수업시작})',
+    ].join('\n'),
+  },
+  ATTENDANCE_CHECK_OUT: {
+    label: '하원 알림',
+    templateIdEnv: 'SOLAPI_TEMPLATE_ATTENDANCE_CHECK_OUT',
+    variables: ['학원명', '학생명', '시각'],
+    body: ['[#{학원명}] 하원 안내', '', '#{학생명} 학생이 #{시각}에 하원했습니다.'].join('\n'),
+  },
+  ATTENDANCE_CHECK_OUT_SUMMARY: {
+    label: '하원 알림 (학습 요약)',
+    templateIdEnv: 'SOLAPI_TEMPLATE_ATTENDANCE_CHECK_OUT_SUMMARY',
+    variables: ['학원명', '학생명', '시각', '학습요약'],
+    body: [
+      '[#{학원명}] 하원 안내',
+      '',
+      '#{학생명} 학생이 #{시각}에 하원했습니다.',
+      '',
+      '■ 오늘의 학습: #{학습요약}',
+    ].join('\n'),
+  },
+  ATTENDANCE_ABSENT: {
+    label: '미등원 안내',
+    templateIdEnv: 'SOLAPI_TEMPLATE_ATTENDANCE_ABSENT',
+    variables: ['학원명', '학생명', '수업시작'],
+    body: [
+      '[#{학원명}] 미등원 안내',
+      '',
+      '#{학생명} 학생이 #{수업시작} 수업에 아직 등원하지 않았습니다.',
+      '확인 부탁드립니다.',
+    ].join('\n'),
+  },
 } as const satisfies Record<TemplateKey, TemplateDef<string>>
 
 export type TemplateVariables<K extends TemplateKey> = Record<
@@ -127,6 +179,11 @@ export const TEMPLATE_LABEL: Record<TemplateKey, string> = {
   PLACEMENT_TEST_RESULT: NOTIFICATION_TEMPLATES.PLACEMENT_TEST_RESULT.label,
   INQUIRY_RECEIVED: NOTIFICATION_TEMPLATES.INQUIRY_RECEIVED.label,
   STUDENT_REPORT: NOTIFICATION_TEMPLATES.STUDENT_REPORT.label,
+  ATTENDANCE_CHECK_IN: NOTIFICATION_TEMPLATES.ATTENDANCE_CHECK_IN.label,
+  ATTENDANCE_CHECK_IN_LATE: NOTIFICATION_TEMPLATES.ATTENDANCE_CHECK_IN_LATE.label,
+  ATTENDANCE_CHECK_OUT: NOTIFICATION_TEMPLATES.ATTENDANCE_CHECK_OUT.label,
+  ATTENDANCE_CHECK_OUT_SUMMARY: NOTIFICATION_TEMPLATES.ATTENDANCE_CHECK_OUT_SUMMARY.label,
+  ATTENDANCE_ABSENT: NOTIFICATION_TEMPLATES.ATTENDANCE_ABSENT.label,
 }
 
 export function isTemplateKey(v: string): v is TemplateKey {

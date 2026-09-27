@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
@@ -18,6 +19,8 @@ type Props = {
   academyId: string
   academies: { id: string; label: string }[]
   initial: AttendanceSettingValues
+  /** 알림 크레딧 — 건당 차감(알림톡·문자 대체) · 현재 잔액 (지점은 본원 지갑) */
+  credit: { perMessage: number; smsPerMessage: number; balance: number }
 }
 
 const MODES: AttendanceModeValue[] = ['ACADEMY', 'CLASS']
@@ -38,6 +41,7 @@ function ToggleRow({
   help,
   checked,
   disabled,
+  cost,
   onChange,
 }: {
   id: string
@@ -45,6 +49,8 @@ function ToggleRow({
   help: string
   checked: boolean
   disabled?: boolean
+  /** 알림 토글 옆 "건당 N크레딧" */
+  cost?: number
   onChange: (on: boolean) => void
 }) {
   return (
@@ -53,12 +59,15 @@ function ToggleRow({
         <p className="text-sm font-semibold text-gray-900">{title}</p>
         <p className="text-xs text-gray-500 mt-0.5">{help}</p>
       </label>
-      <Switch id={id} checked={checked} disabled={disabled} onCheckedChange={onChange} />
+      <div className="flex shrink-0 items-center gap-3">
+        {cost !== undefined && <span className="text-xs font-medium text-gray-500">건당 {cost}크레딧</span>}
+        <Switch id={id} checked={checked} disabled={disabled} onCheckedChange={onChange} />
+      </div>
     </div>
   )
 }
 
-export function AttendanceSettingsClient({ academyId, academies, initial }: Props) {
+export function AttendanceSettingsClient({ academyId, academies, initial, credit }: Props) {
   const router = useRouter()
   const [form, setForm] = useState<AttendanceSettingValues>(initial)
   const [graceText, setGraceText] = useState(String(initial.lateGraceMinutes))
@@ -207,6 +216,7 @@ export function AttendanceSettingsClient({ academyId, academies, initial }: Prop
         <div className="divide-y divide-gray-100">
           <ToggleRow
             id="notify-check-in"
+            cost={credit.perMessage}
             title="등원 알림"
             help="학생이 등원(출석)하면 학부모에게 알립니다."
             checked={form.notifyCheckIn}
@@ -214,6 +224,7 @@ export function AttendanceSettingsClient({ academyId, academies, initial }: Prop
           />
           <ToggleRow
             id="notify-check-out"
+            cost={credit.perMessage}
             title="하원 알림"
             help="학생이 하원하면 학부모에게 알립니다."
             checked={form.notifyCheckOut}
@@ -229,13 +240,35 @@ export function AttendanceSettingsClient({ academyId, academies, initial }: Prop
           />
           <ToggleRow
             id="notify-absent"
+            cost={credit.perMessage}
             title="미등원 안내"
             help="수업 시간이 지나도 등원하지 않으면 학부모에게 안내합니다."
             checked={form.notifyAbsent}
             onChange={(on) => set('notifyAbsent', on)}
           />
         </div>
-        <p className="mt-4 text-xs text-gray-500">알림 발송 기능은 준비 중입니다. 지금 설정해 두면 기능이 열릴 때 그대로 적용됩니다.</p>
+        {credit.balance < credit.perMessage ? (
+          <div className="mt-4 flex flex-col gap-3 rounded-xl bg-accent-gold/10 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="flex items-start gap-2 text-sm text-gray-900">
+              <AlertTriangle size={18} className="mt-0.5 shrink-0 text-accent-gold" />
+              알림 크레딧 잔액이 없어 알림을 켜도 학부모에게 발송되지 않습니다.
+            </p>
+            <Link
+              href="/owner/credits#charge"
+              className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-primary-700 px-4 text-sm font-semibold text-white hover:bg-primary-800"
+            >
+              충전하기
+            </Link>
+          </div>
+        ) : (
+          <p className="mt-4 text-xs text-gray-500">
+            알림톡으로 발송하며, 알림톡이 실패해 문자로 대체발송되면 건당 {credit.smsPerMessage}크레딧이 차감됩니다. 현재 잔액{' '}
+            {credit.balance.toLocaleString('ko-KR')}크레딧 ·{' '}
+            <Link href="/owner/credits" className="font-medium text-primary-700 hover:underline">
+              크레딧 관리
+            </Link>
+          </p>
+        )}
       </SectionCard>
 
       <div className="flex items-center justify-end gap-3">

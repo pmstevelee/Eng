@@ -9,6 +9,7 @@ import {
 } from '@/generated/prisma'
 import { getPayment } from '@/lib/tosspayments/server'
 import { sendSlackRecurringFailAlert, sendSlackPaymentAlert } from '@/lib/notifications/slack'
+import { chargeCreditsForPayment, refundCreditsForPayment } from '@/lib/credits/wallet'
 import type { TossWebhookEvent } from '@/lib/tosspayments/server'
 
 // ─── 감사 로그 헬퍼 ───────────────────────────────────────────────────────────
@@ -94,7 +95,11 @@ async function handlePaid(orderId: string): Promise<void> {
   if (!payment) return
 
   // 멱등성: 이미 PAID면 무시
-  if (payment.status === PaymentStatus.PAID) return
+  // (알림 크레딧은 승인 페이지에서 PAID 처리 직후 충전이 실패했을 수 있어 충전만 다시 확인 — 중복 충전은 unique로 차단)
+  if (payment.status === PaymentStatus.PAID) {
+    if (payment.type === PaymentType.NOTIFICATION_CREDIT) await chargeCreditsForPayment(orderId)
+    return
+  }
 
   // 토스에서 실제 결제 정보 조회 후 금액 재검증 (웹훅 payload는 신뢰하지 않음)
   const tossPayment = await getPayment(orderId)
@@ -141,6 +146,20 @@ async function handlePaid(orderId: string): Promise<void> {
     case PaymentType.CREDIT_PACKAGE:
       // credit verify 라우트에서 이미 크레딧 지급 — 웹훅은 감사 로그만
       break
+
+    case PaymentType.NOTIFICATION_CREDIT: {
+      // 알림 크레딧 충전 — 승인 페이지와 웹훅 중 먼저 도착한 쪽이 충전 (paymentId 기준 1회)
+      const charged = await chargeCreditsForPayment(orderId)
+      if (charged.status === 'CHARGED') {
+        await writeAuditLog({
+          actorType: AuditActorType.WEBHOOK,
+          action: 'NOTIFICATION_CREDIT_CHARGED',
+          target: `Payment:${orderId}`,
+          metadata: { credits: charged.credits, balanceAfter: charged.balanceAfter },
+        })
+      }
+      break
+    }
 
     case PaymentType.STUDENT_OVERAGE:
     case PaymentType.STORAGE_OVERAGE:
@@ -247,6 +266,11 @@ async function handleCancelled(orderId: string, partial: boolean): Promise<void>
         plan: Plan.FREE,
       },
     })
+  }
+
+  if (!partial && payment.type === PaymentType.NOTIFICATION_CREDIT) {
+    // 알림 크레딧 환불 → 충전분 회수 (이미 사용한 만큼은 남은 잔액까지만)
+    await refundCreditsForPayment(orderId)
   }
 
   if (!partial && payment.type === PaymentType.CREDIT_PACKAGE) {

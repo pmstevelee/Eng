@@ -67,6 +67,7 @@ const TYPE_LABEL: Record<PaymentType, string> = {
   OVERAGE_AI_QUESTION: '초과(문제)',
   STUDENT_OVERAGE: '초과(학생)',
   STORAGE_OVERAGE: '초과(저장)',
+  NOTIFICATION_CREDIT: '알림 크레딧',
 }
 
 interface Props {

@@ -7,6 +7,7 @@ import { createHmac, randomBytes } from 'crypto'
 // 발송: POST /messages/v4/send-many/detail
 
 const API_URL = 'https://api.solapi.com/messages/v4/send-many/detail'
+const LIST_URL = 'https://api.solapi.com/messages/v4/list'
 const SALT_ALPHABET = '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 export type SolapiConfig = {
@@ -20,7 +21,8 @@ export type SolapiConfig = {
 export function getSolapiConfig(): SolapiConfig | null {
   const apiKey = process.env.SOLAPI_API_KEY
   const apiSecret = process.env.SOLAPI_API_SECRET
-  const senderNumber = process.env.SOLAPI_SENDER_NUMBER?.replace(/\D/g, '')
+  // SOLAPI_SENDER는 출결 알림 안내 문서의 이름 — 둘 중 하나만 있어도 된다
+  const senderNumber = (process.env.SOLAPI_SENDER_NUMBER || process.env.SOLAPI_SENDER)?.replace(/\D/g, '')
   if (!apiKey || !apiSecret || !senderNumber) return null
   return { apiKey, apiSecret, senderNumber, pfId: process.env.SOLAPI_PFID || null }
 }
@@ -106,4 +108,53 @@ export async function sendSolapiMessage(config: SolapiConfig, message: SolapiMes
     return { ok: false, error: `${failed.statusCode ?? ''} ${failed.statusMessage ?? '접수 실패'}`.trim() }
   }
   return { ok: true, messageId: data.messageList?.[0]?.messageId ?? null }
+}
+
+// ─── 발송 결과 조회 ────────────────────────────────────────────────────────────
+// 발송 요청 결과는 "접수" 기준이라, 최종 수신 여부·대체발송 여부는 메시지 조회로 확인한다.
+// statusCode: 2000 접수 · 3000 이통사 전송 중 · 4000 수신 완료 · 그 외 실패
+
+export type SolapiDeliveryResult =
+  | { state: 'PENDING' }
+  | { state: 'DELIVERED'; channel: 'ALIMTALK' | 'SMS' }
+  | { state: 'FAILED'; error: string }
+  | { state: 'ERROR'; error: string }
+
+type StoredMessage = {
+  type?: string | null
+  statusCode?: string | null
+  reason?: string | null
+  replacement?: boolean | number
+}
+
+export async function getSolapiDeliveryResult(config: SolapiConfig, messageId: string): Promise<SolapiDeliveryResult> {
+  let res: Response
+  try {
+    res = await fetch(`${LIST_URL}?messageId=${encodeURIComponent(messageId)}`, {
+      headers: { Authorization: buildAuthHeader(config.apiKey, config.apiSecret) },
+      signal: AbortSignal.timeout(10_000),
+      cache: 'no-store',
+    })
+  } catch (err) {
+    return { state: 'ERROR', error: `SOLAPI 연결 실패: ${err instanceof Error ? err.message : String(err)}` }
+  }
+  if (!res.ok) return { state: 'ERROR', error: `SOLAPI 조회 실패 (HTTP ${res.status})` }
+
+  let data: { messageList?: Record<string, StoredMessage> }
+  try {
+    data = (await res.json()) as { messageList?: Record<string, StoredMessage> }
+  } catch {
+    return { state: 'ERROR', error: 'SOLAPI 조회 응답 오류' }
+  }
+  const message = data.messageList?.[messageId] ?? Object.values(data.messageList ?? {})[0]
+  if (!message) return { state: 'ERROR', error: 'SOLAPI에서 메시지를 찾을 수 없습니다.' }
+
+  const code = message.statusCode ?? ''
+  if (code === '' || code === '2000' || code === '3000') return { state: 'PENDING' }
+  if (code === '4000') {
+    const replaced = message.replacement === true || message.replacement === 1
+    const isText = message.type === 'SMS' || message.type === 'LMS' || message.type === 'MMS'
+    return { state: 'DELIVERED', channel: replaced || isText ? 'SMS' : 'ALIMTALK' }
+  }
+  return { state: 'FAILED', error: `${code} ${message.reason ?? '수신 실패'}`.trim() }
 }

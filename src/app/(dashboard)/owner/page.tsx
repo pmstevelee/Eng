@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
 import { Users, TrendingUp, FileCheck, BarChart2, ArrowUpRight, ArrowDownRight, Minus, AlertCircle } from 'lucide-react'
@@ -6,6 +7,7 @@ import { prisma } from '@/lib/prisma/client'
 import { getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { OwnerCharts } from '@/components/dashboard/owner-charts'
+import { LowCreditBanner } from '@/components/shared/credits/low-credit-banner'
 import type { ClassChartItem, MonthlyChartItem, LevelChartItem, DomainChartItem } from '@/components/dashboard/owner-charts'
 
 // ─── Data Fetching ────────────────────────────────────────────────────────────
@@ -313,6 +315,11 @@ export default async function OwnerDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* 알림 크레딧 부족 배너 (렌더 비차단) */}
+      <Suspense fallback={null}>
+        <LowCreditBanner academyId={user.academyId} />
+      </Suspense>
+
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
