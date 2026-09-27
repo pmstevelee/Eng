@@ -1,10 +1,23 @@
-import { AttendanceComingSoon } from '@/components/shared/attendance/coming-soon'
+import { redirect } from 'next/navigation'
+import { getAttendanceScope } from '@/lib/attendance/access'
+import { getTodayAttendance } from '@/lib/attendance/queries'
+import { isDateKey, todayKst } from '@/lib/attendance/time'
+import { TodayAttendance } from '@/components/shared/attendance/today-attendance'
 
-export default function AttendanceTodayPage() {
+export default async function AttendanceTodayPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>
+}) {
+  const scope = await getAttendanceScope()
+  if (!scope || scope.role !== 'TEACHER') redirect('/login')
+
+  const { date } = await searchParams
+  const today = todayKst()
+  const dateKey = isDateKey(date) ? date : today
+  const data = await getTodayAttendance(scope, scope.academyIds[0], dateKey)
+
   return (
-    <AttendanceComingSoon
-      title="오늘 출결"
-      description="오늘 학생들의 등원·하원과 수업별 출석을 확인하고 체크합니다."
-    />
+    <TodayAttendance key={dateKey} data={data} basePath="/teacher/attendance" today={today} nowMs={Date.now()} />
   )
 }
