@@ -112,7 +112,7 @@ async function settleSentJobs(pricing: CreditPricingMap, summary: QueueSummary):
         }
         // 결과 대기 중 / 조회 오류 — 너무 오래되면 접수 채널 기준으로 정산
         if (job.sentAt && Date.now() - job.sentAt.getTime() > SETTLE_GIVE_UP_MS) {
-          return charge(job.channel ?? 'ALIMTALK')
+          return charge(job.channel === 'SMS' ? 'SMS' : 'ALIMTALK')
         }
       }),
     )

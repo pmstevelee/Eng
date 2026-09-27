@@ -7,6 +7,7 @@ interface UsageItem {
   used: number
   limit: number
   remainingFree: number
+  /** 통합 크레딧으로 추가 사용 가능한 횟수 */
   creditBalance: number
   isOverLimit: boolean
 }
@@ -59,7 +60,7 @@ function UsageBar({
         <span className="text-gray-500">
           {used.toLocaleString()} / {limitText}
           {creditBalance > 0 && (
-            <span className="ml-1 text-[#7854F7]">+{creditBalance.toLocaleString()} 크레딧</span>
+            <span className="ml-1 text-[#7854F7]">+ 크레딧 {creditBalance.toLocaleString()}{unit}분</span>
           )}
         </span>
       </div>
@@ -155,7 +156,7 @@ export function UsageWidget() {
       {(anyOverLimit || anyNearLimit) && (
         <div className="flex gap-2 pt-1">
           <Link
-            href="/owner/billing/credits"
+            href="/owner/credits#charge"
             className="flex-1 text-center py-2 rounded-lg text-sm font-medium bg-[#7854F7] text-white hover:bg-[#6644e6] transition-colors"
           >
             크레딧 충전

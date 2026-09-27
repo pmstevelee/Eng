@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
-import { CREDIT_CHANNELS, CREDIT_INPUT_MAX, type CreditChannelValue } from '@/lib/credits/constants'
+import { CREDIT_INPUT_MAX, CREDIT_ITEMS, type CreditItemValue } from '@/lib/credits/constants'
 import { adjustCreditsByAdmin } from '@/lib/credits/wallet'
 import { writeAuditLog } from '@/lib/webhooks/handler'
 
@@ -21,16 +21,16 @@ function isCount(value: number, min: number): boolean {
   return Number.isInteger(value) && value >= min && value <= CREDIT_INPUT_MAX
 }
 
-// ─── 채널별 단가 ───────────────────────────────────────────────────────────────
+// ─── 항목별 단가 (알림 채널 + AI 기능) ───────────────────────────────────────────────────────────────
 
-export async function updateCreditPricing(input: Record<CreditChannelValue, number>): Promise<ActionResult> {
+export async function updateCreditPricing(input: Record<CreditItemValue, number>): Promise<ActionResult> {
   const admin = await requireSuperAdmin()
   if (!admin) return { error: NO_PERMISSION }
-  for (const channel of CREDIT_CHANNELS) {
-    if (!isCount(Number(input[channel]), 1)) return { error: '건당 크레딧은 1 이상의 정수로 입력해주세요.' }
+  for (const channel of CREDIT_ITEMS) {
+    if (!isCount(Number(input[channel]), 1)) return { error: '단가는 1 이상의 정수로 입력해주세요.' }
   }
   await prisma.$transaction(
-    CREDIT_CHANNELS.map((channel) =>
+    CREDIT_ITEMS.map((channel) =>
       prisma.creditPricing.upsert({
         where: { channel },
         create: { channel, creditPerMessage: Number(input[channel]) },

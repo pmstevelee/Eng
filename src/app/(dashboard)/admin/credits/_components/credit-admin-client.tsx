@@ -5,10 +5,13 @@ import { useRouter } from 'next/navigation'
 import { Loader2, Plus, Search } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import {
-  CREDIT_CHANNEL_LABEL,
+  AI_CREDIT_ITEMS,
   CREDIT_CHANNELS,
+  CREDIT_ITEM_LABEL,
+  CREDIT_ITEM_UNIT,
+  CREDIT_ITEMS,
   formatCredits,
-  type CreditChannelValue,
+  type CreditItemValue,
   type CreditPricingMap,
 } from '@/lib/credits/constants'
 import { cn } from '@/lib/utils'
@@ -52,26 +55,36 @@ function Message({ message }: { message: { ok: boolean; text: string } | null })
 
 function PricingSection({ pricing }: { pricing: CreditPricingMap }) {
   const router = useRouter()
-  const [values, setValues] = useState<Record<CreditChannelValue, string>>({
-    ALIMTALK: String(pricing.ALIMTALK),
-    SMS: String(pricing.SMS),
-  })
+  const [values, setValues] = useState<Record<CreditItemValue, string>>(
+    () => Object.fromEntries(CREDIT_ITEMS.map((item) => [item, String(pricing[item])])) as Record<CreditItemValue, string>,
+  )
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const [pending, startTransition] = useTransition()
 
   const save = () =>
     startTransition(async () => {
-      const res = await updateCreditPricing({ ALIMTALK: Number(values.ALIMTALK), SMS: Number(values.SMS) })
+      const res = await updateCreditPricing(
+        Object.fromEntries(CREDIT_ITEMS.map((item) => [item, Number(values[item])])) as Record<CreditItemValue, number>,
+      )
       setMessage(res.error ? { ok: false, text: res.error } : { ok: true, text: '저장되었습니다.' })
       if (!res.error) router.refresh()
     })
 
   return (
-    <Section title="채널별 건당 크레딧" description="발송에 성공한 건만 실제 발송 채널의 단가로 차감됩니다. 알림톡 실패 후 문자로 대체발송되면 문자 단가가 적용됩니다.">
+    <Section
+      title="항목별 차감 크레딧"
+      description="학부모 알림은 발송에 성공한 건만 실제 발송 채널의 단가로 차감됩니다(알림톡 실패 후 문자 대체발송 시 문자 단가). AI 기능은 플랜 무료 한도를 넘은 사용분부터 1회당 차감됩니다."
+    >
+      {[
+        { title: '학부모 알림', items: CREDIT_CHANNELS as CreditItemValue[] },
+        { title: 'AI 기능', items: AI_CREDIT_ITEMS as CreditItemValue[] },
+      ].map((group) => (
+      <div key={group.title} className="mb-5 last:mb-0">
+      <p className="mb-2 text-xs font-semibold text-gray-500">{group.title}</p>
       <div className="grid gap-4 sm:grid-cols-2">
-        {CREDIT_CHANNELS.map((channel) => (
+        {group.items.map((channel) => (
           <label key={channel} className="block">
-            <span className="text-sm font-semibold text-gray-900">{CREDIT_CHANNEL_LABEL[channel]}</span>
+            <span className="text-sm font-semibold text-gray-900">{CREDIT_ITEM_LABEL[channel]}</span>
             <div className="mt-1.5 flex items-center gap-2">
               <input
                 type="number"
@@ -84,11 +97,13 @@ function PricingSection({ pricing }: { pricing: CreditPricingMap }) {
                 }}
                 className={cn(inputClass, 'text-right')}
               />
-              <span className="shrink-0 text-sm text-gray-700">크레딧</span>
+              <span className="shrink-0 text-sm text-gray-700">크레딧 / {CREDIT_ITEM_UNIT[channel]}</span>
             </div>
           </label>
         ))}
       </div>
+      </div>
+      ))}
       <div className="mt-4 flex items-center justify-end gap-3">
         <Message message={message} />
         <button

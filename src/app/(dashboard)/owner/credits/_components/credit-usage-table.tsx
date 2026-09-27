@@ -1,13 +1,18 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Download, Receipt } from 'lucide-react'
 import { addMonths } from '@/lib/attendance/time'
 import {
-  CREDIT_CHANNEL_LABEL,
+  CREDIT_ITEM_LABEL,
   CREDIT_TX_TYPE_LABEL,
+  CREDIT_USAGE_FILTER_LABEL,
   NOTIFICATION_JOB_TYPE_LABEL,
   formatCredits,
+  isAiCreditItem,
+  matchesUsageFilter,
+  type CreditUsageFilter,
   type CreditUsageRow,
 } from '@/lib/credits/constants'
 import { cn } from '@/lib/utils'
@@ -26,11 +31,17 @@ function formatDateTime(iso: string): string {
   return DATETIME_FMT.format(new Date(iso))
 }
 
+/** 사용처 (알림 종류 또는 AI 기능) */
 function kindLabel(row: CreditUsageRow): string {
+  if (row.item && isAiCreditItem(row.item)) {
+    return row.memo ? `${CREDIT_ITEM_LABEL[row.item]} · ${row.memo}` : CREDIT_ITEM_LABEL[row.item]
+  }
   if (!row.jobType) return row.memo ?? ''
-  const channel = row.channel ? ` (${CREDIT_CHANNEL_LABEL[row.channel]})` : ''
+  const channel = row.item ? ` (${CREDIT_ITEM_LABEL[row.item]})` : ''
   return `${NOTIFICATION_JOB_TYPE_LABEL[row.jobType]}${channel}`
 }
+
+const FILTERS: CreditUsageFilter[] = ['ALL', 'AI', 'NOTIFICATION', 'CHARGE']
 
 const TYPE_BADGE: Record<CreditUsageRow['type'], string> = {
   CHARGE: 'bg-green-50 text-accent-green',
@@ -44,18 +55,20 @@ type Props = { monthKey: string; rows: CreditUsageRow[]; truncated: boolean }
 export function CreditUsageTable({ monthKey, rows, truncated }: Props) {
   const [y, m] = monthKey.split('-').map(Number)
   const monthHref = (key: string) => `/owner/credits?month=${key}#usage`
+  const [filter, setFilter] = useState<CreditUsageFilter>('ALL')
+  const visible = rows.filter((r) => matchesUsageFilter(r, filter))
 
   const downloadCsv = () => {
     const escape = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v)
-    const header = ['일시', '구분', '학생명', '알림 종류', '크레딧 증감', '잔액', '메모']
+    const header = ['일시', '구분', '사용처', '학생명', '크레딧 증감', '잔액', '메모']
     const lines = [header.join(',')]
-    for (const r of rows) {
+    for (const r of visible) {
       lines.push(
         [
           formatDateTime(r.createdAt),
           CREDIT_TX_TYPE_LABEL[r.type],
+          r.jobType || r.item ? kindLabel(r) : '',
           r.studentName ?? '',
-          r.jobType ? kindLabel(r) : '',
           String(r.amount),
           String(r.balanceAfter),
           r.memo ?? '',
@@ -69,7 +82,7 @@ export function CreditUsageTable({ monthKey, rows, truncated }: Props) {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `알림크레딧_사용내역_${monthKey}.csv`
+    a.download = `크레딧_사용내역_${monthKey}.csv`
     document.body.appendChild(a)
     a.click()
     a.remove()
@@ -101,7 +114,7 @@ export function CreditUsageTable({ monthKey, rows, truncated }: Props) {
           <button
             type="button"
             onClick={downloadCsv}
-            disabled={rows.length === 0}
+            disabled={visible.length === 0}
             className="h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-900 inline-flex items-center gap-2 hover:bg-gray-50 disabled:opacity-50"
           >
             <Download size={16} /> CSV
@@ -109,10 +122,32 @@ export function CreditUsageTable({ monthKey, rows, truncated }: Props) {
         </div>
       </div>
 
-      {rows.length === 0 ? (
+      <div role="tablist" aria-label="내역 분류" className="flex flex-wrap gap-2">
+        {FILTERS.map((f) => (
+          <button
+            key={f}
+            type="button"
+            role="tab"
+            aria-selected={filter === f}
+            onClick={() => setFilter(f)}
+            className={cn(
+              'h-11 rounded-full border px-4 text-sm font-medium',
+              filter === f
+                ? 'border-primary-700 bg-primary-700 text-white'
+                : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
+            )}
+          >
+            {CREDIT_USAGE_FILTER_LABEL[f]}
+          </button>
+        ))}
+      </div>
+
+      {visible.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white py-12 text-center">
           <Receipt size={32} className="mx-auto text-gray-300" />
-          <p className="mt-3 text-sm text-gray-500">이 달의 크레딧 내역이 없습니다.</p>
+          <p className="mt-3 text-sm text-gray-500">
+            {rows.length === 0 ? '이 달의 크레딧 내역이 없습니다.' : '선택한 분류의 내역이 없습니다.'}
+          </p>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
@@ -121,14 +156,14 @@ export function CreditUsageTable({ monthKey, rows, truncated }: Props) {
               <tr>
                 <th className="px-4 py-3 text-left font-medium">일시</th>
                 <th className="px-4 py-3 text-left font-medium">구분</th>
+                <th className="px-4 py-3 text-left font-medium">사용처 · 메모</th>
                 <th className="px-4 py-3 text-left font-medium">학생명</th>
-                <th className="px-4 py-3 text-left font-medium">알림 종류 · 메모</th>
                 <th className="px-4 py-3 text-right font-medium">크레딧 증감</th>
                 <th className="px-4 py-3 text-right font-medium">잔액</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {rows.map((r) => (
+              {visible.map((r) => (
                 <tr key={r.id}>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDateTime(r.createdAt)}</td>
                   <td className="px-4 py-3">
@@ -136,8 +171,8 @@ export function CreditUsageTable({ monthKey, rows, truncated }: Props) {
                       {CREDIT_TX_TYPE_LABEL[r.type]}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-900">{r.studentName ?? '-'}</td>
                   <td className="px-4 py-3 text-gray-700">{kindLabel(r) || '-'}</td>
+                  <td className="px-4 py-3 text-gray-900">{r.studentName ?? '-'}</td>
                   <td
                     className={cn(
                       'px-4 py-3 text-right font-semibold tabular-nums',

@@ -315,7 +315,7 @@ export default async function OwnerDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* 알림 크레딧 부족 배너 (렌더 비차단) */}
+      {/* 크레딧 부족 배너 (렌더 비차단) */}
       <Suspense fallback={null}>
         <LowCreditBanner academyId={user.academyId} />
       </Suspense>

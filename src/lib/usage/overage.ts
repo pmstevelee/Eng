@@ -2,46 +2,19 @@ import 'server-only'
 import { prisma } from '@/lib/prisma/client'
 import { payWithBillingKey, TossServerError } from '@/lib/tosspayments/server'
 import { PLANS } from '@/lib/pricing'
-import { Plan, CreditType, PaymentType } from '@/generated/prisma'
+import { Plan, PaymentType } from '@/generated/prisma'
+import { chargeAiCredits } from '@/lib/credits/wallet'
 import type { AiUsageType } from './tracker'
 
-// 크레딧을 만료 임박 순으로 차감하고, 실제 차감된 수량 반환
+// 통합 크레딧으로 먼저 충당 — 전부 충당되면 count, 잔액이 모자라면 0 (부분 차감 없음)
 async function deductCredits(
   academyId: string,
   type: AiUsageType,
   count: number,
 ): Promise<number> {
-  const creditType: CreditType = type === 'WRITING' ? CreditType.WRITING : CreditType.QUESTION
-  const now = new Date()
-
-  const credits = await prisma.aiCredit.findMany({
-    where: {
-      academyId,
-      type: creditType,
-      amount: { gt: 0 },
-      OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-    },
-    orderBy: [
-      { expiresAt: 'asc' }, // 만료 임박 먼저 (null은 마지막)
-      { createdAt: 'asc' },
-    ],
-  })
-
-  let remaining = count
-  let totalDeducted = 0
-
-  for (const credit of credits) {
-    if (remaining <= 0) break
-    const deduct = Math.min(credit.amount, remaining)
-    await prisma.aiCredit.update({
-      where: { id: credit.id },
-      data: { amount: { decrement: deduct } },
-    })
-    remaining -= deduct
-    totalDeducted += deduct
-  }
-
-  return totalDeducted
+  const item = type === 'WRITING' ? 'AI_WRITING' : 'AI_QUESTION'
+  const charged = await chargeAiCredits({ academyId, item, count })
+  return charged.ok ? count : 0
 }
 
 /**

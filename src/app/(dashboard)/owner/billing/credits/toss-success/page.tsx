@@ -1,133 +1,30 @@
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma/client'
-import { confirmPayment, TossServerError } from '@/lib/tosspayments/server'
-import { CREDIT_PACKAGES } from '@/lib/pricing'
-import type { CreditPackageKey } from '@/lib/pricing'
 import { getCurrentUser } from '@/lib/auth'
 
 interface PageProps {
   searchParams: Promise<{ paymentKey?: string; orderId?: string; amount?: string }>
 }
 
-export default async function CreditsTossSuccessPage({ searchParams }: PageProps) {
-  const params = await searchParams
-  const { paymentKey, orderId, amount } = params
+const back = (error: string) => `/owner/credits?error=${encodeURIComponent(error)}`
 
-  if (!paymentKey || !orderId || !amount) {
-    redirect('/owner/billing/credits?error=' + encodeURIComponent('결제 정보가 올바르지 않습니다'))
-  }
+/**
+ * (구) AI 전용 크레딧 패키지 결제 복귀 주소.
+ * AI 크레딧이 통합 크레딧으로 바뀌어 더 이상 승인하지 않는다 — 승인(confirm)하지 않은 토스 결제는
+ * 청구되지 않고 자동 만료되므로, 대기 중인 결제는 실패 처리하고 통합 크레딧 화면으로 안내한다.
+ */
+export default async function LegacyCreditsTossSuccessPage({ searchParams }: PageProps) {
+  const { orderId } = await searchParams
 
   const user = await getCurrentUser()
-
   if (!user) redirect('/login')
+  if (user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect(back('권한이 없습니다.'))
 
-  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) {
-    redirect('/owner/billing/credits?error=' + encodeURIComponent('권한이 없습니다'))
-  }
-
-  const pendingPayment = await prisma.payment.findUnique({ where: { paymentId: orderId } })
-
-  if (!pendingPayment || pendingPayment.academyId !== user.academyId) {
-    redirect('/owner/billing/credits?error=' + encodeURIComponent('결제 정보를 찾을 수 없습니다'))
-  }
-
-  if (pendingPayment.status === 'PAID') {
-    // 이미 처리된 결제 (중복 리다이렉트 등) — 조용히 크레딧 페이지로
-    redirect('/owner/billing/credits')
-  }
-
-  if (pendingPayment.status !== 'PENDING' || pendingPayment.type !== 'CREDIT_PACKAGE') {
-    redirect(
-      '/owner/billing/credits?error=' +
-        encodeURIComponent(`결제를 진행할 수 없는 상태입니다: ${pendingPayment.status}`),
-    )
-  }
-
-  const requestedAmount = Number(amount)
-  if (requestedAmount !== pendingPayment.amount) {
-    await prisma.payment.update({
-      where: { paymentId: orderId },
-      data: { status: 'FAILED', failureReason: '결제 금액 불일치' },
+  if (orderId) {
+    await prisma.payment.updateMany({
+      where: { paymentId: orderId, academyId: user.academyId, type: 'CREDIT_PACKAGE', status: 'PENDING' },
+      data: { status: 'FAILED', failureReason: '통합 크레딧 전환으로 AI 전용 패키지 판매 종료' },
     })
-    redirect('/owner/billing/credits?error=' + encodeURIComponent('결제 금액이 일치하지 않습니다'))
   }
-
-  const pkgEntry = (Object.entries(CREDIT_PACKAGES) as [CreditPackageKey, (typeof CREDIT_PACKAGES)[CreditPackageKey]][]).find(
-    ([, pkg]) => pkg.price === pendingPayment.amount,
-  )
-
-  if (!pkgEntry) {
-    redirect('/owner/billing/credits?error=' + encodeURIComponent('패키지 정보를 찾을 수 없습니다'))
-  }
-
-  const [, pkg] = pkgEntry
-
-  try {
-    const tossPayment = await confirmPayment({ paymentKey, orderId, amount: requestedAmount })
-
-    if (tossPayment.status !== 'DONE' || tossPayment.totalAmount !== pendingPayment.amount) {
-      await prisma.payment.update({
-        where: { paymentId: orderId },
-        data: { status: 'FAILED', failureReason: `토스 상태: ${tossPayment.status}` },
-      })
-      redirect('/owner/billing/credits?error=' + encodeURIComponent('결제 승인에 실패했습니다'))
-    }
-
-    const now = new Date()
-    const expiresAt = new Date(now)
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1) // 12개월 후 만료
-
-    await prisma.$transaction(async (tx) => {
-      await tx.payment.update({
-        where: { paymentId: orderId },
-        data: {
-          status: 'PAID',
-          pgProvider: 'TOSSPAYMENTS',
-          pgTxId: tossPayment.paymentKey,
-          receiptUrl: tossPayment.receipt?.url ?? null,
-          paidAt: tossPayment.approvedAt ? new Date(tossPayment.approvedAt) : now,
-        },
-      })
-
-      await tx.aiCredit.create({
-        data: {
-          academyId: user.academyId!,
-          type: 'WRITING',
-          amount: pkg.writingCredits,
-          expiresAt,
-          paymentId: pendingPayment.id,
-        },
-      })
-
-      await tx.aiCredit.create({
-        data: {
-          academyId: user.academyId!,
-          type: 'QUESTION',
-          amount: pkg.questionCredits,
-          expiresAt,
-          paymentId: pendingPayment.id,
-        },
-      })
-    })
-
-    const query = new URLSearchParams({
-      success: '1',
-      writing: String(pkg.writingCredits),
-      question: String(pkg.questionCredits),
-      expiresAt: expiresAt.toISOString(),
-    })
-    redirect(`/owner/billing/credits?${query.toString()}`)
-  } catch (err) {
-    if (err instanceof TossServerError) {
-      await prisma.payment
-        .update({
-          where: { paymentId: orderId },
-          data: { status: 'FAILED', failureReason: err.message },
-        })
-        .catch(() => {})
-      redirect('/owner/billing/credits?error=' + encodeURIComponent(err.message))
-    }
-    // Next.js redirect는 내부적으로 throw이므로 그대로 전파
-    throw err
-  }
+  redirect(back('AI 전용 크레딧 상품은 판매가 종료되어 결제가 진행되지 않았습니다(청구되지 않음). 통합 크레딧으로 충전해주세요.'))
 }

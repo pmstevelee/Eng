@@ -251,7 +251,7 @@ export function AttendanceSettingsClient({ academyId, academies, initial, credit
           <div className="mt-4 flex flex-col gap-3 rounded-xl bg-accent-gold/10 p-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="flex items-start gap-2 text-sm text-gray-900">
               <AlertTriangle size={18} className="mt-0.5 shrink-0 text-accent-gold" />
-              알림 크레딧 잔액이 없어 알림을 켜도 학부모에게 발송되지 않습니다.
+              크레딧 잔액이 없어 알림을 켜도 학부모에게 발송되지 않습니다.
             </p>
             <Link
               href="/owner/credits#charge"
@@ -263,7 +263,7 @@ export function AttendanceSettingsClient({ academyId, academies, initial, credit
         ) : (
           <p className="mt-4 text-xs text-gray-500">
             알림톡으로 발송하며, 알림톡이 실패해 문자로 대체발송되면 건당 {credit.smsPerMessage}크레딧이 차감됩니다. 현재 잔액{' '}
-            {credit.balance.toLocaleString('ko-KR')}크레딧 ·{' '}
+            {credit.balance.toLocaleString('ko-KR')}크레딧(AI 기능과 함께 사용) ·{' '}
             <Link href="/owner/credits" className="font-medium text-primary-700 hover:underline">
               크레딧 관리
             </Link>

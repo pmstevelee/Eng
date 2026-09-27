@@ -65,11 +65,11 @@ enum PaymentType {
   SUBSCRIPTION
   OVERAGE_AI_WRITING
   OVERAGE_AI_QUESTION
-  CREDIT_PACKAGE
+  CREDIT_PACKAGE // (구) AI 전용 크레딧 패키지 — 통합 크레딧으로 대체, 신규 결제 없음
   ANNUAL
   STUDENT_OVERAGE
   STORAGE_OVERAGE
-  NOTIFICATION_CREDIT // 학부모 알림 크레딧 충전
+  NOTIFICATION_CREDIT // 통합 크레딧 충전 (알림 + AI) — 이름은 호환 위해 유지
 }
 
 enum CreditType {
@@ -1954,9 +1954,12 @@ enum CreditTransactionType {
   ADMIN_ADJUST // 시스템 관리자 수동 조정
 }
 
+/// 크레딧 차감 항목 — 알림 발송 채널(ALIMTALK·SMS)과 AI 기능(AI_*)이 한 지갑을 함께 쓴다
 enum CreditChannel {
   ALIMTALK
   SMS
+  AI_WRITING // AI 쓰기 평가 1회
+  AI_QUESTION // AI 문제 생성 1회
 }
 
 enum NotificationJobType {
@@ -1973,7 +1976,7 @@ enum NotificationJobStatus {
   SKIPPED_DUPLICATE
 }
 
-/// 학원(본원) 알림 크레딧 지갑 — 지점은 본원 지갑을 함께 사용
+/// 학원(본원) 통합 크레딧 지갑 (학부모 알림 + AI 기능) — 지점은 본원 지갑을 함께 사용
 model CreditWallet {
   id                  String   @id @default(uuid())
   academyId           String   @unique @map("academy_id")
@@ -1996,6 +1999,8 @@ model CreditTransaction {
   /// 충전·회수 결제 (Payment.paymentId = 토스 orderId)
   paymentId         String?               @map("payment_id")
   notificationJobId String?               @map("notification_job_id")
+  /// 차감 항목 (AI 사용분은 여기에 기록, 알림 발송분은 notificationJob.channel)
+  item              CreditChannel?
   memo              String?
   /// 수동 조정한 관리자
   actorId           String?               @map("actor_id")

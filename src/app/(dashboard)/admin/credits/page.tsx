@@ -3,7 +3,7 @@ import { getCreditPricing } from '@/lib/credits/wallet'
 import { DEFAULT_LOW_BALANCE_THRESHOLD } from '@/lib/credits/constants'
 import { CreditAdminClient, type AcademyCreditRow } from './_components/credit-admin-client'
 
-export const metadata = { title: '알림 크레딧 — EduLevel Admin' }
+export const metadata = { title: '크레딧 — EduLevel Admin' }
 
 export default async function AdminCreditsPage() {
   const [pricing, packages, academies, wallets] = await Promise.all([
@@ -39,8 +39,10 @@ export default async function AdminCreditsPage() {
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">알림 크레딧</h1>
-        <p className="text-sm text-gray-500 mt-1">출결 알림 단가와 충전 상품을 관리하고, 학원별 잔액을 조회·조정합니다.</p>
+        <h1 className="text-2xl font-bold text-gray-900">크레딧</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          학부모 알림과 AI 기능에 함께 쓰는 통합 크레딧의 단가·충전 상품을 관리하고, 학원별 잔액을 조회·조정합니다.
+        </p>
       </div>
       <CreditAdminClient pricing={pricing} packages={packages} academies={rows} />
     </div>

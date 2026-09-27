@@ -30,6 +30,7 @@ export default async function HistoryPage({ searchParams }: PageProps) {
     'ANNUAL',
     'STUDENT_OVERAGE',
     'STORAGE_OVERAGE',
+    'NOTIFICATION_CREDIT',
   ]
 
   const whereType =

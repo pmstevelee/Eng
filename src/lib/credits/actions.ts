@@ -10,7 +10,7 @@ export type CreditCheckoutResult =
   | { ok: false; error: string }
 
 /**
- * 알림 크레딧 충전 결제 준비 — PENDING Payment 생성 (상품 정보는 metadata에 스냅샷).
+ * 통합 크레딧(알림 + AI) 충전 결제 준비 — PENDING Payment 생성 (상품 정보는 metadata에 스냅샷).
  * 실제 충전은 결제 승인(/owner/credits/toss-success) 또는 토스 웹훅에서 서버가 처리한다.
  */
 export async function startCreditCheckout(packageId: string): Promise<CreditCheckoutResult> {
@@ -47,7 +47,7 @@ export async function startCreditCheckout(packageId: string): Promise<CreditChec
     ok: true,
     paymentId,
     amount: pkg.priceKrw,
-    orderName: `위고업잉글리시 알림 크레딧 ${pkg.credits.toLocaleString('ko-KR')} (${pkg.name})`,
+    orderName: `위고업잉글리시 크레딧 ${pkg.credits.toLocaleString('ko-KR')} (${pkg.name})`,
     customerKey: walletAcademyId,
   }
 }

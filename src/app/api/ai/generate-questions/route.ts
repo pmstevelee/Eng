@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { prisma } from '@/lib/prisma/client'
 import { type QuestionDomain } from '@/generated/prisma'
-import { checkAiUsageLimit, trackAiUsage } from '@/lib/usage/tracker'
-import { queueOverageCharge } from '@/lib/usage/overage'
+import { checkAiUsageLimit, recordAiUsage } from '@/lib/usage/tracker'
 import { getCurrentUser } from '@/lib/auth'
 
 interface GenerateQuestionsRequest {
@@ -163,13 +162,9 @@ export async function POST(req: NextRequest) {
       savedIds = created.map((q) => q.id)
     }
 
-    // ── 사용량 기록 + 초과 결제 큐 ────────────────────────────────────────────
+    // ── 사용량 기록 + 과금 (무료 한도 → 통합 크레딧 → 초과 요금) ──────────────
     if (academyId) {
-      const usageCheck = await checkAiUsageLimit(academyId, 'QUESTION')
-      await trackAiUsage(academyId, 'QUESTION')
-      if (usageCheck.source === 'OVERAGE') {
-        queueOverageCharge(academyId, 'QUESTION', 1)
-      }
+      await recordAiUsage(academyId, 'QUESTION')
     }
 
     return NextResponse.json({ success: true, data: questions, savedIds })

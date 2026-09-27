@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { loadTossPayments } from '@tosspayments/tosspayments-sdk'
 import { Loader2 } from 'lucide-react'
 import { startCreditCheckout } from '@/lib/credits/actions'
-import { estimateSendable, formatCredits } from '@/lib/credits/constants'
+import { estimateSendable, formatCredits, type CreditPricingMap } from '@/lib/credits/constants'
 
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ?? ''
 
@@ -12,12 +12,12 @@ type Pkg = { id: string; name: string; credits: number; priceKrw: number }
 
 type Props = {
   packages: Pkg[]
-  alimtalkPrice: number
+  pricing: CreditPricingMap
   customerName: string
   customerEmail: string
 }
 
-export function CreditPackagesClient({ packages, alimtalkPrice, customerName, customerEmail }: Props) {
+export function CreditPackagesClient({ packages, pricing, customerName, customerEmail }: Props) {
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [error, setError] = useState('')
 
@@ -77,9 +77,11 @@ export function CreditPackagesClient({ packages, alimtalkPrice, customerName, cu
               {formatCredits(pkg.credits)}
               <span className="ml-1 text-sm font-medium text-gray-500">크레딧</span>
             </p>
-            <p className="mt-1 text-xs text-gray-500">
-              알림톡 약 {formatCredits(estimateSendable(pkg.credits, alimtalkPrice))}건
-            </p>
+            <ul className="mt-2 space-y-0.5 text-xs text-gray-500">
+              <li>AI 쓰기 평가 약 {formatCredits(estimateSendable(pkg.credits, pricing.AI_WRITING))}회</li>
+              <li>AI 문제 생성 약 {formatCredits(estimateSendable(pkg.credits, pricing.AI_QUESTION))}회</li>
+              <li>알림톡 약 {formatCredits(estimateSendable(pkg.credits, pricing.ALIMTALK))}건</li>
+            </ul>
             <p className="mt-4 text-lg font-bold text-gray-900">{pkg.priceKrw.toLocaleString('ko-KR')}원</p>
             <button
               type="button"
@@ -94,7 +96,7 @@ export function CreditPackagesClient({ packages, alimtalkPrice, customerName, cu
         ))}
       </div>
       <p className="text-xs text-gray-500">
-        결제는 토스페이먼츠로 처리되며, 결제가 확인되면 크레딧이 바로 충전됩니다.
+        결제는 토스페이먼츠로 처리되며, 결제가 확인되면 크레딧이 바로 충전됩니다. 위 횟수는 한 가지에만 쓸 때 기준이며, 실제로는 AI 기능과 알림에 나눠 쓸 수 있습니다.
       </p>
     </div>
   )

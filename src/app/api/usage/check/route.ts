@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma/client'
 import { PLANS } from '@/lib/pricing'
-import { Plan, CreditType } from '@/generated/prisma'
+import { Plan } from '@/generated/prisma'
+import { getCreditPricing, getWallet, walletAcademyIdOf } from '@/lib/credits/wallet'
+import { estimateSendable } from '@/lib/credits/constants'
 import { getCurrentUser } from '@/lib/auth'
 
 export async function GET() {
@@ -44,30 +46,13 @@ export async function GET() {
     const storageUsedMb = usageRecord?.storageUsedMb ?? 0
     const studentCount = usageRecord?.studentCount ?? 0
 
-    // 크레딧 잔액 조회
-    const [writingCreditSum, questionCreditSum] = await Promise.all([
-      prisma.aiCredit.aggregate({
-        where: {
-          academyId,
-          type: CreditType.WRITING,
-          amount: { gt: 0 },
-          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-        },
-        _sum: { amount: true },
-      }),
-      prisma.aiCredit.aggregate({
-        where: {
-          academyId,
-          type: CreditType.QUESTION,
-          amount: { gt: 0 },
-          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-        },
-        _sum: { amount: true },
-      }),
+    // 통합 크레딧 잔액 (본원 지갑) → 기능별 사용 가능 횟수로 환산
+    const [wallet, pricing] = await Promise.all([
+      walletAcademyIdOf(academyId).then(getWallet),
+      getCreditPricing(),
     ])
-
-    const writingCreditBalance = writingCreditSum._sum.amount ?? 0
-    const questionCreditBalance = questionCreditSum._sum.amount ?? 0
+    const writingCreditBalance = estimateSendable(wallet.balance, pricing.AI_WRITING)
+    const questionCreditBalance = estimateSendable(wallet.balance, pricing.AI_QUESTION)
 
     const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
 
@@ -99,6 +84,11 @@ export async function GET() {
       students: {
         count: studentCount,
         limit: planConfig.studentLimit,
+      },
+      credits: {
+        balance: wallet.balance,
+        aiWritingPerUse: pricing.AI_WRITING,
+        aiQuestionPerUse: pricing.AI_QUESTION,
       },
       periodStart: periodStart.toISOString(),
       periodEnd: periodEnd.toISOString(),

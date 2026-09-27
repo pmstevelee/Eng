@@ -10,6 +10,7 @@ const PAYMENT_TYPE_LABELS: Record<string, string> = {
   ANNUAL: '연간 구독',
   STUDENT_OVERAGE: '학생 초과',
   STORAGE_OVERAGE: '스토리지 초과',
+  NOTIFICATION_CREDIT: '크레딧 충전',
 }
 
 export async function GET(

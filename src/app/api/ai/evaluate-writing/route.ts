@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { prisma } from '@/lib/prisma/client'
 import type { DomainLevels } from '@/lib/ai/domain-level-calculator'
-import { checkAiUsageLimit, trackAiUsage } from '@/lib/usage/tracker'
-import { queueOverageCharge } from '@/lib/usage/overage'
+import { checkAiUsageLimit, recordAiUsage } from '@/lib/usage/tracker'
 import { getCurrentUser } from '@/lib/auth'
 import {
   buildEssayAnalysisSchema,
@@ -476,13 +475,9 @@ export async function POST(req: NextRequest) {
       errors: stripNonErrors(parsedResult.errors ?? []),
     }
 
-    // ── 사용량 기록 + 초과 결제 큐 ────────────────────────────────────────────
+    // ── 사용량 기록 + 과금 (무료 한도 → 통합 크레딧 → 초과 요금) ──────────────
     if (academyId) {
-      const usageCheck = await checkAiUsageLimit(academyId, 'WRITING')
-      await trackAiUsage(academyId, 'WRITING')
-      if (usageCheck.source === 'OVERAGE') {
-        queueOverageCharge(academyId, 'WRITING', 1)
-      }
+      await recordAiUsage(academyId, 'WRITING')
     }
 
     // ── DB 저장 ────────────────────────────────────────────────────────────────

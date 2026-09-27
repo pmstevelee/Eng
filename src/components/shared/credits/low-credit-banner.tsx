@@ -5,12 +5,14 @@ import { formatCredits } from '@/lib/credits/constants'
 import { getCreditPricing, getWallet, walletAcademyIdOf } from '@/lib/credits/wallet'
 
 /**
- * 학원장 대시보드 상단 — 알림 크레딧 잔액이 부족 기준 이하일 때 충전 안내.
- * 학부모 알림을 하나라도 켠 학원(본원·지점)에만 표시한다. Suspense로 감싸 대시보드 렌더를 막지 않는다.
+ * 학원장 대시보드 상단 — 통합 크레딧 잔액이 부족 기준 이하일 때 충전 안내.
+ * 학부모 알림을 켰거나 최근 30일 안에 AI 기능에 크레딧을 쓴 학원에만 표시한다.
+ * Suspense로 감싸 대시보드 렌더를 막지 않는다.
  */
 export async function LowCreditBanner({ academyId }: { academyId: string }) {
   const walletAcademyId = await walletAcademyIdOf(academyId)
-  const [wallet, pricing, notifying] = await Promise.all([
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  const [wallet, pricing, notifying, aiUsing] = await Promise.all([
     getWallet(walletAcademyId),
     getCreditPricing(),
     prisma.attendanceSetting.findFirst({
@@ -20,10 +22,15 @@ export async function LowCreditBanner({ academyId }: { academyId: string }) {
       },
       select: { id: true },
     }),
+    prisma.creditTransaction.findFirst({
+      where: { academyId: walletAcademyId, type: 'USE', item: { in: ['AI_WRITING', 'AI_QUESTION'] }, createdAt: { gte: since } },
+      select: { id: true },
+    }),
   ])
-  if (!notifying || wallet.balance > wallet.lowBalanceThreshold) return null
+  if ((!notifying && !aiUsing) || wallet.balance > wallet.lowBalanceThreshold) return null
 
-  const empty = wallet.balance < pricing.ALIMTALK
+  const empty = wallet.balance < Math.min(pricing.ALIMTALK, pricing.AI_WRITING)
+  const affected = notifying ? '학부모 알림이 발송되지 않고 있습니다.' : '플랜 무료 한도를 넘은 AI 기능은 초과 요금이 청구되거나 제한됩니다.'
   return (
     <div
       role="alert"
@@ -32,10 +39,10 @@ export async function LowCreditBanner({ academyId }: { academyId: string }) {
       <div className="flex items-start gap-2 text-sm text-gray-900">
         <AlertTriangle size={18} className="mt-0.5 shrink-0 text-accent-gold" />
         <p>
-          <strong>{empty ? '알림 크레딧이 없습니다.' : '알림 크레딧이 얼마 남지 않았습니다.'}</strong>{' '}
+          <strong>{empty ? '크레딧이 없습니다.' : '크레딧이 얼마 남지 않았습니다.'}</strong>{' '}
           {empty
-            ? '등원·하원 알림이 학부모에게 발송되지 않고 있습니다.'
-            : `잔액 ${formatCredits(wallet.balance)}크레딧 (알림톡 약 ${formatCredits(Math.floor(wallet.balance / Math.max(1, pricing.ALIMTALK)))}건)`}
+            ? affected
+            : `잔액 ${formatCredits(wallet.balance)}크레딧 (알림톡 약 ${formatCredits(Math.floor(wallet.balance / Math.max(1, pricing.ALIMTALK)))}건 · AI 쓰기 평가 약 ${formatCredits(Math.floor(wallet.balance / Math.max(1, pricing.AI_WRITING)))}회)`}
         </p>
       </div>
       <Link

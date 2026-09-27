@@ -3,14 +3,16 @@ import 'server-only'
 import { Prisma } from '@/generated/prisma'
 import { prisma } from '@/lib/prisma/client'
 import {
-  CREDIT_CHANNELS,
+  CREDIT_ITEM_LABEL,
+  CREDIT_ITEMS,
   DEFAULT_CREDIT_PRICING,
   DEFAULT_LOW_BALANCE_THRESHOLD,
+  type AiCreditItemValue,
   type CreditChannelValue,
   type CreditPricingMap,
 } from './constants'
 
-// 알림 크레딧 지갑 — 잔액 변경은 모두 여기 함수로만 (서버 트랜잭션 + 조건부 UPDATE)
+// 통합 크레딧 지갑 (학부모 알림 + AI 기능) — 잔액 변경은 모두 여기 함수로만 (서버 트랜잭션 + 조건부 UPDATE)
 // raw SQL은 $queryRawUnsafe + $1..$n (Prisma.sql 조각은 서버액션 번들에서 깨질 수 있음)
 
 type Tx = Prisma.TransactionClient
@@ -27,7 +29,7 @@ export async function walletAcademyIdOf(academyId: string): Promise<string> {
 export async function getCreditPricing(): Promise<CreditPricingMap> {
   const rows = await prisma.creditPricing.findMany({ select: { channel: true, creditPerMessage: true } })
   const map: CreditPricingMap = { ...DEFAULT_CREDIT_PRICING }
-  for (const r of rows) if (CREDIT_CHANNELS.includes(r.channel)) map[r.channel] = r.creditPerMessage
+  for (const r of rows) if (CREDIT_ITEMS.includes(r.channel)) map[r.channel] = r.creditPerMessage
   return map
 }
 
@@ -117,6 +119,41 @@ export async function chargeNotificationJob(params: {
   }, TX_OPTIONS)
 }
 
+// ─── AI 사용 차감 ──────────────────────────────────────────────────────────────
+
+export type ChargeAiResult = { ok: true; credits: number; balanceAfter: number } | { ok: false }
+
+/**
+ * AI 기능 사용분 차감 (USE, item = AI_*). 잔액이 모자라면 차감하지 않고 ok:false.
+ * academyId는 사용한 학원(지점 가능) — 본원 지갑에서 차감한다.
+ */
+export async function chargeAiCredits(params: {
+  academyId: string
+  item: AiCreditItemValue
+  count: number
+}): Promise<ChargeAiResult> {
+  const { academyId, item, count } = params
+  if (count <= 0) return { ok: false }
+  const [walletAcademyId, pricing] = await Promise.all([walletAcademyIdOf(academyId), getCreditPricing()])
+  const credits = pricing[item] * count
+
+  return prisma.$transaction(async (tx) => {
+    const balanceAfter = await subtractBalance(tx, walletAcademyId, credits)
+    if (balanceAfter === null) return { ok: false as const }
+    await tx.creditTransaction.create({
+      data: {
+        academyId: walletAcademyId,
+        type: 'USE',
+        amount: -credits,
+        balanceAfter,
+        item,
+        memo: count > 1 ? `${CREDIT_ITEM_LABEL[item]} ${count}회` : null,
+      },
+    })
+    return { ok: true as const, credits, balanceAfter }
+  }, TX_OPTIONS)
+}
+
 // ─── 충전 · 결제 취소 ──────────────────────────────────────────────────────────
 
 export type CreditPaymentMeta = { creditPackageId: string; name: string; credits: number }
@@ -144,7 +181,7 @@ export async function chargeCreditsForPayment(
     where: { paymentId: orderId },
     select: { academyId: true, type: true, metadata: true },
   })
-  if (!payment || payment.type !== 'NOTIFICATION_CREDIT') throw new Error('알림 크레딧 결제가 아닙니다.')
+  if (!payment || payment.type !== 'NOTIFICATION_CREDIT') throw new Error('크레딧 충전 결제가 아닙니다.')
   const meta = readCreditPaymentMeta(payment.metadata)
   if (!meta) throw new Error('결제에 충전 상품 정보가 없습니다.')
 

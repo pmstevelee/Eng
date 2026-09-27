@@ -10,11 +10,11 @@ const TYPE_LABELS: Record<PaymentType, string> = {
   SUBSCRIPTION: '구독 결제',
   OVERAGE_AI_WRITING: 'AI 쓰기 초과',
   OVERAGE_AI_QUESTION: 'AI 문제 초과',
-  CREDIT_PACKAGE: '크레딧 충전',
+  CREDIT_PACKAGE: 'AI 크레딧 충전(이전)',
   ANNUAL: '연간 구독',
   STUDENT_OVERAGE: '학생 초과',
   STORAGE_OVERAGE: '스토리지 초과',
-  NOTIFICATION_CREDIT: '알림 크레딧 충전',
+  NOTIFICATION_CREDIT: '크레딧 충전',
 }
 
 const TYPE_COLORS: Record<PaymentType, string> = {
@@ -63,7 +63,7 @@ interface HistoryClientProps {
 const FILTER_OPTIONS: { label: string; value: string }[] = [
   { label: '전체', value: '' },
   { label: '구독', value: 'SUBSCRIPTION' },
-  { label: '크레딧', value: 'CREDIT_PACKAGE' },
+  { label: '크레딧', value: 'NOTIFICATION_CREDIT' },
   { label: 'AI 초과', value: 'OVERAGE_AI_WRITING' },
 ]
 

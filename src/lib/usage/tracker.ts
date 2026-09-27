@@ -1,9 +1,17 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma/client'
 import { PLANS } from '@/lib/pricing'
-import { Plan, CreditType } from '@/generated/prisma'
+import { Plan } from '@/generated/prisma'
+import { chargeAiCredits, getCreditPricing, getWallet, walletAcademyIdOf } from '@/lib/credits/wallet'
+import type { AiCreditItemValue } from '@/lib/credits/constants'
+import { queueOverageCharge } from './overage'
 
 export type AiUsageType = 'WRITING' | 'QUESTION'
+
+export const AI_USAGE_CREDIT_ITEM: Record<AiUsageType, AiCreditItemValue> = {
+  WRITING: 'AI_WRITING',
+  QUESTION: 'AI_QUESTION',
+}
 
 export interface UsageCheckResult {
   canUse: boolean
@@ -12,7 +20,10 @@ export interface UsageCheckResult {
   usedThisMonth: number
   limit: number
   remainingFree: number
+  /** 통합 크레딧 잔액 */
   creditBalance: number
+  /** 이 기능 1회에 차감되는 크레딧 */
+  creditPerUse: number
 }
 
 export interface TrackResult {
@@ -60,20 +71,13 @@ async function getSubscriptionInfo(academyId: string) {
   return sub
 }
 
-// 만료되지 않은 크레딧 잔액 조회
-async function getCreditBalance(academyId: string, type: AiUsageType): Promise<number> {
-  const creditType: CreditType = type === 'WRITING' ? CreditType.WRITING : CreditType.QUESTION
-  const now = new Date()
-  const result = await prisma.aiCredit.aggregate({
-    where: {
-      academyId,
-      type: creditType,
-      amount: { gt: 0 },
-      OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-    },
-    _sum: { amount: true },
-  })
-  return result._sum.amount ?? 0
+// 통합 크레딧 잔액 + 이 기능 1회 단가 (지점은 본원 지갑)
+async function getCreditInfo(academyId: string, type: AiUsageType) {
+  const [wallet, pricing] = await Promise.all([
+    walletAcademyIdOf(academyId).then(getWallet),
+    getCreditPricing(),
+  ])
+  return { creditBalance: wallet.balance, creditPerUse: pricing[AI_USAGE_CREDIT_ITEM[type]] }
 }
 
 /**
@@ -104,7 +108,7 @@ export async function checkAiUsageLimit(
       : (usageRecord?.aiQuestionCount ?? 0)
 
   const remainingFree = Math.max(0, freeLimit - usedThisMonth)
-  const creditBalance = await getCreditBalance(academyId, type)
+  const { creditBalance, creditPerUse } = await getCreditInfo(academyId, type)
 
   if (sub.overageBlocked) {
     return {
@@ -115,6 +119,7 @@ export async function checkAiUsageLimit(
       limit: freeLimit,
       remainingFree: 0,
       creditBalance,
+      creditPerUse,
     }
   }
 
@@ -127,18 +132,20 @@ export async function checkAiUsageLimit(
       limit: freeLimit,
       remainingFree,
       creditBalance,
+      creditPerUse,
     }
   }
 
-  if (creditBalance > 0) {
+  if (creditBalance >= creditPerUse) {
     return {
       canUse: true,
       source: 'CREDIT',
-      message: `충전 크레딧 사용 (잔액: ${creditBalance}회)`,
+      message: `크레딧 사용 (${creditPerUse.toLocaleString()}크레딧 차감, 잔액 ${creditBalance.toLocaleString()}크레딧)`,
       usedThisMonth,
       limit: freeLimit,
       remainingFree: 0,
       creditBalance,
+      creditPerUse,
     }
   }
 
@@ -152,7 +159,8 @@ export async function checkAiUsageLimit(
       usedThisMonth,
       limit: freeLimit,
       remainingFree: 0,
-      creditBalance: 0,
+      creditBalance,
+      creditPerUse,
     }
   }
 
@@ -165,7 +173,8 @@ export async function checkAiUsageLimit(
       usedThisMonth,
       limit: freeLimit,
       remainingFree: 0,
-      creditBalance: 0,
+      creditBalance,
+      creditPerUse,
     }
   }
 
@@ -176,7 +185,8 @@ export async function checkAiUsageLimit(
     usedThisMonth,
     limit: freeLimit,
     remainingFree: 0,
-    creditBalance: 0,
+    creditBalance,
+    creditPerUse,
   }
 }
 
@@ -237,6 +247,24 @@ export async function trackAiUsage(
     remainingFree: Math.max(0, limit - usedThisMonth),
     isOverLimit: limit !== -1 && usedThisMonth > limit,
   }
+}
+
+/**
+ * AI 기능 사용 1회를 기록하고 과금한다 (AI 응답 생성 후 호출).
+ * 플랜 무료 한도 → 통합 크레딧 차감 → 초과 요금(구독 설정에 따라) 순서.
+ */
+export async function recordAiUsage(academyId: string, type: AiUsageType): Promise<void> {
+  const usageCheck = await checkAiUsageLimit(academyId, type)
+  await trackAiUsage(academyId, type)
+
+  if (usageCheck.source === 'CREDIT') {
+    const charged = await chargeAiCredits({ academyId, item: AI_USAGE_CREDIT_ITEM[type], count: 1 })
+    if (charged.ok) return
+    // 동시에 다른 사용으로 잔액이 먼저 소진된 경우 — 초과 요금 규칙을 따른다
+    queueOverageCharge(academyId, type, 1)
+    return
+  }
+  if (usageCheck.source === 'OVERAGE') queueOverageCharge(academyId, type, 1)
 }
 
 /**

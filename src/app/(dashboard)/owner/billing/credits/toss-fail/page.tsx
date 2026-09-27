@@ -34,7 +34,7 @@ export default async function CreditsTossFailPage({ searchParams }: PageProps) {
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button asChild className="bg-primary-700 hover:bg-primary-800 text-white h-11">
-            <Link href="/owner/billing/credits">
+            <Link href="/owner/credits#charge">
               <RefreshCw className="mr-2 h-4 w-4" />
               다시 시도하기
             </Link>

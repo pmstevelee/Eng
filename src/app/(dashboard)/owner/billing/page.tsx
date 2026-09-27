@@ -4,6 +4,8 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { PLANS, PLAN_DISPLAY_NAMES, BILLING_CYCLE_DISPLAY_NAMES } from '@/lib/pricing'
 import { BillingActions } from '@/components/billing/BillingActions'
+import { CREDIT_ITEM_LABEL, CREDIT_ITEM_UNIT, estimateSendable, formatCredits } from '@/lib/credits/constants'
+import { getCreditPricing, getWallet, walletAcademyIdOf } from '@/lib/credits/wallet'
 import {
   CreditCard,
   Zap,
@@ -33,31 +35,12 @@ export default async function BillingPage() {
     include: { billingKey: true },
   })
 
-  // AiCredit 잔여 집계
+  // 통합 크레딧 잔액 (본원 지갑)
   const now = new Date()
-  const creditTotals = await prisma.aiCredit.groupBy({
-    by: ['type'],
-    where: {
-      academyId: user.academyId,
-      amount: { gt: 0 },
-      OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-    },
-    _sum: { amount: true },
-  })
-
-  const writingCredits = creditTotals.find((c) => c.type === 'WRITING')?._sum.amount ?? 0
-  const questionCredits = creditTotals.find((c) => c.type === 'QUESTION')?._sum.amount ?? 0
-
-  // 가장 빨리 만료되는 크레딧
-  const earliestCredit = await prisma.aiCredit.findFirst({
-    where: {
-      academyId: user.academyId,
-      amount: { gt: 0 },
-      expiresAt: { not: null, gt: now },
-    },
-    orderBy: { expiresAt: 'asc' },
-    select: { expiresAt: true },
-  })
+  const [wallet, pricing] = await Promise.all([
+    walletAcademyIdOf(user.academyId).then(getWallet),
+    getCreditPricing(),
+  ])
 
   if (!subscription) {
     return (
@@ -203,47 +186,41 @@ export default async function BillingPage() {
         )}
       </div>
 
-      {/* 보유 크레딧 */}
+      {/* 통합 크레딧 */}
       <div className="rounded-xl border border-gray-200 bg-white p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900">보유 AI 크레딧</h2>
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">크레딧</h2>
+            <p className="text-sm text-gray-500">AI 기능과 학부모 알림에 함께 쓰는 통합 크레딧</p>
+          </div>
           <Link
-            href="/owner/billing/credits"
+            href="/owner/credits"
             className="flex items-center gap-1 text-sm font-medium text-[#7854F7] hover:underline"
           >
             <Zap className="h-4 w-4" />
-            크레딧 충전
+            충전·내역
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-lg bg-purple-50 p-4">
-            <p className="text-xs font-medium text-[#7854F7] mb-1">AI 쓰기 평가</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {writingCredits.toLocaleString()}
-              <span className="ml-1 text-sm font-normal text-gray-500">회</span>
-            </p>
-          </div>
-          <div className="rounded-lg bg-purple-50 p-4">
-            <p className="text-xs font-medium text-[#7854F7] mb-1">AI 문제 생성</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {questionCredits.toLocaleString()}
-              <span className="ml-1 text-sm font-normal text-gray-500">회</span>
-            </p>
-          </div>
+        <p className="text-3xl font-bold text-gray-900">
+          {formatCredits(wallet.balance)}
+          <span className="ml-1 text-base font-medium text-gray-500">크레딧</span>
+        </p>
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          {(['AI_WRITING', 'AI_QUESTION', 'ALIMTALK'] as const).map((item) => (
+            <div key={item} className="rounded-lg bg-gray-50 p-3">
+              <p className="text-xs font-medium text-gray-500">{CREDIT_ITEM_LABEL[item]}</p>
+              <p className="mt-0.5 text-lg font-bold text-gray-900">
+                약 {formatCredits(estimateSendable(wallet.balance, pricing[item]))}
+                <span className="ml-0.5 text-sm font-normal text-gray-500">{CREDIT_ITEM_UNIT[item]}</span>
+              </p>
+            </div>
+          ))}
         </div>
-
-        {earliestCredit?.expiresAt && (
-          <p className="mt-3 flex items-center gap-1.5 text-xs text-gray-500">
-            <CheckCircle className="h-3.5 w-3.5 text-[#1FAF54]" />
-            가장 빨리 만료되는 크레딧:{' '}
-            {earliestCredit.expiresAt.toLocaleDateString('ko-KR')}
-          </p>
-        )}
-
-        {writingCredits === 0 && questionCredits === 0 && (
-          <p className="mt-3 text-sm text-gray-400">보유 크레딧이 없습니다.</p>
-        )}
+        <p className="mt-3 flex items-center gap-1.5 text-xs text-gray-500">
+          <CheckCircle className="h-3.5 w-3.5 text-[#1FAF54]" />
+          AI 기능은 플랜 무료 한도를 먼저 쓰고, 초과분부터 크레딧이 차감됩니다. 크레딧은 만료되지 않습니다.
+        </p>
       </div>
 
       {/* 액션 버튼 */}

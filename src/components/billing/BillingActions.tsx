@@ -121,7 +121,7 @@ export function BillingActions({
         )}
 
         <Link
-          href="/owner/billing/credits"
+          href="/owner/credits#charge"
           className="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white p-4 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <Zap className="h-6 w-6 text-[#7854F7]" />

@@ -29,6 +29,7 @@ export async function getCreditUsage(
       amount: true,
       balanceAfter: true,
       memo: true,
+      item: true,
       notificationJob: {
         select: { type: true, channel: true, student: { select: { user: { select: { name: true } } } } },
       },
@@ -42,7 +43,7 @@ export async function getCreditUsage(
       type: t.type,
       studentName: t.notificationJob?.student.user.name ?? null,
       jobType: t.notificationJob?.type ?? null,
-      channel: t.notificationJob?.channel ?? null,
+      item: t.item ?? t.notificationJob?.channel ?? null,
       amount: t.amount,
       balanceAfter: t.balanceAfter,
       memo: t.memo,
@@ -68,4 +69,25 @@ export async function getMonthlyJobCounts(walletAcademyId: string, monthKey: str
     failed: count('FAILED'),
     noCredit: count('SKIPPED_NO_CREDIT'),
   }
+}
+
+/** 이번 달 AI 크레딧 차감 현황 (항목별 횟수·크레딧) */
+export async function getMonthlyAiCreditUse(walletAcademyId: string, monthKey: string) {
+  const { from, to } = kstMonthBounds(monthKey)
+  const groups = await prisma.creditTransaction.groupBy({
+    by: ['item'],
+    where: {
+      academyId: walletAcademyId,
+      type: 'USE',
+      item: { in: ['AI_WRITING', 'AI_QUESTION'] },
+      createdAt: { gte: from, lt: to },
+    },
+    _sum: { amount: true },
+    _count: { _all: true },
+  })
+  const pick = (item: 'AI_WRITING' | 'AI_QUESTION') => {
+    const g = groups.find((x) => x.item === item)
+    return { count: g?._count._all ?? 0, credits: -(g?._sum.amount ?? 0) }
+  }
+  return { writing: pick('AI_WRITING'), question: pick('AI_QUESTION') }
 }

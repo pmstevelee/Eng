@@ -62,12 +62,12 @@ const STATUS_COLOR: Record<PaymentStatus, string> = {
 const TYPE_LABEL: Record<PaymentType, string> = {
   SUBSCRIPTION: '구독',
   ANNUAL: '연간구독',
-  CREDIT_PACKAGE: '크레딧',
+  CREDIT_PACKAGE: 'AI 크레딧(이전)',
   OVERAGE_AI_WRITING: '초과(작문)',
   OVERAGE_AI_QUESTION: '초과(문제)',
   STUDENT_OVERAGE: '초과(학생)',
   STORAGE_OVERAGE: '초과(저장)',
-  NOTIFICATION_CREDIT: '알림 크레딧',
+  NOTIFICATION_CREDIT: '크레딧',
 }
 
 interface Props {
