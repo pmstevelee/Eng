@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { getOwnerBranches } from '@/lib/branch'
+import { listKeypadDevices } from '@/lib/attendance/keypad-device'
 import { getOrCreateAttendanceSetting } from '@/lib/attendance/settings'
 import { AttendanceSettingsClient } from './_components/attendance-settings-client'
+import { KeypadDevicesSection } from './_components/keypad-devices-section'
 
 export default async function AttendanceSettingsPage({
   searchParams,
@@ -23,13 +25,13 @@ export default async function AttendanceSettingsPage({
 
   const { academy } = await searchParams
   const academyId = academies.some((a) => a.id === academy) ? academy! : academies[0].id
-  const setting = await getOrCreateAttendanceSetting(academyId)
+  const [setting, devices] = await Promise.all([getOrCreateAttendanceSetting(academyId), listKeypadDevices(academyId)])
 
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">출결 설정</h1>
-        <p className="text-sm text-gray-500 mt-1">출결 방식과 지각·결석 기준, 학부모 알림을 설정합니다.</p>
+        <p className="text-sm text-gray-500 mt-1">출결 방식과 지각·결석 기준, 학부모 알림, 키패드 기기를 설정합니다.</p>
       </div>
       <AttendanceSettingsClient
         key={academyId}
@@ -37,6 +39,7 @@ export default async function AttendanceSettingsPage({
         academies={academies}
         initial={setting}
       />
+      <KeypadDevicesSection academyId={academyId} devices={devices} />
     </div>
   )
 }

@@ -65,7 +65,8 @@ export type RecordTarget = {
 
 type WriteOptions = {
   status: AttendanceStatusValue
-  actorId: string
+  /** 변경자 — 키패드 기기처럼 로그인 사용자가 없으면 null */
+  actorId: string | null
   source?: AttendanceSourceValue
   /** undefined면 기존 사유 유지 (특수 상태가 아니면 항상 비움) */
   reason?: string | null
