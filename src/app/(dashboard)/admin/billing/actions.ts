@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import { getCurrentUser } from '@/lib/auth'
 import { cancelPayment, payWithBillingKey } from '@/lib/tosspayments/server'
@@ -171,6 +171,8 @@ export async function manualActivateSubscription(
   })
 
   revalidatePath('/admin/billing')
+  // 학원장 구독 페이지·학생 단어학습 접근 캐시 무효화
+  revalidateTag(`academy-${subscription.academyId}-subscription`)
   return {}
 }
 

@@ -2,10 +2,11 @@ import 'server-only'
 
 import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
-import type { SubscriptionStatus, Plan } from '@/generated/prisma'
+import type { SubscriptionStatus, Plan, PlanType } from '@/generated/prisma'
 
 const ACTIVE_STATUSES: SubscriptionStatus[] = ['TRIAL', 'ACTIVE']
 const FREE_PLAN: Plan = 'FREE'
+const FREE_PLAN_TYPE: PlanType = 'FREE'
 
 const DEFAULT_DAILY_NEW_WORDS = 10
 const FREE_DAILY_NEW_WORDS = 5
@@ -22,6 +23,7 @@ interface AcademySettings {
 }
 
 // 구독 상태는 자주 바뀌지 않으므로 60초 캐시로 학습 액션마다 발생하는 원격 DB 왕복을 줄인다.
+// 태그: 관리자 플랜 변경(`academy-{id}-subscription`)과 일반 학원 변경(`academy-{id}`) 모두에서 무효화된다.
 function fetchAcademySubscription(academyId: string) {
   return unstable_cache(
     () =>
@@ -29,21 +31,57 @@ function fetchAcademySubscription(academyId: string) {
         where: { id: academyId },
         select: {
           settingsJson: true,
+          // 관리자 수동 플랜 변경 / 입금 확인은 Academy 컬럼에 직접 기록된다.
+          subscriptionPlan: true,
+          subscriptionStatus: true,
+          subscriptionExpiresAt: true,
+          trialEndsAt: true,
+          // 카드 결제(토스) 구독은 별도 Subscription 테이블에 기록된다.
           subscription: {
             select: { plan: true, status: true },
           },
         },
       }),
     ['academy-subscription', academyId],
-    { revalidate: 60, tags: [`academy-${academyId}`] },
+    { revalidate: 60, tags: [`academy-${academyId}`, `academy-${academyId}-subscription`] },
   )()
 }
 
+type AcademySubscriptionRow = {
+  subscriptionPlan: PlanType
+  subscriptionStatus: SubscriptionStatus
+  subscriptionExpiresAt: Date | null
+  trialEndsAt: Date | null
+  subscription: { plan: Plan; status: SubscriptionStatus } | null
+}
+
+/** 카드 결제 구독(Subscription 테이블) 기준 활성 여부 */
 function isSubscriptionActive(
   subscription: { plan: Plan; status: SubscriptionStatus } | null,
 ): boolean {
   if (!subscription) return false
   return subscription.plan !== FREE_PLAN && ACTIVE_STATUSES.includes(subscription.status)
+}
+
+/**
+ * Academy 컬럼(관리자 플랜 변경·구독 연장·수동 입금 확인) 기준 활성 여부.
+ * - TRIAL: 체험 종료일이 지나지 않았을 때
+ * - ACTIVE: 만료일이 없거나 지나지 않았을 때
+ */
+function isAcademyPlanActive(academy: AcademySubscriptionRow, now = new Date()): boolean {
+  if (academy.subscriptionPlan === FREE_PLAN_TYPE) return false
+  if (academy.subscriptionStatus === 'TRIAL') {
+    return !academy.trialEndsAt || academy.trialEndsAt > now
+  }
+  if (academy.subscriptionStatus === 'ACTIVE') {
+    return !academy.subscriptionExpiresAt || academy.subscriptionExpiresAt > now
+  }
+  return false
+}
+
+/** 두 구독 소스 중 하나라도 활성이면 단어학습 사용 가능 */
+function hasActiveWordLearningPlan(academy: AcademySubscriptionRow): boolean {
+  return isSubscriptionActive(academy.subscription) || isAcademyPlanActive(academy)
 }
 
 function parseAcademyDailyNewWords(settingsJson: unknown): number {
@@ -64,7 +102,7 @@ export function getAcademyDailyNewWords(settingsJson: unknown): number {
 export async function canUseWordLearning(academyId: string): Promise<boolean> {
   const academy = await fetchAcademySubscription(academyId)
   if (!academy) return false
-  return isSubscriptionActive(academy.subscription)
+  return hasActiveWordLearningPlan(academy)
 }
 
 export async function assertCanUseWordLearning(academyId: string): Promise<void> {
@@ -76,7 +114,7 @@ export async function assertCanUseWordLearning(academyId: string): Promise<void>
 
 export async function getWordLearningLimits(academyId: string): Promise<WordLearningLimits> {
   const academy = await fetchAcademySubscription(academyId)
-  if (!academy || !isSubscriptionActive(academy.subscription)) {
+  if (!academy || !hasActiveWordLearningPlan(academy)) {
     return { dailyNewWords: FREE_DAILY_NEW_WORDS, maxSets: 0 }
   }
   return {

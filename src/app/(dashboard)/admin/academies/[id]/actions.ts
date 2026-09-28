@@ -52,6 +52,8 @@ export async function extendSubscription(formData: FormData) {
 
   revalidatePath(`/admin/academies/${academyId}`)
   revalidatePath('/admin/academies')
+  // 학원장 구독 페이지·학생 단어학습 접근 캐시 무효화
+  revalidateTag(`academy-${academyId}-subscription`)
 }
 
 export async function changePlan(formData: FormData) {
@@ -80,7 +82,7 @@ export async function changePlan(formData: FormData) {
 
   revalidatePath(`/admin/academies/${academyId}`)
   revalidatePath('/admin/academies')
-  // 학원장 구독 페이지 캐시 무효화
+  // 학원장 구독 페이지·학생 단어학습 접근 캐시 무효화
   revalidateTag(`academy-${academyId}-subscription`)
 }
 
@@ -97,6 +99,8 @@ export async function suspendAcademy(formData: FormData) {
 
   revalidatePath(`/admin/academies/${academyId}`)
   revalidatePath('/admin/academies')
+  // 정지 즉시 학생 단어학습 접근이 막히도록 캐시 무효화
+  revalidateTag(`academy-${academyId}-subscription`)
 }
 
 export async function deleteAcademy(

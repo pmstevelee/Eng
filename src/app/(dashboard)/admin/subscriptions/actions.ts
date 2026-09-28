@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 
@@ -41,4 +41,6 @@ export async function confirmPayment(formData: FormData) {
 
   revalidatePath('/admin/subscriptions')
   revalidatePath('/admin/academies')
+  // 학원장 구독 페이지·학생 단어학습 접근 캐시 무효화
+  revalidateTag(`academy-${sub.academyId}-subscription`)
 }
