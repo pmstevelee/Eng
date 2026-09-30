@@ -47,11 +47,12 @@ function fetchAcademySubscription(academyId: string) {
   )()
 }
 
+// unstable_cache는 결과를 JSON으로 직렬화하므로 캐시 적중 시 Date 컬럼이 ISO 문자열로 돌아온다.
 type AcademySubscriptionRow = {
   subscriptionPlan: PlanType
   subscriptionStatus: SubscriptionStatus
-  subscriptionExpiresAt: Date | null
-  trialEndsAt: Date | null
+  subscriptionExpiresAt: Date | string | null
+  trialEndsAt: Date | string | null
   subscription: { plan: Plan; status: SubscriptionStatus } | null
 }
 
@@ -71,12 +72,18 @@ function isSubscriptionActive(
 function isAcademyPlanActive(academy: AcademySubscriptionRow, now = new Date()): boolean {
   if (academy.subscriptionPlan === FREE_PLAN_TYPE) return false
   if (academy.subscriptionStatus === 'TRIAL') {
-    return !academy.trialEndsAt || academy.trialEndsAt > now
+    return isNotExpired(academy.trialEndsAt, now)
   }
   if (academy.subscriptionStatus === 'ACTIVE') {
-    return !academy.subscriptionExpiresAt || academy.subscriptionExpiresAt > now
+    return isNotExpired(academy.subscriptionExpiresAt, now)
   }
   return false
+}
+
+/** 종료일이 없거나 아직 지나지 않았으면 true (문자열/Date 모두 처리) */
+function isNotExpired(endsAt: Date | string | null, now: Date): boolean {
+  if (!endsAt) return true
+  return new Date(endsAt).getTime() > now.getTime()
 }
 
 /** 두 구독 소스 중 하나라도 활성이면 단어학습 사용 가능 */
