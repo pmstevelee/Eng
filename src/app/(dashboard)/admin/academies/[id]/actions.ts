@@ -4,18 +4,8 @@ import { prisma } from '@/lib/prisma/client'
 import { createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
-import type { PlanType } from '@/generated/prisma'
+import { getPlanTypeLimits, isSelectablePlanType } from '@/lib/plan-types'
 import { getCurrentUser } from '@/lib/auth'
-
-// 플랜별 정원 (회원가입 PLAN_LIMITS와 동일 기준 + ENTERPRISE)
-const PLAN_LIMITS: Record<PlanType, { maxStudents: number; maxTeachers: number }> = {
-  FREE: { maxStudents: 10, maxTeachers: 1 },
-  STARTER: { maxStudents: 20, maxTeachers: 2 },
-  BASIC: { maxStudents: 30, maxTeachers: 3 },
-  STANDARD: { maxStudents: 100, maxTeachers: 10 },
-  PREMIUM: { maxStudents: 300, maxTeachers: 30 },
-  ENTERPRISE: { maxStudents: 9999, maxTeachers: 999 },
-}
 
 async function requireAdmin() {
   const user = await getCurrentUser()
@@ -63,11 +53,11 @@ export async function changePlan(formData: FormData) {
   const plan = formData.get('plan') as string
   if (!academyId || !plan) return
 
-  const validPlans = ['FREE', 'STARTER', 'BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE']
-  if (!validPlans.includes(plan)) return
+  // 실제 판매 요금제(무료/스타터/스탠다드/프리미엄)만 허용
+  if (!isSelectablePlanType(plan)) return
 
-  const newPlan = plan as PlanType
-  const limits = PLAN_LIMITS[newPlan]
+  const newPlan = plan
+  const limits = getPlanTypeLimits(newPlan)
 
   await prisma.academy.update({
     where: { id: academyId },

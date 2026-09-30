@@ -14,31 +14,32 @@ type Step = 1 | 2 | 3 | 4 | 5
 
 const STEP_LABELS = ['기본 정보', '학원 정보', '약관 동의', '요금제 선택']
 
+// 실제 요금제(src/lib/pricing.ts, 랜딩 요금제 페이지)와 동일하게 유지
 const PLANS = [
   {
-    id: 'BASIC' as const,
-    name: 'Basic',
-    price: '29,000',
-    students: 30,
-    teachers: 3,
-    features: ['기본 레벨 테스트', '학생 관리', '출석 관리'],
+    id: 'STARTER' as const,
+    name: '스타터',
+    price: '19,900',
+    students: '20명',
+    teachers: '2명',
+    features: ['적응형 레벨 테스트 무제한', '단원 테스트 무제한', 'AI 쓰기 평가 월 50회', 'AI 문제 생성 월 30회'],
   },
   {
     id: 'STANDARD' as const,
-    name: 'Standard',
-    price: '69,000',
-    students: 100,
-    teachers: 10,
-    features: ['Basic 기능 전체', '단원 테스트', '학습 리포트', 'AI 추천'],
+    name: '스탠다드',
+    price: '49,900',
+    students: '50명',
+    teachers: '5명',
+    features: ['스타터 기능 전체', '공용 문제뱅크 전체 사용', 'AI 쓰기 평가 월 200회', 'AI 문제 생성 월 100회'],
     recommended: true,
   },
   {
     id: 'PREMIUM' as const,
-    name: 'Premium',
+    name: '프리미엄',
     price: '129,000',
-    students: 300,
-    teachers: 30,
-    features: ['Standard 기능 전체', '무제한 테스트', 'AI 심층 분석', '맞춤 학습 경로'],
+    students: '무제한',
+    teachers: '무제한',
+    features: ['스탠다드 기능 전체', '다지점 통합 관리', 'AI 쓰기 평가 월 1,000회', 'AI 문제 생성 월 500회'],
   },
 ]
 
@@ -85,7 +86,7 @@ export default function RegisterOwnerPage() {
   const [agreedMarketing, setAgreedMarketing] = useState(false)
 
   // Step 4
-  const [planType, setPlanType] = useState<'BASIC' | 'STANDARD' | 'PREMIUM'>('STANDARD')
+  const [planType, setPlanType] = useState<'STARTER' | 'STANDARD' | 'PREMIUM'>('STANDARD')
 
   const goNext = (nextStep: Step) => {
     setError(null)
@@ -442,7 +443,7 @@ export default function RegisterOwnerPage() {
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                          월 {plan.price}원 · 학생 {plan.students}명 · 교사 {plan.teachers}명
+                          월 {plan.price}원 · 학생 {plan.students} · 교사 {plan.teachers}
                         </p>
                         <ul className="text-xs text-muted-foreground mt-1 space-y-0.5">
                           {plan.features.map((f) => (
@@ -455,7 +456,7 @@ export default function RegisterOwnerPage() {
                 </div>
 
                 <div className="rounded-md bg-muted/60 px-3 py-2 text-xs text-center text-muted-foreground">
-                  🎁 무료 체험 기간 동안 Premium 기능을 모두 이용하실 수 있습니다
+                  🎁 무료 체험 기간 동안 프리미엄 기능을 모두 이용하실 수 있습니다
                 </div>
 
                 {error && (

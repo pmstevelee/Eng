@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma/client'
 import { Search, Building2 } from 'lucide-react'
 import type { SubscriptionStatus, PlanType } from '@/generated/prisma'
+import { PLAN_TYPE_LABEL, SELECTABLE_PLAN_TYPES } from '@/lib/plan-types'
 
 const STATUS_LABEL: Record<SubscriptionStatus, string> = {
   TRIAL: '체험',
@@ -21,14 +22,6 @@ const STATUS_CLASS: Record<SubscriptionStatus, string> = {
   CANCELED: 'bg-gray-100 text-gray-500',
 }
 
-const PLAN_LABEL: Record<PlanType, string> = {
-  FREE: '무료',
-  STARTER: '스타터',
-  BASIC: '기본',
-  STANDARD: '표준',
-  PREMIUM: '프리미엄',
-  ENTERPRISE: '엔터프라이즈',
-}
 
 const PLAN_CLASS: Record<PlanType, string> = {
   FREE: 'bg-gray-100 text-gray-600',
@@ -40,7 +33,7 @@ const PLAN_CLASS: Record<PlanType, string> = {
 }
 
 const ALL_STATUSES: SubscriptionStatus[] = ['TRIAL', 'ACTIVE', 'EXPIRED', 'CANCELLED']
-const ALL_PLANS: PlanType[] = ['FREE', 'STARTER', 'BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE']
+const ALL_PLANS: PlanType[] = [...SELECTABLE_PLAN_TYPES]
 
 interface PageProps {
   searchParams: {
@@ -181,7 +174,7 @@ export default async function AcademiesPage({ searchParams }: PageProps) {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              {PLAN_LABEL[p]}
+              {PLAN_TYPE_LABEL[p]}
             </Link>
           ))}
         </div>
@@ -256,7 +249,7 @@ export default async function AcademiesPage({ searchParams }: PageProps) {
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${PLAN_CLASS[academy.subscriptionPlan]}`}
                           >
-                            {PLAN_LABEL[academy.subscriptionPlan]}
+                            {PLAN_TYPE_LABEL[academy.subscriptionPlan]}
                           </span>
                         </Link>
                       </td>

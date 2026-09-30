@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma/client'
 import { AlertCircle, Receipt } from 'lucide-react'
 import type { PaymentStatus, PlanType, SubscriptionPeriod } from '@/generated/prisma'
+import { PLAN_TYPE_LABEL } from '@/lib/plan-types'
 import { confirmPayment } from './actions'
 
 const PAYMENT_LABEL: Record<PaymentStatus, string> = {
@@ -22,14 +23,6 @@ const PAYMENT_CLASS: Record<PaymentStatus, string> = {
   CANCELED: 'bg-gray-100 text-gray-500',
   FAILED: 'bg-accent-red-light text-accent-red',
   PARTIAL_CANCELED: 'bg-accent-gold-light text-accent-gold',
-}
-const PLAN_LABEL: Record<PlanType, string> = {
-  FREE: '무료',
-  STARTER: '스타터',
-  BASIC: '기본',
-  STANDARD: '표준',
-  PREMIUM: '프리미엄',
-  ENTERPRISE: '엔터프라이즈',
 }
 const PLAN_CLASS: Record<PlanType, string> = {
   FREE: 'bg-gray-100 text-gray-600',
@@ -231,14 +224,6 @@ function SubscriptionRow({
   showConfirm: boolean
   rowClass: string
 }) {
-  const PLAN_LABEL_MAP: Record<PlanType, string> = {
-    FREE: '무료',
-    STARTER: '스타터',
-    BASIC: '기본',
-    STANDARD: '표준',
-    PREMIUM: '프리미엄',
-    ENTERPRISE: '엔터프라이즈',
-  }
   const PERIOD_LABEL_MAP: Record<SubscriptionPeriod, string> = {
     MONTHLY: '월간',
     YEARLY: '연간',
@@ -265,7 +250,7 @@ function SubscriptionRow({
         <span
           className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${PLAN_CLASS[sub.plan]}`}
         >
-          {PLAN_LABEL_MAP[sub.plan]}
+          {PLAN_TYPE_LABEL[sub.plan]}
         </span>
       </td>
       <td className="px-4 py-3 text-sm text-gray-700">{PERIOD_LABEL_MAP[sub.period]}</td>

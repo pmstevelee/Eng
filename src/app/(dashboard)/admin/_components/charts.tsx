@@ -20,10 +20,10 @@ export type MonthlyData = { month: string; count: number }
 export type PlanData = { plan: string; label: string; count: number }
 
 const PLAN_COLORS: Record<string, string> = {
-  BASIC: '#BABEC7',
+  FREE: '#BABEC7',
+  STARTER: '#1FAF54',
   STANDARD: '#1865F2',
   PREMIUM: '#7854F7',
-  ENTERPRISE: '#FFB100',
 }
 
 export function MonthlySignupChart({ data }: { data: MonthlyData[] }) {

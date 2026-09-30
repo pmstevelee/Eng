@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
+import { PLAN_TYPE_LABEL } from '@/lib/plan-types'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { SubscriptionClient } from './_components/subscription-client'
@@ -32,14 +33,6 @@ const PAYMENT_STATUS_CLASS: Record<string, string> = {
   EXPIRED: 'bg-gray-100 text-gray-500',
   REFUNDED: 'bg-purple-50 text-purple-700',
   CANCELLED: 'bg-red-50 text-red-700',
-}
-
-const PLAN_LABEL: Record<string, string> = {
-  FREE: '무료',
-  STARTER: '스타터',
-  STANDARD: '스탠다드',
-  PREMIUM: '프리미엄',
-  ENTERPRISE: '엔터프라이즈',
 }
 
 const PERIOD_LABEL: Record<string, string> = {
@@ -199,7 +192,7 @@ export default async function SubscriptionPage() {
           <div>
             <p className="font-semibold text-blue-800">입금 확인 대기중</p>
             <p className="text-sm text-blue-700 mt-0.5">
-              {PLAN_LABEL[pendingSubForClient.plan]} {PERIOD_LABEL[pendingSubForClient.period]} 구독 신청이 접수되었습니다.
+              {PLAN_TYPE_LABEL[pendingSubForClient.plan]} {PERIOD_LABEL[pendingSubForClient.period]} 구독 신청이 접수되었습니다.
               관리자 확인 후 1~2 영업일 내에 활성화됩니다.
             </p>
           </div>
@@ -214,7 +207,7 @@ export default async function SubscriptionPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-3 py-1 rounded-full text-sm font-semibold bg-blue-50 text-[#1865F2] border border-[#1865F2]">
-                {PLAN_LABEL[academy.subscriptionPlan] ?? academy.subscriptionPlan}
+                {PLAN_TYPE_LABEL[academy.subscriptionPlan]}
               </span>
               <span
                 className={`px-3 py-1 rounded-full text-xs font-medium border ${
@@ -339,7 +332,7 @@ export default async function SubscriptionPage() {
                       {new Date(sub.createdAt).toLocaleDateString('ko-KR')}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                      {PLAN_LABEL[sub.plan] ?? sub.plan}
+                      {PLAN_TYPE_LABEL[sub.plan] ?? sub.plan}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
                       {PERIOD_LABEL[sub.period] ?? sub.period}

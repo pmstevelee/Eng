@@ -52,6 +52,7 @@ export async function createBranch(formData: {
       maxTeachers: ctx.hq.maxTeachers,
       subscriptionStatus: ctx.hq.subscriptionStatus,
       subscriptionPlan: ctx.hq.subscriptionPlan,
+      planType: ctx.hq.subscriptionPlan,
       trialEndsAt: ctx.hq.trialEndsAt,
     },
   })

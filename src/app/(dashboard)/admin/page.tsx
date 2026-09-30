@@ -2,13 +2,8 @@ import { prisma } from '@/lib/prisma/client'
 import { Building2, Users, UserPlus, TrendingUp } from 'lucide-react'
 import { MonthlySignupChart, PlanDistributionChart } from './_components/charts'
 import type { MonthlyData, PlanData } from './_components/charts'
+import { PLAN_TYPE_LABEL } from '@/lib/plan-types'
 
-const PLAN_LABEL: Record<string, string> = {
-  BASIC: '기본',
-  STANDARD: '표준',
-  PREMIUM: '프리미엄',
-  ENTERPRISE: '엔터프라이즈',
-}
 
 async function getDashboardData() {
   const now = new Date()
@@ -53,7 +48,7 @@ async function getDashboardData() {
   })
   const planData: PlanData[] = planGroups.map((g) => ({
     plan: g.subscriptionPlan,
-    label: PLAN_LABEL[g.subscriptionPlan] ?? g.subscriptionPlan,
+    label: PLAN_TYPE_LABEL[g.subscriptionPlan] ?? g.subscriptionPlan,
     count: g._count.id,
   }))
 

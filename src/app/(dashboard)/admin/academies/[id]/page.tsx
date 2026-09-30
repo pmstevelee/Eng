@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react'
 import type { SubscriptionStatus, PlanType, PaymentStatus, SubscriptionPeriod } from '@/generated/prisma'
 import { extendSubscription, changePlan, suspendAcademy } from './actions'
 import { DeleteAcademyModal } from './_components/delete-academy-modal'
+import { PLAN_TYPE_LABEL, SELECTABLE_PLAN_TYPES, isSelectablePlanType } from '@/lib/plan-types'
 
 const STATUS_LABEL: Record<SubscriptionStatus, string> = {
   TRIAL: '체험',
@@ -21,14 +22,6 @@ const STATUS_CLASS: Record<SubscriptionStatus, string> = {
   CANCELLED: 'bg-gray-100 text-gray-500',
   PAST_DUE: 'bg-accent-red-light text-accent-red',
   CANCELED: 'bg-gray-100 text-gray-500',
-}
-const PLAN_LABEL: Record<PlanType, string> = {
-  FREE: '무료',
-  STARTER: '스타터',
-  BASIC: '기본',
-  STANDARD: '표준',
-  PREMIUM: '프리미엄',
-  ENTERPRISE: '엔터프라이즈',
 }
 const PLAN_CLASS: Record<PlanType, string> = {
   FREE: 'bg-gray-100 text-gray-600',
@@ -195,7 +188,7 @@ export default async function AcademyDetailPage({ params }: PageProps) {
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${PLAN_CLASS[academy.subscriptionPlan]}`}
                 >
-                  {PLAN_LABEL[academy.subscriptionPlan]}
+                  {PLAN_TYPE_LABEL[academy.subscriptionPlan]}
                 </span>
               </dd>
             </div>
@@ -301,15 +294,14 @@ export default async function AcademyDetailPage({ params }: PageProps) {
             <label className="block text-xs font-medium text-gray-600">플랜 변경</label>
             <select
               name="plan"
-              defaultValue={academy.subscriptionPlan}
+              defaultValue={isSelectablePlanType(academy.subscriptionPlan) ? academy.subscriptionPlan : undefined}
               className="w-full h-9 px-3 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:outline-none focus:border-primary-700"
             >
-              <option value="FREE">무료</option>
-              <option value="STARTER">스타터</option>
-              <option value="BASIC">기본</option>
-              <option value="STANDARD">표준</option>
-              <option value="PREMIUM">프리미엄</option>
-              <option value="ENTERPRISE">엔터프라이즈</option>
+              {SELECTABLE_PLAN_TYPES.map((plan) => (
+                <option key={plan} value={plan}>
+                  {PLAN_TYPE_LABEL[plan]}
+                </option>
+              ))}
             </select>
             <button
               type="submit"
@@ -382,7 +374,7 @@ export default async function AcademyDetailPage({ params }: PageProps) {
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${PLAN_CLASS[sub.plan]}`}
                       >
-                        {PLAN_LABEL[sub.plan]}
+                        {PLAN_TYPE_LABEL[sub.plan]}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-700">

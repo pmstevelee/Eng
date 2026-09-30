@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
+import { getPlanTypeLimits, isSelectablePlanType } from '@/lib/plan-types'
 
 function generateInviteCode(): string {
   // 혼동하기 쉬운 문자(I, O, 0, 1) 제외
@@ -10,12 +11,6 @@ function generateInviteCode(): string {
   return Array.from({ length: 8 }, () =>
     chars[Math.floor(Math.random() * chars.length)]
   ).join('')
-}
-
-const PLAN_LIMITS = {
-  BASIC: { maxStudents: 30, maxTeachers: 3 },
-  STANDARD: { maxStudents: 100, maxTeachers: 10 },
-  PREMIUM: { maxStudents: 300, maxTeachers: 30 },
 }
 
 export type RegisterOwnerData = {
@@ -29,12 +24,14 @@ export type RegisterOwnerData = {
   agreedTerms: boolean
   agreedPrivacy: boolean
   agreedMarketing: boolean
-  planType: 'BASIC' | 'STANDARD' | 'PREMIUM'
+  planType: 'STARTER' | 'STANDARD' | 'PREMIUM'
 }
 
 export type RegisterOwnerResult = { error: string } | { inviteCode: string }
 
 export async function registerOwner(data: RegisterOwnerData): Promise<RegisterOwnerResult> {
+  if (!isSelectablePlanType(data.planType)) return { error: '요금제를 다시 선택해 주세요.' }
+
   // 이메일 중복 체크
   try {
     const existing = await prisma.user.findUnique({
@@ -64,7 +61,7 @@ export async function registerOwner(data: RegisterOwnerData): Promise<RegisterOw
 
   const userId = authData.user.id
   const inviteCode = generateInviteCode()
-  const limits = PLAN_LIMITS[data.planType]
+  const limits = getPlanTypeLimits(data.planType)
   const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
 
   try {
@@ -78,6 +75,7 @@ export async function registerOwner(data: RegisterOwnerData): Promise<RegisterOw
           inviteCode,
           subscriptionStatus: 'TRIAL',
           subscriptionPlan: data.planType,
+          planType: data.planType,
           trialEndsAt,
           maxStudents: limits.maxStudents,
           maxTeachers: limits.maxTeachers,

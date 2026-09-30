@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
+import { PLAN_TYPE_LABEL } from '@/lib/plan-types'
 import { Suspense } from 'react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -87,12 +88,6 @@ export default async function AccountPage() {
       day: 'numeric',
     }).format(new Date(date))
 
-  const planLabel: Record<string, string> = {
-    BASIC: 'Basic',
-    STANDARD: 'Standard',
-    PREMIUM: 'Premium',
-  }
-
   return (
     <div className="space-y-5">
       <Suspense fallback={null}>
@@ -127,7 +122,7 @@ export default async function AccountPage() {
             />
             <InfoRow
               label="가입 요금제"
-              value={planLabel[user.academy.subscriptionPlan as string] ?? user.academy.subscriptionPlan}
+              value={PLAN_TYPE_LABEL[user.academy.subscriptionPlan]}
             />
             <InfoRow label="학원 등록일" value={formatDate(user.academy.createdAt)} />
           </div>
