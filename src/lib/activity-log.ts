@@ -10,7 +10,11 @@ type LogActivityParams = {
   metadata?: Prisma.InputJsonValue
 }
 
-/** 구독자 활동 로그 기록. 실패해도 원래 액션 흐름을 막지 않도록 에러를 삼킴. */
+/**
+ * 구독자 활동 로그 기록. 실패해도 원래 액션 흐름을 막지 않도록 에러를 삼킴.
+ * 반드시 `await`로 호출할 것 — Vercel 서버리스는 응답 후 함수가 동결되어
+ * fire-and-forget(void/.catch) 호출은 INSERT가 완료되기 전에 유실될 수 있다.
+ */
 export async function logActivity({ userId, role, academyId, action, metadata }: LogActivityParams) {
   try {
     await prisma.activityLog.create({

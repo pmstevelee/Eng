@@ -225,7 +225,7 @@ export function SpellClient({ setId, initialCards }: Props) {
     const nextIndex = qIndex + 1
     if (nextIndex >= deck.length) {
       setPhase('round-done')
-      void finishWordSession()
+      void finishWordSession({ setId, stage: 'SPELL', wordCount: deck.length })
     } else {
       setQIndex(nextIndex)
       setInput('')

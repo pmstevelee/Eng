@@ -132,13 +132,13 @@ export async function updateAcademyInfo(
   revalidateTag(`user-${user.id}`)
   revalidatePath('/owner/settings/academy')
   revalidatePath('/owner')
-  logActivity({
+  await logActivity({
     userId: user.id,
     role: 'ACADEMY_OWNER',
     academyId: user.academyId,
     action: ACTIVITY_ACTIONS.ACADEMY_SETTINGS_UPDATE,
     metadata: { field: 'academy_info' },
-  }).catch(console.error)
+  })
   return { success: true }
 }
 

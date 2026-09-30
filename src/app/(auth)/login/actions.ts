@@ -80,12 +80,14 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
     maxAge: 60 * 60 * 24 * 7, // 7일
   })
 
-  // 로그인 응답을 막지 않도록 비동기로 기록 (logActivity는 실패를 자체 처리)
-  void logActivity({ userId: authUserId, role, academyId, action: ACTIVITY_ACTIONS.LOGIN })
-  void prisma.user.update({
-    where: { id: authUserId },
-    data: { lastLoginAt: new Date() },
-  }).catch((err) => console.error('[signIn] lastLoginAt 업데이트 실패:', err))
+  // redirect 전에 완료를 기다린다. Vercel 서버리스는 응답 후 함수가 동결되어
+  // fire-and-forget 쓰기가 유실될 수 있다. (두 쓰기는 병렬 처리, 실패는 각자 처리)
+  await Promise.all([
+    logActivity({ userId: authUserId, role, academyId, action: ACTIVITY_ACTIONS.LOGIN }),
+    prisma.user
+      .update({ where: { id: authUserId }, data: { lastLoginAt: new Date() } })
+      .catch((err) => console.error('[signIn] lastLoginAt 업데이트 실패:', err)),
+  ])
 
   redirect(ROLE_REDIRECT[role])
 }

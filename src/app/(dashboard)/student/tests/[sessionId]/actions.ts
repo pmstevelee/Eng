@@ -356,13 +356,13 @@ export async function submitTest(
     }
 
     // 활동 로그 (비동기, 관리자 활동 분석용)
-    logActivity({
+    await logActivity({
       userId: auth.userId,
       role: 'STUDENT',
       academyId: session.test.academyId,
       action: ACTIVITY_ACTIONS.TEST_SUBMIT,
       metadata: { testType: session.test.type, score },
-    }).catch(console.error)
+    })
 
     revalidateTag(`student-${auth.studentId}-tests`)
     revalidateTag(`student-${auth.studentId}-grades`)

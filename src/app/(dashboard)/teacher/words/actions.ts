@@ -9,6 +9,8 @@ import { mapOxfordCefrToWegoupLevel } from '@/lib/words/cefr-mapping'
 import type { WordTestMode } from '@/generated/prisma'
 import { ExamCategory } from '@/generated/prisma'
 import { getCurrentUser } from '@/lib/auth'
+import { logActivity } from '@/lib/activity-log'
+import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 
 async function getAuthedTeacher() {
   const user = await getCurrentUser()
@@ -77,6 +79,14 @@ export async function createWordTestAssignment(input: CreateWordTestInput): Prom
           ? { create: studentIds.map((studentId) => ({ studentId })) }
           : undefined,
     },
+  })
+
+  await logActivity({
+    userId: teacher.id,
+    role: 'TEACHER',
+    academyId: teacher.academyId,
+    action: ACTIVITY_ACTIONS.WORD_TEST_ASSIGN,
+    metadata: { assignmentId: assignment.id, setId, mode },
   })
 
   revalidatePath(`/teacher/words/sets/${setId}`)
@@ -450,6 +460,27 @@ export async function createTeacherWordSet(
     return { set, assignmentId }
   })
 
+  await Promise.all([
+    logActivity({
+      userId: teacher.id,
+      role: 'TEACHER',
+      academyId: teacher.academyId,
+      action: ACTIVITY_ACTIONS.WORD_SET_CREATE,
+      metadata: { setId: set.id, wordCount: uniqueWordIds.length, studentCount: assignedStudentIds.length },
+    }),
+    ...(assignmentId
+      ? [
+          logActivity({
+            userId: teacher.id,
+            role: 'TEACHER',
+            academyId: teacher.academyId,
+            action: ACTIVITY_ACTIONS.WORD_TEST_ASSIGN,
+            metadata: { assignmentId, setId: set.id, mode: testAssignment?.mode },
+          }),
+        ]
+      : []),
+  ])
+
   revalidatePath('/teacher/words')
   if (assignmentId) {
     redirect(`/teacher/words/sets/${set.id}/test/${assignmentId}/results`)
@@ -607,6 +638,14 @@ export async function autoCreateDailySets(
   }
 
   await prisma.$transaction(dbOps)
+
+  await logActivity({
+    userId: teacher.id,
+    role: 'TEACHER',
+    academyId: teacher.academyId,
+    action: ACTIVITY_ACTIONS.WORD_SET_CREATE,
+    metadata: { auto: true, setCount: setsData.length, perDay, withTest: !!testAssignment },
+  })
 
   revalidatePath('/teacher/words')
   redirect('/teacher/words')

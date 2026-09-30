@@ -154,13 +154,13 @@ export async function createAndDeployTest(
 
     revalidateTag(`academy-${user.academyId}-tests`)
     revalidatePath('/owner/tests')
-    logActivity({
+    await logActivity({
       userId: user.id,
       role: 'ACADEMY_OWNER',
       academyId: user.academyId,
       action: ACTIVITY_ACTIONS.TEST_DEPLOY,
       metadata: { testId: test.id, type: input.type, studentCount: students.length },
-    }).catch(console.error)
+    })
     return { id: test.id }
   } catch (e) {
     console.error(e)
@@ -223,13 +223,13 @@ export async function deployExistingTest(
 
     revalidateTag(`academy-${user.academyId}-tests`)
     revalidatePath('/owner/tests')
-    logActivity({
+    await logActivity({
       userId: user.id,
       role: 'ACADEMY_OWNER',
       academyId: user.academyId,
       action: ACTIVITY_ACTIONS.TEST_DEPLOY,
       metadata: { testId, studentCount: students.length },
-    }).catch(console.error)
+    })
     return {}
   } catch (e) {
     console.error(e)

@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
+import { logActivity } from '@/lib/activity-log'
+import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import { canAccessClass, canEditDate, getAttendanceScope, type AttendanceScope } from './access'
 import {
   isPastLateLine,
@@ -180,6 +182,13 @@ export async function endSession(sessionId: string): Promise<{ error?: string; a
       })
       absentCount = ids.length
     }
+    await logActivity({
+      userId: scope.userId,
+      role: scope.role,
+      academyId: session.class.academyId,
+      action: ACTIVITY_ACTIONS.ATTENDANCE_SESSION_END,
+      metadata: { sessionId: session.id, classId: session.classId, absentCount },
+    })
     revalidateAttendance()
     return { absentCount }
   } catch (err) {

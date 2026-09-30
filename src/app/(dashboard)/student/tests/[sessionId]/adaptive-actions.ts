@@ -21,6 +21,8 @@ import { gradeAdaptiveResponse, gradeAdaptiveWriting, recordAdaptiveUsage } from
 import { getUsedLevelTestQuestions } from '@/lib/questions/usage-tracker'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 import { getCurrentUser } from '@/lib/auth'
+import { logActivity } from '@/lib/activity-log'
+import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 
 // ─── 중복 출제 방지용 제외 목록 조회 ──────────────────────────────────────────
 
@@ -473,7 +475,7 @@ export async function submitWritingAnswer(
 
 async function finalizeAdaptiveTest(
   sessionId: string,
-  auth: { studentId: string; currentLevel: number; academyId: string | null },
+  auth: { userId: string; studentId: string; currentLevel: number; academyId: string | null },
   test: { adaptiveConfig: unknown; academyId: string; createdBy: string; testId: string },
   history: QuestionHistoryItem[],
   config: AdaptiveConfig,
@@ -532,17 +534,26 @@ async function finalizeAdaptiveTest(
   // 출제 문제 사용 이력 기록 (학원별 중복 방지) + 품질 통계 갱신
   recordAdaptiveUsage(test.academyId, test.testId, history)
 
-  // 교사 알림
-  await prisma.notification.create({
-    data: {
-      userId: test.createdBy,
+  // 교사 알림 + 활동 로그
+  await Promise.all([
+    prisma.notification.create({
+      data: {
+        userId: test.createdBy,
+        academyId: test.academyId,
+        type: 'SUCCESS',
+        title: '레벨 테스트 완료',
+        message: `학생의 적응형 레벨 테스트가 완료되었습니다. 측정 레벨: Level ${overallLevel}`,
+        link: `/teacher/students`,
+      },
+    }),
+    logActivity({
+      userId: auth.userId,
+      role: 'STUDENT',
       academyId: test.academyId,
-      type: 'SUCCESS',
-      title: '레벨 테스트 완료',
-      message: `학생의 적응형 레벨 테스트가 완료되었습니다. 측정 레벨: Level ${overallLevel}`,
-      link: `/teacher/students`,
-    },
-  })
+      action: ACTIVITY_ACTIONS.LEVEL_TEST_COMPLETE,
+      metadata: { sessionId, overallLevel },
+    }),
+  ])
 
   revalidateTag(`student-${auth.studentId}-tests`)
   revalidateTag(`student-${auth.studentId}-grades`)
@@ -553,7 +564,7 @@ async function finalizeAdaptiveTest(
 
 async function finalizeAdaptiveTestWithWriting(
   sessionId: string,
-  auth: { studentId: string; currentLevel: number; academyId: string | null },
+  auth: { userId: string; studentId: string; currentLevel: number; academyId: string | null },
   test: { adaptiveConfig: unknown; academyId: string; createdBy: string; testId: string },
   history: QuestionHistoryItem[],
   config: AdaptiveConfig,
@@ -636,17 +647,26 @@ async function finalizeAdaptiveTestWithWriting(
   // 출제 문제 사용 이력 기록 (학원별 중복 방지) + 품질 통계 갱신
   recordAdaptiveUsage(test.academyId, test.testId, history)
 
-  // 교사 알림 (쓰기 AI 채점 대기)
-  await prisma.notification.create({
-    data: {
-      userId: test.createdBy,
+  // 교사 알림 (쓰기 AI 채점 대기) + 활동 로그
+  await Promise.all([
+    prisma.notification.create({
+      data: {
+        userId: test.createdBy,
+        academyId: test.academyId,
+        type: 'SUCCESS',
+        title: '레벨 테스트 완료',
+        message: `학생의 적응형 레벨 테스트가 완료되었습니다. 측정 레벨: Level ${overallLevel} (쓰기 AI 채점 포함)`,
+        link: `/teacher/students`,
+      },
+    }),
+    logActivity({
+      userId: auth.userId,
+      role: 'STUDENT',
       academyId: test.academyId,
-      type: 'SUCCESS',
-      title: '레벨 테스트 완료',
-      message: `학생의 적응형 레벨 테스트가 완료되었습니다. 측정 레벨: Level ${overallLevel} (쓰기 AI 채점 포함)`,
-      link: `/teacher/students`,
-    },
-  })
+      action: ACTIVITY_ACTIONS.LEVEL_TEST_COMPLETE,
+      metadata: { sessionId, overallLevel },
+    }),
+  ])
 
   revalidateTag(`student-${auth.studentId}-tests`)
   revalidateTag(`student-${auth.studentId}-grades`)

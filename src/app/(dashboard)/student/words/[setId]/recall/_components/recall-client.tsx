@@ -415,7 +415,7 @@ export function RecallClient({ setId, initialCards }: Props) {
     if (nextIndex >= deck.length) {
       // 라운드 종료
       setPhase('round-done')
-      void finishWordSession()
+      void finishWordSession({ setId, stage: 'RECALL', wordCount: deck.length })
       return
     }
 

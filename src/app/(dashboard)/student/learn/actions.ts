@@ -685,13 +685,13 @@ export async function savePracticeSession(params: {
 
   const user = await getCurrentUser()
   if (user) {
-    logActivity({
+    await logActivity({
       userId: user.id,
       role: 'STUDENT',
       academyId: user.academyId,
       action: ACTIVITY_ACTIONS.PRACTICE_SUBMIT,
       metadata: { mode, domain, score },
-    }).catch(console.error)
+    })
   }
 }
 

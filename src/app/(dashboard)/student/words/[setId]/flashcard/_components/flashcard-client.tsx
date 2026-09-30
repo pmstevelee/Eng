@@ -294,7 +294,7 @@ export function FlashcardClient({ setId, initialCards, totalWords, masteredWords
       const next = index + 1
       if (next >= total) {
         setIsDone(true)
-        void finishWordSession()
+        void finishWordSession({ setId, stage: 'FLASHCARD', wordCount: total })
       } else {
         setIndex(next)
       }

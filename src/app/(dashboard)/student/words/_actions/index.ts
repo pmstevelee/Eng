@@ -9,6 +9,8 @@ import { getDueWords, applySrsResult } from '@/lib/words/progress'
 import { gradeTest, buildQuestions } from '@/lib/words/test-grader'
 import { type SrsQuality } from '@/lib/words/srs'
 import { emitWordEvent } from '@/lib/words/word-events'
+import { logActivity } from '@/lib/activity-log'
+import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import type { BadgeType, LearnStage } from '@/generated/prisma'
 
 // ─── 공통 응답 타입 ────────────────────────────────────────────────────────────
@@ -461,13 +463,22 @@ export async function completeReviewSession(
 ): Promise<Result<{ xpEarned: number; currentStreak: number; isNewRecord: boolean; badgesEarned: BadgeType[] }>> {
   try {
     const { completedCount, correctCount } = CompleteReviewSchema.parse(input)
-    const { studentId } = await getAuthContext()
+    const { studentId, userId, academyId } = await getAuthContext()
 
     const isPerfect = completedCount > 0 && correctCount === completedCount
 
-    const events = await Promise.all([
-      emitWordEvent(studentId, 'DAILY_REVIEW_COMPLETED'),
-      ...(isPerfect ? [emitWordEvent(studentId, 'PERFECT_SET')] : []),
+    const [events] = await Promise.all([
+      Promise.all([
+        emitWordEvent(studentId, 'DAILY_REVIEW_COMPLETED'),
+        ...(isPerfect ? [emitWordEvent(studentId, 'PERFECT_SET')] : []),
+      ]),
+      logActivity({
+        userId,
+        role: 'STUDENT',
+        academyId,
+        action: ACTIVITY_ACTIONS.WORD_REVIEW_COMPLETE,
+        metadata: { completedCount, correctCount },
+      }),
     ])
 
     const totalXp = events.reduce((sum, e) => sum + e.xp.earned, 0)
@@ -495,9 +506,27 @@ export async function completeReviewSession(
 // 라운드/세션 종료 시 1회만 호출해 단어 허브 데이터를 갱신한다.
 // (recordProgress에서 매 단어마다 revalidate하면 학습 페이지 전체가 재렌더되어 느려짐)
 
-export async function finishWordSession(): Promise<Result<null>> {
+const FinishWordSessionSchema = z
+  .object({
+    setId: z.string().uuid(),
+    stage: z.enum(['FLASHCARD', 'RECALL', 'SPELL']),
+    wordCount: z.number().int().min(0),
+  })
+  .optional()
+
+export async function finishWordSession(
+  input?: z.infer<typeof FinishWordSessionSchema>,
+): Promise<Result<null>> {
   try {
-    await getAuthContext()
+    const { userId, academyId } = await getAuthContext()
+    const parsed = FinishWordSessionSchema.safeParse(input)
+    await logActivity({
+      userId,
+      role: 'STUDENT',
+      academyId,
+      action: ACTIVITY_ACTIONS.WORD_STUDY,
+      metadata: parsed.success ? parsed.data : undefined,
+    })
     revalidatePath('/student/words')
     revalidatePath('/student')
     return ok(null)
@@ -579,7 +608,7 @@ export async function submitWordTest(
   userAnswers: Record<string, string>,
 ): Promise<Result<unknown>> {
   try {
-    const { studentId } = await getAuthContext()
+    const { studentId, userId, academyId } = await getAuthContext()
 
     // 중복 응시 방지
     const existing = await prisma.wordTestAttempt.findUnique({
@@ -637,6 +666,14 @@ export async function submitWordTest(
         answers: result.answers as unknown as object[],
         completedAt: new Date(),
       },
+    })
+
+    await logActivity({
+      userId,
+      role: 'STUDENT',
+      academyId,
+      action: ACTIVITY_ACTIONS.WORD_TEST_SUBMIT,
+      metadata: { assignmentId: testId, score: result.score, isPassed: result.isPassed },
     })
 
     revalidatePath(`/student/words/test/${testId}/result`)

@@ -454,13 +454,13 @@ export async function completeMission(
   // 오늘의 미션 완료일 수가 변경되어 학습 활동량 조건 재계산 필요
   if (isAllComplete) {
     checkPromotionStatus(studentId).catch(console.error)
-    logActivity({
+    await logActivity({
       userId: auth.userId,
       role: 'STUDENT',
       academyId: auth.academyId,
       action: ACTIVITY_ACTIONS.MISSION_COMPLETE,
       metadata: { dailyMissionId },
-    }).catch(console.error)
+    })
   }
 
   // 대시보드 캐시 무효화

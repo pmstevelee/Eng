@@ -3,6 +3,8 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { logActivity } from '@/lib/activity-log'
+import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 
 export async function saveTeacherComment(input: {
   studentId: string
@@ -271,6 +273,14 @@ export async function overrideStudentLevel(input: {
         link: '/student/grades',
       },
     })
+  })
+
+  await logActivity({
+    userId: user.id,
+    role: 'TEACHER',
+    academyId: user.academyId,
+    action: ACTIVITY_ACTIONS.LEVEL_OVERRIDE,
+    metadata: { studentId: input.studentId, previousLevel: student.currentLevel, targetLevel: input.targetLevel },
   })
 
   revalidatePath(`/teacher/students/${input.studentId}`)
