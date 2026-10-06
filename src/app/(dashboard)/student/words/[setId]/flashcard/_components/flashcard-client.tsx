@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
-import { Volume2, ChevronLeft, ChevronRight, RotateCcw, ArrowRight } from 'lucide-react'
+import { Volume2, ChevronLeft, ChevronRight, RotateCcw, ArrowRight, Target, PenLine } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useWordHub } from '@/hooks/use-word-hub'
 import { Card } from '@/components/ui/card'
@@ -223,12 +223,24 @@ function RoundDone({
             모르는 단어 다시 학습 ({unknownCards.length}개)
           </Button>
         )}
+        {/* 다음 학습 방식은 학습자가 선택한다 (리콜 또는 스펠) */}
+        <p className="text-xs font-semibold text-gray-500">다음 학습 방식을 골라 주세요</p>
         <Button
           onClick={() => startTransition(() => router.push(`/student/words/${setId}/recall${hub.query}`))}
           disabled={isPending}
-          className="h-14 bg-[#7854F7] hover:bg-[#7854F7]/90 text-white rounded-xl"
+          className="h-14 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white rounded-xl"
         >
-          리콜 단계로
+          <Target className="w-4 h-4 mr-2" />
+          리콜 학습 (뜻 고르기)
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+        <Button
+          onClick={() => startTransition(() => router.push(`/student/words/${setId}/spell${hub.query}`))}
+          disabled={isPending}
+          className="h-14 bg-[#1FAF54] hover:bg-[#1FAF54]/90 text-white rounded-xl"
+        >
+          <PenLine className="w-4 h-4 mr-2" />
+          스펠 학습 (철자 입력)
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
         <Button

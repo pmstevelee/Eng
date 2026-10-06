@@ -2,7 +2,8 @@ import type { LearnStage } from '@/generated/prisma'
 
 // 단어 학습 단계 전이 규칙 (순수 함수 — 서버 액션과 단위 테스트가 공유)
 //
-// - 학습 단계: FLASHCARD → RECALL → SPELL. 스펠을 처음 맞히면 "학습 완료"(learnedAt).
+// - 학습 단계: FLASHCARD → RECALL → SPELL. 학습자가 리콜·스펠 중 원하는 방식을 고를 수 있으므로
+//   리콜 또는 스펠을 처음 맞히면 "학습 완료"(learnedAt).
 // - 마스터: 학습 완료 후 서로 다른 날의 연속 정답으로 SRS repetitions가 MASTERY_REPETITIONS 이상이 되면 MASTERED.
 //   (같은 날의 다단계 학습은 SRS를 1회만 진행시키므로 하루 만에 마스터될 수 없다)
 // - 정답이면 단계는 절대 내려가지 않는다.
@@ -74,8 +75,9 @@ export function resolveMastery(input: MasteryInput): MasteryOutcome {
   }
 
   let stage = maxStage(current, STAGE_AFTER_CORRECT[activity])
-  const becameLearned = activity === 'SPELL' && !hasLearnedAt
-  const isLearned = hasLearnedAt || becameLearned || current === 'MASTERED'
+  const becameLearned = activity !== 'FLASHCARD' && !hasLearnedAt
+  // 학습 완료로 처음 기록되는 응답에서 바로 마스터되지 않도록, 이전에 이미 학습 완료된 단어만 마스터 대상이다.
+  const isLearned = hasLearnedAt || current === 'MASTERED'
 
   let becameMastered = false
   if (

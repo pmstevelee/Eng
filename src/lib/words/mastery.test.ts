@@ -20,6 +20,16 @@ describe('resolveMastery', () => {
     expect(r.becameMastered).toBe(false)
   })
 
+  it('리콜만 선택해 학습해도 첫 정답이면 학습 완료 (마스터는 아님)', () => {
+    const r = resolveMastery({ ...base, current: 'RECALL', activity: 'RECALL', isCorrect: true })
+    expect(r.becameLearned).toBe(true)
+    expect(r.becameMastered).toBe(false)
+  })
+
+  it('플래시카드 정답은 학습 완료가 아니다', () => {
+    expect(resolveMastery({ ...base, current: 'FLASHCARD', activity: 'FLASHCARD', isCorrect: true }).becameLearned).toBe(false)
+  })
+
   it('학습 완료 후 서로 다른 날 연속 정답으로 repetitions가 기준 이상이면 마스터', () => {
     const r = resolveMastery({
       ...base,

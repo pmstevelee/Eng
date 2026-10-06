@@ -54,6 +54,14 @@ interface RecallOption {
 import type { BadgeType } from '@/generated/prisma'
 
 type CardMode = 'RECALL' | 'SPELL'
+/** 학습자가 고르는 복습 방식 — AUTO는 정답 횟수에 따라 리콜/스펠 자동 선택 */
+type ReviewMode = 'AUTO' | CardMode
+
+const REVIEW_MODES: { value: ReviewMode; label: string }[] = [
+  { value: 'AUTO', label: '자동' },
+  { value: 'RECALL', label: '리콜' },
+  { value: 'SPELL', label: '스펠' },
+]
 type Phase = 'quizzing' | 'done'
 type SpellAnswerState = 'idle' | 'correct' | 'nearly' | 'wrong'
 
@@ -104,7 +112,8 @@ interface Props {
   cards: ReviewCard[]
 }
 
-function modeForCard(card: ReviewCard): CardMode {
+function modeForCard(card: ReviewCard, reviewMode: ReviewMode): CardMode {
+  if (reviewMode !== 'AUTO') return reviewMode
   return card.correctCount < 3 ? 'RECALL' : 'SPELL'
 }
 
@@ -545,18 +554,26 @@ export function ReviewClient({ cards }: Props) {
   const [doneStats, setDoneStats] = useState<{ xpEarned: number; streak: number; badges: BadgeType[] }>({ xpEarned: 0, streak: 0, badges: [] })
   const [recallOptionsMap, setRecallOptionsMap] = useState<Record<string, { correctId: string; options: RecallOption[] }>>({})
 
-  const currentCard = cards[index]
-  const mode = currentCard ? modeForCard(currentCard) : 'RECALL'
+  const [reviewMode, setReviewMode] = useState<ReviewMode>('AUTO')
+  const requestedRecallIds = useRef<Set<string>>(new Set())
 
-  // 세션 시작 시 리콜 문제의 보기를 한 번에 불러와 카드 전환마다 발생하던 서버 왕복을 제거한다.
+  const currentCard = cards[index]
+  const mode = currentCard ? modeForCard(currentCard, reviewMode) : 'RECALL'
+
+  // 리콜로 풀 문제의 보기를 한 번에 불러와 카드 전환마다 발생하던 서버 왕복을 제거한다.
+  // 학습자가 복습 방식을 바꾸면 아직 불러오지 않은 남은 카드의 보기만 추가로 불러온다.
   useEffect(() => {
-    const recallWordIds = cards.filter((c) => modeForCard(c) === 'RECALL').map((c) => c.wordId)
+    const recallWordIds = cards
+      .slice(index)
+      .filter((c) => modeForCard(c, reviewMode) === 'RECALL' && !requestedRecallIds.current.has(c.wordId))
+      .map((c) => c.wordId)
     if (recallWordIds.length === 0) return
+    recallWordIds.forEach((id) => requestedRecallIds.current.add(id))
     getRecallOptionsBatch(recallWordIds).then((res) => {
-      if (res.ok) setRecallOptionsMap(res.data.questions)
+      if (res.ok) setRecallOptionsMap((prev) => ({ ...prev, ...res.data.questions }))
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [reviewMode])
 
   const handleResult = useCallback(
     async (isCorrect: boolean) => {
@@ -603,6 +620,26 @@ export function ReviewClient({ cards }: Props) {
     <div>
       <ProgressBar index={index} total={cards.length} correct={correctCount} answered={answeredCount} />
 
+      {/* 복습 방식 선택 */}
+      <div className="mb-3 flex justify-center">
+        <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1" role="radiogroup" aria-label="복습 방식 선택">
+          {REVIEW_MODES.map((m) => (
+            <button
+              key={m.value}
+              type="button"
+              role="radio"
+              aria-checked={reviewMode === m.value}
+              onClick={() => setReviewMode(m.value)}
+              className={`min-h-[44px] min-w-[64px] rounded-lg px-3 text-sm font-semibold transition-colors ${
+                reviewMode === m.value ? 'bg-[#7854F7] text-white' : 'text-gray-500 hover:bg-gray-50'
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* 모드 배지 */}
       <div className="flex justify-center mb-4">
         <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
@@ -616,7 +653,7 @@ export function ReviewClient({ cards }: Props) {
 
       <AnimatePresence mode="wait">
         <motion.div
-          key={`${index}-${currentCard.wordId}`}
+          key={`${index}-${currentCard.wordId}-${mode}`}
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -40 }}

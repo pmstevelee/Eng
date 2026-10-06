@@ -222,8 +222,8 @@ const getBandWordCount = (band: number) =>
 
 function nextStepOf(plan: DailyWordPlan): WordPlanStep | null {
   if (!plan.flashcardDone) return 'FLASHCARD'
-  if (!plan.recallDone) return 'RECALL'
-  if (!plan.spellDone) return 'SPELL'
+  // 플래시카드 이후에는 리콜·스펠 중 학습자가 고른 방식 하나만 마치면 된다 (추천은 리콜)
+  if (!plan.recallDone && !plan.spellDone) return 'RECALL'
   return null
 }
 
@@ -279,7 +279,8 @@ export async function getTodayLearningSummary(studentId: string): Promise<TodayL
   const reviewedCount = stat?.reviewWords ?? 0
   const planSummary = plan
     ? (() => {
-        const newDone = plan.newTarget === 0 || plan.spellDone || learnedCount >= plan.newTarget
+        const newDone =
+          plan.newTarget === 0 || plan.recallDone || plan.spellDone || learnedCount >= plan.newTarget
         // 복습 목표를 채웠거나, 오늘 복습할 단어가 더 이상 없으면 완료
         const reviewDone = reviewedCount >= plan.reviewTarget || dueRemaining === 0
         return {

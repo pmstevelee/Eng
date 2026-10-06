@@ -21,10 +21,13 @@ const STEP_PATH: Record<WordPlanStep, string> = {
   SPELL: 'spell',
 }
 
-const STEP_LABEL: Record<WordPlanStep, string> = {
-  FLASHCARD: '플래시카드',
-  RECALL: '뜻 고르기',
-  SPELL: '스펠링',
+type StudyChoice = {
+  step: WordPlanStep
+  label: string
+  description: string
+  href: string
+  done: boolean
+  color: string
 }
 
 type StepKey = 'review' | 'words' | 'grammar'
@@ -39,6 +42,8 @@ type StepView = {
   color: string
   icon: typeof RotateCcw
   progress: { value: number; total: number } | null
+  /** 학습자가 고를 수 있는 학습 방식 (허브 페이지에서만 표시) */
+  choices?: StudyChoice[]
 }
 
 function pct(value: number, total: number): number {
@@ -66,20 +71,38 @@ function buildSteps(summary: TodayLearningSummary): StepView[] {
       progress: plan.reviewTarget > 0 ? { value: plan.reviewedCount, total: plan.reviewTarget } : null,
     })
 
-    const nextStep = plan.nextStep ?? (plan.newDone ? 'FLASHCARD' : 'SPELL')
+    // 플래시카드로 뜻을 익힌 뒤, 리콜(뜻 고르기)·스펠(철자 입력) 중 원하는 방식을 골라 학습한다.
+    const setHref = (step: WordPlanStep) =>
+      plan.setId ? `/student/words/${plan.setId}/${STEP_PATH[step]}?from=daily` : null
+    const choices: StudyChoice[] = plan.setId
+      ? [
+          { step: 'FLASHCARD', label: '플래시카드', description: '뜻 먼저 익히기', href: setHref('FLASHCARD') ?? '', done: plan.flashcardDone, color: '#7854F7' },
+          { step: 'RECALL', label: '리콜 학습', description: '뜻 고르기', href: setHref('RECALL') ?? '', done: plan.recallDone, color: '#1865F2' },
+          { step: 'SPELL', label: '스펠 학습', description: '철자 입력하기', href: setHref('SPELL') ?? '', done: plan.spellDone, color: '#1FAF54' },
+        ]
+      : []
+    const choosing = plan.flashcardDone && !plan.recallDone && !plan.spellDone
     steps.push({
       key: 'words',
       title: '새 단어',
       detail:
         plan.newTarget === 0
           ? '이 레벨의 단어를 모두 학습했어요'
-          : `${plan.learnedCount} / ${plan.newTarget}개 학습 완료 · ${plan.nextStep ? `다음: ${STEP_LABEL[plan.nextStep]}` : '모든 단계 완료'}`,
+          : `${plan.learnedCount} / ${plan.newTarget}개 학습 완료 · ${
+              !plan.flashcardDone ? '다음: 플래시카드' : choosing ? '리콜 또는 스펠을 골라 학습하세요' : '학습 완료'
+            }`,
       done: plan.newDone,
-      href: plan.setId ? `/student/words/${plan.setId}/${STEP_PATH[nextStep]}?from=daily` : null,
-      cta: plan.newDone ? '다시 보기' : plan.nextStep === 'FLASHCARD' ? '시작하기' : '이어서 학습',
+      // 홈 카드(compact)에서는 다음 단계로 바로 가고, 리콜/스펠 선택이 필요하면 허브에서 고르게 한다.
+      href: plan.setId
+        ? choosing
+          ? '/student/daily-mission'
+          : setHref(plan.newDone ? 'FLASHCARD' : (plan.nextStep ?? 'FLASHCARD'))
+        : null,
+      cta: plan.newDone ? '다시 보기' : !plan.flashcardDone ? '시작하기' : '방식 선택',
       color: '#7854F7',
       icon: Layers,
       progress: plan.newTarget > 0 ? { value: plan.learnedCount, total: plan.newTarget } : null,
+      choices,
     })
   }
 
@@ -110,6 +133,7 @@ function ProgressBar({ value, total, color }: { value: number; total: number; co
 
 function StepRow({ step, index, compact }: { step: StepView; index: number; compact?: boolean }) {
   const Icon = step.icon
+  const hasChoices = !compact && !!step.choices && step.choices.length > 0
   const content = (
     <div className="flex items-center gap-3">
       <div
@@ -137,7 +161,7 @@ function StepRow({ step, index, compact }: { step: StepView; index: number; comp
           </div>
         )}
       </div>
-      {step.href && (
+      {step.href && !hasChoices && (
         <span
           className="flex min-h-[44px] shrink-0 items-center gap-1 rounded-lg px-3 text-xs font-bold"
           style={
@@ -156,6 +180,30 @@ function StepRow({ step, index, compact }: { step: StepView; index: number; comp
       )}
     </div>
   )
+
+  if (hasChoices && step.choices) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-3">
+        {content}
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {step.choices.map((c) => (
+            <Link
+              key={c.step}
+              href={c.href}
+              className="flex min-h-[56px] flex-col items-center justify-center rounded-lg border px-2 py-2 text-center transition-colors hover:bg-gray-50"
+              style={{ borderColor: c.done ? '#1FAF5466' : `${c.color}40` }}
+            >
+              <span className="flex items-center gap-1 text-xs font-bold" style={{ color: c.done ? '#1FAF54' : c.color }}>
+                {c.done && <CheckCircle2 className="h-3.5 w-3.5" />}
+                {c.label}
+              </span>
+              <span className="mt-0.5 text-[11px] text-gray-500">{c.description}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return step.href ? (
     <Link href={step.href} className="block rounded-xl border border-gray-200 bg-white p-3 transition-colors hover:border-gray-300">
