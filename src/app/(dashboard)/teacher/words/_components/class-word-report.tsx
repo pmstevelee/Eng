@@ -55,12 +55,16 @@ export function ClassWordReport({ stats }: { stats: ClassWordStats }) {
                 <th className="text-right px-4 py-3 font-medium">마스터</th>
                 <th className="text-right px-4 py-3 font-medium">최근 학습</th>
                 <th className="text-right px-4 py-3 font-medium">평균 정답률</th>
+                <th className="text-right px-4 py-3 font-medium">오늘의 학습(7일)</th>
+                <th className="text-right px-4 py-3 font-medium">7일 포인트</th>
+                <th className="text-right px-4 py-3 font-medium">문법 정답률</th>
+                <th className="text-right px-4 py-3 font-medium">어려운 단어</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {stats.students.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center py-10 text-gray-400 text-sm">
+                  <td colSpan={9} className="text-center py-10 text-gray-400 text-sm">
                     등록된 학생이 없습니다.
                   </td>
                 </tr>
@@ -76,6 +80,28 @@ export function ClassWordReport({ stats }: { stats: ClassWordStats }) {
                   <td className={`px-4 py-3 text-right font-semibold ${accuracyColor(s.avgAccuracy)}`}>
                     {s.avgAccuracy}%
                   </td>
+                  <td className="px-4 py-3 text-right">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        s.insight.planDays7 >= 5
+                          ? 'bg-[#1FAF54]/10 text-[#1FAF54]'
+                          : s.insight.planDays7 >= 3
+                            ? 'bg-[#FFB100]/10 text-[#FFB100]'
+                            : 'bg-[#D92916]/10 text-[#D92916]'
+                      }`}
+                    >
+                      {s.insight.planDays7}/7일
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right text-gray-700">{s.insight.points7.toLocaleString()}</td>
+                  <td
+                    className={`px-4 py-3 text-right font-semibold ${
+                      s.insight.grammarAccuracy7 === null ? 'text-gray-500' : accuracyColor(s.insight.grammarAccuracy7)
+                    }`}
+                  >
+                    {s.insight.grammarAccuracy7 === null ? '-' : `${s.insight.grammarAccuracy7}%`}
+                  </td>
+                  <td className="px-4 py-3 text-right text-gray-700">{s.insight.difficultWords}</td>
                 </tr>
               ))}
             </tbody>

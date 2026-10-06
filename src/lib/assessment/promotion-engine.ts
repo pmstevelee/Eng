@@ -13,6 +13,7 @@
  */
 
 import { unstable_cache, revalidateTag } from 'next/cache'
+import { toKstDateKey } from '@/lib/attendance/time'
 import { Prisma } from '@/generated/prisma'
 import { prisma } from '@/lib/prisma/client'
 
@@ -202,7 +203,7 @@ export async function checkPromotionStatus(studentId: string): Promise<Promotion
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-  const [practiceCount, missionDays] = await Promise.all([
+  const [practiceCount, completedMissions, completedPlans] = await Promise.all([
     prisma.questionResponse.count({
       where: {
         session: {
@@ -212,14 +213,25 @@ export async function checkPromotionStatus(studentId: string): Promise<Promotion
         createdAt: { gte: thirtyDaysAgo },
       },
     }),
-    prisma.dailyMission.count({
+    prisma.dailyMission.findMany({
       where: {
         studentId,
         isCompleted: true,
         completedAt: { gte: thirtyDaysAgo },
       },
+      select: { completedAt: true },
+    }),
+    prisma.dailyWordPlan.findMany({
+      where: { studentId, status: 'COMPLETED', completedAt: { gte: thirtyDaysAgo } },
+      select: { completedAt: true },
     }),
   ])
+  // 미션 완료일 = 문법 미션 완료일 ∪ 오늘의 단어학습 완료일 (KST 날짜 기준 중복 제거)
+  const missionDays = new Set(
+    [...completedMissions, ...completedPlans]
+      .map((m) => (m.completedAt ? toKstDateKey(m.completedAt) : null))
+      .filter((d): d is string => d !== null),
+  ).size
 
   const condition3Met = practiceCount >= 50 || missionDays >= 20
   const condition3Detail: Prisma.InputJsonObject = {
@@ -451,7 +463,7 @@ async function _getPromotionProgress(studentId: string): Promise<PromotionProgre
       learningRemaining =
         practiceNeeded <= missionNeeded
           ? `학습공간에서 ${practiceNeeded}개 더 풀거나`
-          : `오늘의 미션 ${missionNeeded}일 더 완료하면 조건 충족`
+          : `오늘의 학습 ${missionNeeded}일 더 완료하면 조건 충족`
     }
   }
 

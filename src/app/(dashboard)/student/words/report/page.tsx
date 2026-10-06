@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowLeft, BookOpen, Star, TrendingUp, Flame, ChevronRight } from 'lucide-react'
+import { ArrowLeft, BookOpen, Star, TrendingUp, Flame, ChevronRight, AlertTriangle, PenLine, Activity } from 'lucide-react'
 import { requireStudent } from '@/lib/auth-student'
 import { getStudentWordStats } from '../_actions/report'
-import { CefrProgressChart, WeeklyActivityHeatmap } from './_components/report-charts'
+import { CefrProgressChart, LearningTrendChart, WeeklyActivityHeatmap } from './_components/report-charts'
 
 export default async function StudentWordReportPage() {
   const { studentId } = await requireStudent().catch(() => ({ studentId: null }))
@@ -55,21 +55,90 @@ export default async function StudentWordReportPage() {
         />
       </div>
 
-      {/* 마스터율 게이지 */}
+      {/* 마스터 퍼널 */}
       <div className="rounded-xl border border-gray-200 bg-white p-5">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-gray-700">마스터율</p>
-          <span className="text-lg font-bold text-[#1865F2]">{masterRate}%</span>
+          <p className="text-sm font-semibold text-gray-700">단어 습득 단계</p>
+          <span className="text-lg font-bold text-[#1865F2]">마스터율 {masterRate}%</span>
         </div>
-        <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-[#1865F2] transition-all"
-            style={{ width: `${masterRate}%` }}
-          />
+        <div className="grid grid-cols-3 gap-2">
+          <FunnelStep label="학습 중" desc="플래시카드·뜻·스펠링 진행" value={stats.funnel.inProgress} color="#FFB100" />
+          <FunnelStep label="학습 완료" desc="스펠링 정답 · 복습으로 검증 중" value={stats.funnel.learned} color="#7854F7" />
+          <FunnelStep label="마스터" desc="다른 날 3번 연속 복습 정답" value={stats.funnel.mastered} color="#1FAF54" />
         </div>
-        <p className="text-xs text-gray-400 mt-2">
-          전체 {stats.totalLearned}개 중 {stats.totalMastered}개 마스터
+        <p className="text-xs text-gray-500 mt-3">
+          마스터한 단어도 복습에서 틀리면 다시 학습 단계로 돌아가 완전히 외울 때까지 반복해요.
         </p>
+      </div>
+
+      {/* 최근 14일 학습 추이 */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <Activity className="w-4 h-4 text-[#7854F7]" />
+          <p className="text-sm font-semibold text-gray-700">최근 14일 학습 추이</p>
+        </div>
+        <p className="text-xs text-gray-500 mb-4">
+          단어 {stats.dailyTrend.reduce((s, d) => s + d.wordAnswers, 0)}회 학습 (학습 완료·복습{' '}
+          {stats.dailyTrend.reduce((s, d) => s + d.words, 0)}개) · 문법{' '}
+          {stats.dailyTrend.reduce((s, d) => s + d.grammarSolved, 0)}문제 ·{' '}
+          {stats.dailyTrend.filter((d) => d.wordAnswers > 0 || d.grammarSolved > 0).length}일 학습
+        </p>
+        <LearningTrendChart data={stats.dailyTrend} />
+      </div>
+
+      {/* 어려운 단어 */}
+      {stats.difficultWords.length > 0 && (
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-[#D92916]" />
+              <p className="text-sm font-semibold text-gray-700">어려운 단어 {stats.difficultWords.length}개</p>
+            </div>
+            <Link href="/student/words/review" className="flex min-h-[44px] items-center gap-1 text-xs font-semibold text-[#7854F7]">
+              복습하기
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+          <p className="text-xs text-gray-500 mb-3">자주 잊어버리거나 틀린 단어예요. 복습할 때 가장 먼저 나와요.</p>
+          <div className="flex flex-wrap gap-2">
+            {stats.difficultWords.map((w) => (
+              <div key={w.word} className="rounded-lg border border-[#D92916]/20 bg-[#D92916]/5 px-3 py-2">
+                <p className="text-sm font-semibold text-gray-900">{w.word}</p>
+                <p className="text-[11px] text-gray-500">
+                  {w.meaning ? `${w.meaning} · ` : ''}오답 {w.wrongCount}
+                  {w.lapses > 0 && ` · 망각 ${w.lapses}`}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 문법 약점 */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <PenLine className="w-4 h-4 text-[#1865F2]" />
+          <p className="text-sm font-semibold text-gray-700">문법 오답노트</p>
+        </div>
+        {stats.grammarWeakAreas.length > 0 ? (
+          <>
+            <p className="text-xs text-gray-500 mb-3">
+              아직 해결하지 못한 문제 {stats.openGrammarReviews}개 · 오늘의 학습 문법 미션에서 다시 나와요 (2번 연속 맞히면 해결)
+            </p>
+            <div className="space-y-2">
+              {stats.grammarWeakAreas.map((a) => (
+                <div key={a.category} className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
+                  <span className="text-sm font-medium text-gray-900">{a.category}</span>
+                  <span className="text-xs text-gray-500">
+                    미해결 {a.open}문제 · 누적 오답 {a.wrongTotal}회
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="text-xs text-gray-500">틀린 문법 문제가 없어요. 오늘의 학습 문법 미션으로 실력을 확인해 보세요.</p>
+        )}
       </div>
 
       {/* CEFR 레벨별 진도 */}
@@ -145,6 +214,19 @@ export default async function StudentWordReportPage() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function FunnelStep({ label, desc, value, color }: { label: string; desc: string; value: number; color: string }) {
+  return (
+    <div className="rounded-lg border border-gray-200 p-3">
+      <div className="flex items-center gap-1.5">
+        <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+        <p className="text-xs font-semibold text-gray-700">{label}</p>
+      </div>
+      <p className="mt-1 text-xl font-bold text-gray-900">{value.toLocaleString()}</p>
+      <p className="mt-0.5 text-[10px] leading-tight text-gray-500">{desc}</p>
     </div>
   )
 }

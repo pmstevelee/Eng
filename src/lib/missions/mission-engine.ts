@@ -1,5 +1,8 @@
 import { prisma } from '@/lib/prisma/client'
 import { QuestionDomain } from '@/generated/prisma'
+import { kstDateTime, todayKst } from '@/lib/attendance/time'
+import { getAcademyWordLearningSettings } from '@/lib/words/access-guard'
+import { DEFAULT_DAILY_GRAMMAR_QUESTIONS } from '@/lib/words/settings'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -20,6 +23,7 @@ export type WeaknessAnalysis = {
   }>
   reviewDueCount: number
   currentLevel: number
+  academyId: string | null
 }
 
 type MissionType =
@@ -66,8 +70,11 @@ type SelectResult = {
 
 const ALL_DOMAINS: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY', 'READING', 'LISTENING', 'WRITING']
 
-// 오늘의 미션은 문법 + 단어(어휘) 문제로만 구성한다
-const MISSION_DOMAINS: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY']
+// 오늘의 학습에서 어휘는 '오늘의 단어'(단어 DB 10,000+개)가 담당하고,
+// 문제은행 미션은 문법에 집중한다. (어휘 문제은행은 수가 적어 반복 출제됨)
+const MISSION_DOMAINS: QuestionDomain[] = ['GRAMMAR']
+// 오답 복습은 시험·미션에서 틀린 문법/어휘 문제 모두 대상
+const REVIEW_DOMAINS: QuestionDomain[] = ['GRAMMAR', 'VOCABULARY']
 
 // ── Internal helpers ───────────────────────────────────────────────────────────
 
@@ -129,9 +136,9 @@ function missionTitle(type: MissionType, subCategory: string | null): string {
     case 'WEAKNESS_DRILL':
       return subCategory ? `약점 보강: ${subCategory}` : '약점 보강'
     case 'REVIEW_MISSION':
-      return '오늘의 복습'
+      return '오답 복습'
     case 'BALANCE_PRACTICE':
-      return '균형 연습'
+      return '문법 실력 다지기'
     case 'CHALLENGE':
       return '도전 문제'
     case 'MINI_WRITING':
@@ -150,9 +157,9 @@ function missionDescription(type: MissionType): string {
     case 'REVIEW_MISSION':
       return '복습은 기억을 오래 유지시켜 줘요'
     case 'BALANCE_PRACTICE':
-      return '모든 영역을 골고루 연습해요'
+      return '내 레벨의 문법을 탄탄하게 다져요'
     case 'CHALLENGE':
-      return '한 단계 더 높은 난이도에 도전해요'
+      return '한 단계 높은 문법에 도전해요'
     case 'MINI_WRITING':
       return '영어 쓰기 실력을 키워요'
     case 'LISTENING_DRILL':
@@ -173,10 +180,10 @@ export async function analyzeStudentWeakness(studentId: string): Promise<Weaknes
   const sixtyDaysAgo = new Date()
   sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
 
-  const [student, assessments, responses, reviewDueCount] = await Promise.all([
+  const [student, assessments, responses, responseDueCount, wrongNoteDueCount] = await Promise.all([
     prisma.student.findUnique({
       where: { id: studentId },
-      select: { currentLevel: true },
+      select: { currentLevel: true, user: { select: { academyId: true } } },
     }),
     prisma.skillAssessment.findMany({
       where: { studentId },
@@ -199,9 +206,14 @@ export async function analyzeStudentWeakness(studentId: string): Promise<Weaknes
         isMastered: false,
         reviewDueAt: { lte: now },
         session: { studentId },
+        question: { domain: { in: REVIEW_DOMAINS } },
       },
     }),
+    prisma.questionReview.count({
+      where: { studentId, isMastered: false, nextReviewAt: { lte: now } },
+    }),
   ])
+  const reviewDueCount = responseDueCount + wrongNoteDueCount
 
   // 영역별 평균 (SkillAssessment 기반)
   const domainAvg: Record<string, number> = {}
@@ -275,6 +287,7 @@ export async function analyzeStudentWeakness(studentId: string): Promise<Weaknes
     weakCategories,
     reviewDueCount,
     currentLevel: student?.currentLevel ?? 1,
+    academyId: student?.user.academyId ?? null,
   }
 }
 
@@ -292,25 +305,38 @@ export async function selectMissionQuestions(
 ): Promise<SelectResult> {
   const { currentLevel, weakCategories, weakestDomain, strongestDomain } = analysis
 
-  // REVIEW_MISSION: 스페이스드 리피티션 기반 (문법/단어 영역만, 복습 목적상 최근 출제 제외는 적용하지 않음)
+  // REVIEW_MISSION: ① 미션 오답노트(QuestionReview) → ② 시험 응답 스페이스드 리피티션
+  // (문법/어휘 영역만, 복습 목적상 최근 출제 제외는 적용하지 않음)
   if (missionType === 'REVIEW_MISSION') {
     const now = new Date()
-    const responses = await prisma.questionResponse.findMany({
-      where: {
-        isMastered: false,
-        reviewDueAt: { lte: now },
-        session: { studentId },
-        question: { domain: { in: MISSION_DOMAINS } },
-      },
-      select: { question: { select: { id: true } } },
-      orderBy: { reviewDueAt: 'asc' },
-      take: count * 3,
-    })
+    const [wrongNotes, responses] = await Promise.all([
+      prisma.questionReview.findMany({
+        where: {
+          studentId,
+          isMastered: false,
+          nextReviewAt: { lte: now },
+          question: { isActive: true, domain: { in: REVIEW_DOMAINS } },
+        },
+        select: { questionId: true },
+        orderBy: [{ wrongCount: 'desc' }, { nextReviewAt: 'asc' }],
+        take: count * 2,
+      }),
+      prisma.questionResponse.findMany({
+        where: {
+          isMastered: false,
+          reviewDueAt: { lte: now },
+          session: { studentId },
+          question: { domain: { in: REVIEW_DOMAINS } },
+        },
+        select: { question: { select: { id: true } } },
+        orderBy: { reviewDueAt: 'asc' },
+        take: count * 3,
+      }),
+    ])
 
     const seen = new Set<string>(usedIds)
     const questionIds: string[] = []
-    for (const r of responses) {
-      const qId = r.question.id
+    for (const qId of [...wrongNotes.map((w) => w.questionId), ...responses.map((r) => r.question.id)]) {
       if (!seen.has(qId)) {
         seen.add(qId)
         questionIds.push(qId)
@@ -322,7 +348,7 @@ export async function selectMissionQuestions(
         `[MissionEngine] REVIEW_MISSION: 문제 부족 - 요청 ${count}개, 실제 ${questionIds.length}개`,
       )
     }
-    return { questionIds, domain: null, subCategory: null, reason: '오늘 복습해야 할 문제예요' }
+    return { questionIds, domain: null, subCategory: null, reason: '지난번에 틀린 문제를 다시 풀어요' }
   }
 
   // WEAKNESS_DRILL: 약점 카테고리 상위 2개에서 선택
@@ -374,19 +400,24 @@ export async function selectMissionQuestions(
     }
   }
 
-  // BALANCE_PRACTICE: 각 영역(문법/단어)에서 1개씩
+  // BALANCE_PRACTICE: 현재 레벨 문법 문제로 실력 다지기 (부족 시 ±1 레벨, 최근 출제 제외 완화)
   if (missionType === 'BALANCE_PRACTICE') {
-    const questionIds: string[] = []
-    for (const domain of MISSION_DOMAINS) {
-      if (questionIds.length >= count) break
-      const ids = await fetchQuestions({
-        domain,
-        minDifficulty: currentLevel,
-        maxDifficulty: currentLevel,
-        excludeIds: [...usedIds, ...questionIds, ...recentIds.strict],
-        take: 1,
+    let questionIds = await fetchQuestions({
+      domain: 'GRAMMAR',
+      minDifficulty: currentLevel,
+      maxDifficulty: currentLevel,
+      excludeIds: [...usedIds, ...recentIds.strict],
+      take: count,
+    })
+    if (questionIds.length < count) {
+      const more = await fetchQuestions({
+        domain: 'GRAMMAR',
+        minDifficulty: Math.max(1, currentLevel - 1),
+        maxDifficulty: Math.min(10, currentLevel + 1),
+        excludeIds: [...usedIds, ...questionIds, ...recentIds.relaxed],
+        take: count - questionIds.length,
       })
-      questionIds.push(...ids)
+      questionIds = [...questionIds, ...more]
     }
     if (questionIds.length < count) {
       console.log(
@@ -395,9 +426,9 @@ export async function selectMissionQuestions(
     }
     return {
       questionIds: questionIds.slice(0, count),
-      domain: null,
+      domain: 'GRAMMAR',
       subCategory: null,
-      reason: '모든 영역을 균형 있게 연습해요',
+      reason: '내 레벨의 문법을 탄탄하게 다져요',
     }
   }
 
@@ -533,6 +564,40 @@ export async function selectMissionQuestions(
   return { questionIds: [], domain: null, subCategory: null, reason: '' }
 }
 
+const XP_PER_QUESTION: Record<MissionType, number> = {
+  REVIEW_MISSION: 15,
+  WEAKNESS_DRILL: 10,
+  BALANCE_PRACTICE: 10,
+  CHALLENGE: 12,
+  VOCAB_QUIZ: 8,
+  MINI_WRITING: 10,
+  LISTENING_DRILL: 10,
+}
+
+/**
+ * 문법 미션 구성: 총 total문제를 오답 복습 → 약점 보강 → 실력 다지기 → 도전 순으로 배분.
+ * - 오답 복습: 복습 대상이 있을 때 최대 40%
+ * - 도전(레벨+1): Level 5 이상에서 약 20% (최소 1문제)
+ * - 나머지: 약점 보강 60%, 실력 다지기 40%
+ */
+export function planGrammarMissions(total: number, level: number, reviewDue: number): MissionConfig[] {
+  const review = Math.min(reviewDue, Math.ceil(total * 0.4))
+  const challenge = level >= 5 && total - review >= 3 ? Math.max(1, Math.round(total * 0.2)) : 0
+  const remaining = Math.max(0, total - review - challenge)
+  const weakness = Math.ceil(remaining * 0.6)
+  const balance = remaining - weakness
+
+  const plan: { type: MissionType; count: number }[] = [
+    { type: 'REVIEW_MISSION', count: review },
+    { type: 'WEAKNESS_DRILL', count: weakness },
+    { type: 'BALANCE_PRACTICE', count: balance },
+    { type: 'CHALLENGE', count: challenge },
+  ]
+  return plan
+    .filter((m) => m.count > 0)
+    .map((m) => ({ ...m, xpReward: m.count * XP_PER_QUESTION[m.type] }))
+}
+
 /**
  * 학생 레벨 맞춤형 일일 미션 생성 (메인 함수)
  */
@@ -540,71 +605,11 @@ export async function buildDailyMissions(studentId: string) {
   const analysis = await analyzeStudentWeakness(studentId)
   const { currentLevel, reviewDueCount } = analysis
 
-  let missionConfigs: MissionConfig[]
-
-  if (currentLevel <= 2) {
-    // Level 1~2 (입문/기초): 3미션, 4문제, 쉬운 구성
-    missionConfigs = [
-      { type: 'VOCAB_QUIZ', count: 1, xpReward: 8 },
-      { type: 'WEAKNESS_DRILL', count: 2, xpReward: 20 },
-    ]
-    if (reviewDueCount > 0) {
-      missionConfigs.push({ type: 'REVIEW_MISSION', count: 1, xpReward: 15 })
-    }
-  } else if (currentLevel <= 4) {
-    // Level 3~4 (초급): 4미션, 6문제
-    missionConfigs = [
-      { type: 'VOCAB_QUIZ', count: 1, xpReward: 8 },
-      { type: 'REVIEW_MISSION', count: 2, xpReward: 30 },
-      { type: 'WEAKNESS_DRILL', count: 3, xpReward: 30 },
-      { type: 'BALANCE_PRACTICE', count: 2, xpReward: 20 },
-    ]
-    if (reviewDueCount === 0) {
-      missionConfigs = missionConfigs.map((c) =>
-        c.type === 'REVIEW_MISSION' ? { ...c, type: 'BALANCE_PRACTICE' as MissionType } : c,
-      )
-    }
-  } else if (currentLevel <= 6) {
-    // Level 5~6 (중급 입문): 4미션, 7문제
-    missionConfigs = [
-      { type: 'VOCAB_QUIZ', count: 1, xpReward: 8 },
-      { type: 'REVIEW_MISSION', count: 2, xpReward: 30 },
-      { type: 'WEAKNESS_DRILL', count: 3, xpReward: 30 },
-      { type: 'BALANCE_PRACTICE', count: 2, xpReward: 20 },
-      { type: 'CHALLENGE', count: 1, xpReward: 25 },
-    ]
-    if (reviewDueCount === 0) {
-      missionConfigs = missionConfigs.map((c) =>
-        c.type === 'REVIEW_MISSION' ? { ...c, type: 'BALANCE_PRACTICE' as MissionType } : c,
-      )
-    }
-  } else if (currentLevel <= 8) {
-    // Level 7~8 (중급~중상급): 4미션, 9문제 (문법/단어 집중)
-    missionConfigs = [
-      { type: 'REVIEW_MISSION', count: 2, xpReward: 30 },
-      { type: 'WEAKNESS_DRILL', count: 4, xpReward: 40 },
-      { type: 'BALANCE_PRACTICE', count: 2, xpReward: 20 },
-      { type: 'CHALLENGE', count: 1, xpReward: 25 },
-    ]
-    if (reviewDueCount === 0) {
-      missionConfigs = missionConfigs.map((c) =>
-        c.type === 'REVIEW_MISSION' ? { ...c, type: 'BALANCE_PRACTICE' as MissionType } : c,
-      )
-    }
-  } else {
-    // Level 9~10 (상급): 4미션, 10문제 (문법/단어 집중)
-    missionConfigs = [
-      { type: 'REVIEW_MISSION', count: 2, xpReward: 30 },
-      { type: 'WEAKNESS_DRILL', count: 4, xpReward: 40 },
-      { type: 'BALANCE_PRACTICE', count: 2, xpReward: 20 },
-      { type: 'CHALLENGE', count: 2, xpReward: 30 },
-    ]
-    if (reviewDueCount === 0) {
-      missionConfigs = missionConfigs.map((c) =>
-        c.type === 'REVIEW_MISSION' ? { ...c, type: 'BALANCE_PRACTICE' as MissionType } : c,
-      )
-    }
-  }
+  // 문법 문제 수는 학원 설정(settingsJson.wordLearning.dailyGrammarQuestions, 기본 5)
+  const grammarCount = analysis.academyId
+    ? (await getAcademyWordLearningSettings(analysis.academyId)).dailyGrammarQuestions
+    : DEFAULT_DAILY_GRAMMAR_QUESTIONS
+  const missionConfigs = planGrammarMissions(grammarCount, currentLevel, reviewDueCount)
 
   // 최근 60일간 학생에게 실제로 출제된 문제 이력 (정답 여부와 무관하게 반복 출제 방지에 사용)
   const sixtyDaysAgo = new Date()
@@ -632,9 +637,12 @@ export async function buildDailyMissions(studentId: string) {
       recentIds,
     )
     usedIds.push(...result.questionIds)
+    // 문제가 하나도 선정되지 않은 미션은 빈 카드가 되지 않도록 제외
+    if (result.questionIds.length === 0) continue
+    const order = missionsJson.length
 
     missionsJson.push({
-      id: `m-${i}`,
+      id: `m-${order}`,
       type: config.type,
       title: missionTitle(config.type, result.subCategory),
       description: missionDescription(config.type),
@@ -643,22 +651,22 @@ export async function buildDailyMissions(studentId: string) {
       questionIds: result.questionIds,
       questionCount: result.questionIds.length,
       difficulty: config.type === 'CHALLENGE' ? Math.min(10, currentLevel + 1) : currentLevel,
-      status: i === 0 ? 'AVAILABLE' : 'LOCKED',
+      status: order === 0 ? 'AVAILABLE' : 'LOCKED',
       completedAt: null,
       correctCount: 0,
-      xpReward: config.xpReward,
-      order: i,
+      xpReward: Math.round((config.xpReward / config.count) * result.questionIds.length),
+      order,
       reason: result.reason,
     })
   }
 
   const allQuestionIds = missionsJson.flatMap((m) => m.questionIds)
 
-  // missionDate는 자정으로 정규화한다. 동시 요청으로 buildDailyMissions가 중복
+  // missionDate는 KST 자정으로 정규화한다. 동시 요청으로 buildDailyMissions가 중복
   // 호출되어도 (studentId, missionDate) 유니크 제약이 실제로 충돌을 감지해
   // getOrCreateTodayMission의 fallback 재조회 로직이 정상 동작하도록 한다.
-  const missionDate = new Date()
-  missionDate.setHours(0, 0, 0, 0)
+  // (서버가 UTC라 setHours(0)을 쓰면 KST 오전 9시가 하루 경계가 됨)
+  const missionDate = kstDateTime(todayKst(), '00:00')
 
   return prisma.dailyMission.create({
     data: {
@@ -679,8 +687,7 @@ export async function buildDailyMissions(studentId: string) {
  * generateOrGetDailyMission()의 대체 함수
  */
 export async function getOrCreateTodayMission(studentId: string) {
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
+  const todayStart = kstDateTime(todayKst(), '00:00')
 
   const existing = await prisma.dailyMission.findFirst({
     where: { studentId, missionDate: { gte: todayStart } },

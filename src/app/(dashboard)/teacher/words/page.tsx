@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
-import { BookOpen, Plus, BarChart2, ClipboardList } from 'lucide-react'
+import { BookOpen, Plus, BarChart2, ClipboardList, Trophy } from 'lucide-react'
 import { TeacherSetsList } from './_components/teacher-sets-list'
 import { ExamCategoryBadges, EXAM_CATEGORY_OPTIONS } from '@/components/words/exam-category-badges'
 import type { ExamCategory } from '@/generated/prisma'
@@ -74,6 +74,12 @@ export default async function TeacherWordsPage({ searchParams }: Props) {
             <Button variant="outline" size="sm" className="h-9 gap-2 text-[#1865F2] border-[#1865F2]/30 hover:bg-[#EFF4FE]">
               <BarChart2 className="w-4 h-4" />
               학습 리포트
+            </Button>
+          </Link>
+          <Link href="/teacher/words/ranking">
+            <Button variant="outline" size="sm" className="h-9 gap-2 text-[#1865F2] border-[#1865F2]/30 hover:bg-[#EFF4FE]">
+              <Trophy className="w-4 h-4" />
+              랭킹
             </Button>
           </Link>
           <Link href="/teacher/words/sets/new">

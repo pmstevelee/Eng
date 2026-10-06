@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma/client'
 import { getCurrentUser } from '@/lib/auth'
+import { getStudentLearningInsights, EMPTY_INSIGHT, type StudentLearningInsight } from '@/lib/learning/class-insights'
 
 async function getAuthedOwner() {
   const user = await getCurrentUser()
@@ -16,6 +17,8 @@ export type StudentWordRow = {
   mastered: number
   lastStudiedAt: string | null
   avgAccuracy: number
+  /** 최근 7일 오늘의 학습 완료일·포인트·문법 정답률·어려운 단어 */
+  insight: StudentLearningInsight
 }
 
 export type ClassWeakWord = {
@@ -72,6 +75,8 @@ export async function getOwnerClassWordStats(classId: string): Promise<ClassWord
     },
   })
 
+  const insights = await getStudentLearningInsights(enrollments.map((e) => e.student.id))
+
   const students: StudentWordRow[] = enrollments.map(({ student }) => {
     const wp = student.wordProgress
     const totalAnswers = wp.reduce((s, p) => s + p.correctCount + p.wrongCount, 0)
@@ -89,6 +94,7 @@ export async function getOwnerClassWordStats(classId: string): Promise<ClassWord
       mastered,
       lastStudiedAt: lastStudied ? lastStudied.toISOString().slice(0, 10) : null,
       avgAccuracy: totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 100) : 0,
+      insight: insights[student.id] ?? EMPTY_INSIGHT,
     }
   })
 

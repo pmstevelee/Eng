@@ -7,7 +7,9 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  Cell,
+  ComposedChart,
+  Line,
+  CartesianGrid,
 } from 'recharts'
 
 type CefrEntry = { level: number; label: string; learned: number; mastered: number }
@@ -64,5 +66,44 @@ export function WeeklyActivityHeatmap({ data }: { data: WeekEntry[] }) {
         )
       })}
     </div>
+  )
+}
+
+// ─── 최근 14일 학습 추이 (단어 학습량 막대 + 정답률 선) ─────────────────────────
+
+type TrendEntry = {
+  date: string
+  wordAnswers: number
+  wordAccuracy: number | null
+  grammarSolved: number
+  grammarAccuracy: number | null
+}
+
+export function LearningTrendChart({ data }: { data: TrendEntry[] }) {
+  const chartData = data.map((d) => ({
+    ...d,
+    label: `${Number(d.date.slice(5, 7))}/${Number(d.date.slice(8, 10))}`,
+  }))
+  return (
+    <ResponsiveContainer width="100%" height={220}>
+      <ComposedChart data={chartData} margin={{ top: 4, right: 4, bottom: 4, left: 0 }}>
+        <CartesianGrid vertical={false} stroke="#F3F4F6" />
+        <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#6B7280' }} tickLine={false} axisLine={false} interval={1} />
+        <YAxis yAxisId="count" tick={{ fontSize: 11, fill: '#6B7280' }} tickLine={false} axisLine={false} width={28} allowDecimals={false} />
+        <YAxis yAxisId="pct" orientation="right" domain={[0, 100]} tick={{ fontSize: 11, fill: '#6B7280' }} tickLine={false} axisLine={false} width={32} unit="%" />
+        <Tooltip
+          formatter={(value, name) => {
+            if (value === null || value === undefined) return ['-', String(name)]
+            if (name === '단어 정답률' || name === '문법 정답률') return [`${value}%`, String(name)]
+            return [name === '단어 학습' ? `${value}회` : `${value}개`, String(name)]
+          }}
+          contentStyle={{ borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 12 }}
+        />
+        <Bar yAxisId="count" dataKey="wordAnswers" name="단어 학습" fill="#7854F7" radius={[4, 4, 0, 0]} maxBarSize={18} />
+        <Bar yAxisId="count" dataKey="grammarSolved" name="문법 문제" fill="#1865F2" radius={[4, 4, 0, 0]} maxBarSize={18} />
+        <Line yAxisId="pct" type="monotone" dataKey="wordAccuracy" name="단어 정답률" stroke="#1FAF54" strokeWidth={2} dot={{ r: 2 }} connectNulls />
+        <Line yAxisId="pct" type="monotone" dataKey="grammarAccuracy" name="문법 정답률" stroke="#FFB100" strokeWidth={2} dot={{ r: 2 }} connectNulls />
+      </ComposedChart>
+    </ResponsiveContainer>
   )
 }

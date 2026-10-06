@@ -3,23 +3,17 @@ import 'server-only'
 import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import type { SubscriptionStatus, Plan, PlanType } from '@/generated/prisma'
+import { parseWordLearningSettings, type WordLearningSettings } from './settings'
 
 const ACTIVE_STATUSES: SubscriptionStatus[] = ['TRIAL', 'ACTIVE']
 const FREE_PLAN: Plan = 'FREE'
 const FREE_PLAN_TYPE: PlanType = 'FREE'
 
-const DEFAULT_DAILY_NEW_WORDS = 10
 const FREE_DAILY_NEW_WORDS = 5
 
 interface WordLearningLimits {
   dailyNewWords: number
   maxSets: number
-}
-
-interface AcademySettings {
-  wordLearning?: {
-    dailyNewWords?: number
-  }
 }
 
 // 구독 상태는 자주 바뀌지 않으므로 60초 캐시로 학습 액션마다 발생하는 원격 DB 왕복을 줄인다.
@@ -92,18 +86,25 @@ function hasActiveWordLearningPlan(academy: AcademySubscriptionRow): boolean {
 }
 
 function parseAcademyDailyNewWords(settingsJson: unknown): number {
-  try {
-    const settings = settingsJson as AcademySettings
-    const value = settings?.wordLearning?.dailyNewWords
-    if (typeof value === 'number' && value > 0) return value
-  } catch {
-    // settingsJson 파싱 실패 시 기본값 반환
-  }
-  return DEFAULT_DAILY_NEW_WORDS
+  return parseWordLearningSettings(settingsJson).dailyNewWords
 }
 
 export function getAcademyDailyNewWords(settingsJson: unknown): number {
   return parseAcademyDailyNewWords(settingsJson)
+}
+
+/** 학원 단어학습 설정 (60초 캐시 재사용 — 신규 단어 수는 구독 상태에 따라 무료 한도 적용) */
+export async function getAcademyWordLearningSettings(
+  academyId: string,
+): Promise<WordLearningSettings & { canUseWords: boolean }> {
+  const academy = await fetchAcademySubscription(academyId)
+  const settings = parseWordLearningSettings(academy?.settingsJson)
+  const canUseWords = !!academy && hasActiveWordLearningPlan(academy)
+  return {
+    ...settings,
+    dailyNewWords: canUseWords ? settings.dailyNewWords : FREE_DAILY_NEW_WORDS,
+    canUseWords,
+  }
 }
 
 export async function canUseWordLearning(academyId: string): Promise<boolean> {

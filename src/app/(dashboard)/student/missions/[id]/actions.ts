@@ -10,6 +10,8 @@ import { checkPromotionStatus } from '@/lib/assessment/promotion-engine'
 import { isAnswerMatch } from '@/lib/assessment/answer-checker'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
+import { recordQuestionAnswers } from '@/lib/missions/question-review'
+import { refreshTodayPlanCompletion } from '@/lib/words/daily-plan'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -239,6 +241,11 @@ export async function submitMissionAnswer(
     await awardXP(studentId, xpEarned, 'MISSION_ANSWER', dailyMissionId)
   }
 
+  // 오답노트(틀린 문제 → 간격 복습) + 일자별 문법 통계
+  await recordQuestionAnswers(studentId, [
+    { questionId, domain: question.domain, isCorrect, gradable: !isEssay },
+  ]).catch((e) => console.error('[mission] 오답노트 기록 실패:', e))
+
   // missions_json answeredQuestions 업데이트
   const answeredQuestion: AnsweredQuestion = { questionId, answer, isCorrect, xpEarned }
   const updatedMissions = missionsJson.map((m, idx) => {
@@ -452,6 +459,13 @@ export async function completeMission(
 
   // 미션 전체 완료 시 승급 조건 3 업데이트 (비동기)
   // 오늘의 미션 완료일 수가 변경되어 학습 활동량 조건 재계산 필요
+  // 문법 미션이 끝나면 오늘의 단어학습 전체 완료 여부 확인 (완료 보너스 1회)
+  let planBonusXp = 0
+  if (isAllComplete) {
+    const planResult = await refreshTodayPlanCompletion(studentId).catch(() => null)
+    planBonusXp = planResult?.bonusXp ?? 0
+  }
+
   if (isAllComplete) {
     checkPromotionStatus(studentId).catch(console.error)
     await logActivity({
@@ -479,7 +493,7 @@ export async function completeMission(
             title: updatedMissions[nextIndex]?.title ?? '다음 미션',
           }
         : null,
-    streakBonusXp,
+    streakBonusXp: streakBonusXp + planBonusXp,
     newBadges,
     isAllComplete,
   }

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { RotateCcw, ArrowRight, Sparkles } from 'lucide-react'
 import { prisma } from '@/lib/prisma/client'
+import { endOfTodayKst } from '@/lib/attendance/time'
 
 interface Props {
   studentId: string
@@ -17,7 +18,7 @@ export async function DailyReviewWidget({
   const dueCount =
     dueCountProp ??
     (await prisma.wordProgress.count({
-      where: { studentId, nextReviewAt: { lte: new Date() } },
+      where: { studentId, nextReviewAt: { lte: endOfTodayKst() } },
     }))
 
   if (dueCount === 0) {

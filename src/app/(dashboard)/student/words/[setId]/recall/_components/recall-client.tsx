@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Target } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useWordHub } from '@/hooks/use-word-hub'
 import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import { getRecallOptionsBatch, recordProgress, finishWordSession } from '@/app/(dashboard)/student/words/_actions'
 
@@ -270,6 +271,7 @@ function RoundDone({
   onRetry: () => void
 }) {
   const router = useRouter()
+  const hub = useWordHub()
   const [isPending, startTransition] = useTransition()
   const accuracy = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0
   const passed = accuracy >= 80
@@ -297,7 +299,7 @@ function RoundDone({
       <div className="flex flex-col gap-3 w-full max-w-xs">
         {passed ? (
           <Button
-            onClick={() => startTransition(() => router.push(`/student/words/${setId}/spell`))}
+            onClick={() => startTransition(() => router.push(`/student/words/${setId}/spell${hub.query}`))}
             disabled={isPending}
             className="h-14 bg-[#1FAF54] hover:bg-[#1FAF54]/90 text-white rounded-xl font-semibold text-base"
           >
@@ -315,7 +317,7 @@ function RoundDone({
           </Button>
         ) : (
           <Button
-            onClick={() => startTransition(() => router.push(`/student/words/${setId}/spell`))}
+            onClick={() => startTransition(() => router.push(`/student/words/${setId}/spell${hub.query}`))}
             disabled={isPending}
             className="h-14 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white rounded-xl font-semibold text-base"
           >
@@ -325,11 +327,11 @@ function RoundDone({
         )}
         <Button
           variant="ghost"
-          onClick={() => startTransition(() => router.push('/student/words'))}
+          onClick={() => startTransition(() => router.push(hub.href))}
           disabled={isPending}
           className="text-gray-500 h-10"
         >
-          단어 허브로 돌아가기
+          {hub.label}
         </Button>
       </div>
     </div>

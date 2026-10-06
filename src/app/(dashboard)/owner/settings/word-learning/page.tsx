@@ -2,9 +2,8 @@ import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { parseWordLearningSettings } from '@/lib/words/settings'
 import { WordLearningClient } from './_components/word-learning-client'
-
-const DEFAULT_DAILY_NEW_WORDS = 10
 
 const getWordLearningData = (academyId: string) =>
   unstable_cache(
@@ -23,24 +22,7 @@ export default async function WordLearningSettingsPage() {
 
   const academy = await getWordLearningData(user.academyId)
 
-  const json =
-    academy?.settingsJson &&
-    typeof academy.settingsJson === 'object' &&
-    !Array.isArray(academy.settingsJson)
-      ? (academy.settingsJson as Record<string, unknown>)
-      : {}
-
-  const wordLearning =
-    json.wordLearning &&
-    typeof json.wordLearning === 'object' &&
-    !Array.isArray(json.wordLearning)
-      ? (json.wordLearning as Record<string, unknown>)
-      : {}
-
-  const dailyNewWords =
-    typeof wordLearning.dailyNewWords === 'number'
-      ? wordLearning.dailyNewWords
-      : DEFAULT_DAILY_NEW_WORDS
+  const settings = parseWordLearningSettings(academy?.settingsJson)
 
   return (
     <div className="space-y-5">
@@ -48,7 +30,7 @@ export default async function WordLearningSettingsPage() {
         <h2 className="text-lg font-semibold text-gray-900">단어학습 설정</h2>
         <p className="text-sm text-gray-500 mt-1">학원 학생들의 단어학습 조건을 설정합니다.</p>
       </div>
-      <WordLearningClient initialDailyNewWords={dailyNewWords} />
+      <WordLearningClient initial={settings} />
     </div>
   )
 }

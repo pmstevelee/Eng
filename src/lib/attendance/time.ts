@@ -86,3 +86,8 @@ export function formatDateLabel(dateKey: string): string {
   const [, m, d] = dateKey.split('-').map(Number)
   return `${m}월 ${d}일 (${WEEKDAY[dayOfWeekOf(dateKey)]})`
 }
+
+/** 오늘(KST)이 끝나는 시각 = 내일 0시(KST) — "오늘 안에 기한이 도래하는" 판정용 */
+export function endOfTodayKst(nowMs: number = Date.now()): Date {
+  return kstDateTime(addDays(todayKst(nowMs), 1), '00:00')
+}

@@ -9,6 +9,7 @@ import { headers } from 'next/headers'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import { getCurrentUser } from '@/lib/auth'
+import { GRAMMAR_QUESTIONS_RANGE } from '@/lib/words/settings'
 
 export async function withdrawAcademy(
   formData: FormData,
@@ -184,9 +185,20 @@ export async function updateNotificationSettings(settings: {
 
 export async function updateWordLearningSettings(settings: {
   dailyNewWords: number
+  dailyGrammarQuestions: number
+  globalRanking: boolean
 }): Promise<{ error?: string; success?: boolean }> {
-  if (settings.dailyNewWords < 1 || settings.dailyNewWords > 100) {
+  if (!Number.isInteger(settings.dailyNewWords) || settings.dailyNewWords < 1 || settings.dailyNewWords > 100) {
     return { error: '하루 단어 수는 1~100 사이여야 합니다.' }
+  }
+  if (
+    !Number.isInteger(settings.dailyGrammarQuestions) ||
+    settings.dailyGrammarQuestions < GRAMMAR_QUESTIONS_RANGE.min ||
+    settings.dailyGrammarQuestions > GRAMMAR_QUESTIONS_RANGE.max
+  ) {
+    return {
+      error: `하루 문법 문제 수는 ${GRAMMAR_QUESTIONS_RANGE.min}~${GRAMMAR_QUESTIONS_RANGE.max} 사이여야 합니다.`,
+    }
   }
 
   const user = await getCurrentUser()
@@ -201,6 +213,10 @@ export async function updateWordLearningSettings(settings: {
     academy?.settingsJson && typeof academy.settingsJson === 'object'
       ? (academy.settingsJson as Record<string, unknown>)
       : {}
+  const currentWordLearning =
+    currentSettings.wordLearning && typeof currentSettings.wordLearning === 'object'
+      ? (currentSettings.wordLearning as Record<string, unknown>)
+      : {}
 
   await prisma.academy.update({
     where: { id: user.academyId },
@@ -208,12 +224,19 @@ export async function updateWordLearningSettings(settings: {
       settingsJson: {
         ...currentSettings,
         wordLearning: {
+          ...currentWordLearning,
           dailyNewWords: settings.dailyNewWords,
+          dailyGrammarQuestions: settings.dailyGrammarQuestions,
+          globalRanking: settings.globalRanking,
         },
       },
     },
   })
 
+  // 단어학습 설정은 구독 캐시(academy-{id})와 함께 읽히므로 즉시 반영되도록 무효화한다.
+  // (오늘 이미 생성된 오늘의 단어학습은 그대로, 다음 날 생성분부터 적용)
+  revalidateTag(`academy-${user.academyId}`)
+  revalidateTag('ranking-optout')
   revalidatePath('/owner/settings/word-learning')
   return { success: true }
 }

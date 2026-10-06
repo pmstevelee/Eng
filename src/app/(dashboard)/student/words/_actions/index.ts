@@ -5,13 +5,15 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma/client'
 import { requireStudent } from '@/lib/auth-student'
 import { assertCanUseWordLearning, getWordLearningLimits } from '@/lib/words/access-guard'
-import { getDueWords, applySrsResult } from '@/lib/words/progress'
+import { getDueWords, applyWordAnswer, queueWrongWordsForReview } from '@/lib/words/progress'
+import { markWordPlanStep, refreshTodayPlanCompletion } from '@/lib/words/daily-plan'
+import { bumpDailyStat } from '@/lib/learning/daily-stats'
 import { gradeTest, buildQuestions } from '@/lib/words/test-grader'
 import { type SrsQuality } from '@/lib/words/srs'
 import { emitWordEvent } from '@/lib/words/word-events'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
-import type { BadgeType, LearnStage } from '@/generated/prisma'
+import type { BadgeType } from '@/generated/prisma'
 
 // ─── 공통 응답 타입 ────────────────────────────────────────────────────────────
 
@@ -46,11 +48,12 @@ async function getAuthContext() {
  * 배정 대상이 지정된 세트(assignments 있음)는 배정된 학생만 접근 가능하고,
  * 지정되지 않은 세트는 기존처럼 학원 전체에 공개된다.
  */
-function wordSetAccessWhere(studentId: string, academyId: string) {
+function wordSetAccessWhere(studentId: string, userId: string, academyId: string) {
   return {
     OR: [
       { isPublic: true },
-      { ownerId: studentId },
+      // 학생 소유 세트(오늘의 단어·오답복습)는 User.id로 소유자를 기록한다 (WordSet.owner → User)
+      { ownerId: userId },
       {
         academyId,
         OR: [{ assignments: { none: {} } }, { assignments: { some: { studentId } } }],
@@ -66,12 +69,12 @@ const GetWordSetSchema = z.object({ setId: z.string().uuid() })
 export async function getWordSet(setId: string): Promise<Result<unknown>> {
   try {
     const { setId: validSetId } = GetWordSetSchema.parse({ setId })
-    const { studentId, academyId } = await getAuthContext()
+    const { studentId, userId, academyId } = await getAuthContext()
 
     const wordSet = await prisma.wordSet.findFirst({
       where: {
         id: validSetId,
-        ...wordSetAccessWhere(studentId, academyId),
+        ...wordSetAccessWhere(studentId, userId, academyId),
       },
       include: {
         items: {
@@ -108,12 +111,12 @@ export async function getWordSetOverview(setId: string): Promise<
 > {
   try {
     const { setId: validSetId } = GetWordSetSchema.parse({ setId })
-    const { studentId, academyId } = await getAuthContext()
+    const { studentId, userId, academyId } = await getAuthContext()
 
     const wordSet = await prisma.wordSet.findFirst({
       where: {
         id: validSetId,
-        ...wordSetAccessWhere(studentId, academyId),
+        ...wordSetAccessWhere(studentId, userId, academyId),
       },
       select: {
         id: true,
@@ -163,14 +166,14 @@ const StartWordSetSchema = z.object({ setId: z.string().uuid() })
 export async function startWordSet(setId: string): Promise<Result<{ created: number }>> {
   try {
     const { setId: validSetId } = StartWordSetSchema.parse({ setId })
-    const { studentId, academyId } = await getAuthContext()
+    const { studentId, userId, academyId } = await getAuthContext()
 
     const limits = await getWordLearningLimits(academyId)
 
     const wordSet = await prisma.wordSet.findFirst({
       where: {
         id: validSetId,
-        ...wordSetAccessWhere(studentId, academyId),
+        ...wordSetAccessWhere(studentId, userId, academyId),
       },
       include: { items: { orderBy: { order: 'asc' }, select: { wordId: true } } },
     })
@@ -234,12 +237,12 @@ const GetFlashcardsSchema = z.object({ setId: z.string().uuid() })
 export async function getFlashcards(setId: string, _stage?: 'FLASHCARD' | 'RECALL' | 'SPELL'): Promise<Result<unknown>> {
   try {
     const { setId: validSetId } = GetFlashcardsSchema.parse({ setId })
-    const { studentId, academyId } = await getAuthContext()
+    const { studentId, userId, academyId } = await getAuthContext()
 
     const wordSet = await prisma.wordSet.findFirst({
       where: {
         id: validSetId,
-        ...wordSetAccessWhere(studentId, academyId),
+        ...wordSetAccessWhere(studentId, userId, academyId),
       },
       include: {
         items: {
@@ -308,13 +311,15 @@ const RecordProgressSchema = z.object({
   quality: z.number().int().min(0).max(5) as z.ZodType<SrsQuality>,
   isCorrect: z.boolean(),
   userAnswer: z.string().optional(),
+  /** LEARN: 세트 학습 단계(플래시카드→리콜→스펠), REVIEW: 오늘의 복습 */
+  context: z.enum(['LEARN', 'REVIEW']).optional(),
 })
 
 export async function recordProgress(
   input: z.infer<typeof RecordProgressSchema>,
 ): Promise<Result<unknown>> {
   try {
-    const { wordId, stage, quality, isCorrect } = RecordProgressSchema.parse(input)
+    const { wordId, stage, quality, isCorrect, context } = RecordProgressSchema.parse(input)
     const { studentId } = await getAuthContext()
 
     const existing = await prisma.wordProgress.findUnique({
@@ -323,38 +328,49 @@ export async function recordProgress(
 
     if (!existing) return err('NOT_FOUND', '진도 기록을 찾을 수 없습니다. startWordSet을 먼저 호출하세요.')
 
-    let nextStage: LearnStage = stage
-    if (isCorrect) {
-      if (stage === 'FLASHCARD') nextStage = 'RECALL'
-      else if (stage === 'RECALL') nextStage = 'SPELL'
-      else if (stage === 'SPELL') nextStage = 'MASTERED'
-    }
-
-    // 이미 조회한 진도(existing)를 넘기고 stage 변경도 같은 update에 병합해
-    // 단어당 DB 왕복을 최소화한다. revalidatePath는 매 단어마다 호출하면
-    // 현재 학습 페이지 전체가 서버에서 재렌더되므로 라운드 종료 시(finishWordSession) 1회만 수행.
-    const updated = await applySrsResult(studentId, wordId, quality, {
-      existing,
-      stage: nextStage !== stage ? nextStage : undefined,
+    // 단계 전이·망각·마스터 판정은 lib/words/mastery.ts 규칙을 따른다.
+    // (정답이면 단계가 내려가지 않고, 마스터는 서로 다른 날 연속 정답으로만 도달)
+    // revalidatePath는 매 단어마다 호출하면 현재 학습 페이지 전체가 서버에서 재렌더되므로
+    // 라운드 종료 시(finishWordSession) 1회만 수행.
+    const activity = stage === 'MASTERED' ? 'SPELL' : stage
+    const { progress, outcome, firstReviewToday } = await applyWordAnswer(existing, {
+      activity,
+      context: context ?? 'LEARN',
+      quality,
+      isCorrect,
     })
 
-    // 게이미피케이션: 단계별 XP 지급 (실패해도 학습 기록에는 영향 없음)
+    // 일자별 학습량 집계 + 게이미피케이션 (실패해도 학습 기록에는 영향 없음)
+    // 학습량 집계는 XP 지급 트랜잭션에 함께 실어 DB 왕복을 줄인다 (XP가 없는 오답만 별도 반영).
     try {
-      if (stage === 'FLASHCARD') {
-        await emitWordEvent(studentId, 'FLASHCARD_COMPLETED', wordId)
-      } else if (stage === 'RECALL' && isCorrect) {
-        await emitWordEvent(studentId, 'RECALL_CORRECT', wordId)
-      } else if (stage === 'SPELL' && isCorrect) {
-        await emitWordEvent(studentId, 'SPELL_CORRECT', wordId)
+      const statDelta = {
+        wordCorrect: isCorrect ? 1 : 0,
+        wordWrong: isCorrect ? 0 : 1,
+        newWords: outcome.becameLearned ? 1 : 0,
+        reviewWords: firstReviewToday ? 1 : 0,
+        masteredWords: outcome.becameMastered ? 1 : 0,
       }
-      if (nextStage === 'MASTERED' && stage !== 'MASTERED') {
+      const event =
+        activity === 'FLASHCARD'
+          ? 'FLASHCARD_COMPLETED'
+          : activity === 'RECALL' && isCorrect
+            ? 'RECALL_CORRECT'
+            : activity === 'SPELL' && isCorrect
+              ? 'SPELL_CORRECT'
+              : null
+      if (event) {
+        await emitWordEvent(studentId, event, wordId, statDelta)
+      } else {
+        await bumpDailyStat(studentId, statDelta)
+      }
+      if (outcome.becameMastered) {
         await emitWordEvent(studentId, 'WORD_MASTERED', wordId)
       }
     } catch {
       // XP/배지 지급 실패는 무시한다 (학습 진도는 이미 저장됨).
     }
 
-    return ok({ ...updated, stage: nextStage })
+    return ok({ ...progress, isLapse: outcome.isLapse, becameMastered: outcome.becameMastered })
   } catch (e) {
     if (e instanceof z.ZodError) return err('INVALID_INPUT', e.errors[0]?.message ?? '입력 오류')
     if (e instanceof Error) return err('FORBIDDEN', e.message)
@@ -481,11 +497,15 @@ export async function completeReviewSession(
       }),
     ])
 
-    const totalXp = events.reduce((sum, e) => sum + e.xp.earned, 0)
-    const streakResult = events[0].streak
+    // 오늘의 단어학습(복습·새 단어·문법)이 모두 끝났으면 완료 보너스
+    const planResult = await refreshTodayPlanCompletion(studentId).catch(() => null)
+
+    const totalXp = events.reduce((sum, e) => sum + e.xp.earned, 0) + (planResult?.bonusXp ?? 0)
+    const streakResult = planResult?.streak ?? events[0].streak
     const badgesEarned = events.flatMap((e) => (e.badgeEarned ? [e.badgeEarned] : []))
 
     revalidatePath('/student')
+    revalidatePath('/student/daily-mission')
     revalidatePath('/student/words')
     revalidatePath('/student/words/review')
 
@@ -516,9 +536,9 @@ const FinishWordSessionSchema = z
 
 export async function finishWordSession(
   input?: z.infer<typeof FinishWordSessionSchema>,
-): Promise<Result<null>> {
+): Promise<Result<{ planCompleted: boolean }>> {
   try {
-    const { userId, academyId } = await getAuthContext()
+    const { studentId, userId, academyId } = await getAuthContext()
     const parsed = FinishWordSessionSchema.safeParse(input)
     await logActivity({
       userId,
@@ -527,9 +547,22 @@ export async function finishWordSession(
       action: ACTIVITY_ACTIONS.WORD_STUDY,
       metadata: parsed.success ? parsed.data : undefined,
     })
+
+    // 오늘의 단어 세트 라운드였다면 단계 완료 표시 + 전체 완료 여부 확인
+    let planCompleted = false
+    if (parsed.success && parsed.data) {
+      try {
+        const isPlanSet = await markWordPlanStep(studentId, parsed.data.setId, parsed.data.stage)
+        if (isPlanSet) planCompleted = (await refreshTodayPlanCompletion(studentId)).completedNow
+      } catch {
+        // 오늘의 학습 진행 반영 실패는 학습 기록에 영향 없음
+      }
+    }
+
     revalidatePath('/student/words')
+    revalidatePath('/student/daily-mission')
     revalidatePath('/student')
-    return ok(null)
+    return ok({ planCompleted })
   } catch (e) {
     if (e instanceof Error) return err('FORBIDDEN', e.message)
     return err('UNKNOWN', '오류가 발생했습니다.')
@@ -667,6 +700,18 @@ export async function submitWordTest(
         completedAt: new Date(),
       },
     })
+
+    // 오답 단어는 학생이 따로 누르지 않아도 즉시 복습 큐에 넣는다 (학습 완료 단어는 망각 처리)
+    const wrongWordIds = result.answers.filter((a) => !a.isCorrect).map((a) => a.wordId)
+    try {
+      await queueWrongWordsForReview(studentId, wrongWordIds)
+      await bumpDailyStat(studentId, {
+        wordCorrect: result.answers.length - wrongWordIds.length,
+        wordWrong: wrongWordIds.length,
+      })
+    } catch {
+      // 복습 큐 반영 실패는 응시 기록에 영향 없음
+    }
 
     await logActivity({
       userId,

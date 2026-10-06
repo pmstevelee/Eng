@@ -488,6 +488,9 @@ model Student {
   notificationJobs           NotificationJob[]
   riskSnapshot               StudentRiskSnapshot?
   attendanceRecords          AttendanceRecord[]
+  dailyWordPlans             DailyWordPlan[]
+  dailyStats                 StudentDailyStat[]
+  questionReviews            QuestionReview[]
 
   @@index([classId])
   @@index([status])
@@ -625,6 +628,7 @@ model Question {
   responses        QuestionResponse[]
   usageLogs        QuestionUsageLog[]
   reports          QuestionReport[]
+  reviews          QuestionReview[]
   originalQuestion Question?          @relation("QuestionVariants", fields: [originalQuestionId], references: [id])
   variants         Question[]         @relation("QuestionVariants")
 
@@ -1327,6 +1331,7 @@ model WordSet {
   wordTests           WordTest[]
   wordTestAssignments WordTestAssignment[]
   assignments         WordSetAssignment[]
+  dailyWordPlan       DailyWordPlan?
 
   @@index([ownerId])
   @@index([academyId])
@@ -1378,6 +1383,14 @@ model WordProgress {
   correctCount  Int        @default(0) @map("correct_count")
   wrongCount    Int        @default(0) @map("wrong_count")
   lastStudiedAt DateTime?  @map("last_studied_at")
+  /// 망각 횟수 — 학습 완료(SPELL) 이상 단어를 복습/시험에서 틀린 횟수
+  lapses         Int       @default(0)
+  /// 학습 완료 시각 — 학습 단계(플래시카드→리콜→스펠)에서 스펠을 처음 맞힌 시각
+  learnedAt      DateTime? @map("learned_at")
+  /// 마스터 시각 — 서로 다른 날 연속 복습 정답(repetitions ≥ 3)으로 마스터된 시각
+  masteredAt     DateTime? @map("mastered_at")
+  /// 마지막 복습(REVIEW) 응답 시각
+  lastReviewedAt DateTime? @map("last_reviewed_at")
   createdAt     DateTime   @default(now()) @map("created_at")
   updatedAt     DateTime   @updatedAt @map("updated_at")
 
@@ -1386,7 +1399,85 @@ model WordProgress {
 
   @@unique([studentId, wordId])
   @@index([studentId, nextReviewAt])
+  @@index([studentId, stage])
   @@map("word_progress")
+}
+
+/// 오늘의 단어학습 — 학생 레벨에 맞춰 매일 자동 생성되는 학습량 (학생×KST 날짜 1건)
+model DailyWordPlan {
+  id            String    @id @default(uuid())
+  studentId     String    @map("student_id")
+  /// KST 날짜 (@db.Date, UTC 자정 저장)
+  planDate      DateTime  @map("plan_date") @db.Date
+  /// 오늘의 신규 단어로 자동 생성된 학생 소유 비공개 세트 (기존 학습 화면 재사용)
+  setId         String?   @unique @map("set_id")
+  /// 단어 밴드 (Word.cefrLevel 기준 2/4/6/8/10)
+  targetLevel   Int       @map("target_level")
+  newWordIds    Json      @map("new_word_ids")
+  newTarget     Int       @map("new_target")
+  reviewTarget  Int       @default(0) @map("review_target")
+  flashcardDone Boolean   @default(false) @map("flashcard_done")
+  recallDone    Boolean   @default(false) @map("recall_done")
+  spellDone     Boolean   @default(false) @map("spell_done")
+  /// GENERATED / IN_PROGRESS / COMPLETED
+  status        String    @default("GENERATED")
+  completedAt   DateTime? @map("completed_at")
+  bonusAwarded  Boolean   @default(false) @map("bonus_awarded")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  wordSet WordSet? @relation(fields: [setId], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, planDate])
+  @@index([planDate])
+  @@map("daily_word_plans")
+}
+
+/// 학생 일자별 학습량 집계 (랭킹·추이 분석용, 학생×KST 날짜 1건)
+model StudentDailyStat {
+  id             String   @id @default(uuid())
+  studentId      String   @map("student_id")
+  statDate       DateTime @map("stat_date") @db.Date
+  /// 획득 포인트 (= 해당 일 XP 합계)
+  points         Int      @default(0)
+  /// 학습 완료한 신규 단어 수
+  newWords       Int      @default(0) @map("new_words")
+  /// 복습한 단어 수 (단어별 하루 1회)
+  reviewWords    Int      @default(0) @map("review_words")
+  masteredWords  Int      @default(0) @map("mastered_words")
+  wordCorrect    Int      @default(0) @map("word_correct")
+  wordWrong      Int      @default(0) @map("word_wrong")
+  grammarSolved  Int      @default(0) @map("grammar_solved")
+  grammarCorrect Int      @default(0) @map("grammar_correct")
+  planCompleted  Boolean  @default(false) @map("plan_completed")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, statDate])
+  @@index([statDate])
+  @@map("student_daily_stats")
+}
+
+/// 문법·어휘 문제 오답노트 (오늘의 미션 오답 → 간격 복습, 2회 연속 정답 시 해제)
+model QuestionReview {
+  id                 String   @id @default(uuid())
+  studentId          String   @map("student_id")
+  questionId         String   @map("question_id")
+  wrongCount         Int      @default(0) @map("wrong_count")
+  consecutiveCorrect Int      @default(0) @map("consecutive_correct")
+  nextReviewAt       DateTime @map("next_review_at")
+  isMastered         Boolean  @default(false) @map("is_mastered")
+  lastAnsweredAt     DateTime @default(now()) @map("last_answered_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, questionId])
+  @@index([studentId, isMastered, nextReviewAt])
+  @@map("question_reviews")
 }
 
 /// 단어 테스트 결과 (개인 자율학습용)

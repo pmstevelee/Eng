@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma/client'
 import { BadgeType } from '@/generated/prisma'
+import { dailyStatUpsert, type DailyStatDelta } from '@/lib/learning/daily-stats'
 
 export type XpResult = {
   totalXp: number
@@ -26,7 +27,10 @@ export async function awardXP(
   amount: number,
   source: string,
   sourceId?: string,
+  /** 같은 트랜잭션으로 함께 누적할 일자별 학습량 (DB 왕복 절약) */
+  statDelta?: Omit<DailyStatDelta, 'points'>,
 ): Promise<XpResult> {
+  // 포인트 랭킹용 일자별 집계(StudentDailyStat.points)도 같은 트랜잭션으로 누적한다.
   const [, updated] = await prisma.$transaction([
     prisma.studentXp.create({
       data: { studentId, amount, source, ...(sourceId ? { sourceId } : {}) },
@@ -36,6 +40,7 @@ export async function awardXP(
       data: { totalXp: { increment: amount } },
       select: { totalXp: true },
     }),
+    dailyStatUpsert(studentId, { ...statDelta, points: amount }),
   ])
 
   return { totalXp: updated.totalXp, earned: amount }

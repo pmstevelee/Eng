@@ -3,23 +3,48 @@ import { redirect } from 'next/navigation'
 import { Flame, ChevronRight, ClipboardList, Clock } from 'lucide-react'
 import { requireStudent } from '@/lib/auth-student'
 import { getStudentDashboardData } from './_actions/gamification'
-import { DailyMissionCard } from '@/components/student/daily-mission-card'
-import { DailyReviewWidget } from '@/components/words/daily-review-widget'
+import { canUseWordLearning } from '@/lib/words/access-guard'
+import { getOrCreateTodayMission } from '@/lib/missions/mission-engine'
+import {
+  getOrCreateTodayWordPlan,
+  getTodayLearningSummary,
+  refreshTodayPlanCompletion,
+} from '@/lib/words/daily-plan'
+import { TodayLearningCard } from '@/components/student/today-learning'
+
+/** 오늘의 단어 계획을 준비한 뒤 3단계 진행 요약을 조회 (실패해도 홈은 그대로 렌더) */
+async function loadTodayLearning(studentId: string, userId: string, academyId: string | null) {
+  try {
+    // 문법 미션은 대시보드 캐시에서도 생성하지만, 하루 첫 접속 시 요약 조회가 먼저 끝나지 않도록 함께 보장한다.
+    // (동시 생성은 (studentId, missionDate) 유니크 제약 + 재조회로 처리됨)
+    await Promise.all([
+      getOrCreateTodayMission(studentId),
+      academyId && (await canUseWordLearning(academyId))
+        ? getOrCreateTodayWordPlan({ studentId, userId, academyId })
+        : null,
+    ])
+    const summary = await getTodayLearningSummary(studentId)
+    if (summary.isAllComplete && summary.plan && !summary.plan.bonusAwarded) {
+      const res = await refreshTodayPlanCompletion(studentId)
+      if (res.completedNow) return await getTodayLearningSummary(studentId)
+    }
+    return summary
+  } catch (e) {
+    console.error('[student-home] 오늘의 단어학습 조회 실패:', e)
+    return null
+  }
+}
 
 export default async function StudentDashboardPage() {
-  const { user, studentId } = await requireStudent()
-  const data = await getStudentDashboardData()
+  const { user, studentId, userId } = await requireStudent()
+  // 대시보드 데이터(문법 미션 생성 포함)와 오늘의 단어 계획을 함께 준비한다.
+  const [data, todayLearning] = await Promise.all([
+    getStudentDashboardData(),
+    loadTodayLearning(studentId, userId, user.academyId),
+  ])
   if (!data) redirect('/login')
 
-  const {
-    mission,
-    streak,
-    isActiveToday,
-    totalXp,
-    upcomingSessions,
-    recentActivities,
-    dueWordCount,
-  } = data
+  const { streak, isActiveToday, totalXp, upcomingSessions, recentActivities } = data
 
   const firstName = user.name.split(' ')[0]
 
@@ -62,11 +87,8 @@ export default async function StudentDashboardPage() {
         </div>
       </div>
 
-      {/* ── 오늘의 미션 카드 ─────────────────────────────────────────────── */}
-      {mission && <DailyMissionCard mission={mission} />}
-
-      {/* ── 단어 복습 위젯 ──────────────────────────────────────────────── */}
-      <DailyReviewWidget studentId={studentId} dueCount={dueWordCount} />
+      {/* ── 오늘의 단어학습 (복습 → 새 단어 → 문법) ─────────────────────── */}
+      {todayLearning && <TodayLearningCard summary={todayLearning} />}
 
       {/* ── 예정된 테스트 카드 ───────────────────────────────────────────── */}
       {upcomingSessions.length > 0 && (

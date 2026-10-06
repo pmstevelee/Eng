@@ -14,6 +14,7 @@ import {
   Flame,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useWordHub } from '@/hooks/use-word-hub'
 import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import {
   getRecallOptionsBatch,
@@ -188,7 +189,7 @@ function RecallCard({
     if (selected !== null) return
     setSelected(id)
     const isCorrect = id === correctId
-    recordProgress({ wordId: card.word.id, stage: 'RECALL', quality: isCorrect ? 4 : 1, isCorrect })
+    recordProgress({ wordId: card.word.id, stage: 'RECALL', quality: isCorrect ? 4 : 1, isCorrect, context: 'REVIEW' })
     setTimeout(() => onResult(isCorrect), 900)
   }
 
@@ -287,14 +288,14 @@ function SpellCard({
     const isCorrectish = correct || nearlyCorrect
     setAnswerState(correct ? 'correct' : nearlyCorrect ? 'nearly' : 'wrong')
     if (isCorrectish) playAudio(ct, card.word.audioUrl)
-    recordProgress({ wordId: card.word.id, stage: 'SPELL', quality: quality as 0|1|2|3|4|5, isCorrect: isCorrectish, userAnswer: input })
+    recordProgress({ wordId: card.word.id, stage: 'SPELL', quality: quality as 0|1|2|3|4|5, isCorrect: isCorrectish, userAnswer: input, context: 'REVIEW' })
   }
 
   function handleSkip() {
     if (answerState !== 'idle') return
     setCorrectTerm(card.word.term)
     setAnswerState('wrong')
-    recordProgress({ wordId: card.word.id, stage: 'SPELL', quality: 2, isCorrect: false, userAnswer: '' })
+    recordProgress({ wordId: card.word.id, stage: 'SPELL', quality: 2, isCorrect: false, userAnswer: '', context: 'REVIEW' })
   }
 
   const isAnswered = answerState !== 'idle'
@@ -442,6 +443,7 @@ function DoneScreen({
   badges: BadgeType[]
 }) {
   const router = useRouter()
+  const hub = useWordHub()
   const [isPending, startTransition] = useTransition()
   const [showBadgeModal, setShowBadgeModal] = useState(badges.length > 0)
   const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0
@@ -512,11 +514,12 @@ function DoneScreen({
 
         <div className="flex flex-col gap-3 w-full max-w-xs">
           <Button
-            onClick={() => startTransition(() => router.push('/student/words'))}
+            onClick={() => startTransition(() => router.push(hub.href))}
             disabled={isPending}
             className="h-14 bg-[#7854F7] hover:bg-[#7854F7]/90 text-white rounded-xl font-semibold text-base"
           >
-            새 단어 시작하기<ArrowRight className="w-4 h-4 ml-2" />
+            {hub.href === '/student/words' ? '새 단어 시작하기' : '오늘의 학습 계속하기'}
+            <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
           <Button
             variant="ghost"

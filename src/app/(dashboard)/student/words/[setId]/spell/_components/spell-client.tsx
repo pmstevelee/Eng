@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, ArrowRight, RotateCcw, Lightbulb, SkipForward, Volume2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useWordHub } from '@/hooks/use-word-hub'
 import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import { recordProgress, finishWordSession } from '@/app/(dashboard)/student/words/_actions'
 import { speakEnglish } from '@/lib/words/speech'
@@ -134,6 +135,7 @@ function RoundDone({
   onRetry: () => void
 }) {
   const router = useRouter()
+  const hub = useWordHub()
   const [isPending, startTransition] = useTransition()
   const accuracy = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0
   const mastered = accuracy >= 90
@@ -151,10 +153,13 @@ function RoundDone({
       </div>
       <div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-          {mastered ? '완벽해요! 마스터 승격!' : canRetry ? '조금 더 연습해요' : '수고했어요!'}
+          {mastered ? '완벽해요! 학습 완료!' : canRetry ? '조금 더 연습해요' : '수고했어요!'}
         </h2>
         <p className="text-sm text-gray-500">
           {totalAnswered}문제 중 {correctCount}개 정답
+        </p>
+        <p className="mt-1 text-xs text-gray-500">
+          복습에서 날짜를 달리해 3번 연속 맞히면 마스터 단어가 돼요
         </p>
       </div>
 
@@ -170,21 +175,21 @@ function RoundDone({
           </Button>
         ) : (
           <Button
-            onClick={() => startTransition(() => router.push('/student/words'))}
+            onClick={() => startTransition(() => router.push(hub.href))}
             disabled={isPending}
             className="h-14 bg-[#1FAF54] hover:bg-[#1FAF54]/90 text-white rounded-xl font-semibold text-base"
           >
-            단어 허브로
+            {hub.href === '/student/words' ? '단어 허브로' : '오늘의 학습으로'}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         )}
         <Button
           variant="ghost"
-          onClick={() => startTransition(() => router.push('/student/words'))}
+          onClick={() => startTransition(() => router.push(hub.href))}
           disabled={isPending}
           className="text-gray-500 h-10"
         >
-          단어 허브로 돌아가기
+          {hub.label}
         </Button>
       </div>
     </div>

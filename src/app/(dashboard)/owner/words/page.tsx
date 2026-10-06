@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Users, Star, Activity, Plus, BarChart2, ClipboardList } from 'lucide-react'
+import { BookOpen, Users, Star, Activity, Plus, BarChart2, ClipboardList, Trophy } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
@@ -55,6 +55,12 @@ export default async function OwnerWordsPage({ searchParams }: Props) {
             <Button variant="outline" size="sm" className="h-9 gap-2 text-[#1865F2] border-[#1865F2]/30 hover:bg-[#EFF4FE]">
               <BarChart2 className="w-4 h-4" />
               학습 리포트
+            </Button>
+          </Link>
+          <Link href="/owner/words/ranking">
+            <Button variant="outline" size="sm" className="h-9 gap-2 text-[#1865F2] border-[#1865F2]/30 hover:bg-[#EFF4FE]">
+              <Trophy className="w-4 h-4" />
+              랭킹
             </Button>
           </Link>
           {activeTab === 'sets' && (

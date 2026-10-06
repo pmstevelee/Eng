@@ -9,6 +9,9 @@ import { getOrCreateTodayMission, buildDailyMissions } from '@/lib/missions/miss
 import { updateStreak } from '@/lib/missions/streak-manager'
 import { awardXP, BADGE_XP } from '@/lib/missions/xp-manager'
 import { getPromotionProgress } from '@/lib/assessment/promotion-engine'
+import { endOfTodayKst, kstDateTime, todayKst } from '@/lib/attendance/time'
+import { recordQuestionAnswers, type QuestionAnswerRecord } from '@/lib/missions/question-review'
+import { refreshTodayPlanCompletion } from '@/lib/words/daily-plan'
 import { isAnswerMatch } from '@/lib/assessment/answer-checker'
 
 // ─── Auth helper ─────────────────────────────────────────────────────────────
@@ -28,8 +31,7 @@ export async function getGamificationData() {
   if (!auth) return null
   const { studentId } = auth
 
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
+  const todayStart = kstDateTime(todayKst(), '00:00')
 
   const weekStart = new Date()
   weekStart.setDate(weekStart.getDate() - weekStart.getDay())
@@ -107,8 +109,7 @@ export async function recordActivityAndCheckBadges(
   studentId: string,
   sessionId: string,
 ): Promise<{ newBadges: string[] }> {
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
+  const todayStart = kstDateTime(todayKst(), '00:00')
 
   // 1. Update streak
   // [LEGACY] 기존 인라인 스트릭 업데이트 코드는 streak-manager.ts로 통합됨
@@ -271,8 +272,7 @@ export async function generateOrGetDailyMission() {
 const getCachedMissionWithQuestions = (studentId: string) =>
   unstable_cache(
     async () => {
-      const todayStart = new Date()
-      todayStart.setHours(0, 0, 0, 0)
+      const todayStart = kstDateTime(todayKst(), '00:00')
 
       // 오늘 미션 조회 (없으면 생성)
       let mission = await prisma.dailyMission.findFirst({
@@ -379,6 +379,7 @@ export async function submitMissionAnswers(
   let correct = 0
   let total = 0
   const results: MissionAnswerResult[] = []
+  const answerRecords: QuestionAnswerRecord[] = []
 
   // 문제 순서(questionIds) 보장을 위해 정렬
   const orderedQuestions = questionIds
@@ -397,6 +398,7 @@ export async function submitMissionAnswers(
     total++
     const isCorrect = isAnswerMatch(studentAnswer, content.correct_answer, content.options)
     if (isCorrect) correct++
+    answerRecords.push({ questionId: q.id, domain: q.domain, isCorrect, gradable: true })
 
     results.push({
       questionId: q.id,
@@ -476,9 +478,18 @@ export async function submitMissionAnswers(
     },
   })
 
+  // 오답노트(틀린 문제 → 간격 복습) + 일자별 문법 통계
+  await recordQuestionAnswers(studentId, answerRecords).catch((e) =>
+    console.error('[mission] 오답노트 기록 실패:', e),
+  )
+
   // Update streak
   // [LEGACY] 기존 인라인 스트릭 업데이트 코드는 streak-manager.ts로 통합됨
   const streakResult = await updateStreak(studentId)
+
+  // 오늘의 단어학습 전체 완료 여부 확인 (완료 보너스 1회)
+  const planResult = await refreshTodayPlanCompletion(studentId).catch(() => null)
+  xpEarned += planResult?.bonusXp ?? 0
 
   // Check badges
   const existingEarnings = await prisma.badgeEarning.findMany({
@@ -541,8 +552,7 @@ export async function revalidateMissionDashboard() {
 const getCachedDashboardData = (studentId: string) =>
   unstable_cache(
     async () => {
-      const todayStart = new Date()
-      todayStart.setHours(0, 0, 0, 0)
+      const todayStart = kstDateTime(todayKst(), '00:00')
       const weekStart = new Date()
       weekStart.setDate(weekStart.getDate() - weekStart.getDay())
       weekStart.setHours(0, 0, 0, 0)
@@ -631,7 +641,7 @@ const getCachedDashboardData = (studentId: string) =>
           take: 5,
         }),
         prisma.wordProgress.count({
-          where: { studentId, nextReviewAt: { lte: new Date() } },
+          where: { studentId, nextReviewAt: { lte: endOfTodayKst() } },
         }),
       ])
 
@@ -691,8 +701,7 @@ export async function getStudentDashboardData() {
   if (!auth) return null
   const { studentId } = auth
 
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
+  const todayStart = kstDateTime(todayKst(), '00:00')
 
   // 모든 쿼리가 캐시 안에 있음 → 캐시 히트 시 DB 왕복 0건
   const [

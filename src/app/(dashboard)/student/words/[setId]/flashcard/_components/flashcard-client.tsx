@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import { Volume2, ChevronLeft, ChevronRight, RotateCcw, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useWordHub } from '@/hooks/use-word-hub'
 import { Card } from '@/components/ui/card'
 import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import { recordProgress, finishWordSession } from '@/app/(dashboard)/student/words/_actions'
@@ -189,6 +190,7 @@ function RoundDone({
   onRetry: () => void
 }) {
   const router = useRouter()
+  const hub = useWordHub()
   const [isPending, startTransition] = useTransition()
 
   return (
@@ -222,7 +224,7 @@ function RoundDone({
           </Button>
         )}
         <Button
-          onClick={() => startTransition(() => router.push(`/student/words/${setId}/recall`))}
+          onClick={() => startTransition(() => router.push(`/student/words/${setId}/recall${hub.query}`))}
           disabled={isPending}
           className="h-14 bg-[#7854F7] hover:bg-[#7854F7]/90 text-white rounded-xl"
         >
@@ -231,11 +233,11 @@ function RoundDone({
         </Button>
         <Button
           variant="ghost"
-          onClick={() => startTransition(() => router.push('/student/words'))}
+          onClick={() => startTransition(() => router.push(hub.href))}
           disabled={isPending}
           className="text-gray-500 h-10"
         >
-          단어 허브로 돌아가기
+          {hub.label}
         </Button>
       </div>
     </div>
@@ -246,6 +248,7 @@ function RoundDone({
 
 export function FlashcardClient({ setId, initialCards, totalWords, masteredWords: initialMastered }: Props) {
   const router = useRouter()
+  const hub = useWordHub()
   const [isNavigating, startNavigating] = useTransition()
   const [deck, setDeck] = useState<WordCard[]>(initialCards)
   const [index, setIndex] = useState(0)
@@ -345,11 +348,11 @@ export function FlashcardClient({ setId, initialCards, totalWords, masteredWords
             <h2 className="text-xl font-bold text-gray-900">세트 완료!</h2>
             <p className="text-gray-500 text-sm">이 세트의 모든 단어를 마스터했습니다.</p>
             <Button
-              onClick={() => startNavigating(() => router.push('/student/words'))}
+              onClick={() => startNavigating(() => router.push(hub.href))}
               disabled={isNavigating}
               className="h-12 bg-[#7854F7] hover:bg-[#7854F7]/90 text-white rounded-xl px-8"
             >
-              단어 허브로 돌아가기
+              {hub.label}
             </Button>
             <LoadingOverlay show={isNavigating} />
           </div>

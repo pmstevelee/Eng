@@ -4,18 +4,17 @@ import Link from 'next/link'
 import { requireStudent } from '@/lib/auth-student'
 import { getDueWords } from '@/lib/words/progress'
 import { canUseWordLearning } from '@/lib/words/access-guard'
-import { prisma } from '@/lib/prisma/client'
 import { ReviewClient } from './_components/review-client'
 
-export default async function ReviewPage() {
-  const { studentId, userId } = await requireStudent()
+interface Props {
+  searchParams: Promise<{ from?: string }>
+}
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { academyId: true },
-  })
+export default async function ReviewPage({ searchParams }: Props) {
+  const [{ studentId, user }, { from }] = await Promise.all([requireStudent(), searchParams])
+  const fromDaily = from === 'daily'
 
-  const academyId = user?.academyId ?? null
+  const academyId = user.academyId ?? null
   if (!academyId || !(await canUseWordLearning(academyId))) {
     redirect('/student/words')
   }
@@ -33,10 +32,10 @@ export default async function ReviewPage() {
           <p className="text-sm text-gray-500">복습할 단어가 없어요. 내일 다시 확인해 보세요.</p>
         </div>
         <Link
-          href="/student/words"
+          href={fromDaily ? '/student/daily-mission' : '/student/words'}
           className="inline-flex h-12 items-center gap-2 rounded-xl px-6 text-sm font-semibold text-white bg-[#7854F7] hover:bg-[#7854F7]/90 transition-colors"
         >
-          새 단어 시작하기
+          {fromDaily ? '오늘의 학습으로' : '새 단어 시작하기'}
         </Link>
       </div>
     )

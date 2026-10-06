@@ -1,6 +1,7 @@
 import { BadgeType } from '@/generated/prisma'
 import { prisma } from '@/lib/prisma/client'
 import { awardXP, type XpResult } from '@/lib/missions/xp-manager'
+import type { DailyStatDelta } from '@/lib/learning/daily-stats'
 import { updateStreak, type StreakResult } from '@/lib/missions/streak-manager'
 
 export type WordEventType =
@@ -64,11 +65,12 @@ export async function emitWordEvent(
   studentId: string,
   type: WordEventType,
   sourceId?: string,
+  statDelta?: Omit<DailyStatDelta, 'points'>,
 ): Promise<WordEventResult> {
   const amount = WORD_EVENT_XP[type]
   const source = WORD_EVENT_SOURCE[type]
 
-  const xp = await awardXP(studentId, amount, source, sourceId)
+  const xp = await awardXP(studentId, amount, source, sourceId, statDelta)
 
   let streak: StreakResult | undefined
   if (type === 'DAILY_REVIEW_COMPLETED') {
