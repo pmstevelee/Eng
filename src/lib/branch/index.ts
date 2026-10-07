@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { unstable_cache } from 'next/cache'
+import { cache } from 'react'
 import { Plan } from '@/generated/prisma'
 import { prisma } from '@/lib/prisma/client'
 
@@ -34,54 +34,41 @@ type OwnerBranchesResult = {
 }
 
 /**
- * 학원장의 본원/지점/플랜을 한 번의 쿼리로 가져와 60초간 캐싱한다.
- * - layout/page에서 모두 호출되므로 동일 요청 내에서 재실행되어선 안 된다.
- * - 학원 정보는 자주 바뀌지 않으므로 60초 캐시 + 태그 기반 무효화로 충분.
+ * 학원장의 본원/지점/플랜을 한 번의 쿼리로 가져온다.
+ * - 지점 추가·변경이 즉시 반영되도록 요청 간 캐시는 두지 않는다.
+ * - layout/page에서 모두 호출되므로 React cache()로 같은 요청 내 중복 조회만 막는다.
  */
-const fetchOwnerBranchesCached = (ownerId: string) =>
-  unstable_cache(
-    async (): Promise<OwnerBranchesResult | null> => {
-      const hq = await prisma.academy.findFirst({
-        where: { ownerId, parentAcademyId: null, isDeleted: false },
-        select: {
-          id: true,
-          name: true,
-          branchName: true,
-          subscriptionPlan: true,
-          branches: {
-            where: { isDeleted: false },
-            select: { id: true, name: true, branchName: true, branchOrder: true },
-            orderBy: { branchOrder: 'asc' },
-          },
-          subscription: { select: { plan: true } },
+const fetchOwnerBranchesCached = cache(
+  async (ownerId: string): Promise<OwnerBranchesResult | null> => {
+    const hq = await prisma.academy.findFirst({
+      where: { ownerId, parentAcademyId: null, isDeleted: false },
+      select: {
+        id: true,
+        name: true,
+        branchName: true,
+        subscriptionPlan: true,
+        branches: {
+          where: { isDeleted: false },
+          select: { id: true, name: true, branchName: true, branchOrder: true },
+          orderBy: { branchOrder: 'asc' },
         },
-      })
-      if (!hq) return null
+        subscription: { select: { plan: true } },
+      },
+    })
+    if (!hq) return null
 
-      const plan = hq.subscription?.plan ?? academyPlanTypeToPlan(hq.subscriptionPlan)
-      const allIds = [hq.id, ...hq.branches.map((b) => b.id)]
+    const plan = hq.subscription?.plan ?? academyPlanTypeToPlan(hq.subscriptionPlan)
+    const allIds = [hq.id, ...hq.branches.map((b) => b.id)]
 
-      return {
-        hq: { id: hq.id, name: hq.name, branchName: hq.branchName, branchOrder: 0 },
-        branches: hq.branches,
-        plan,
-        canManage: canManageBranches(plan),
-        allIds,
-      }
-    },
-    ['owner-branches', ownerId],
-    { revalidate: 60, tags: [`owner-${ownerId}-branches`] },
-  )()
-
-/**
- * 로그인 액션에서 유저 조회와 병렬로 호출해 본원/지점 캐시를 미리 채운다.
- * Academy.ownerId === User.id(=Supabase auth id)이므로 역할을 알기 전에도 호출 가능.
- * 학원장이 아니면 null이 캐시될 뿐이며, 학원장은 이어지는 OwnerLayout 렌더에서
- * DB 왕복 1회(원격 DB 기준 수백 ms~1초)를 절약한다.
- */
-export function warmOwnerBranchesCache(ownerId: string): Promise<unknown> {
-  return fetchOwnerBranchesCached(ownerId).catch(() => null)
-}
+    return {
+      hq: { id: hq.id, name: hq.name, branchName: hq.branchName, branchOrder: 0 },
+      branches: hq.branches,
+      plan,
+      canManage: canManageBranches(plan),
+      allIds,
+    }
+  },
+)
 
 /** 학원장이 소유한 본원 + 모든 지점 ID 배열 반환 */
 export async function getOwnerAcademyIds(ownerId: string): Promise<string[]> {

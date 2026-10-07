@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation'
-import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
@@ -620,17 +619,6 @@ async function getAnalyticsData(viewIds: string[], fromDate: Date, toDate: Date)
   }
 }
 
-// ─── Cached Wrapper (period별 독립 캐시, 5분 TTL) ────────────────────────────
-
-function getCachedAnalyticsData(hqId: string, viewIds: string[], branchKey: string, period: string) {
-  const { from, to } = getPeriodDates(period)
-  return unstable_cache(
-    () => getAnalyticsData(viewIds, from, to),
-    ['owner-analytics', branchKey, period],
-    { revalidate: 300, tags: [`academy-${hqId}-analytics`] },
-  )()
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 interface PageProps {
@@ -649,9 +637,9 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
 
   const selectedBranchId = await getSelectedBranchId()
   const viewIds = await getViewableAcademyIds(user.id, selectedBranchId)
-  const branchKey = viewIds.join(',')
 
-  const data = await getCachedAnalyticsData(user.academyId, viewIds, branchKey, period)
+  const { from, to } = getPeriodDates(period)
+  const data = await getAnalyticsData(viewIds, from, to)
 
   return <AnalyticsClient data={data} period={period} activeTab={activeTab} />
 }

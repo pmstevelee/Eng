@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { unstable_cache } from 'next/cache'
 import { UserCheck } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -14,69 +13,59 @@ type SearchParams = {
   page?: string
 }
 
-// 자주 바뀌지 않는 정적 데이터: 학원 정보 + 전체 교사 수 (60초 캐싱)
-const getStaticTeachersPageData = (hqId: string, viewIds: string[], branchKey: string) =>
-  unstable_cache(
-    async () => {
-      const [academy, totalTeachers] = await Promise.all([
-        prisma.academy.findUnique({
-          where: { id: hqId },
-          select: { maxTeachers: true, subscriptionStatus: true },
-        }),
-        prisma.user.count({
-          where: { academyId: { in: viewIds }, role: 'TEACHER', isDeleted: false },
-        }),
-      ])
-      return { academy, totalTeachers }
-    },
-    ['owner-teachers-static', branchKey],
-    { revalidate: 60, tags: [`academy-${hqId}-teachers`, ...viewIds.map((id) => `academy-${id}-teachers`)] },
-  )()
+// 정적 데이터: 학원 정보 + 전체 교사 수 (매 요청 실시간 조회)
+const getStaticTeachersPageData = async (hqId: string, viewIds: string[]) => {
+    const [academy, totalTeachers] = await Promise.all([
+      prisma.academy.findUnique({
+        where: { id: hqId },
+        select: { maxTeachers: true, subscriptionStatus: true },
+      }),
+      prisma.user.count({
+        where: { academyId: { in: viewIds }, role: 'TEACHER', isDeleted: false },
+      }),
+    ])
+    return { academy, totalTeachers }
+}
 
-// 동적 필터 쿼리 (15초 캐싱 — 탭/검색 반복 클릭 시 즉시 반환)
-const getDynamicTeachersData = (viewIds: string[], branchKey: string, query: string, page: number) =>
-  unstable_cache(
-    async () => {
-      type TeacherWhere = {
-        academyId: { in: string[] }
-        role: 'TEACHER'
-        isDeleted: boolean
-        OR?: Array<
-          | { name: { contains: string; mode: 'insensitive' } }
-          | { email: { contains: string; mode: 'insensitive' } }
-        >
-      }
-      const where: TeacherWhere = { academyId: { in: viewIds }, role: 'TEACHER', isDeleted: false }
-      if (query) {
-        where.OR = [
-          { name: { contains: query, mode: 'insensitive' } },
-          { email: { contains: query, mode: 'insensitive' } },
-        ]
-      }
-      const [count, rows] = await Promise.all([
-        prisma.user.count({ where }),
-        prisma.user.findMany({
-          where,
-          orderBy: { createdAt: 'desc' },
-          skip: (page - 1) * PAGE_SIZE,
-          take: PAGE_SIZE,
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            createdAt: true,
-            taughtClasses: {
-              where: { isActive: true },
-              select: { id: true, name: true },
-            },
+// 동적 필터 쿼리 (매 요청 실시간 조회)
+const getDynamicTeachersData = async (viewIds: string[], query: string, page: number) => {
+    type TeacherWhere = {
+      academyId: { in: string[] }
+      role: 'TEACHER'
+      isDeleted: boolean
+      OR?: Array<
+        | { name: { contains: string; mode: 'insensitive' } }
+        | { email: { contains: string; mode: 'insensitive' } }
+      >
+    }
+    const where: TeacherWhere = { academyId: { in: viewIds }, role: 'TEACHER', isDeleted: false }
+    if (query) {
+      where.OR = [
+        { name: { contains: query, mode: 'insensitive' } },
+        { email: { contains: query, mode: 'insensitive' } },
+      ]
+    }
+    const [count, rows] = await Promise.all([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          createdAt: true,
+          taughtClasses: {
+            where: { isActive: true },
+            select: { id: true, name: true },
           },
-        }),
-      ])
-      return [count, rows.map((t) => ({ ...t, createdAt: t.createdAt.toISOString() }))] as const
-    },
-    ['owner-teachers-list', branchKey, query, String(page)],
-    { revalidate: 15, tags: [`academy-${branchKey}-teachers`, ...viewIds.map((id) => `academy-${id}-teachers`)] },
-  )()
+        },
+      }),
+    ])
+    return [count, rows.map((t) => ({ ...t, createdAt: t.createdAt.toISOString() }))] as const
+}
 
 export default async function OwnerTeachersPage({
   searchParams,
@@ -97,13 +86,12 @@ export default async function OwnerTeachersPage({
 
   const selectedBranchId = await getSelectedBranchId()
   const viewIds = await getViewableAcademyIds(user.id, selectedBranchId)
-  const branchKey = viewIds.join(',')
 
-  // 정적 데이터(캐싱)와 동적 쿼리(캐싱)를 병렬 실행
+  // 정적 데이터와 동적 쿼리를 병렬 실행
   const dataStart = performance.now()
   const [{ academy, totalTeachers }, [totalCount, teachers]] = await Promise.all([
-    getStaticTeachersPageData(user.academyId, viewIds, branchKey),
-    getDynamicTeachersData(viewIds, branchKey, query, page),
+    getStaticTeachersPageData(user.academyId, viewIds),
+    getDynamicTeachersData(viewIds, query, page),
   ])
   console.log(`  [쿼리2] getStaticTeachersPageData + getDynamicTeachersData: ${(performance.now() - dataStart).toFixed(0)}ms`)
 

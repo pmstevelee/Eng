@@ -1,89 +1,83 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { unstable_cache } from 'next/cache'
 import { ChevronLeft } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import TeacherDetailClient from './_components/teacher-detail-client'
 import type { TeacherPermissions } from '../actions'
 
-const getTeacherDetail = (academyId: string, teacherId: string) =>
-  unstable_cache(
-    async () => {
-      // teacher, allClasses, academy를 병렬로 조회
-      const [teacher, allClasses, academy] = await Promise.all([
-        prisma.user.findFirst({
-          where: { id: teacherId, academyId, role: 'TEACHER', isDeleted: false },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            createdAt: true,
-            taughtClasses: {
-              where: { isActive: true },
-              select: {
-                id: true,
-                name: true,
-                _count: { select: { students: true } },
-              },
-            },
-            _count: {
-              select: { createdTests: true },
+const getTeacherDetail = async (academyId: string, teacherId: string) => {
+    // teacher, allClasses, academy를 병렬로 조회
+    const [teacher, allClasses, academy] = await Promise.all([
+      prisma.user.findFirst({
+        where: { id: teacherId, academyId, role: 'TEACHER', isDeleted: false },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          createdAt: true,
+          taughtClasses: {
+            where: { isActive: true },
+            select: {
+              id: true,
+              name: true,
+              _count: { select: { students: true } },
             },
           },
-        }),
-        prisma.class.findMany({
-          where: { academyId, isActive: true },
-          select: { id: true, name: true, teacherId: true },
-          orderBy: { name: 'asc' },
-        }),
-        prisma.academy.findUnique({
-          where: { id: academyId },
-          select: { settingsJson: true },
-        }),
-      ])
-
-      if (!teacher) return null
-
-      // 중간 studentIds 쿼리 제거 — 중첩 where로 직접 집계
-      const classIds = teacher.taughtClasses.map((c) => c.id)
-      const avgScoreResult =
-        classIds.length > 0
-          ? await prisma.testSession.aggregate({
-              where: {
-                student: { classId: { in: classIds } },
-                status: 'GRADED',
-                score: { not: null },
-              },
-              _avg: { score: true },
-            })
-          : null
-
-      return {
-        teacher: {
-          id: teacher.id,
-          name: teacher.name,
-          email: teacher.email,
-          createdAt: teacher.createdAt.toISOString(),
-          taughtClasses: teacher.taughtClasses.map((c) => ({
-            id: c.id,
-            name: c.name,
-            studentCount: c._count.students,
-          })),
-          testCount: teacher._count.createdTests,
-          avgScore: avgScoreResult?._avg.score ?? null,
+          _count: {
+            select: { createdTests: true },
+          },
         },
-        allClasses: allClasses.map((c) => ({
+      }),
+      prisma.class.findMany({
+        where: { academyId, isActive: true },
+        select: { id: true, name: true, teacherId: true },
+        orderBy: { name: 'asc' },
+      }),
+      prisma.academy.findUnique({
+        where: { id: academyId },
+        select: { settingsJson: true },
+      }),
+    ])
+
+    if (!teacher) return null
+
+    // 중간 studentIds 쿼리 제거 — 중첩 where로 직접 집계
+    const classIds = teacher.taughtClasses.map((c) => c.id)
+    const avgScoreResult =
+      classIds.length > 0
+        ? await prisma.testSession.aggregate({
+            where: {
+              student: { classId: { in: classIds } },
+              status: 'GRADED',
+              score: { not: null },
+            },
+            _avg: { score: true },
+          })
+        : null
+
+    return {
+      teacher: {
+        id: teacher.id,
+        name: teacher.name,
+        email: teacher.email,
+        createdAt: teacher.createdAt.toISOString(),
+        taughtClasses: teacher.taughtClasses.map((c) => ({
           id: c.id,
           name: c.name,
-          currentTeacherId: c.teacherId,
+          studentCount: c._count.students,
         })),
-        settingsJson: (academy?.settingsJson as Record<string, unknown>) ?? {},
-      }
-    },
-    ['owner-teacher-detail', academyId, teacherId],
-    { revalidate: 30, tags: [`academy-${academyId}-teachers`, `teacher-${teacherId}`] },
-  )()
+        testCount: teacher._count.createdTests,
+        avgScore: avgScoreResult?._avg.score ?? null,
+      },
+      allClasses: allClasses.map((c) => ({
+        id: c.id,
+        name: c.name,
+        currentTeacherId: c.teacherId,
+      })),
+      settingsJson: (academy?.settingsJson as Record<string, unknown>) ?? {},
+    }
+}
 
 export default async function TeacherDetailPage({
   params,

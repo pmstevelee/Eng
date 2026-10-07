@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { unstable_cache } from 'next/cache'
 import { Users } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -18,128 +17,117 @@ type SearchParams = {
   page?: string
 }
 
-// 자주 바뀌지 않는 정적 데이터: 반 목록 + 학원 정보 + 전체 학생 수 (60초 캐싱)
-const getStaticStudentsPageData = (hqId: string, viewIds: string[], branchKey: string) =>
-  unstable_cache(
-    async () => {
-      const [classes, academy, totalStudents] = await Promise.all([
-        prisma.class.findMany({
-          where: { academyId: { in: viewIds }, isActive: true },
-          select: { id: true, name: true },
-          orderBy: { name: 'asc' },
-        }),
-        prisma.academy.findUnique({
-          where: { id: hqId },
-          select: { maxStudents: true, subscriptionStatus: true },
-        }),
-        prisma.student.count({
-          where: { user: { academyId: { in: viewIds }, isDeleted: false } },
-        }),
-      ])
-      return { classes, academy, totalStudents }
-    },
-    ['owner-students-static', branchKey],
-    { revalidate: 60, tags: [`academy-${hqId}-students`, ...viewIds.map((id) => `academy-${id}-students`)] },
-  )()
+// 정적 데이터: 반 목록 + 학원 정보 + 전체 학생 수 (매 요청 실시간 조회)
+const getStaticStudentsPageData = async (hqId: string, viewIds: string[]) => {
+    const [classes, academy, totalStudents] = await Promise.all([
+      prisma.class.findMany({
+        where: { academyId: { in: viewIds }, isActive: true },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
+      }),
+      prisma.academy.findUnique({
+        where: { id: hqId },
+        select: { maxStudents: true, subscriptionStatus: true },
+      }),
+      prisma.student.count({
+        where: { user: { academyId: { in: viewIds }, isDeleted: false } },
+      }),
+    ])
+    return { classes, academy, totalStudents }
+}
 
-// 동적 필터 쿼리 (15초 캐싱 — 탭/검색 반복 클릭 시 즉시 반환)
-const getDynamicStudentsData = (
+// 동적 필터 쿼리 (매 요청 실시간 조회)
+const getDynamicStudentsData = async (
   viewIds: string[],
-  branchKey: string,
   query: string,
   classIdFilter: string,
   statusFilter: string,
   page: number,
-) =>
-  unstable_cache(
-    async () => {
-      type StudentWhere = {
-        user: {
-          academyId: { in: string[] }
-          isDeleted: boolean
-          OR?: Array<{ name: { contains: string; mode: 'insensitive' } } | { email: { contains: string; mode: 'insensitive' } }>
-        }
-        classId?: string | null
-        status?: 'ACTIVE' | 'ON_LEAVE' | 'WITHDRAWN'
+) => {
+    type StudentWhere = {
+      user: {
+        academyId: { in: string[] }
+        isDeleted: boolean
+        OR?: Array<{ name: { contains: string; mode: 'insensitive' } } | { email: { contains: string; mode: 'insensitive' } }>
       }
+      classId?: string | null
+      status?: 'ACTIVE' | 'ON_LEAVE' | 'WITHDRAWN'
+    }
 
-      const where: StudentWhere = {
-        user: { academyId: { in: viewIds }, isDeleted: false },
-      }
+    const where: StudentWhere = {
+      user: { academyId: { in: viewIds }, isDeleted: false },
+    }
 
-      if (query) {
-        where.user.OR = [
-          { name: { contains: query, mode: 'insensitive' } },
-          { email: { contains: query, mode: 'insensitive' } },
-        ]
-      }
+    if (query) {
+      where.user.OR = [
+        { name: { contains: query, mode: 'insensitive' } },
+        { email: { contains: query, mode: 'insensitive' } },
+      ]
+    }
 
-      if (classIdFilter === 'unassigned') {
-        where.classId = null
-      } else if (classIdFilter) {
-        where.classId = classIdFilter
-      }
+    if (classIdFilter === 'unassigned') {
+      where.classId = null
+    } else if (classIdFilter) {
+      where.classId = classIdFilter
+    }
 
-      if (statusFilter === 'ACTIVE' || statusFilter === 'ON_LEAVE' || statusFilter === 'WITHDRAWN') {
-        where.status = statusFilter
-      }
+    if (statusFilter === 'ACTIVE' || statusFilter === 'ON_LEAVE' || statusFilter === 'WITHDRAWN') {
+      where.status = statusFilter
+    }
 
-      const [count, rows] = await Promise.all([
-        prisma.student.count({ where }),
-        prisma.student.findMany({
-          where,
-          orderBy: { user: { name: 'asc' } },
-          skip: (page - 1) * PAGE_SIZE,
-          take: PAGE_SIZE,
-          select: {
-            id: true,
-            currentLevel: true,
-            status: true,
-            createdAt: true,
-            classId: true,
-            grade: true,
-            parentPhone: true,
-            keypadCode: true,
-            class: { select: { id: true, name: true } },
-            user: { select: { name: true, email: true, lastLoginAt: true } },
-            riskSnapshot: { select: { level: true, reasons: true } },
-            testSessions: {
-              where: { status: { in: ['COMPLETED', 'GRADED'] } },
-              orderBy: { completedAt: 'desc' },
-              take: 1,
-              select: {
-                score: true,
-                grammarScore: true,
-                vocabularyScore: true,
-                readingScore: true,
-                listeningScore: true,
-                writingScore: true,
-                completedAt: true,
-              },
+    const [count, rows] = await Promise.all([
+      prisma.student.count({ where }),
+      prisma.student.findMany({
+        where,
+        orderBy: { user: { name: 'asc' } },
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+        select: {
+          id: true,
+          currentLevel: true,
+          status: true,
+          createdAt: true,
+          classId: true,
+          grade: true,
+          parentPhone: true,
+          keypadCode: true,
+          class: { select: { id: true, name: true } },
+          user: { select: { name: true, email: true, lastLoginAt: true } },
+          riskSnapshot: { select: { level: true, reasons: true } },
+          testSessions: {
+            where: { status: { in: ['COMPLETED', 'GRADED'] } },
+            orderBy: { completedAt: 'desc' },
+            take: 1,
+            select: {
+              score: true,
+              grammarScore: true,
+              vocabularyScore: true,
+              readingScore: true,
+              listeningScore: true,
+              writingScore: true,
+              completedAt: true,
             },
           },
-        }),
-      ])
+        },
+      }),
+    ])
 
-      const wordStats = await getStudentWordStats(rows.map((s) => s.id))
+    const wordStats = await getStudentWordStats(rows.map((s) => s.id))
 
-      return [
-        count,
-        rows.map((s) => ({
-          ...s,
-          createdAt: s.createdAt.toISOString(),
-          user: { ...s.user, lastLoginAt: s.user.lastLoginAt?.toISOString() ?? null },
-          latestTest: s.testSessions[0]
-            ? { ...s.testSessions[0], completedAt: s.testSessions[0].completedAt?.toISOString() ?? null }
-            : null,
-          wordStat: wordStats[s.id] ?? EMPTY_WORD_STAT,
-          risk: toRiskBadge(s.riskSnapshot, s.status),
-        })),
-      ] as const
-    },
-    ['owner-students-list', branchKey, query, classIdFilter, statusFilter, String(page)],
-    { revalidate: 15, tags: [`academy-${branchKey}-students`, ...viewIds.map((id) => `academy-${id}-students`)] },
-  )()
+    return [
+      count,
+      rows.map((s) => ({
+        ...s,
+        createdAt: s.createdAt.toISOString(),
+        user: { ...s.user, lastLoginAt: s.user.lastLoginAt?.toISOString() ?? null },
+        latestTest: s.testSessions[0]
+          ? { ...s.testSessions[0], completedAt: s.testSessions[0].completedAt?.toISOString() ?? null }
+          : null,
+        wordStat: wordStats[s.id] ?? EMPTY_WORD_STAT,
+        risk: toRiskBadge(s.riskSnapshot, s.status),
+      })),
+    ] as const
+}
 
 export default async function OwnerStudentsPage({
   searchParams,
@@ -162,13 +150,12 @@ export default async function OwnerStudentsPage({
 
   const selectedBranchId = await getSelectedBranchId()
   const viewIds = await getViewableAcademyIds(user.id, selectedBranchId)
-  const branchKey = viewIds.join(',')
 
-  // 정적 데이터(캐싱)와 동적 쿼리(캐싱)를 병렬 실행
+  // 정적 데이터와 동적 쿼리를 병렬 실행
   const dataStart = performance.now()
   const [{ classes, academy, totalStudents }, [totalCount, students]] = await Promise.all([
-    getStaticStudentsPageData(user.academyId, viewIds, branchKey),
-    getDynamicStudentsData(viewIds, branchKey, query, classIdFilter, statusFilter, page),
+    getStaticStudentsPageData(user.academyId, viewIds),
+    getDynamicStudentsData(viewIds, query, classIdFilter, statusFilter, page),
   ])
   console.log(`  [쿼리2] getStaticStudentsPageData + getDynamicStudentsData: ${(performance.now() - dataStart).toFixed(0)}ms`)
 

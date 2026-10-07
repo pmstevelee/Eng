@@ -1,6 +1,5 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { unstable_cache } from 'next/cache'
 import { Users, TrendingUp, FileCheck, BarChart2, ArrowUpRight, ArrowDownRight, Minus, AlertCircle } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -269,16 +268,6 @@ function TrendIcon({ delta }: { delta: number | null }) {
   return <Minus size={14} className="text-gray-400" />
 }
 
-// ─── Cached Data Fetcher (60초 TTL, academyId별 독립 캐시 + 태그 기반 무효화) ──
-
-function getCachedOwnerDashboardData(hqId: string, viewIds: string[], branchKey: string) {
-  return unstable_cache(
-    () => getOwnerDashboardData(viewIds),
-    [`owner-dashboard-${branchKey}`],
-    { revalidate: 60, tags: [`owner-${hqId}-dashboard`] }
-  )()
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function OwnerDashboard() {
@@ -292,7 +281,6 @@ export default async function OwnerDashboard() {
 
   const selectedBranchId = await getSelectedBranchId()
   const viewIds = await getViewableAcademyIds(user.id, selectedBranchId)
-  const branchKey = viewIds.join(',')
 
   const dataStart = performance.now()
   const {
@@ -303,8 +291,8 @@ export default async function OwnerDashboard() {
     domainData,
     recentSessions,
     atRiskStudents,
-  } = await getCachedOwnerDashboardData(user.academyId, viewIds, branchKey)
-  console.log(`  [쿼리2] getCachedOwnerDashboardData: ${(performance.now() - dataStart).toFixed(0)}ms`)
+  } = await getOwnerDashboardData(viewIds)
+  console.log(`  [쿼리2] getOwnerDashboardData: ${(performance.now() - dataStart).toFixed(0)}ms`)
 
   const totalTime = performance.now() - pageStart
   console.log(`📊 [OwnerDashboard] 전체 서버 시간: ${totalTime.toFixed(0)}ms`)

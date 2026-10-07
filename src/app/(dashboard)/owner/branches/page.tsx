@@ -1,46 +1,40 @@
 import { redirect } from 'next/navigation'
-import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { getOwnerBranches } from '@/lib/branch'
 import { PLANS } from '@/lib/pricing'
 import { BranchesClient } from './_components/branches-client'
 
-// 본원+지점 통계를 단일 병렬 웨이브(4쿼리)로 조회하고 60초 캐싱한다.
+// 본원+지점 통계를 단일 병렬 웨이브(4쿼리)로 매 요청 실시간 조회한다.
 // (기존: 지점별 count 쿼리를 순차 웨이브로 실행해 원격 DB에서 4초 이상 소요)
-const getCachedBranchStats = (ownerId: string, allIds: string[]) =>
-  unstable_cache(
-    async () => {
-      const [studentGroups, teacherGroups, classGroups, academyDetails] = await Promise.all([
-        // 학원별 활성 학생 수
-        prisma.user.groupBy({
-          by: ['academyId'],
-          where: { academyId: { in: allIds }, student: { status: 'ACTIVE' } },
-          _count: { id: true },
-        }),
-        // 학원별 교사 수
-        prisma.user.groupBy({
-          by: ['academyId'],
-          where: { academyId: { in: allIds }, role: 'TEACHER', isDeleted: false },
-          _count: { id: true },
-        }),
-        // 학원별 활성 반 수
-        prisma.class.groupBy({
-          by: ['academyId'],
-          where: { academyId: { in: allIds }, isActive: true },
-          _count: { id: true },
-        }),
-        // 주소/전화번호
-        prisma.academy.findMany({
-          where: { id: { in: allIds } },
-          select: { id: true, address: true, phone: true },
-        }),
-      ])
-      return { studentGroups, teacherGroups, classGroups, academyDetails }
-    },
-    ['owner-branch-stats', ownerId, allIds.join(',')],
-    { revalidate: 60, tags: [`owner-${ownerId}-branches`] },
-  )()
+const getBranchStats = async (allIds: string[]) => {
+    const [studentGroups, teacherGroups, classGroups, academyDetails] = await Promise.all([
+      // 학원별 활성 학생 수
+      prisma.user.groupBy({
+        by: ['academyId'],
+        where: { academyId: { in: allIds }, student: { status: 'ACTIVE' } },
+        _count: { id: true },
+      }),
+      // 학원별 교사 수
+      prisma.user.groupBy({
+        by: ['academyId'],
+        where: { academyId: { in: allIds }, role: 'TEACHER', isDeleted: false },
+        _count: { id: true },
+      }),
+      // 학원별 활성 반 수
+      prisma.class.groupBy({
+        by: ['academyId'],
+        where: { academyId: { in: allIds }, isActive: true },
+        _count: { id: true },
+      }),
+      // 주소/전화번호
+      prisma.academy.findMany({
+        where: { id: { in: allIds } },
+        select: { id: true, address: true, phone: true },
+      }),
+    ])
+    return { studentGroups, teacherGroups, classGroups, academyDetails }
+}
 
 export default async function BranchesPage() {
   const user = await getCurrentUser()
@@ -54,7 +48,7 @@ export default async function BranchesPage() {
 
   const allIds = [hq.id, ...branches.map((b) => b.id)]
   const { studentGroups, teacherGroups, classGroups, academyDetails } =
-    await getCachedBranchStats(user.id, allIds)
+    await getBranchStats(allIds)
 
   const countByAcademy = (groups: { academyId: string | null; _count: { id: number } }[]) => {
     const map = new Map<string, number>()

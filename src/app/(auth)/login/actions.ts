@@ -5,7 +5,6 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import { primeAuthCache, invalidateAuthCache, getUserRecordCached } from '@/lib/auth'
-import { warmOwnerBranchesCache } from '@/lib/branch'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import type { Role } from '@/types'
@@ -47,15 +46,10 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
   try {
     // getCurrentUser와 같은 캐시를 사용해 로그인 시 조회 결과를
     // 이어지는 대시보드 렌더에서 그대로 재사용한다 (DB 왕복 1회 절약).
-    // 학원장 본원/지점 캐시도 같은 웨이브에서 병렬로 채워 OwnerLayout의
-    // 순차 DB 왕복을 제거한다 (User.id === Academy.ownerId).
     const dbStart = performance.now()
-    const [user] = await Promise.all([
-      getUserRecordCached(authUserId),
-      warmOwnerBranchesCache(authUserId),
-    ])
+    const user = await getUserRecordCached(authUserId)
     console.log(
-      `📊 [signIn] auth: ${authMs}ms | db(user+branches 병렬): ${Math.round(performance.now() - dbStart)}ms`,
+      `📊 [signIn] auth: ${authMs}ms | db(user): ${Math.round(performance.now() - dbStart)}ms`,
     )
 
     if (!user) {
