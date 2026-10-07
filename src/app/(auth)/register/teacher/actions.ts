@@ -2,6 +2,7 @@
 
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { revalidateTag } from 'next/cache'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 
@@ -30,13 +31,17 @@ export async function registerTeacher(
     return { error: 'DB 연결 오류가 발생했습니다.' }
   }
 
+  // 학원장 화면 캐시 무효화에 쓰는 본원 ID (지점 가입이면 본원)
+  let hqId = data.academyId
+
   // 교사 정원 체크
   try {
     const academy = await prisma.academy.findUnique({
       where: { id: data.academyId },
-      select: { maxTeachers: true },
+      select: { maxTeachers: true, parentAcademyId: true },
     })
     if (!academy) return { error: '학원 정보를 찾을 수 없습니다.' }
+    hqId = academy.parentAcademyId ?? data.academyId
 
     const currentCount = await prisma.user.count({
       where: { academyId: data.academyId, role: 'TEACHER', isDeleted: false },
@@ -98,6 +103,11 @@ export async function registerTeacher(
     console.error('[registerTeacher]', err)
     return { error: '가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
   }
+
+  // 학원장 교사/학생 목록·대시보드 캐시가 새 가입자를 즉시 반영하도록 무효화
+  revalidateTag(`academy-${data.academyId}-teachers`)
+  revalidateTag(`owner-${hqId}-dashboard`)
+  revalidateTag(`academy-${hqId}-analytics`)
 
   redirect('/teacher')
 }

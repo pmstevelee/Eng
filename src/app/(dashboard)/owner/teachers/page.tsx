@@ -30,7 +30,7 @@ const getStaticTeachersPageData = (hqId: string, viewIds: string[], branchKey: s
       return { academy, totalTeachers }
     },
     ['owner-teachers-static', branchKey],
-    { revalidate: 60, tags: [`academy-${hqId}-teachers`] },
+    { revalidate: 60, tags: [`academy-${hqId}-teachers`, ...viewIds.map((id) => `academy-${id}-teachers`)] },
   )()
 
 // 동적 필터 쿼리 (15초 캐싱 — 탭/검색 반복 클릭 시 즉시 반환)
@@ -75,7 +75,7 @@ const getDynamicTeachersData = (viewIds: string[], branchKey: string, query: str
       return [count, rows.map((t) => ({ ...t, createdAt: t.createdAt.toISOString() }))] as const
     },
     ['owner-teachers-list', branchKey, query, String(page)],
-    { revalidate: 15, tags: [`academy-${branchKey}-teachers`] },
+    { revalidate: 15, tags: [`academy-${branchKey}-teachers`, ...viewIds.map((id) => `academy-${id}-teachers`)] },
   )()
 
 export default async function OwnerTeachersPage({

@@ -39,7 +39,7 @@ const getStaticStudentsPageData = (hqId: string, viewIds: string[], branchKey: s
       return { classes, academy, totalStudents }
     },
     ['owner-students-static', branchKey],
-    { revalidate: 60, tags: [`academy-${hqId}-students`] },
+    { revalidate: 60, tags: [`academy-${hqId}-students`, ...viewIds.map((id) => `academy-${id}-students`)] },
   )()
 
 // 동적 필터 쿼리 (15초 캐싱 — 탭/검색 반복 클릭 시 즉시 반환)
@@ -138,7 +138,7 @@ const getDynamicStudentsData = (
       ] as const
     },
     ['owner-students-list', branchKey, query, classIdFilter, statusFilter, String(page)],
-    { revalidate: 15, tags: [`academy-${branchKey}-students`] },
+    { revalidate: 15, tags: [`academy-${branchKey}-students`, ...viewIds.map((id) => `academy-${id}-students`)] },
   )()
 
 export default async function OwnerStudentsPage({
