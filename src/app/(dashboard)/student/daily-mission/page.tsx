@@ -41,7 +41,7 @@ export default async function DailyLearningPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="space-y-6">
       <div className="flex items-start gap-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#7854F7]">
           <Target size={22} className="text-white" />

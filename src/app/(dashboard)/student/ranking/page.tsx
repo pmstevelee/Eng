@@ -52,7 +52,7 @@ export default async function StudentRankingPage({ searchParams }: Props) {
   const hrefFor = (p: RankingPeriod, s: RankingScope) => `/student/ranking?period=${p}&scope=${s}`
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="space-y-6">
       <div className="flex items-start gap-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#FFB100]">
           <Trophy size={22} className="text-white" />

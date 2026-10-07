@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function RankingLoading() {
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="space-y-4">
       <div className="flex items-start gap-4">
         <Skeleton className="h-12 w-12 shrink-0 rounded-xl" />
         <div className="flex-1 space-y-2">
