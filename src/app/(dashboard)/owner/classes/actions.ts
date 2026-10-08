@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma/client'
 import { revalidatePath } from 'next/cache'
 import type { Prisma } from '@/generated/prisma'
 import { getCurrentUser } from '@/lib/auth'
+import { revalidateTeacherClassViews } from '@/lib/students/revalidate-teacher-views'
 import { BRANCH_ALL, getOwnerAcademyIds, getSelectedBranchId } from '@/lib/branch'
 
 // ─── Shared types ─────────────────────────────────────────────────────────────
@@ -45,6 +46,15 @@ function buildLevelRange(start: number, end: number): string {
   return start === end ? `Level ${start}` : `Level ${start}-${end}`
 }
 
+// 교사 대시보드는 교사 소속 학원의 반만 표시하므로 같은 학원 교사만 담당 지정
+async function isTeacherOfAcademy(teacherId: string, academyId: string) {
+  const teacher = await prisma.user.findFirst({
+    where: { id: teacherId, academyId, role: 'TEACHER', isDeleted: false },
+    select: { id: true },
+  })
+  return !!teacher
+}
+
 // ─── Class CRUD ───────────────────────────────────────────────────────────────
 
 export async function createClass(
@@ -59,12 +69,8 @@ export async function createClass(
     selectedBranchId !== BRANCH_ALL && owner.academyIds.includes(selectedBranchId)
       ? selectedBranchId
       : owner.academyId
-  if (input.teacherId) {
-    const teacher = await prisma.user.findFirst({
-      where: { id: input.teacherId, academyId: { in: owner.academyIds }, role: 'TEACHER', isDeleted: false },
-      select: { id: true },
-    })
-    if (!teacher) return { error: '담당 교사를 찾을 수 없습니다.' }
+  if (input.teacherId && !(await isTeacherOfAcademy(input.teacherId, academyId))) {
+    return { error: '반과 같은 학원(지점) 소속 교사만 담당으로 지정할 수 있습니다.' }
   }
 
   const cls = await prisma.class.create({
@@ -77,6 +83,7 @@ export async function createClass(
     },
   })
 
+  await revalidateTeacherClassViews([cls.id])
   revalidatePath('/owner/classes')
   return { id: cls.id }
 }
@@ -92,12 +99,8 @@ export async function updateClass(
     where: { id: classId, academyId: { in: owner.academyIds } },
   })
   if (!cls) return { error: '반을 찾을 수 없습니다.' }
-  if (input.teacherId) {
-    const teacher = await prisma.user.findFirst({
-      where: { id: input.teacherId, academyId: { in: owner.academyIds }, role: 'TEACHER', isDeleted: false },
-      select: { id: true },
-    })
-    if (!teacher) return { error: '담당 교사를 찾을 수 없습니다.' }
+  if (input.teacherId && !(await isTeacherOfAcademy(input.teacherId, cls.academyId))) {
+    return { error: '반과 같은 학원(지점) 소속 교사만 담당으로 지정할 수 있습니다.' }
   }
 
   await prisma.class.update({
@@ -110,6 +113,8 @@ export async function updateClass(
     },
   })
 
+  // 이전·새 담당 교사 화면 모두 갱신
+  await revalidateTeacherClassViews([classId], [cls.teacherId])
   revalidatePath('/owner/classes')
   revalidatePath(`/owner/classes/${classId}`)
   return {}
@@ -129,6 +134,7 @@ export async function toggleClassActive(classId: string): Promise<{ error?: stri
     data: { isActive: !cls.isActive },
   })
 
+  await revalidateTeacherClassViews([classId])
   revalidatePath('/owner/classes')
   return {}
 }
@@ -147,6 +153,7 @@ export async function deleteClass(classId: string): Promise<{ error?: string }> 
     prisma.class.delete({ where: { id: classId } }),
   ])
 
+  await revalidateTeacherClassViews([], [cls.teacherId])
   revalidatePath('/owner/classes')
   return {}
 }
@@ -170,6 +177,7 @@ export async function addStudentToClass(
 
   await prisma.student.update({ where: { id: studentId }, data: { classId } })
 
+  await revalidateTeacherClassViews([classId, student.classId])
   revalidatePath(`/owner/classes/${classId}`)
   if (student.classId && student.classId !== classId) revalidatePath(`/owner/classes/${student.classId}`)
   revalidatePath('/owner/students')
@@ -195,6 +203,7 @@ export async function moveStudentToClass(
 
   await prisma.student.update({ where: { id: studentId }, data: { classId: targetClassId } })
 
+  await revalidateTeacherClassViews([fromClassId, targetClassId, student.classId])
   revalidatePath(`/owner/classes/${fromClassId}`)
   revalidatePath(`/owner/classes/${targetClassId}`)
   revalidatePath('/owner/students')
@@ -214,6 +223,7 @@ export async function removeStudentFromClass(
     data: { classId: null },
   })
 
+  await revalidateTeacherClassViews([classId])
   revalidatePath(`/owner/classes/${classId}`)
   revalidatePath('/owner/students')
   revalidatePath('/owner/classes')
@@ -235,6 +245,11 @@ export async function applyAutoAssign(
   })
   const classAcademy = new Map(classes.map((c) => [c.id, c.academyId]))
 
+  const previous = await prisma.student.findMany({
+    where: { id: { in: assignments.map((a) => a.studentId) } },
+    select: { classId: true },
+  })
+
   await prisma.$transaction(
     assignments
       .filter(({ classId }) => classAcademy.has(classId))
@@ -246,6 +261,7 @@ export async function applyAutoAssign(
       ),
   )
 
+  await revalidateTeacherClassViews([...classes.map((c) => c.id), ...previous.map((p) => p.classId)])
   revalidatePath('/owner/classes')
   revalidatePath('/owner/students')
   return {}

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma/client'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
+import { revalidateTeacherClassViews } from '@/lib/students/revalidate-teacher-views'
 import { BRANCH_ALL, getOwnerAcademyIds, getSelectedBranchId } from '@/lib/branch'
 import { createStudentAccount } from '@/lib/students/create-student-account'
 import { isValidParentMobile, keypadCodeFor } from '@/lib/attendance/constants'
@@ -51,6 +52,7 @@ export async function updateStudentClass(
     data: { classId },
   })
 
+  await revalidateTeacherClassViews([student.classId, classId])
   revalidateTag(`academy-${owner.academyId}-students`)
   revalidatePath('/owner/students')
   revalidatePath(`/owner/students/${studentId}`)
@@ -82,6 +84,8 @@ export async function updateStudentStatus(
     },
   })
 
+  // 교사 학생 목록은 재원 학생만 표시하므로 담당 교사 화면도 갱신
+  await revalidateTeacherClassViews([student.classId])
   revalidateTag(`academy-${owner.academyId}-students`)
   revalidatePath('/owner/students')
   revalidatePath(`/owner/students/${studentId}`)
@@ -164,6 +168,7 @@ export async function createStudent(data: {
 
   const result = await createStudentAccount({ ...data, academyId })
   if (result.studentId) {
+    await revalidateTeacherClassViews([data.classId])
     revalidateTag(`academy-${owner.academyId}-students`)
     revalidatePath('/owner/students')
   }
