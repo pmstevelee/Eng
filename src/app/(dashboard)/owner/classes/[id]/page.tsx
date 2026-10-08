@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
-import { unstable_cache } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
+import { getOwnerAcademyIds } from '@/lib/branch'
 import { prisma } from '@/lib/prisma/client'
 import ClassDetailClient from './_components/class-detail-client'
 import type { ScheduleData } from '../actions'
@@ -34,17 +34,14 @@ function avgOf(vals: (number | null)[]): number {
     : 0
 }
 
-const getClassDetail = (academyId: string, classId: string) => {
-  const sixMonthsAgo = new Date()
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-  const sixMonthsAgoStr = sixMonthsAgo.toISOString()
-
-  return unstable_cache(
-    async () => {
-      const sixMonths = new Date(sixMonthsAgoStr)
+// 학생 반 배정 변경이 즉시 반영되도록 매 요청 실시간 조회한다.
+// academyIds: 학원장의 본원 + 지점 (지점 반 상세도 조회 가능)
+const getClassDetail = async (academyIds: string[], classId: string) => {
+      const sixMonths = new Date()
+      sixMonths.setMonth(sixMonths.getMonth() - 6)
       const [cls, allSessions, domainSessions, unassignedStudents, allClasses] = await Promise.all([
         prisma.class.findFirst({
-          where: { id: classId, academyId },
+          where: { id: classId, academyId: { in: academyIds } },
           include: {
             teacher: { select: { id: true, name: true } },
             students: {
@@ -85,13 +82,13 @@ const getClassDetail = (academyId: string, classId: string) => {
           take: 100,
         }),
         prisma.student.findMany({
-          where: { classId: null, status: 'ACTIVE', user: { academyId, isDeleted: false } },
-          select: { id: true, currentLevel: true, user: { select: { name: true } } },
+          where: { classId: null, status: 'ACTIVE', user: { academyId: { in: academyIds }, isDeleted: false } },
+          select: { id: true, currentLevel: true, user: { select: { name: true, academyId: true } } },
           orderBy: { user: { name: 'asc' } },
         }),
         prisma.class.findMany({
-          where: { academyId, isActive: true, id: { not: classId } },
-          select: { id: true, name: true },
+          where: { academyId: { in: academyIds }, isActive: true, id: { not: classId } },
+          select: { id: true, name: true, academyId: true },
           orderBy: { name: 'asc' },
         }),
       ])
@@ -119,17 +116,18 @@ const getClassDetail = (academyId: string, classId: string) => {
           completedAt: s.completedAt?.toISOString() ?? null,
         })),
         domainSessions,
-        unassignedStudents: unassignedStudents.map((s) => ({
+        // 배정 후보·이동 대상은 반과 같은 학원(본원/지점)으로 한정
+        unassignedStudents: unassignedStudents
+          .filter((s) => s.user.academyId === cls.academyId)
+          .map((s) => ({
           id: s.id,
           name: s.user.name,
           level: s.currentLevel,
         })),
-        allClasses: allClasses.map((c) => ({ id: c.id, name: c.name })),
+        allClasses: allClasses
+          .filter((c) => c.academyId === cls.academyId)
+          .map((c) => ({ id: c.id, name: c.name })),
       }
-    },
-    ['owner-class-detail', academyId, classId],
-    { revalidate: 30, tags: [`academy-${academyId}-classes`, `class-${classId}`] },
-  )()
 }
 
 export default async function ClassDetailPage({
@@ -141,12 +139,13 @@ export default async function ClassDetailPage({
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) redirect('/login')
 
   const { id: classId } = await params
+  const ownerIds = await getOwnerAcademyIds(user.id)
+  const academyIds = ownerIds.length > 0 ? ownerIds : [user.academyId]
 
-  // 시간표는 저장 직후 반영되도록 캐시 밖에서 조회
   const [data, scheduleRows] = await Promise.all([
-    getClassDetail(user.academyId, classId),
+    getClassDetail(academyIds, classId),
     prisma.classSchedule.findMany({
-      where: { classId, class: { academyId: user.academyId } },
+      where: { classId, class: { academyId: { in: academyIds } } },
       select: { dayOfWeek: true, startTime: true, endTime: true },
     }),
   ])

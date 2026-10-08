@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { unstable_cache } from 'next/cache'
 import { BookOpen, Sparkles } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -19,10 +18,9 @@ function parseSchedule(json: unknown): ScheduleData | null {
   }
 }
 
-const getClassesPageData = (viewIds: string[], branchKey: string) =>
-  unstable_cache(
-    async () => {
-      return Promise.all([
+// 학생 반 배정 변경이 즉시 반영되도록 매 요청 실시간 조회한다.
+const getClassesPageData = (viewIds: string[]) =>
+      Promise.all([
         prisma.class.findMany({
           where: { academyId: { in: viewIds } },
           orderBy: { createdAt: 'desc' },
@@ -48,10 +46,6 @@ const getClassesPageData = (viewIds: string[], branchKey: string) =>
           orderBy: { name: 'asc' },
         }),
       ])
-    },
-    ['owner-classes', branchKey],
-    { revalidate: 60 },
-  )()
 
 export default async function OwnerClassesPage() {
   const pageStart = performance.now()
@@ -63,10 +57,9 @@ export default async function OwnerClassesPage() {
 
   const selectedBranchId = await getSelectedBranchId()
   const viewIds = await getViewableAcademyIds(user.id, selectedBranchId)
-  const branchKey = viewIds.join(',')
 
   const dataStart = performance.now()
-  const [classes, teachers] = await getClassesPageData(viewIds, branchKey)
+  const [classes, teachers] = await getClassesPageData(viewIds)
   console.log(`  [쿼리2] getClassesPageData: ${(performance.now() - dataStart).toFixed(0)}ms`)
 
   const totalTime = performance.now() - pageStart

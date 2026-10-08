@@ -2,15 +2,17 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, BookOpen, FileDown, MessagesSquare } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
+import { getOwnerAcademyIds } from '@/lib/branch'
 import { prisma } from '@/lib/prisma/client'
 import { StudentConsultationPanel } from '@/components/shared/consultation/student-consultation-panel'
 import { getStudentRiskBadge } from '@/lib/consultation/risk-queries'
 import StudentDetailClient from './_components/student-detail-client'
 
-const getStudentDetail = async (academyId: string, studentId: string) => {
+// academyIds: 학원장의 본원 + 지점 (지점 학생 상세도 조회 가능)
+const getStudentDetail = async (academyIds: string[], studentId: string) => {
     const [student, classes] = await Promise.all([
       prisma.student.findFirst({
-        where: { id: studentId, user: { academyId, isDeleted: false } },
+        where: { id: studentId, user: { academyId: { in: academyIds }, isDeleted: false } },
         select: {
           id: true,
           currentLevel: true,
@@ -18,7 +20,7 @@ const getStudentDetail = async (academyId: string, studentId: string) => {
           classId: true,
           createdAt: true,
           class: { select: { id: true, name: true } },
-          user: { select: { name: true, email: true, createdAt: true } },
+          user: { select: { name: true, email: true, createdAt: true, academyId: true } },
           lead: { select: { id: true } },
           testSessions: {
             orderBy: { startedAt: 'desc' },
@@ -50,12 +52,16 @@ const getStudentDetail = async (academyId: string, studentId: string) => {
         },
       }),
       prisma.class.findMany({
-        where: { academyId, isActive: true },
-        select: { id: true, name: true },
+        where: { academyId: { in: academyIds }, isActive: true },
+        select: { id: true, name: true, academyId: true },
         orderBy: { name: 'asc' },
       }),
     ])
     if (!student) return null
+    // 반 선택지는 학생이 속한 학원(본원/지점)의 반만
+    const studentClasses = classes
+      .filter((c) => c.academyId === student.user.academyId)
+      .map((c) => ({ id: c.id, name: c.name }))
     return {
       student: {
         ...student,
@@ -74,7 +80,7 @@ const getStudentDetail = async (academyId: string, studentId: string) => {
           assessedAt: a.assessedAt.toISOString(),
         })),
       },
-      classes,
+      classes: studentClasses,
     }
 }
 
@@ -88,7 +94,10 @@ export default async function StudentDetailPage({
 
   const { id: studentId } = await params
 
-  const [data, risk] = await Promise.all([getStudentDetail(owner.academyId, studentId), getStudentRiskBadge(studentId)])
+  const ownerIds = await getOwnerAcademyIds(owner.id)
+  const academyIds = ownerIds.length > 0 ? ownerIds : [owner.academyId]
+
+  const [data, risk] = await Promise.all([getStudentDetail(academyIds, studentId), getStudentRiskBadge(studentId)])
   if (!data) notFound()
 
   const { student, classes } = data

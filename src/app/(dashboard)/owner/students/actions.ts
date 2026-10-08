@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma/client'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
+import { BRANCH_ALL, getOwnerAcademyIds, getSelectedBranchId } from '@/lib/branch'
 import { createStudentAccount } from '@/lib/students/create-student-account'
 import { isValidParentMobile, keypadCodeFor } from '@/lib/attendance/constants'
 
@@ -15,10 +16,12 @@ function getAdminClient() {
   )
 }
 
+// 학원장이 관리하는 본원 + 모든 지점 ID를 함께 반환 (지점 학생도 관리 가능)
 async function getOwner() {
   const user = await getCurrentUser()
   if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return null
-  return user
+  const ids = await getOwnerAcademyIds(user.id)
+  return { ...user, academyId: user.academyId, academyIds: ids.length > 0 ? ids : [user.academyId] }
 }
 
 export async function updateStudentClass(
@@ -29,9 +32,19 @@ export async function updateStudentClass(
   if (!owner) return { error: '권한이 없습니다.' }
 
   const student = await prisma.student.findFirst({
-    where: { id: studentId, user: { academyId: owner.academyId! } },
+    where: { id: studentId, user: { academyId: { in: owner.academyIds } } },
+    select: { classId: true, user: { select: { academyId: true } } },
   })
   if (!student) return { error: '학생을 찾을 수 없습니다.' }
+
+  if (classId) {
+    // 학생과 같은 학원(본원/지점)의 반에만 배정
+    const cls = await prisma.class.findFirst({
+      where: { id: classId, academyId: student.user.academyId ?? '' },
+      select: { id: true },
+    })
+    if (!cls) return { error: '학생이 속한 학원(지점)의 반만 선택할 수 있습니다.' }
+  }
 
   await prisma.student.update({
     where: { id: studentId },
@@ -41,6 +54,10 @@ export async function updateStudentClass(
   revalidateTag(`academy-${owner.academyId}-students`)
   revalidatePath('/owner/students')
   revalidatePath(`/owner/students/${studentId}`)
+  // 반 관리 목록·상세(이전 반/새 반)에도 즉시 반영
+  revalidatePath('/owner/classes')
+  if (student.classId) revalidatePath(`/owner/classes/${student.classId}`)
+  if (classId) revalidatePath(`/owner/classes/${classId}`)
   return {}
 }
 
@@ -52,7 +69,7 @@ export async function updateStudentStatus(
   if (!owner) return { error: '권한이 없습니다.' }
 
   const student = await prisma.student.findFirst({
-    where: { id: studentId, user: { academyId: owner.academyId! } },
+    where: { id: studentId, user: { academyId: { in: owner.academyIds } } },
   })
   if (!student) return { error: '학생을 찾을 수 없습니다.' }
 
@@ -79,7 +96,7 @@ export async function updateStudentLevel(
   if (!owner) return { error: '권한이 없습니다.' }
 
   const student = await prisma.student.findFirst({
-    where: { id: studentId, user: { academyId: owner.academyId! } },
+    where: { id: studentId, user: { academyId: { in: owner.academyIds } } },
   })
   if (!student) return { error: '학생을 찾을 수 없습니다.' }
 
@@ -101,7 +118,7 @@ export async function removeStudentFromAcademy(
   if (!owner) return { error: '권한이 없습니다.' }
 
   const student = await prisma.student.findFirst({
-    where: { id: studentId, user: { academyId: owner.academyId! } },
+    where: { id: studentId, user: { academyId: { in: owner.academyIds } } },
     select: { userId: true },
   })
   if (!student) return { error: '학생을 찾을 수 없습니다.' }
@@ -131,7 +148,21 @@ export async function createStudent(data: {
   const owner = await getOwner()
   if (!owner) return { error: '권한이 없습니다.' }
 
-  const result = await createStudentAccount({ ...data, academyId: owner.academyId! })
+  // 반을 선택했으면 그 반의 학원(본원/지점), 아니면 선택된 지점(통합 보기면 본원)에 등록
+  let academyId = owner.academyId
+  if (data.classId) {
+    const cls = await prisma.class.findFirst({
+      where: { id: data.classId, academyId: { in: owner.academyIds } },
+      select: { academyId: true },
+    })
+    if (!cls) return { error: '반을 찾을 수 없습니다.' }
+    academyId = cls.academyId
+  } else {
+    const selectedBranchId = await getSelectedBranchId()
+    if (selectedBranchId !== BRANCH_ALL && owner.academyIds.includes(selectedBranchId)) academyId = selectedBranchId
+  }
+
+  const result = await createStudentAccount({ ...data, academyId })
   if (result.studentId) {
     revalidateTag(`academy-${owner.academyId}-students`)
     revalidatePath('/owner/students')
@@ -160,7 +191,7 @@ export async function updateStudentProfile(
   }
 
   const student = await prisma.student.findFirst({
-    where: { id: studentId, user: { academyId: owner.academyId! } },
+    where: { id: studentId, user: { academyId: { in: owner.academyIds } } },
     select: { userId: true, user: { select: { email: true } } },
   })
   if (!student) return { error: '학생을 찾을 수 없습니다.' }
@@ -213,7 +244,7 @@ export async function deleteStudent(studentId: string): Promise<{ error?: string
   if (!owner) return { error: '권한이 없습니다.' }
 
   const student = await prisma.student.findFirst({
-    where: { id: studentId, user: { academyId: owner.academyId! } },
+    where: { id: studentId, user: { academyId: { in: owner.academyIds } } },
     select: { userId: true },
   })
   if (!student) return { error: '학생을 찾을 수 없습니다.' }
