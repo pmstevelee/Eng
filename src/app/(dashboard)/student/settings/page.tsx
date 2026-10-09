@@ -21,8 +21,9 @@ const getCachedSettingsUser = (userId: string) =>
   )()
 
 export default async function StudentSettingsPage() {
-  const { userId } = await requireStudent()
+  const { userId, user: currentUser } = await requireStudent()
   const user = await getCachedSettingsUser(userId)
+  const isMultiAcademy = currentUser.academies.length > 1
   if (!user) return null
 
   const academyName = user.academy?.businessName ?? user.academy?.name ?? '-'
@@ -72,6 +73,12 @@ export default async function StudentSettingsPage() {
           계정을 탈퇴하면 내 모든 학습 기록, 성적, 배지 등 관련 데이터가 영구적으로 삭제됩니다.
           이 작업은 되돌릴 수 없습니다.
         </p>
+        {isMultiAcademy && (
+          <p className="text-sm text-gray-700 mb-4">
+            여러 학원에 가입된 계정이므로 <strong>{academyName}</strong>의 데이터만 삭제되며,
+            다른 학원은 같은 이메일로 계속 이용할 수 있습니다.
+          </p>
+        )}
         <WithdrawModal />
       </div>
     </div>

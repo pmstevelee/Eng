@@ -25,7 +25,7 @@ export async function getNotifications(limit = 30): Promise<{
   if (!user) return { notifications: [], unreadCount: 0 }
 
   const notifications = await prisma.notification.findMany({
-    where: { userId: user.authId },
+    where: { userId: user.id },
     orderBy: { createdAt: 'desc' },
     take: limit,
     select: {
@@ -49,10 +49,10 @@ export async function markNotificationRead(notificationId: string) {
   if (!user) return
 
   await prisma.notification.updateMany({
-    where: { id: notificationId, userId: user.authId },
+    where: { id: notificationId, userId: user.id },
     data: { isRead: true },
   })
-  revalidateTag(`notifications-${user.authId}`)
+  revalidateTag(`notifications-${user.id}`)
   revalidatePath('/', 'layout')
 }
 
@@ -61,9 +61,9 @@ export async function markAllNotificationsRead() {
   if (!user) return
 
   await prisma.notification.updateMany({
-    where: { userId: user.authId, isRead: false },
+    where: { userId: user.id, isRead: false },
     data: { isRead: true },
   })
-  revalidateTag(`notifications-${user.authId}`)
+  revalidateTag(`notifications-${user.id}`)
   revalidatePath('/', 'layout')
 }

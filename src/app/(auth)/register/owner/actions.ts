@@ -1,8 +1,8 @@
 'use server'
 
-import { cookies } from 'next/headers'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
+import { emailEquals, setSessionProfileCookies } from '@/lib/account/multi-academy'
 import { getPlanTypeLimits, isSelectablePlanType } from '@/lib/plan-types'
 
 function generateInviteCode(): string {
@@ -34,8 +34,9 @@ export async function registerOwner(data: RegisterOwnerData): Promise<RegisterOw
 
   // 이메일 중복 체크
   try {
-    const existing = await prisma.user.findUnique({
-      where: { email: data.email },
+    // 교사·학생으로 쓰는 이메일도 학원장으로는 가입할 수 없다 (역할 혼합 금지)
+    const existing = await prisma.user.findFirst({
+      where: { email: emailEquals(data.email) },
       select: { id: true },
     })
     if (existing) return { error: '이미 사용 중인 이메일입니다.' }
@@ -85,6 +86,7 @@ export async function registerOwner(data: RegisterOwnerData): Promise<RegisterOw
       const user = await tx.user.create({
         data: {
           id: userId,
+          authId: userId,
           role: 'ACADEMY_OWNER',
           name: data.name,
           email: data.email,
@@ -106,14 +108,7 @@ export async function registerOwner(data: RegisterOwnerData): Promise<RegisterOw
     const supabase = await createClient()
     await supabase.auth.signInWithPassword({ email: data.email, password: data.password })
 
-    const cookieStore = await cookies()
-    cookieStore.set('user-role', 'ACADEMY_OWNER', {
-      path: '/',
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7,
-    })
+    await setSessionProfileCookies('ACADEMY_OWNER', userId)
 
     return { inviteCode }
   } catch (err) {

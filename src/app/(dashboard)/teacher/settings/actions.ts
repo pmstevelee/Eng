@@ -1,9 +1,12 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
+import { revalidateTag } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
+import { ACTIVE_PROFILE_COOKIE, deleteAuthIfNoProfiles } from '@/lib/account/multi-academy'
 
 export async function withdrawTeacher(
   formData: FormData,
@@ -65,9 +68,16 @@ export async function withdrawTeacher(
     return { error: '탈퇴 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
   }
 
-  // Supabase Auth 계정 삭제
-  const adminClient = await createAdminClient()
-  await adminClient.auth.admin.deleteUser(userId)
+  // 다른 학원에도 가입된 계정이면 이 학원 프로필만 삭제하고 남은 학원으로 이동,
+  // 마지막 학원이었다면 Supabase Auth 계정까지 삭제
+  if (user.academies.length > 1) {
+    revalidateTag(`user-${user.authId}`)
+    const cookieStore = await cookies()
+    cookieStore.delete(ACTIVE_PROFILE_COOKIE)
+    redirect('/')
+  }
+
+  await deleteAuthIfNoProfiles(user.authId)
 
   redirect('/login')
 }

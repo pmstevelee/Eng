@@ -1,10 +1,10 @@
 'use server'
 
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { revalidateTag } from 'next/cache'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
+import { resolveJoinAccount, setSessionProfileCookies } from '@/lib/account/multi-academy'
 
 export type RegisterTeacherData = {
   name: string
@@ -20,16 +20,20 @@ export type RegisterTeacherData = {
 export async function registerTeacher(
   data: RegisterTeacherData
 ): Promise<{ error: string } | undefined> {
-  // 이메일 중복 체크
+  // 이메일 확인: 처음 가입이면 새 계정, 다른 학원에 이미 가입된 교사면
+  // 비밀번호 확인 후 같은 계정에 이 학원 프로필만 추가한다
+  let account: Awaited<ReturnType<typeof resolveJoinAccount>>
   try {
-    const existing = await prisma.user.findUnique({
-      where: { email: data.email },
-      select: { id: true },
+    account = await resolveJoinAccount({
+      email: data.email,
+      password: data.password,
+      academyId: data.academyId,
+      role: 'TEACHER',
     })
-    if (existing) return { error: '이미 사용 중인 이메일입니다.' }
   } catch {
     return { error: 'DB 연결 오류가 발생했습니다.' }
   }
+  if ('error' in account) return account
 
   // 학원장 화면 캐시 무효화에 쓰는 본원 ID (지점 가입이면 본원)
   let hqId = data.academyId
@@ -57,25 +61,33 @@ export async function registerTeacher(
 
   const adminClient = await createAdminClient()
 
-  const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-    email: data.email,
-    password: data.password,
-    email_confirm: true,
-  })
+  let authId: string
+  let userId: string
+  if (account.kind === 'link') {
+    authId = account.authId
+    userId = account.profileId
+  } else {
+    const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
+    })
 
-  if (authError || !authData.user) {
-    if (authError?.message?.includes('already been registered')) {
-      return { error: '이미 사용 중인 이메일입니다.' }
+    if (authError || !authData.user) {
+      if (authError?.message?.includes('already been registered')) {
+        return { error: '이미 사용 중인 이메일입니다.' }
+      }
+      return { error: '계정 생성 중 오류가 발생했습니다.' }
     }
-    return { error: '계정 생성 중 오류가 발생했습니다.' }
+    authId = authData.user.id
+    userId = authId
   }
-
-  const userId = authData.user.id
 
   try {
     await prisma.user.create({
       data: {
         id: userId,
+        authId,
         role: 'TEACHER',
         name: data.name,
         email: data.email,
@@ -90,20 +102,17 @@ export async function registerTeacher(
     const supabase = await createClient()
     await supabase.auth.signInWithPassword({ email: data.email, password: data.password })
 
-    const cookieStore = await cookies()
-    cookieStore.set('user-role', 'TEACHER', {
-      path: '/',
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7,
-    })
+    // 방금 가입한 학원으로 바로 들어가도록 현재 학원 프로필 지정
+    await setSessionProfileCookies('TEACHER', userId)
   } catch (err) {
-    await adminClient.auth.admin.deleteUser(userId)
+    // 새로 만든 Auth 계정만 롤백 (기존 계정에 학원을 추가하던 경우는 계정을 유지)
+    if (account.kind === 'new') await adminClient.auth.admin.deleteUser(authId)
     console.error('[registerTeacher]', err)
     return { error: '가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
   }
 
+  // 기존 계정이면 학원 전환 목록에 새 학원이 바로 보이도록 계정 캐시 무효화
+  revalidateTag(`user-${authId}`)
   // 학원장 교사/학생 목록·대시보드 캐시가 새 가입자를 즉시 반영하도록 무효화
   revalidateTag(`academy-${data.academyId}-teachers`)
   revalidateTag(`owner-${hqId}-dashboard`)

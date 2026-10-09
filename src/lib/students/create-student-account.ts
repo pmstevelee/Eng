@@ -2,6 +2,7 @@ import 'server-only'
 
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import { prisma } from '@/lib/prisma/client'
+import { deleteAuthIfNoProfiles, findEmailInUse } from '@/lib/account/multi-academy'
 
 function getAdminClient() {
   return createSupabaseAdmin(
@@ -57,8 +58,8 @@ export async function createStudentAccount(
   }
 
   // 이메일 중복 확인
-  const existing = await prisma.user.findUnique({ where: { email } })
-  if (existing) return { error: '이미 사용 중인 이메일입니다.' }
+  const emailInUse = await findEmailInUse(email)
+  if (emailInUse) return { error: emailInUse }
 
   // Supabase Auth 계정 생성
   const adminClient = getAdminClient()
@@ -76,6 +77,7 @@ export async function createStudentAccount(
     const user = await prisma.user.create({
       data: {
         id: authData.user.id,
+        authId: authData.user.id,
         name,
         email,
         role: 'STUDENT',
@@ -110,11 +112,14 @@ export async function createStudentAccount(
  * 계정 생성 이후 후속 처리가 실패했을 때 방금 만든 학생 계정을 되돌린다.
  */
 export async function rollbackStudentAccount(studentId: string): Promise<void> {
-  const student = await prisma.student.findUnique({ where: { id: studentId }, select: { userId: true } })
+  const student = await prisma.student.findUnique({
+    where: { id: studentId },
+    select: { userId: true, user: { select: { authId: true } } },
+  })
   if (!student) return
   await prisma.$transaction([
     prisma.student.delete({ where: { id: studentId } }),
     prisma.user.delete({ where: { id: student.userId } }),
   ])
-  await getAdminClient().auth.admin.deleteUser(student.userId)
+  await deleteAuthIfNoProfiles(student.user.authId)
 }

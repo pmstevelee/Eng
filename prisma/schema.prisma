@@ -388,11 +388,15 @@ model Academy {
 
 /// 2. 사용자 (Supabase Auth 연동 - id = auth.users.id)
 model User {
-  id        String   @id // Supabase Auth UUID
+  /// 학원별 회원 프로필 ID. 첫 가입 프로필은 Supabase Auth UUID와 같고,
+  /// 같은 계정으로 다른 학원에 추가 가입하면 새 UUID로 프로필이 하나 더 생긴다.
+  id        String   @id
+  /// Supabase Auth UUID — 같은 이메일(로그인 계정)의 학원별 프로필을 묶는다
+  authId    String   @map("auth_id")
   academyId String?  @map("academy_id")
   role      Role
   name      String
-  email     String   @unique
+  email     String
   phone     String?
   avatarUrl String?  @map("avatar_url")
   isActive  Boolean  @default(true) @map("is_active")
@@ -434,7 +438,9 @@ model User {
   attendanceChangeLogs     AttendanceChangeLog[]     @relation("AttendanceChanger")
   keypadRegistrations      KeypadRegistrationCode[]  @relation("KeypadRegistrationCreator")
 
+  @@unique([authId, academyId])
   @@index([academyId])
+  @@index([email])
   @@map("users")
 }
 

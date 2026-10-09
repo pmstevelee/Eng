@@ -4,6 +4,11 @@ import { prisma } from '@/lib/prisma/client'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
+import {
+  assertCredentialEditable,
+  deleteAuthIfNoProfiles,
+  findEmailInUse,
+} from '@/lib/account/multi-academy'
 
 function getAdminClient() {
   return createSupabaseAdmin(
@@ -153,8 +158,8 @@ export async function createTeacher(data: {
   }
 
   // 이메일 중복 확인
-  const existing = await prisma.user.findUnique({ where: { email: data.email.trim() } })
-  if (existing) return { error: '이미 사용 중인 이메일입니다.' }
+  const emailInUse = await findEmailInUse(data.email)
+  if (emailInUse) return { error: emailInUse }
 
   // Supabase Auth 계정 생성
   const adminClient = getAdminClient()
@@ -171,6 +176,7 @@ export async function createTeacher(data: {
     const user = await prisma.user.create({
       data: {
         id: authData.user.id,
+        authId: authData.user.id,
         name: data.name.trim(),
         email: data.email.trim(),
         role: 'TEACHER',
@@ -217,9 +223,13 @@ export async function updateTeacherProfile(
   const passwordChanged = data.password && data.password.length >= 6
 
   if (emailChanged || passwordChanged) {
+    // 다른 학원에도 가입된 계정이면 로그인 정보는 본인만 바꿀 수 있다
+    const editable = await assertCredentialEditable(teacherId)
+    if ('error' in editable) return editable
+
     if (emailChanged) {
-      const duplicate = await prisma.user.findUnique({ where: { email: data.email.trim() } })
-      if (duplicate) return { error: '이미 사용 중인 이메일입니다.' }
+      const emailInUse = await findEmailInUse(data.email, editable.authId)
+      if (emailInUse) return { error: '이미 사용 중인 이메일입니다.' }
     }
 
     const adminClient = getAdminClient()
@@ -227,7 +237,7 @@ export async function updateTeacherProfile(
     if (emailChanged) updatePayload.email = data.email.trim()
     if (passwordChanged) updatePayload.password = data.password
 
-    const { error: authError } = await adminClient.auth.admin.updateUserById(teacherId, updatePayload)
+    const { error: authError } = await adminClient.auth.admin.updateUserById(editable.authId, updatePayload)
     if (authError) return { error: '계정 정보 변경에 실패했습니다: ' + authError.message }
   }
 
@@ -250,7 +260,7 @@ export async function deleteTeacher(teacherId: string): Promise<{ error?: string
 
   const teacher = await prisma.user.findFirst({
     where: { id: teacherId, academyId: owner.academyId!, role: 'TEACHER', isDeleted: false },
-    select: { id: true },
+    select: { id: true, authId: true },
   })
   if (!teacher) return { error: '교사를 찾을 수 없습니다.' }
 
@@ -304,9 +314,9 @@ export async function deleteTeacher(teacherId: string): Promise<{ error?: string
       await tx.user.delete({ where: { id: teacherId } })
     })
 
-    // Supabase Auth 삭제
-    const adminClient = getAdminClient()
-    await adminClient.auth.admin.deleteUser(teacherId)
+    // Supabase Auth 삭제 (다른 학원에도 가입된 계정이면 이 학원 프로필만 삭제하고 계정은 유지)
+    await deleteAuthIfNoProfiles(teacher.authId)
+    revalidateTag(`user-${teacher.authId}`)
 
     revalidateTag(`academy-${owner.academyId}-teachers`)
     revalidatePath('/owner/teachers')

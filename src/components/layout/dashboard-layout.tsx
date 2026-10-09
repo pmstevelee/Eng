@@ -8,6 +8,7 @@ import { Header } from './header'
 import { NAV_ITEMS } from './nav-items'
 import type { Role } from '@/types'
 import type { BranchOption } from './branch-switcher'
+import type { AcademyOption } from './academy-switcher'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -20,6 +21,8 @@ interface DashboardLayoutProps {
   businessName?: string | null
   branches?: BranchOption[]
   selectedBranchId?: string
+  academies?: AcademyOption[]
+  currentProfileId?: string
 }
 
 // localStorage 동기 구독: SSR/첫 렌더는 false, 클라이언트는 즉시 저장값 사용 → 깜빡임 최소화
@@ -77,6 +80,8 @@ export function DashboardLayout({
   businessName,
   branches,
   selectedBranchId,
+  academies,
+  currentProfileId,
 }: DashboardLayoutProps) {
   const navItems = NAV_ITEMS[role]
 
@@ -115,6 +120,8 @@ export function DashboardLayout({
         businessName={businessName}
         branches={branches}
         selectedBranchId={selectedBranchId}
+        academies={academies}
+        currentProfileId={currentProfileId}
         onToggleCollapse={handleToggleCollapse}
         onCloseMobile={handleCloseMobile}
       />

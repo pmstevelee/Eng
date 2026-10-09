@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { signOut } from '@/app/(auth)/login/actions'
 import type { NavItem } from './nav-items'
 import { BranchSwitcher, type BranchOption } from './branch-switcher'
+import { AcademySwitcher, type AcademyOption } from './academy-switcher'
 
 interface SidebarProps {
   navItems: NavItem[]
@@ -21,6 +22,9 @@ interface SidebarProps {
   businessName?: string | null
   branches?: BranchOption[]
   selectedBranchId?: string
+  /** 여러 학원에 가입된 교사·학생의 학원 목록 (2개 이상일 때만 전환 메뉴 표시) */
+  academies?: AcademyOption[]
+  currentProfileId?: string
   onToggleCollapse: () => void
   onCloseMobile: () => void
 }
@@ -159,9 +163,12 @@ export function Sidebar({
   businessName,
   branches,
   selectedBranchId,
+  academies,
+  currentProfileId,
   onToggleCollapse,
   onCloseMobile,
 }: SidebarProps) {
+  const showAcademySwitcher = !!academies && academies.length > 1 && !!currentProfileId
   const pathname = usePathname()
   const activeHref = getActiveHref(pathname, navItems)
 
@@ -253,6 +260,17 @@ export function Sidebar({
           </div>
         )}
 
+        {/* 학원 선택기 (여러 학원에 가입된 교사·학생) */}
+        {showAcademySwitcher && (
+          <div className="pt-2 pb-1 border-b border-primary-800">
+            <AcademySwitcher
+              academies={academies}
+              currentProfileId={currentProfileId}
+              collapsed={isCollapsed}
+            />
+          </div>
+        )}
+
         {/* 내비게이션 */}
         <nav className="flex-1 py-3 space-y-0.5 overflow-y-auto">
           <NavTree
@@ -327,6 +345,17 @@ export function Sidebar({
             <BranchSwitcher
               branches={branches}
               selectedId={selectedBranchId ?? 'all'}
+              collapsed={false}
+            />
+          </div>
+        )}
+
+        {/* 학원 선택기 (모바일) */}
+        {showAcademySwitcher && (
+          <div className="pt-2 pb-1 border-b border-primary-800">
+            <AcademySwitcher
+              academies={academies}
+              currentProfileId={currentProfileId}
               collapsed={false}
             />
           </div>

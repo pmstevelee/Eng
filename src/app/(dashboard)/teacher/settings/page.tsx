@@ -28,6 +28,7 @@ export default async function TeacherSettingsPage() {
   if (!user) redirect('/login')
 
   const academyName = user.academy?.businessName ?? user.academy?.name ?? '-'
+  const isMultiAcademy = currentUser.academies.length > 1
 
   return (
     <div className="space-y-6">
@@ -68,6 +69,12 @@ export default async function TeacherSettingsPage() {
           계정을 탈퇴하면 내 계정 및 출제한 테스트, 작성한 코멘트 등 관련 데이터가 영구적으로 삭제됩니다.
           이 작업은 되돌릴 수 없습니다.
         </p>
+        {isMultiAcademy && (
+          <p className="text-sm text-gray-700 mb-4">
+            여러 학원에 가입된 계정이므로 <strong>{academyName}</strong>의 데이터만 삭제되며,
+            다른 학원은 같은 이메일로 계속 이용할 수 있습니다.
+          </p>
+        )}
         <WithdrawModal />
       </div>
     </div>

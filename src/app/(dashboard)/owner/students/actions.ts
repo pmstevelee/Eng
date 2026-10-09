@@ -4,6 +4,11 @@ import { prisma } from '@/lib/prisma/client'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
+import {
+  assertCredentialEditable,
+  deleteAuthIfNoProfiles,
+  findEmailInUse,
+} from '@/lib/account/multi-academy'
 import { revalidateTeacherClassViews } from '@/lib/students/revalidate-teacher-views'
 import { BRANCH_ALL, getOwnerAcademyIds, getSelectedBranchId } from '@/lib/branch'
 import { createStudentAccount } from '@/lib/students/create-student-account'
@@ -205,9 +210,13 @@ export async function updateStudentProfile(
   const passwordChanged = data.password && data.password.length >= 6
 
   if (emailChanged || passwordChanged) {
+    // 다른 학원에도 가입된 계정이면 로그인 정보는 본인만 바꿀 수 있다
+    const editable = await assertCredentialEditable(student.userId)
+    if ('error' in editable) return editable
+
     if (emailChanged) {
-      const duplicate = await prisma.user.findUnique({ where: { email: data.email.trim() } })
-      if (duplicate) return { error: '이미 사용 중인 이메일입니다.' }
+      const emailInUse = await findEmailInUse(data.email, editable.authId)
+      if (emailInUse) return { error: '이미 사용 중인 이메일입니다.' }
     }
 
     const adminClient = getAdminClient()
@@ -215,7 +224,7 @@ export async function updateStudentProfile(
     if (emailChanged) updatePayload.email = data.email.trim()
     if (passwordChanged) updatePayload.password = data.password
 
-    const { error: authError } = await adminClient.auth.admin.updateUserById(student.userId, updatePayload)
+    const { error: authError } = await adminClient.auth.admin.updateUserById(editable.authId, updatePayload)
     if (authError) return { error: '계정 정보 변경에 실패했습니다: ' + authError.message }
   }
 
@@ -250,7 +259,7 @@ export async function deleteStudent(studentId: string): Promise<{ error?: string
 
   const student = await prisma.student.findFirst({
     where: { id: studentId, user: { academyId: { in: owner.academyIds } } },
-    select: { userId: true },
+    select: { userId: true, user: { select: { authId: true } } },
   })
   if (!student) return { error: '학생을 찾을 수 없습니다.' }
 
@@ -282,9 +291,9 @@ export async function deleteStudent(studentId: string): Promise<{ error?: string
       await tx.user.delete({ where: { id: student.userId } })
     })
 
-    // Supabase Auth 삭제
-    const adminClient = getAdminClient()
-    await adminClient.auth.admin.deleteUser(student.userId)
+    // Supabase Auth 삭제 (다른 학원에도 가입된 계정이면 이 학원 프로필만 삭제하고 계정은 유지)
+    await deleteAuthIfNoProfiles(student.user.authId)
+    revalidateTag(`user-${student.user.authId}`)
 
     revalidateTag(`academy-${owner.academyId}-students`)
     revalidatePath('/owner/students')

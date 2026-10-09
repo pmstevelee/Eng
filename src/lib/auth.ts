@@ -1,7 +1,9 @@
 import { cache } from 'react'
+import { cookies } from 'next/headers'
 import { unstable_cache } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
+import { ACTIVE_PROFILE_COOKIE } from '@/lib/account/multi-academy'
 
 /**
  * Supabase `auth.getUser()`는 네트워크 왕복 검증(~200–600ms)이 있어
@@ -52,14 +54,16 @@ export function invalidateAuthCache(accessToken: string) {
  * 로그인한 유저 정보(role, name, academyId)는 자주 바뀌지 않으므로
  * 60초 TTL 캐시가 안전하며, 로그아웃 시 태그로 즉시 무효화할 수 있습니다.
  *
+ * 한 로그인 계정(authId)이 여러 학원 프로필(users 행)을 가질 수 있으므로
+ * 계정의 프로필 전체를 한 번에 조회하고, 현재 학원은 메모리에서 고른다.
  * student.id까지 함께 조회해 학생 페이지에서 별도의 student-record
  * DB 왕복 없이 studentId를 바로 사용할 수 있게 한다.
  */
-const getCachedDbUser = (userId: string) =>
+const getCachedProfiles = (authId: string) =>
   unstable_cache(
     () =>
-      prisma.user.findUnique({
-        where: { id: userId, isDeleted: false },
+      prisma.user.findMany({
+        where: { authId, isDeleted: false },
         select: {
           id: true,
           name: true,
@@ -69,9 +73,11 @@ const getCachedDbUser = (userId: string) =>
           academy: { select: { name: true, businessName: true } },
           student: { select: { id: true } },
         },
+        // 최근 로그인(학원 전환 포함)한 프로필이 앞에 오도록
+        orderBy: [{ lastLoginAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'asc' }],
       }),
-    ['current-user-v2', userId],
-    { revalidate: 60, tags: [`user-${userId}`] },
+    ['current-user-v3', authId],
+    { revalidate: 60, tags: [`user-${authId}`] },
   )()
 
 /**
@@ -79,7 +85,16 @@ const getCachedDbUser = (userId: string) =>
  * 로그인 액션에서 호출하면 이어지는 대시보드 렌더에서
  * getCurrentUser의 DB 조회가 캐시 히트로 처리된다.
  */
-export const getUserRecordCached = getCachedDbUser
+export const getAccountProfilesCached = getCachedProfiles
+
+/** 쿠키에 기억된 프로필이 이 계정 것이면 그것을, 아니면 최근 사용한 프로필을 고른다. */
+export function pickActiveProfile<T extends { id: string }>(
+  profiles: T[],
+  preferredId: string | undefined,
+): T | null {
+  if (profiles.length === 0) return null
+  return profiles.find((p) => p.id === preferredId) ?? profiles[0]
+}
 
 /**
  * React cache()로 감싸서 같은 요청(렌더링 트리) 안에서
@@ -87,7 +102,8 @@ export const getUserRecordCached = getCachedDbUser
  *
  * 1차: 쿠키의 access_token으로 인메모리 캐시 확인 (히트 시 0ms)
  * 2차(캐시 미스): supabase.auth.getUser() 네트워크 검증 후 60초 캐싱
- * 3차: getCachedDbUser로 DB 조회 (60초 unstable_cache)
+ * 3차: getCachedProfiles로 계정의 학원 프로필 조회 (60초 unstable_cache)
+ * 4차: active-profile 쿠키로 현재 학원 프로필 선택
  */
 export const getCurrentUser = cache(async () => {
   const supabase = await createClient()
@@ -120,8 +136,10 @@ export const getCurrentUser = cache(async () => {
   }
 
   const t2 = performance.now()
-  const user = await getCachedDbUser(verifiedUserId)
+  const profiles = await getCachedProfiles(verifiedUserId)
   const dbMs = Math.round(performance.now() - t2)
+  const cookieStore = await cookies()
+  const user = pickActiveProfile(profiles, cookieStore.get(ACTIVE_PROFILE_COOKIE)?.value)
 
   if (sessionMs + verifyMs + dbMs >= 100) {
     console.log(
@@ -129,5 +147,14 @@ export const getCurrentUser = cache(async () => {
     )
   }
 
-  return user ? { ...user, authId: verifiedUserId } : null
+  if (!user) return null
+
+  // 학원 전환 메뉴용: 같은 계정의 다른 학원 프로필 목록
+  const academies = profiles.map((p) => ({
+    profileId: p.id,
+    academyId: p.academyId,
+    academyName: p.academy?.businessName ?? p.academy?.name ?? '학원',
+  }))
+
+  return { ...user, authId: verifiedUserId, academies }
 })

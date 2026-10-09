@@ -1080,6 +1080,7 @@ async function main() {
         update: { role: u.role, academyId: u.noAcademy ? null : academy.id, name: u.name, isActive: true },
         create: {
           id: authId,
+          authId,
           email: u.email,
           name: u.name,
           role: u.role,

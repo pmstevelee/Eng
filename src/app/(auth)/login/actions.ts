@@ -4,7 +4,13 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
-import { primeAuthCache, invalidateAuthCache, getUserRecordCached } from '@/lib/auth'
+import {
+  primeAuthCache,
+  invalidateAuthCache,
+  getAccountProfilesCached,
+  pickActiveProfile,
+} from '@/lib/auth'
+import { ACTIVE_PROFILE_COOKIE, setSessionProfileCookies } from '@/lib/account/multi-academy'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import type { Role } from '@/types'
@@ -43,14 +49,19 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
 
   let role: Role | null = null
   let academyId: string | null = null
+  let profileId: string
   try {
     // getCurrentUser와 같은 캐시를 사용해 로그인 시 조회 결과를
     // 이어지는 대시보드 렌더에서 그대로 재사용한다 (DB 왕복 1회 절약).
+    // 여러 학원에 가입된 계정이면 이 기기에서 마지막으로 쓴 학원(없으면 최근 로그인 학원)으로 들어간다.
     const dbStart = performance.now()
-    const user = await getUserRecordCached(authUserId)
+    const profiles = await getAccountProfilesCached(authUserId)
     console.log(
       `📊 [signIn] auth: ${authMs}ms | db(user): ${Math.round(performance.now() - dbStart)}ms`,
     )
+
+    const cookieStore = await cookies()
+    const user = pickActiveProfile(profiles, cookieStore.get(ACTIVE_PROFILE_COOKIE)?.value)
 
     if (!user) {
       await supabase.auth.signOut()
@@ -59,27 +70,21 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
 
     role = user.role as Role
     academyId = user.academyId
+    profileId = user.id
   } catch (err) {
     console.error('[signIn] DB 연결 오류:', err)
     await supabase.auth.signOut()
     return { error: 'DB 연결 오류가 발생했습니다. Vercel 환경변수(DATABASE_URL)를 확인해 주세요.' }
   }
 
-  const cookieStore = await cookies()
-  cookieStore.set('user-role', role, {
-    path: '/',
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7일
-  })
+  await setSessionProfileCookies(role, profileId)
 
   // redirect 전에 완료를 기다린다. Vercel 서버리스는 응답 후 함수가 동결되어
   // fire-and-forget 쓰기가 유실될 수 있다. (두 쓰기는 병렬 처리, 실패는 각자 처리)
   await Promise.all([
-    logActivity({ userId: authUserId, role, academyId, action: ACTIVITY_ACTIONS.LOGIN }),
+    logActivity({ userId: profileId, role, academyId, action: ACTIVITY_ACTIONS.LOGIN }),
     prisma.user
-      .update({ where: { id: authUserId }, data: { lastLoginAt: new Date() } })
+      .update({ where: { id: profileId }, data: { lastLoginAt: new Date() } })
       .catch((err) => console.error('[signIn] lastLoginAt 업데이트 실패:', err)),
   ])
 

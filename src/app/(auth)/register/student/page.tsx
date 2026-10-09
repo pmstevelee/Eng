@@ -183,6 +183,10 @@ export default function RegisterStudentPage() {
                     disabled={isPending}
                     autoComplete="email"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    다른 학원에 이미 가입했다면 같은 이메일과 기존 비밀번호를 입력하세요. 이
+                    학원이 계정에 추가되며, 학습 기록은 학원별로 따로 관리됩니다.
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">비밀번호 * (8자 이상)</Label>

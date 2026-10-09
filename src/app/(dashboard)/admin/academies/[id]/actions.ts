@@ -1,11 +1,11 @@
 'use server'
 
 import { prisma } from '@/lib/prisma/client'
-import { createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { getPlanTypeLimits, isSelectablePlanType } from '@/lib/plan-types'
 import { getCurrentUser } from '@/lib/auth'
+import { deleteOrphanAuthAccounts } from '@/lib/account/multi-academy'
 
 async function requireAdmin() {
   const user = await getCurrentUser()
@@ -104,9 +104,9 @@ export async function deleteAcademy(
   // Supabase Auth 삭제를 위해 학원 소속 사용자 ID 수집
   const academyUsers = await prisma.user.findMany({
     where: { academyId },
-    select: { id: true },
+    select: { authId: true },
   })
-  const userIds = academyUsers.map((u) => u.id)
+  const authIds = academyUsers.map((u) => u.authId)
 
   try {
     // 외래키 의존 순서대로 전체 하드 삭제
@@ -151,11 +151,8 @@ export async function deleteAcademy(
     return { error: '삭제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
   }
 
-  // Supabase Auth 계정 일괄 삭제
-  const adminClient = await createAdminClient()
-  for (const uid of userIds) {
-    await adminClient.auth.admin.deleteUser(uid)
-  }
+  // Supabase Auth 계정 삭제 — 다른 학원에도 가입된 교사·학생 계정은 유지
+  await deleteOrphanAuthAccounts(authIds)
 
   redirect('/admin/academies')
 }

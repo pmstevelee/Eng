@@ -19,12 +19,14 @@ export default async function TeacherLayout({ children }: { children: React.Reac
   return (
     <DashboardLayout
       role="TEACHER"
-      userId={user.authId}
+      userId={user.id}
       userName={user.name}
       userEmail={user.email}
       userRole={ROLE_LABEL.TEACHER}
       academyName={user.academy?.name}
       businessName={user.academy?.businessName}
+      academies={user.academies}
+      currentProfileId={user.id}
     >
       {children}
     </DashboardLayout>
