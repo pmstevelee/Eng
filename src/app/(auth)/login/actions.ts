@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import {
+  getCurrentUser,
   primeAuthCache,
   invalidateAuthCache,
   getAccountProfilesCached,
@@ -22,7 +23,18 @@ const ROLE_REDIRECT: Record<Role, string> = {
   STUDENT: '/student',
 }
 
-export async function signIn(formData: FormData): Promise<{ error: string } | undefined> {
+export type LoginAcademyOption = {
+  profileId: string
+  academyName: string
+  /** 이 기기에서 마지막으로 사용한 학원 */
+  isRecent: boolean
+}
+
+export type SignInResult =
+  | { error: string }
+  | { needsAcademySelection: true; academies: LoginAcademyOption[] }
+
+export async function signIn(formData: FormData): Promise<SignInResult | undefined> {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
@@ -53,7 +65,6 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
   try {
     // getCurrentUser와 같은 캐시를 사용해 로그인 시 조회 결과를
     // 이어지는 대시보드 렌더에서 그대로 재사용한다 (DB 왕복 1회 절약).
-    // 여러 학원에 가입된 계정이면 이 기기에서 마지막으로 쓴 학원(없으면 최근 로그인 학원)으로 들어간다.
     const dbStart = performance.now()
     const profiles = await getAccountProfilesCached(authUserId)
     console.log(
@@ -68,6 +79,20 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
       return { error: '등록되지 않은 사용자입니다. 관리자에게 문의하세요.' }
     }
 
+    // 여러 학원에 가입된 계정이면 어느 학원으로 들어갈지 사용자가 고른다.
+    // (세션은 이미 생성됨 → selectLoginAcademy에서 프로필 확정)
+    if (profiles.length > 1) {
+      cookieStore.delete('user-role')
+      return {
+        needsAcademySelection: true,
+        academies: profiles.map((p) => ({
+          profileId: p.id,
+          academyName: p.academy?.businessName ?? p.academy?.name ?? '학원',
+          isRecent: p.id === user.id,
+        })),
+      }
+    }
+
     role = user.role as Role
     academyId = user.academyId
     profileId = user.id
@@ -77,6 +102,34 @@ export async function signIn(formData: FormData): Promise<{ error: string } | un
     return { error: 'DB 연결 오류가 발생했습니다. Vercel 환경변수(DATABASE_URL)를 확인해 주세요.' }
   }
 
+  await completeSignIn(role, profileId, academyId)
+}
+
+/** 여러 학원에 가입된 계정이 로그인 후 접속할 학원을 선택한다. */
+export async function selectLoginAcademy(profileId: string): Promise<{ error: string } | undefined> {
+  const user = await getCurrentUser()
+  if (!user) return { error: '로그인 세션이 만료되었습니다. 다시 로그인해 주세요.' }
+
+  const profiles = await getAccountProfilesCached(user.authId)
+  const selected = profiles.find((p) => p.id === profileId)
+  if (!selected) return { error: '선택한 학원을 찾을 수 없습니다.' }
+
+  await completeSignIn(selected.role as Role, selected.id, selected.academyId)
+}
+
+/** 학원 선택 화면에서 취소하면 생성된 세션을 정리한다. */
+export async function cancelLoginAcademySelection(): Promise<void> {
+  try {
+    const supabase = await createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.access_token) invalidateAuthCache(session.access_token)
+    await supabase.auth.signOut({ scope: 'local' })
+  } catch {
+    // 실패해도 로그인 화면은 그대로 유지
+  }
+}
+
+async function completeSignIn(role: Role, profileId: string, academyId: string | null): Promise<never> {
   await setSessionProfileCookies(role, profileId)
 
   // redirect 전에 완료를 기다린다. Vercel 서버리스는 응답 후 함수가 동결되어

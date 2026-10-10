@@ -6,7 +6,14 @@ import { useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { signIn, findId } from './actions'
+import { Building2, ChevronRight } from 'lucide-react'
+import {
+  signIn,
+  findId,
+  selectLoginAcademy,
+  cancelLoginAcademySelection,
+  type LoginAcademyOption,
+} from './actions'
 import { createClient } from '@/lib/supabase/client'
 
 function getInitials(name: string): string {
@@ -33,6 +40,9 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
 
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+
+  const [academyOptions, setAcademyOptions] = useState<LoginAcademyOption[] | null>(null)
+  const [selectingProfileId, setSelectingProfileId] = useState<string | null>(null)
 
   const [showForgot, setShowForgot] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
@@ -69,9 +79,33 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
     const formData = new FormData(e.currentTarget)
     startTransition(async () => {
       const result = await signIn(formData)
+      if (!result) return
+      if ('error' in result) {
+        setError(result.error)
+      } else {
+        setAcademyOptions(result.academies)
+      }
+    })
+  }
+
+  const handleSelectAcademy = (profileId: string) => {
+    setError(null)
+    setSelectingProfileId(profileId)
+    startTransition(async () => {
+      const result = await selectLoginAcademy(profileId)
       if (result?.error) {
         setError(result.error)
+        setSelectingProfileId(null)
       }
+    })
+  }
+
+  const handleCancelSelection = () => {
+    setError(null)
+    startTransition(async () => {
+      await cancelLoginAcademySelection()
+      setAcademyOptions(null)
+      setSelectingProfileId(null)
     })
   }
 
@@ -115,161 +149,222 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
 
         {/* 카드 */}
         <div className="bg-white rounded-2xl border border-gray-200 p-8">
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-gray-900">로그인</h2>
-            <p className="text-sm text-gray-500 mt-1">학원 계정으로 로그인하세요</p>
-          </div>
-
-          {passwordChanged && (
-            <div className="mb-4 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
-              비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 로그인해 주세요.
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                이메일
-              </Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="이메일을 입력하세요"
-                required
-                disabled={isPending}
-                autoComplete="email"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  비밀번호
-                </Label>
+          {academyOptions ? (
+            <div>
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-gray-900">학원 선택</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  여러 학원에 가입되어 있습니다. 접속할 학원을 선택하세요.
+                </p>
               </div>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="비밀번호를 입력하세요"
-                required
+
+              <ul className="space-y-2">
+                {academyOptions.map((a) => (
+                  <li key={a.profileId}>
+                    <button
+                      type="button"
+                      onClick={() => handleSelectAcademy(a.profileId)}
+                      disabled={isPending}
+                      className="flex w-full min-h-[56px] items-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-left transition-colors hover:border-primary-700 hover:bg-primary-50 disabled:opacity-60"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
+                        <Building2 className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-medium text-gray-900">{a.academyName}</span>
+                        {a.isRecent && (
+                          <span className="mt-0.5 inline-block rounded-full bg-primary-50 px-2 py-0.5 text-xs text-primary-700">
+                            최근 사용
+                          </span>
+                        )}
+                      </span>
+                      <span className="shrink-0 text-sm text-gray-400">
+                        {selectingProfileId === a.profileId ? (
+                          '접속 중...'
+                        ) : (
+                          <ChevronRight className="h-5 w-5" />
+                        )}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+
+              {error && (
+                <div className="mt-4 rounded-lg bg-accent-red-light border border-accent-red/20 px-4 py-3 text-sm text-accent-red">
+                  {error}
+                </div>
+              )}
+
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-5 w-full"
+                onClick={handleCancelSelection}
                 disabled={isPending}
-                autoComplete="current-password"
-              />
+              >
+                다른 계정으로 로그인
+              </Button>
+            </div>
+          ) : (
+            <>
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-gray-900">로그인</h2>
+              <p className="text-sm text-gray-500 mt-1">학원 계정으로 로그인하세요</p>
             </div>
 
-            {error && (
-              <div className="rounded-lg bg-accent-red-light border border-accent-red/20 px-4 py-3 text-sm text-accent-red">
-                {error}
+            {passwordChanged && (
+              <div className="mb-4 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+                비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 로그인해 주세요.
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? '로그인 중...' : '로그인'}
-            </Button>
-
-            <div className="flex items-center justify-center gap-4 pt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowFindId(!showFindId)
-                  setFindIdResult(null)
-                  if (showForgot) { setShowForgot(false); setForgotMessage(null) }
-                }}
-                className="text-xs text-gray-500 hover:text-primary-700 transition-colors"
-              >
-                아이디 찾기
-              </button>
-              <span className="text-gray-300 text-xs">|</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForgot(!showForgot)
-                  setForgotMessage(null)
-                  if (showFindId) { setShowFindId(false); setFindIdResult(null) }
-                }}
-                className="text-xs text-gray-500 hover:text-primary-700 transition-colors"
-              >
-                비밀번호 찾기
-              </button>
-            </div>
-          </form>
-
-          {/* 비밀번호 찾기 */}
-          {showForgot && (
-            <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
-              <p className="text-xs font-medium text-gray-700">비밀번호 찾기</p>
-              <p className="text-xs text-gray-500">
-                가입한 이메일 주소를 입력하면 비밀번호 재설정 링크를 보내드립니다.
-              </p>
-              <div className="flex gap-2">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  이메일
+                </Label>
                 <Input
+                  id="email"
+                  name="email"
                   type="email"
-                  value={forgotEmail}
-                  onChange={(e) => setForgotEmail(e.target.value)}
-                  placeholder="이메일 입력"
-                  disabled={isForgotPending}
-                  className="h-9 text-sm"
+                  placeholder="이메일을 입력하세요"
+                  required
+                  disabled={isPending}
+                  autoComplete="email"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    비밀번호
+                  </Label>
+                </div>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="비밀번호를 입력하세요"
+                  required
+                  disabled={isPending}
+                  autoComplete="current-password"
+                />
+              </div>
+
+              {error && (
+                <div className="rounded-lg bg-accent-red-light border border-accent-red/20 px-4 py-3 text-sm text-accent-red">
+                  {error}
+                </div>
+              )}
+
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? '로그인 중...' : '로그인'}
+              </Button>
+
+              <div className="flex items-center justify-center gap-4 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowFindId(!showFindId)
+                    setFindIdResult(null)
+                    if (showForgot) { setShowForgot(false); setForgotMessage(null) }
+                  }}
+                  className="text-xs text-gray-500 hover:text-primary-700 transition-colors"
+                >
+                  아이디 찾기
+                </button>
+                <span className="text-gray-300 text-xs">|</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForgot(!showForgot)
+                    setForgotMessage(null)
+                    if (showFindId) { setShowFindId(false); setFindIdResult(null) }
+                  }}
+                  className="text-xs text-gray-500 hover:text-primary-700 transition-colors"
+                >
+                  비밀번호 찾기
+                </button>
+              </div>
+            </form>
+
+            {/* 비밀번호 찾기 */}
+            {showForgot && (
+              <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+                <p className="text-xs font-medium text-gray-700">비밀번호 찾기</p>
+                <p className="text-xs text-gray-500">
+                  가입한 이메일 주소를 입력하면 비밀번호 재설정 링크를 보내드립니다.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="이메일 입력"
+                    disabled={isForgotPending}
+                    className="h-9 text-sm"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={handleForgotPassword}
+                    disabled={isForgotPending}
+                    className="shrink-0"
+                  >
+                    {isForgotPending ? '전송 중...' : '전송'}
+                  </Button>
+                </div>
+                {forgotMessage && (
+                  <p className={`text-xs ${forgotMessage.includes('전송했습니다') ? 'text-accent-green' : 'text-accent-red'}`}>
+                    {forgotMessage}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* 아이디 찾기 */}
+            {showFindId && (
+              <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+                <p className="text-xs font-medium text-gray-700">아이디(이메일) 찾기</p>
+                <p className="text-xs text-gray-500">가입 시 등록한 이름과 전화번호를 입력해 주세요.</p>
+                <div className="space-y-2">
+                  <Input
+                    type="text"
+                    value={findIdName}
+                    onChange={(e) => setFindIdName(e.target.value)}
+                    placeholder="이름"
+                    disabled={isFindIdPending}
+                    className="h-9 text-sm"
+                  />
+                  <Input
+                    type="tel"
+                    value={findIdPhone}
+                    onChange={(e) => setFindIdPhone(e.target.value)}
+                    placeholder="전화번호 (예: 010-1234-5678)"
+                    disabled={isFindIdPending}
+                    className="h-9 text-sm"
+                  />
+                </div>
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
-                  onClick={handleForgotPassword}
-                  disabled={isForgotPending}
-                  className="shrink-0"
+                  onClick={handleFindId}
+                  disabled={isFindIdPending}
+                  className="w-full"
                 >
-                  {isForgotPending ? '전송 중...' : '전송'}
+                  {isFindIdPending ? '조회 중...' : '아이디 찾기'}
                 </Button>
+                {findIdResult && (
+                  <p className={`text-xs ${findIdIsError ? 'text-accent-red' : 'text-accent-green font-medium'}`}>
+                    {findIdResult}
+                  </p>
+                )}
               </div>
-              {forgotMessage && (
-                <p className={`text-xs ${forgotMessage.includes('전송했습니다') ? 'text-accent-green' : 'text-accent-red'}`}>
-                  {forgotMessage}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* 아이디 찾기 */}
-          {showFindId && (
-            <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
-              <p className="text-xs font-medium text-gray-700">아이디(이메일) 찾기</p>
-              <p className="text-xs text-gray-500">가입 시 등록한 이름과 전화번호를 입력해 주세요.</p>
-              <div className="space-y-2">
-                <Input
-                  type="text"
-                  value={findIdName}
-                  onChange={(e) => setFindIdName(e.target.value)}
-                  placeholder="이름"
-                  disabled={isFindIdPending}
-                  className="h-9 text-sm"
-                />
-                <Input
-                  type="tel"
-                  value={findIdPhone}
-                  onChange={(e) => setFindIdPhone(e.target.value)}
-                  placeholder="전화번호 (예: 010-1234-5678)"
-                  disabled={isFindIdPending}
-                  className="h-9 text-sm"
-                />
-              </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={handleFindId}
-                disabled={isFindIdPending}
-                className="w-full"
-              >
-                {isFindIdPending ? '조회 중...' : '아이디 찾기'}
-              </Button>
-              {findIdResult && (
-                <p className={`text-xs ${findIdIsError ? 'text-accent-red' : 'text-accent-green font-medium'}`}>
-                  {findIdResult}
-                </p>
-              )}
-            </div>
+            )}
+            </>
           )}
         </div>
 
