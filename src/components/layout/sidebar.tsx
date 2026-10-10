@@ -152,6 +152,26 @@ function NavTree({
   )
 }
 
+// 렌더 함수 밖에 정의해야 한다. 안에서 정의하면 상태 변경(모바일 사이드바 닫기 등) 시
+// 컴포넌트가 새로 만들어져 form이 언마운트되고, 제출이 취소되어 로그아웃이 동작하지 않는다.
+function LogoutBtn({ collapsed }: { collapsed: boolean }) {
+  return (
+    <form action={signOut}>
+      <button
+        type="submit"
+        title={collapsed ? '로그아웃' : undefined}
+        className={cn(
+          'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-blue-200 hover:bg-primary-800 hover:text-white transition-colors',
+          collapsed ? 'justify-center' : 'mx-2'
+        )}
+      >
+        <LogOut size={18} className="shrink-0" />
+        {!collapsed && <span>로그아웃</span>}
+      </button>
+    </form>
+  )
+}
+
 export function Sidebar({
   navItems,
   badges,
@@ -175,29 +195,6 @@ export function Sidebar({
   // 로고에 표시할 이름: businessName > academyName > '위고업잉글리시'
   const displayName = businessName || academyName || '위고업잉글리시'
   const isSuperAdmin = !academyName && !businessName
-
-  const LogoutBtn = ({
-    collapsed,
-    onClick,
-  }: {
-    collapsed: boolean
-    onClick?: () => void
-  }) => (
-    <form action={signOut}>
-      <button
-        type="submit"
-        onClick={onClick}
-        title={collapsed ? '로그아웃' : undefined}
-        className={cn(
-          'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-blue-200 hover:bg-primary-800 hover:text-white transition-colors',
-          collapsed ? 'justify-center' : 'mx-2'
-        )}
-      >
-        <LogOut size={18} className="shrink-0" />
-        {!collapsed && <span>로그아웃</span>}
-      </button>
-    </form>
-  )
 
   return (
     <>
@@ -384,7 +381,7 @@ export function Sidebar({
               <p className="text-xs text-blue-200">{userRole}</p>
             </div>
           </div>
-          <LogoutBtn collapsed={false} onClick={onCloseMobile} />
+          <LogoutBtn collapsed={false} />
         </div>
       </aside>
     </>
