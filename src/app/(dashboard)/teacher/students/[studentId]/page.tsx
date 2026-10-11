@@ -158,7 +158,8 @@ export default async function StudentDetailPage({
                 {risk && <RiskBadge level={risk.level} reasons={risk.reasons} />}
               </div>
               <p className="text-sm text-gray-500">
-                {student.class?.name ?? '반 미배정'} · Level {student.currentLevel} · {student.user.email}
+                {student.class?.name ?? '반 미배정'} · {student.grade ?? '학년 미입력'} · Level{' '}
+                {student.currentLevel} · {student.user.email}
               </p>
             </div>
           </div>
