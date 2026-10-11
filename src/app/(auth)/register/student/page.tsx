@@ -9,27 +9,15 @@ import { Button } from '@/components/ui/button'
 import { verifyInviteCode } from '../actions'
 import { registerStudent } from './actions'
 import type { RegisterStudentData } from './actions'
+import { LearningLevelPicker } from '@/components/shared/learning-level-picker'
+import { STUDENT_GRADE_OPTIONS, getRecommendedLevel } from '@/lib/constants/student-profile'
 
-type Step = 1 | 2 | 3
+type Step = 1 | 2 | 3 | 4
 
-const STEP_LABELS = ['초대 코드', '기본 정보', '약관 동의']
-
-const GRADES = [
-  { value: '초1', label: '초1' },
-  { value: '초2', label: '초2' },
-  { value: '초3', label: '초3' },
-  { value: '중1', label: '중1' },
-  { value: '중2', label: '중2' },
-  { value: '중3', label: '중3' },
-  { value: '고1', label: '고1' },
-  { value: '고2', label: '고2' },
-  { value: '고3', label: '고3' },
-  { value: '일반', label: '일반' },
-  { value: '기타', label: '기타' },
-]
+const STEP_LABELS = ['초대 코드', '기본 정보', '학습 설문', '약관 동의']
 
 function StepIndicator({ current }: { current: number }) {
-  const total = 3
+  const total = STEP_LABELS.length
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between text-xs text-muted-foreground">
@@ -61,9 +49,14 @@ export default function RegisterStudentPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
-  const [grade, setGrade] = useState('')
 
-  // Step 3
+  // Step 3 (학습 설문)
+  const [grade, setGrade] = useState('')
+  const [learningLevel, setLearningLevel] = useState<number | null>(null)
+  // 학생이 직접 레벨을 고르기 전까지는 학년 추천 레벨을 따라간다
+  const [levelTouched, setLevelTouched] = useState(false)
+
+  // Step 4
   const [agreedTerms, setAgreedTerms] = useState(false)
   const [agreedPrivacy, setAgreedPrivacy] = useState(false)
   const [agreedMarketing, setAgreedMarketing] = useState(false)
@@ -94,13 +87,30 @@ export default function RegisterStudentPage() {
     goNext(3)
   }
 
+  const handleGradeChange = (value: string) => {
+    setGrade(value)
+    if (!levelTouched && value) setLearningLevel(getRecommendedLevel(value))
+  }
+
+  const handleLevelChange = (level: number) => {
+    setLevelTouched(true)
+    setLearningLevel(level)
+  }
+
+  const handleStep3 = () => {
+    if (!grade) return setError('학년을 선택해 주세요.')
+    if (!learningLevel) return setError('원하는 학습레벨을 선택해 주세요.')
+    goNext(4)
+  }
+
   const handleSubmit = () => {
     if (!agreedTerms) return setError('이용약관에 동의해 주세요.')
     if (!agreedPrivacy) return setError('개인정보 처리방침에 동의해 주세요.')
+    if (!learningLevel) return setError('원하는 학습레벨을 선택해 주세요.')
     setError(null)
 
     const data: RegisterStudentData = {
-      name, email, password, grade, academyId,
+      name, email, password, grade, learningLevel, academyId,
       agreedTerms, agreedPrivacy, agreedMarketing,
     }
     startTransition(async () => {
@@ -210,23 +220,6 @@ export default function RegisterStudentPage() {
                     disabled={isPending}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="grade">학년 (선택)</Label>
-                  <select
-                    id="grade"
-                    value={grade}
-                    onChange={(e) => setGrade(e.target.value)}
-                    disabled={isPending}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="">학년을 선택하세요</option>
-                    {GRADES.map((g) => (
-                      <option key={g.value} value={g.value}>
-                        {g.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
                 {error && (
                   <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
                     {error}
@@ -244,8 +237,66 @@ export default function RegisterStudentPage() {
             </>
           )}
 
-          {/* ── Step 3: 약관 동의 ── */}
+          {/* ── Step 3: 학습 설문 ── */}
           {step === 3 && (
+            <>
+              <CardHeader>
+                <CardTitle>학습 설문</CardTitle>
+                <CardDescription>
+                  학년과 시작하고 싶은 학습레벨을 알려주세요. 단어·학습 문제가 이 레벨에 맞춰
+                  준비됩니다.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="grade">학년 *</Label>
+                  <select
+                    id="grade"
+                    value={grade}
+                    onChange={(e) => handleGradeChange(e.target.value)}
+                    disabled={isPending}
+                    className="flex h-11 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">학년을 선택하세요</option>
+                    {STUDENT_GRADE_OPTIONS.map((g) => (
+                      <option key={g} value={g}>
+                        {g}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>원하는 학습레벨 *</Label>
+                  <p className="text-xs text-muted-foreground">
+                    잘 모르겠다면 학년 추천 레벨을 선택하세요. 레벨 테스트를 보기 전까지는
+                    설정에서 언제든 바꿀 수 있고, 레벨 테스트 후에는 테스트 결과로 정해집니다.
+                  </p>
+                  <LearningLevelPicker
+                    value={learningLevel}
+                    onChange={handleLevelChange}
+                    recommendedLevel={grade ? getRecommendedLevel(grade) : null}
+                    disabled={isPending}
+                  />
+                </div>
+                {error && (
+                  <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                    {error}
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => goPrev(2)}>
+                    이전
+                  </Button>
+                  <Button className="flex-1" onClick={handleStep3} disabled={isPending}>
+                    다음
+                  </Button>
+                </div>
+              </CardContent>
+            </>
+          )}
+
+          {/* ── Step 4: 약관 동의 ── */}
+          {step === 4 && (
             <>
               <CardHeader>
                 <CardTitle>약관 동의</CardTitle>
@@ -315,7 +366,7 @@ export default function RegisterStudentPage() {
                   <Button
                     variant="outline"
                     className="flex-1"
-                    onClick={() => goPrev(2)}
+                    onClick={() => goPrev(3)}
                     disabled={isPending}
                   >
                     이전

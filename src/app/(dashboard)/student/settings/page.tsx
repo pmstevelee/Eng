@@ -1,7 +1,9 @@
 import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import { requireStudent } from '@/lib/auth-student'
+import { hasOfficialLevelAssessment } from '@/lib/students/level-test-history'
 import { WithdrawModal } from './_components/withdraw-modal'
+import { LearningProfileForm } from './_components/learning-profile-form'
 
 const getCachedSettingsUser = (userId: string) =>
   unstable_cache(
@@ -21,8 +23,11 @@ const getCachedSettingsUser = (userId: string) =>
   )()
 
 export default async function StudentSettingsPage() {
-  const { userId, user: currentUser } = await requireStudent()
-  const user = await getCachedSettingsUser(userId)
+  const { userId, studentId, user: currentUser } = await requireStudent()
+  const [user, levelLocked] = await Promise.all([
+    getCachedSettingsUser(userId),
+    hasOfficialLevelAssessment(studentId),
+  ])
   const isMultiAcademy = currentUser.academies.length > 1
   if (!user) return null
 
@@ -57,14 +62,20 @@ export default async function StudentSettingsPage() {
             <dt className="text-xs text-gray-500">소속 학원</dt>
             <dd className="text-sm text-gray-700 mt-0.5">{academyName}</dd>
           </div>
-          {user.student && (
-            <div>
-              <dt className="text-xs text-gray-500">현재 레벨</dt>
-              <dd className="text-sm text-gray-700 mt-0.5">Level {user.student.currentLevel}</dd>
-            </div>
-          )}
         </dl>
       </div>
+
+      {/* 학년·학습레벨 */}
+      {user.student && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">학년 · 학습레벨</h2>
+          <LearningProfileForm
+            initialGrade={user.student.grade}
+            initialLevel={user.student.currentLevel}
+            levelLocked={levelLocked}
+          />
+        </div>
+      )}
 
       {/* 계정 탈퇴 */}
       <div className="bg-accent-red-light border border-accent-red rounded-xl p-6">

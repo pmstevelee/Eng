@@ -5,12 +5,15 @@ import { revalidateTag } from 'next/cache'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
 import { resolveJoinAccount, setSessionProfileCookies } from '@/lib/account/multi-academy'
+import { isValidLearningLevel, isValidStudentGrade } from '@/lib/constants/student-profile'
 
 export type RegisterStudentData = {
   name: string
   email: string
   password: string
   grade: string
+  /** 학습레벨 설문에서 고른 시작 레벨 (1~10) — 레벨 테스트 전까지 currentLevel로 사용 */
+  learningLevel: number
   academyId: string
   agreedTerms: boolean
   agreedPrivacy: boolean
@@ -20,6 +23,9 @@ export type RegisterStudentData = {
 export async function registerStudent(
   data: RegisterStudentData
 ): Promise<{ error: string } | undefined> {
+  if (!isValidStudentGrade(data.grade)) return { error: '학년을 선택해 주세요.' }
+  if (!isValidLearningLevel(data.learningLevel)) return { error: '학습레벨을 선택해 주세요.' }
+
   // 이메일 확인: 처음 가입이면 새 계정, 다른 학원에 이미 가입된 학생이면
   // 비밀번호 확인 후 같은 계정에 이 학원 프로필만 추가한다 (학습 기록은 학원별로 분리)
   let account: Awaited<ReturnType<typeof resolveJoinAccount>>
@@ -102,7 +108,8 @@ export async function registerStudent(
       await tx.student.create({
         data: {
           userId,
-          grade: data.grade || null,
+          grade: data.grade,
+          currentLevel: data.learningLevel,
         },
       })
     })

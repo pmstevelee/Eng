@@ -7,6 +7,60 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { ACTIVE_PROFILE_COOKIE, deleteAuthIfNoProfiles } from '@/lib/account/multi-academy'
+import { isValidLearningLevel, isValidStudentGrade } from '@/lib/constants/student-profile'
+import { hasOfficialLevelAssessment } from '@/lib/students/level-test-history'
+
+/**
+ * 학년·학습레벨 변경.
+ * 학년은 언제든 바꿀 수 있고, 학습레벨은 레벨 테스트(또는 교사 조정) 이력이 없을 때만 바꿀 수 있다.
+ * 이후 레벨은 레벨 테스트·승급 조건·교사 조정으로만 바뀐다.
+ */
+export async function updateLearningProfile(input: {
+  grade: string
+  learningLevel: number
+}): Promise<{ error?: string }> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'STUDENT' || !user.student) return { error: '권한이 없습니다.' }
+  if (!isValidStudentGrade(input.grade)) return { error: '학년을 선택해 주세요.' }
+  if (!isValidLearningLevel(input.learningLevel)) return { error: '학습레벨을 선택해 주세요.' }
+
+  const studentId = user.student.id
+
+  try {
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      select: { currentLevel: true },
+    })
+    if (!student) return { error: '학생 정보를 찾을 수 없습니다.' }
+
+    const levelChanged = student.currentLevel !== input.learningLevel
+    if (levelChanged && (await hasOfficialLevelAssessment(studentId))) {
+      return {
+        error: '레벨 테스트를 본 후에는 학습레벨을 직접 바꿀 수 없습니다. 선생님께 문의하세요.',
+      }
+    }
+
+    await prisma.student.update({
+      where: { id: studentId },
+      data: {
+        grade: input.grade,
+        ...(levelChanged ? { currentLevel: input.learningLevel } : {}),
+      },
+    })
+  } catch {
+    return { error: '저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
+  }
+
+  revalidateTag(`user-${user.id}`)
+  revalidateTag(`student-${studentId}-dashboard`)
+  revalidateTag(`student-${studentId}-promotion`)
+  revalidateTag(`student-${studentId}-learn`)
+  revalidateTag(`student-${studentId}-learning`)
+  revalidateTag(`student-${studentId}-grades`)
+  revalidateTag(`student-${studentId}-detail`)
+  if (user.academyId) revalidateTag(`academy-${user.academyId}-students`)
+  return {}
+}
 
 export async function withdrawStudent(
   formData: FormData,
