@@ -30,6 +30,7 @@
     "words:import-category": "tsx scripts/oxford/import-exam-category.ts",
     "words:import-word-list": "tsx scripts/oxford/import-word-list.ts",
     "words:backfill-examples": "tsx scripts/oxford/backfill-examples.ts",
+    "words:import-csat": "tsx scripts/oxford/import-csat-words.ts",
     "words:seed-category-sets": "tsx scripts/oxford/seed-exam-category-sets.ts"
   },
   "prisma": {

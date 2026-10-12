@@ -32,6 +32,7 @@ const CATEGORY_LABEL: Record<ExamCategory, string> = {
   TOEFL: '토플',
   TOEIC: '토익',
   SAT: 'SAT',
+  CSAT: '수능영어',
 }
 
 async function main() {

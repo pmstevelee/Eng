@@ -4,6 +4,7 @@ const EXAM_CATEGORY_LABEL: Record<string, string> = {
   TOEFL: '토플',
   TOEIC: '토익',
   SAT: 'SAT',
+  CSAT: '수능영어',
 }
 
 interface ExamCategoryBadgesProps {
@@ -34,4 +35,5 @@ export const EXAM_CATEGORY_OPTIONS = [
   { value: 'TOEFL', label: 'TOEFL' },
   { value: 'TOEIC', label: 'TOEIC' },
   { value: 'SAT', label: 'SAT' },
+  { value: 'CSAT', label: '수능영어' },
 ] as const

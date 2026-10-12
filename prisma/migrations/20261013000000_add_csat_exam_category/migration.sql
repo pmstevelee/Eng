@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "ExamCategory" ADD VALUE IF NOT EXISTS 'CSAT';

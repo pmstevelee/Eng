@@ -1272,6 +1272,7 @@ enum ExamCategory {
   TOEFL
   TOEIC
   SAT
+  CSAT
 }
 
 /// 단어 마스터 (Oxford 기반)
