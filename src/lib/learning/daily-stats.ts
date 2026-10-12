@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import { dbDate, todayKst } from '@/lib/attendance/time'
 
@@ -49,6 +50,15 @@ export function dailyStatUpsert(studentId: string, delta: DailyStatDelta, extra?
   })
 }
 
+/** 학습 랭킹 캐시(unstable_cache, tag: learning-ranking) 무효화 — 포인트·학습량 변경 직후 순위에 바로 반영 */
+export function invalidateLearningRanking(): void {
+  try {
+    revalidateTag('learning-ranking')
+  } catch (error) {
+    console.error('[daily-stats] 랭킹 캐시 무효화 실패:', error)
+  }
+}
+
 function hasDelta(delta: DailyStatDelta): boolean {
   return DELTA_KEYS.some((k) => (delta[k] ?? 0) !== 0)
 }
@@ -58,6 +68,7 @@ export async function bumpDailyStat(studentId: string, delta: DailyStatDelta): P
   if (!hasDelta(delta)) return
   try {
     await dailyStatUpsert(studentId, delta)
+    invalidateLearningRanking()
   } catch (error) {
     console.error('[daily-stats] 집계 실패:', error)
   }

@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma/client'
 import { BadgeType } from '@/generated/prisma'
-import { dailyStatUpsert, type DailyStatDelta } from '@/lib/learning/daily-stats'
+import { dailyStatUpsert, invalidateLearningRanking, type DailyStatDelta } from '@/lib/learning/daily-stats'
 
 export type XpResult = {
   totalXp: number
@@ -42,6 +42,7 @@ export async function awardXP(
     }),
     dailyStatUpsert(studentId, { ...statDelta, points: amount }),
   ])
+  invalidateLearningRanking()
 
   return { totalXp: updated.totalXp, earned: amount }
 }
