@@ -40,6 +40,19 @@ export default async function FlashcardPage({ params, searchParams }: Props) {
     masteredWords: number
   }
 
+  if (cards.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-center px-4">
+        <p className="text-gray-500">
+          오늘 학습할 새 단어가 없어요. 다른 세트를 선택하거나 내일 다시 도전해 보세요.
+        </p>
+        <Link href={hubHref} className="text-sm text-[#7854F7] underline underline-offset-4">
+          {hubLabel}(으)로 돌아가기
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-md mx-auto px-4 pt-4 pb-8">
       {/* 상단 네비게이션 */}

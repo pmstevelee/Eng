@@ -271,12 +271,15 @@ export async function getFlashcards(setId: string, _stage?: 'FLASHCARD' | 'RECAL
     // 진도가 시작된 단어만 대상
     const startedItems = wordSet.items.filter((item) => item.word.wordProgress.length > 0)
 
-    // 학습 배치 = 시작된 단어 전체. 마스터 여부로 걸러내지 않는다 —
-    // stage 기준으로 필터링하면 세트를 반복 학습할 때마다 이전 라운드에서
-    // 어떤 단어를 "안다/모른다"로 답했는지에 따라 배치에 남는 단어 수가
-    // 매번 들쭉날쭉해지는 버그가 있었다. 항상 세트 전체를 배치로 제공해
-    // 반복 학습 시에도 모든 단어가 다시 학습 대상이 되도록 한다.
-    const batchItems = startedItems
+    // 학습 배치 = 오늘 새로 시작한 단어 + 아직 한 번도 학습하지 않은 단어.
+    // 이전 날 이미 학습한 단어는 배치에서 제외한다 (복습은 "오늘 복습할 단어"에서 SRS로 처리).
+    // 마스터 여부(stage)로는 거르지 않아, 같은 날 반복 학습 시 배치가 들쭉날쭉해지지 않는다.
+    const todayStart = new Date()
+    todayStart.setHours(0, 0, 0, 0)
+    const batchItems = startedItems.filter((item) => {
+      const p = item.word.wordProgress[0]
+      return p.createdAt >= todayStart || (p.lastStudiedAt === null && p.learnedAt === null)
+    })
 
     const cards = batchItems.map((item) => ({
       word: {
