@@ -130,3 +130,52 @@ Return a JSON object with exactly this field:
     tokensUsed: response.usage?.total_tokens ?? 0,
   }
 }
+
+export type DefinitionOnlyInput = {
+  term: string
+  partOfSpeech: string
+  meaning: string
+}
+
+export type DefinitionOnlyResult = {
+  definition: string
+  tokensUsed: number
+}
+
+/** 이미 뜻이 있는 단어(예: 수능영어 VOCA 파일)에 영영풀이만 새로 생성한다. */
+export async function generateDefinitionOnly(input: DefinitionOnlyInput): Promise<DefinitionOnlyResult> {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) throw new Error('OPENAI_API_KEY가 설정되지 않았습니다.')
+
+  const openai = new OpenAI({ apiKey })
+  const { term, partOfSpeech, meaning } = input
+
+  const prompt = `You are an EFL vocabulary expert creating dictionary entries for Korean English learners.
+
+Word: "${term}" (${partOfSpeech})
+Korean meaning: ${meaning}
+
+Return a JSON object with exactly this field:
+- "definition": One clear English definition sentence matching the given Korean meaning, using simple words. No more than 20 words. Do not use the word itself in the definition.`
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    response_format: { type: 'json_object' },
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.3,
+    max_tokens: 100,
+  })
+
+  const raw = response.choices[0]?.message?.content
+  if (!raw) throw new Error('OpenAI 응답이 비어 있습니다.')
+
+  const parsed = JSON.parse(raw) as Partial<{ definition: string }>
+  if (!parsed.definition) {
+    throw new Error(`OpenAI 응답 필드 누락: ${JSON.stringify(parsed)}`)
+  }
+
+  return {
+    definition: parsed.definition.trim(),
+    tokensUsed: response.usage?.total_tokens ?? 0,
+  }
+}
