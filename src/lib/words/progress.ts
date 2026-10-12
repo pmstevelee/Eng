@@ -85,7 +85,7 @@ export async function applyWordAnswer(
   });
 
   // 망각: 같은 날 이미 학습했더라도 SRS를 초기화하고 다음 날 복습 대상으로 만든다.
-  const schedule = outcome.isLapse
+  const baseSchedule = outcome.isLapse
     ? {
         easeFactor: Math.max(1.3, existing.easeFactor - 0.2),
         intervalDays: 1,
@@ -93,6 +93,15 @@ export async function applyWordAnswer(
         nextReviewAt: new Date(now.getTime() + LAPSE_RETRY_MS),
       }
     : srs;
+
+  // 오늘 이미 학습한 단어(srs 미진행)나 망각이 아닌 오답은 복습 기한이 그대로 오늘에 남아,
+  // 복습을 마쳐도 "오늘 복습할 단어"에서 사라지지 않는다. 복습 응답이면 다음 날로 넘긴다.
+  const stillDueToday =
+    input.context === "REVIEW" &&
+    (!baseSchedule.nextReviewAt || baseSchedule.nextReviewAt <= endOfTodayKst());
+  const schedule = stillDueToday
+    ? { ...baseSchedule, nextReviewAt: new Date(now.getTime() + LAPSE_RETRY_MS) }
+    : baseSchedule;
 
   const firstReviewToday =
     input.context === "REVIEW" &&
