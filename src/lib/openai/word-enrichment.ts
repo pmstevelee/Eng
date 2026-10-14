@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { AI_MODEL } from './models'
 
 export type WordEnrichmentInput = {
   term: string
@@ -53,7 +54,7 @@ export async function enrichWord(input: WordEnrichmentInput): Promise<WordEnrich
   const openai = new OpenAI({ apiKey })
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: AI_MODEL,
     response_format: { type: 'json_object' },
     messages: [
       {
@@ -110,7 +111,7 @@ Return a JSON object with exactly this field:
 - "example": One natural English example sentence showing the word in context, matching the given meaning. No more than 20 words.`
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: AI_MODEL,
     response_format: { type: 'json_object' },
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.3,
@@ -159,7 +160,7 @@ Return a JSON object with exactly this field:
 - "definition": One clear English definition sentence matching the given Korean meaning, using simple words. No more than 20 words. Do not use the word itself in the definition.`
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: AI_MODEL,
     response_format: { type: 'json_object' },
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.3,

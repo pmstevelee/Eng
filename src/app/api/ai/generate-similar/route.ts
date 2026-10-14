@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { AI_MODEL, AI_VISION_MODEL } from '@/lib/openai/models'
 import { getCurrentUser } from '@/lib/auth'
 
 interface GenerateSimilarRequest {
@@ -178,7 +179,7 @@ ${JSON.stringify({
     // ── OpenAI 호출 ───────────────────────────────────────────────────────────
 
     const completion = await openai.chat.completions.create({
-      model: hasPassageImage ? 'gpt-4o' : 'gpt-4o-mini',
+      model: hasPassageImage ? AI_VISION_MODEL : AI_MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userContent },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { AI_MODEL } from '@/lib/openai/models'
 import { prisma } from '@/lib/prisma/client'
 import type { DomainLevels } from '@/lib/ai/domain-level-calculator'
 import { checkAiUsageLimit, recordAiUsage } from '@/lib/usage/tracker'
@@ -454,7 +455,7 @@ export async function POST(req: NextRequest) {
     const wordCount = body.essay.trim().split(/\s+/).filter(Boolean).length
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: AI_MODEL,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: buildUserPrompt(body, wordCount) },

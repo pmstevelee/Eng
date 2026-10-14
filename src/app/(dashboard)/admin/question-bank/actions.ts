@@ -3,6 +3,7 @@
 import { revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import OpenAI from 'openai'
+import { AI_MODEL } from '@/lib/openai/models'
 import { updateQuestionBankStatsForDomain, shareQuestionToPublicPool } from '@/lib/questions/share-to-pool'
 import { Prisma } from '@/generated/prisma'
 import type { QuestionDomain, QuestionSource } from '@/generated/prisma'
@@ -362,7 +363,7 @@ export async function generateQuestionsForGaps(minCount = 10): Promise<{
 응답은 {"questions": [...]} 형식의 JSON으로 출력하세요.`
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: AI_MODEL,
         messages: [{ role: 'user', content: prompt }],
         response_format: { type: 'json_object' },
         temperature: 0.8,
@@ -538,7 +539,7 @@ Pre-A1→1, A1 하→2, A1 상→3, A2 하→4, A2 상→5, B1 하→6, B1 상�
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: AI_MODEL,
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
       temperature: 0.3,

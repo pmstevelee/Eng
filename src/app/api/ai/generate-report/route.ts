@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { AI_MODEL } from '@/lib/openai/models'
 import { prisma } from '@/lib/prisma/client'
 import type { ReportResult } from '@/types'
 import { getCurrentUser } from '@/lib/auth'
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
     ].join('\n')
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: AI_MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: dataText },

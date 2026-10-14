@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
 import OpenAI from 'openai'
+import { AI_MODEL } from '@/lib/openai/models'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { getStudentProfile } from '@/lib/ai/student-analyzer'
@@ -561,7 +562,7 @@ JSON 응답:
     const openai = new OpenAI({ apiKey })
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: AI_MODEL,
       messages: [
         {
           role: 'system',

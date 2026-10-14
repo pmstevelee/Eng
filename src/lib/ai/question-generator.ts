@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { AI_MODEL } from '@/lib/openai/models'
 import { prisma } from '@/lib/prisma/client'
 import { shareQuestionToPublicPool } from '@/lib/questions/share-to-pool'
 import type { StudentProfile } from './student-analyzer'
@@ -161,7 +162,7 @@ ${originalQuestion.contentJson.options?.length ? `- 선택지: ${originalQuestio
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: AI_MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },

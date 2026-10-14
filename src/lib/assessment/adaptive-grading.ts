@@ -19,6 +19,7 @@ import { scoreToLevel, LEVEL_TO_CEFR } from '@/lib/constants/levels'
 import { recordLevelTestUsage } from '@/lib/questions/usage-tracker'
 import { updateQuestionQuality } from '@/lib/questions/quality-updater'
 import { trackAiUsage } from '@/lib/usage/tracker'
+import { AI_MODEL } from '@/lib/openai/models'
 
 /**
  * 객관식·단답형 문항 서버 채점.
@@ -87,7 +88,7 @@ export async function gradeAdaptiveWriting(
             Authorization: `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: AI_MODEL,
             messages: [
               { role: 'system', content: buildWritingGradingSystemPrompt() },
               {

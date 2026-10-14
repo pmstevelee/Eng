@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { AI_MODEL } from '@/lib/openai/models'
 import { getCurrentUser } from '@/lib/auth'
 
 interface AnalyzeQuestionRequest {
@@ -93,7 +94,7 @@ CEFR 레벨과 난이도 매핑 기준:
 Pre-A1→1, A1 하→2, A1 상→3, A2 하→4, A2 상→5, B1 하→6, B1 상→7, B2 하→8, B2 상→9, C1+→10`
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: AI_MODEL,
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
       temperature: 0.3,

@@ -6,6 +6,7 @@ import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import { LEVEL_TO_CEFR } from '@/lib/constants/levels'
 import { getCurrentUser } from '@/lib/auth'
+import { AI_MODEL } from '@/lib/openai/models'
 import {
   buildWritingGradingResponseFormat,
   buildWritingGradingSystemPrompt,
@@ -61,7 +62,7 @@ export async function getAiAnalysis(
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: AI_MODEL,
         messages: [
           { role: 'system', content: buildWritingGradingSystemPrompt() },
           {

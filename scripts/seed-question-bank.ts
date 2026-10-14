@@ -23,6 +23,7 @@ import { config } from "dotenv";
 config({ path: ".env" });
 config({ path: ".env.local", override: true });
 import OpenAI from "openai";
+import { AI_MODEL } from "../src/lib/openai/models";
 import { PrismaClient, QuestionDomain } from "../src/generated/prisma";
 
 const prisma = new PrismaClient();
@@ -332,7 +333,8 @@ async function callOpenAI(
 ): Promise<GeneratedQuestion[]> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      // import가 config()보다 먼저 평가되므로 AI_MODEL엔 .env 값이 반영되지 않음 → 여기서 다시 읽음
+      model: process.env.OPENAI_MODEL || AI_MODEL,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
