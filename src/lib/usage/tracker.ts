@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma/client'
 import { PLANS } from '@/lib/pricing'
-import { Plan } from '@/generated/prisma'
+import { Plan, type PlanType } from '@/generated/prisma'
 import { chargeAiCredits, getCreditPricing, getWallet, walletAcademyIdOf } from '@/lib/credits/wallet'
 import type { AiCreditItemValue } from '@/lib/credits/constants'
 import { queueOverageCharge } from './overage'
@@ -56,8 +56,9 @@ async function getOrCreateUsageRecord(academyId: string, subscriptionId: string)
 }
 
 // 학원의 현재 구독 + 플랜 조회
+// 결제(빌링) 가입을 거치지 않고 관리자가 요금제를 수동 지정한 학원은 subscriptions 행이 없으므로 null을 반환한다.
 async function getSubscriptionInfo(academyId: string) {
-  const sub = await prisma.subscription.findUnique({
+  return prisma.subscription.findUnique({
     where: { academyId },
     select: {
       id: true,
@@ -67,8 +68,25 @@ async function getSubscriptionInfo(academyId: string) {
       overageMode: true,
     },
   })
-  if (!sub) throw new Error(`구독 정보를 찾을 수 없습니다. academyId=${academyId}`)
-  return sub
+}
+
+// 레거시 PlanType(BASIC/ENTERPRISE 포함) → 현행 Plan
+const PLAN_TYPE_TO_PLAN: Record<PlanType, Plan> = {
+  FREE: 'FREE',
+  STARTER: 'STARTER',
+  BASIC: 'STARTER',
+  STANDARD: 'STANDARD',
+  PREMIUM: 'PREMIUM',
+  ENTERPRISE: 'PREMIUM',
+}
+
+// subscriptions 행이 없는 학원: academies.subscription_plan 기준 플랜
+async function getAcademyPlan(academyId: string): Promise<Plan> {
+  const academy = await prisma.academy.findUnique({
+    where: { id: academyId },
+    select: { subscriptionPlan: true },
+  })
+  return academy ? PLAN_TYPE_TO_PLAN[academy.subscriptionPlan] : 'FREE'
 }
 
 // 통합 크레딧 잔액 + 이 기능 1회 단가 (지점은 본원 지갑)
@@ -88,6 +106,24 @@ export async function checkAiUsageLimit(
   type: AiUsageType,
 ): Promise<UsageCheckResult> {
   const sub = await getSubscriptionInfo(academyId)
+
+  // 구독 행이 없는 학원(수동 요금제)은 월별 사용량 집계 대상이 아니므로 사용을 허용한다.
+  if (!sub) {
+    const planConfig = PLANS[await getAcademyPlan(academyId)]
+    const limit = type === 'WRITING' ? planConfig.aiWritingLimit : planConfig.aiQuestionLimit
+    const { creditBalance, creditPerUse } = await getCreditInfo(academyId, type)
+    return {
+      canUse: true,
+      source: 'FREE',
+      message: '요금제 기본 제공 사용',
+      usedThisMonth: 0,
+      limit,
+      remainingFree: limit,
+      creditBalance,
+      creditPerUse,
+    }
+  }
+
   const plan = sub.plan as Plan
   const planConfig = PLANS[plan]
 
@@ -198,9 +234,14 @@ export async function trackAiUsage(
   type: AiUsageType,
 ): Promise<TrackResult> {
   const sub = await getSubscriptionInfo(academyId)
+  if (!sub) {
+    // usage_records는 구독에 묶여 있어 구독 행이 없는 학원은 집계하지 않는다
+    const planConfig = PLANS[await getAcademyPlan(academyId)]
+    const limit = type === 'WRITING' ? planConfig.aiWritingLimit : planConfig.aiQuestionLimit
+    return { usedThisMonth: 0, limit, remainingFree: limit, isOverLimit: false }
+  }
   const plan = sub.plan as Plan
   const planConfig = PLANS[plan]
-  const freeLimit = type === 'WRITING' ? planConfig.aiWritingLimit : planConfig.aiQuestionLimit
 
   // 트랜잭션으로 record 조회/생성 + increment 원자적 처리
   const updated = await prisma.$transaction(async (tx) => {
@@ -272,6 +313,7 @@ export async function recordAiUsage(academyId: string, type: AiUsageType): Promi
  */
 export async function trackStorageUsage(academyId: string, mbDelta: number): Promise<void> {
   const sub = await getSubscriptionInfo(academyId)
+  if (!sub) return
   const now = new Date()
   const periodStart = new Date(now.getFullYear(), now.getMonth(), 1)
   const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
@@ -304,6 +346,7 @@ export async function trackStudentCount(academyId: string): Promise<void> {
       },
     }),
   ])
+  if (!sub) return
 
   const now = new Date()
   const periodStart = new Date(now.getFullYear(), now.getMonth(), 1)

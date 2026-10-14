@@ -476,8 +476,13 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 사용량 기록 + 과금 (무료 한도 → 통합 크레딧 → 초과 요금) ──────────────
+    // 기록 실패로 이미 받은 AI 평가 결과를 버리지 않도록 오류는 로그만 남긴다
     if (academyId) {
-      await recordAiUsage(academyId, 'WRITING')
+      try {
+        await recordAiUsage(academyId, 'WRITING')
+      } catch (usageError) {
+        console.error('[evaluate-writing] 사용량 기록 오류:', usageError)
+      }
     }
 
     // ── DB 저장 ────────────────────────────────────────────────────────────────
