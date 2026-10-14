@@ -7,7 +7,6 @@ import {
   getAcademyDailyNewWords,
 } from '@/lib/words/access-guard'
 import { getLevelInfo } from '@/lib/constants/levels'
-import { DailyLimitSetting } from '@/components/words/daily-limit-setting'
 import { resolveDailyNewWords } from '@/lib/words/settings'
 import { DailyReviewWidget } from '@/components/words/daily-review-widget'
 import { NavLinkWithLoading } from '@/components/shared/nav-link-with-loading'
@@ -434,12 +433,21 @@ export default async function WordsHubPage({ searchParams }: Props) {
           {/* 오늘의 복습 위젯 */}
           <DailyReviewWidget studentId={studentId} newWordHref="#word-sets" />
 
-          {/* 신규 학습 한도 (학생이 직접 조정) */}
-          <DailyLimitSetting
-            current={dailyNewWords}
-            academyDefault={academyDailyNewWords}
-            isCustom={studentOverride !== null}
-          />
+          {/* 신규 학습 한도 (조정은 설정 메뉴) */}
+          <Link
+            href="/student/settings"
+            className="flex items-center gap-3 rounded-xl border bg-white p-4"
+            style={{ borderColor: '#DDD6FE' }}
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: '#F3F0FF' }}>
+              <Layers className="h-5 w-5" style={{ color: '#7854F7' }} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-700">하루 신규 단어 한도</p>
+              <p className="text-xs text-gray-500">{dailyNewWords}개/일 · 설정에서 변경</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+          </Link>
         </div>
       </div>
 

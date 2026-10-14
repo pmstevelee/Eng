@@ -2,6 +2,9 @@ import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import { requireStudent } from '@/lib/auth-student'
 import { hasOfficialLevelAssessment } from '@/lib/students/level-test-history'
+import { getAcademyDailyNewWords } from '@/lib/words/access-guard'
+import { resolveDailyNewWords } from '@/lib/words/settings'
+import { DailyLimitSetting } from '@/components/words/daily-limit-setting'
 import { WithdrawModal } from './_components/withdraw-modal'
 import { LearningProfileForm } from './_components/learning-profile-form'
 
@@ -14,8 +17,8 @@ const getCachedSettingsUser = (userId: string) =>
           name: true,
           email: true,
           phone: true,
-          academy: { select: { name: true, businessName: true } },
-          student: { select: { grade: true, currentLevel: true } },
+          academy: { select: { name: true, businessName: true, settingsJson: true } },
+          student: { select: { grade: true, currentLevel: true, dailyNewWordsOverride: true } },
         },
       }),
     ['student-settings-user', userId],
@@ -31,6 +34,7 @@ export default async function StudentSettingsPage() {
   const isMultiAcademy = currentUser.academies.length > 1
   if (!user) return null
 
+  const academyDailyNewWords = getAcademyDailyNewWords(user.academy?.settingsJson)
   const academyName = user.academy?.businessName ?? user.academy?.name ?? '-'
 
   return (
@@ -73,6 +77,18 @@ export default async function StudentSettingsPage() {
             initialGrade={user.student.grade}
             initialLevel={user.student.currentLevel}
             levelLocked={levelLocked}
+          />
+        </div>
+      )}
+
+      {/* 단어학습 */}
+      {user.student && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">단어학습</h2>
+          <DailyLimitSetting
+            current={resolveDailyNewWords(academyDailyNewWords, user.student.dailyNewWordsOverride)}
+            academyDefault={academyDailyNewWords}
+            isCustom={user.student.dailyNewWordsOverride !== null}
           />
         </div>
       )}
