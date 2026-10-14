@@ -9,10 +9,11 @@ import type { Prisma } from '@/generated/prisma'
 // 학습 랭킹 — 포인트(= XP)와 학습량(단어 응답 수)을 기간·범위별로 순위화한다.
 // 원천 데이터: StudentDailyStat(일자별 집계). 누적은 Student.totalXp 기준.
 
-export type RankingPeriod = 'week' | 'month' | 'all'
+export type RankingPeriod = 'day' | 'week' | 'month' | 'all'
 export type RankingScope = 'class' | 'academy' | 'global'
 
 export const RANKING_PERIOD_LABEL: Record<RankingPeriod, string> = {
+  day: '오늘',
   week: '이번 주',
   month: '이번 달',
   all: '누적',
@@ -68,6 +69,7 @@ export function maskName(name: string): string {
 /** 기간 시작 KST 날짜 키 (주: 월요일 시작) */
 function periodStartKey(period: RankingPeriod, today: string): string | null {
   if (period === 'all') return null
+  if (period === 'day') return today
   if (period === 'month') return `${today.slice(0, 7)}-01`
   const dow = dayOfWeekOf(today) // 0=일
   return addDays(today, dow === 0 ? -6 : 1 - dow)
