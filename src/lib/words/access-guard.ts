@@ -3,7 +3,7 @@ import 'server-only'
 import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import type { SubscriptionStatus, Plan, PlanType } from '@/generated/prisma'
-import { parseWordLearningSettings, type WordLearningSettings } from './settings'
+import { parseWordLearningSettings, resolveDailyNewWords, type WordLearningSettings } from './settings'
 
 const ACTIVE_STATUSES: SubscriptionStatus[] = ['TRIAL', 'ACTIVE']
 const FREE_PLAN: Plan = 'FREE'
@@ -96,13 +96,16 @@ export function getAcademyDailyNewWords(settingsJson: unknown): number {
 /** 학원 단어학습 설정 (60초 캐시 재사용 — 신규 단어 수는 구독 상태에 따라 무료 한도 적용) */
 export async function getAcademyWordLearningSettings(
   academyId: string,
+  studentDailyNewWords?: number | null,
 ): Promise<WordLearningSettings & { canUseWords: boolean }> {
   const academy = await fetchAcademySubscription(academyId)
   const settings = parseWordLearningSettings(academy?.settingsJson)
   const canUseWords = !!academy && hasActiveWordLearningPlan(academy)
   return {
     ...settings,
-    dailyNewWords: canUseWords ? settings.dailyNewWords : FREE_DAILY_NEW_WORDS,
+    dailyNewWords: canUseWords
+      ? resolveDailyNewWords(settings.dailyNewWords, studentDailyNewWords)
+      : FREE_DAILY_NEW_WORDS,
     canUseWords,
   }
 }
@@ -120,13 +123,19 @@ export async function assertCanUseWordLearning(academyId: string): Promise<void>
   }
 }
 
-export async function getWordLearningLimits(academyId: string): Promise<WordLearningLimits> {
+export async function getWordLearningLimits(
+  academyId: string,
+  studentDailyNewWords?: number | null,
+): Promise<WordLearningLimits> {
   const academy = await fetchAcademySubscription(academyId)
   if (!academy || !hasActiveWordLearningPlan(academy)) {
     return { dailyNewWords: FREE_DAILY_NEW_WORDS, maxSets: 0 }
   }
   return {
-    dailyNewWords: parseAcademyDailyNewWords(academy.settingsJson),
+    dailyNewWords: resolveDailyNewWords(
+      parseAcademyDailyNewWords(academy.settingsJson),
+      studentDailyNewWords,
+    ),
     maxSets: Number.POSITIVE_INFINITY,
   }
 }

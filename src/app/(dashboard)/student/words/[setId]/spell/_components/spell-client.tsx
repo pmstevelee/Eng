@@ -307,6 +307,8 @@ export function SpellClient({ setId, initialCards }: Props) {
       if (phase !== 'quizzing') return
       if (e.key === 'Enter') {
         e.preventDefault()
+        // 키를 꾹 누른 반복 입력으로 채점 직후 해설 없이 넘어가는 것을 방지
+        if (e.repeat) return
         if (answerState !== 'idle') {
           advance()
         } else {
@@ -442,16 +444,6 @@ export function SpellClient({ setId, initialCards }: Props) {
               value={input}
               onChange={(e) => {
                 if (!isAnswered) setInput(e.target.value)
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  if (isAnswered) {
-                    advance()
-                  } else {
-                    handleSubmit()
-                  }
-                }
               }}
               autoFocus
               autoComplete="off"

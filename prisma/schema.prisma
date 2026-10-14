@@ -464,6 +464,8 @@ model Student {
   keypadCode        String?       @map("keypad_code")
   /// 퇴원일
   withdrawnAt       DateTime?     @map("withdrawn_at")
+  /// 학생이 직접 정한 하루 신규 단어 수 (null이면 학원 설정 사용)
+  dailyNewWordsOverride Int?      @map("daily_new_words_override")
 
   user  User   @relation(fields: [userId], references: [id])
   class Class? @relation(fields: [classId], references: [id])

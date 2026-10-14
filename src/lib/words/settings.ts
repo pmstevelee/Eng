@@ -35,3 +35,13 @@ export function parseWordLearningSettings(settingsJson: unknown): WordLearningSe
     globalRanking: wl.globalRanking !== false,
   }
 }
+
+export const DAILY_NEW_WORDS_RANGE = { min: 1, max: 100 } as const
+
+/** 학생이 직접 정한 값이 있으면 우선하고, 없으면 학원 설정값을 쓴다 (무료 플랜 상한은 호출부에서 적용) */
+export function resolveDailyNewWords(academyValue: number, studentOverride: number | null | undefined): number {
+  if (typeof studentOverride === 'number' && studentOverride >= DAILY_NEW_WORDS_RANGE.min) {
+    return Math.min(studentOverride, DAILY_NEW_WORDS_RANGE.max)
+  }
+  return academyValue
+}

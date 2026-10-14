@@ -105,7 +105,11 @@ export async function getOrCreateTodayWordPlan(params: {
   })
   if (existing) return existing
 
-  const settings = await getAcademyWordLearningSettings(academyId)
+  const studentRow = await prisma.student.findUnique({
+    where: { id: studentId },
+    select: { dailyNewWordsOverride: true },
+  })
+  const settings = await getAcademyWordLearningSettings(academyId, studentRow?.dailyNewWordsOverride)
   if (!settings.canUseWords) return null
 
   const [student, dueCount] = await Promise.all([

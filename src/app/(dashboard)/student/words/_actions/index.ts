@@ -168,7 +168,11 @@ export async function startWordSet(setId: string): Promise<Result<{ created: num
     const { setId: validSetId } = StartWordSetSchema.parse({ setId })
     const { studentId, userId, academyId } = await getAuthContext()
 
-    const limits = await getWordLearningLimits(academyId)
+    const studentRow = await prisma.student.findUnique({
+      where: { id: studentId },
+      select: { dailyNewWordsOverride: true },
+    })
+    const limits = await getWordLearningLimits(academyId, studentRow?.dailyNewWordsOverride)
 
     const wordSet = await prisma.wordSet.findFirst({
       where: {

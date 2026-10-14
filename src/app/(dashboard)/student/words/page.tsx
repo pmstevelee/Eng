@@ -7,6 +7,8 @@ import {
   getAcademyDailyNewWords,
 } from '@/lib/words/access-guard'
 import { getLevelInfo } from '@/lib/constants/levels'
+import { DailyLimitSetting } from '@/components/words/daily-limit-setting'
+import { resolveDailyNewWords } from '@/lib/words/settings'
 import { DailyReviewWidget } from '@/components/words/daily-review-widget'
 import { NavLinkWithLoading } from '@/components/shared/nav-link-with-loading'
 import { ExamCategoryBadges, EXAM_CATEGORY_OPTIONS } from '@/components/words/exam-category-badges'
@@ -18,7 +20,7 @@ async function getWordsHubData(studentId: string, userId: string) {
     select: {
       academyId: true,
       academy: { select: { settingsJson: true } },
-      student: { select: { currentLevel: true } },
+      student: { select: { currentLevel: true, dailyNewWordsOverride: true } },
     },
   })
 
@@ -312,7 +314,9 @@ export default async function WordsHubPage({ searchParams }: Props) {
 
   const studentLevel = user?.student?.currentLevel ?? 1
   const levelInfo = getLevelInfo(studentLevel)
-  const dailyNewWords = getAcademyDailyNewWords(user?.academy?.settingsJson)
+  const academyDailyNewWords = getAcademyDailyNewWords(user?.academy?.settingsJson)
+  const studentOverride = user?.student?.dailyNewWordsOverride ?? null
+  const dailyNewWords = resolveDailyNewWords(academyDailyNewWords, studentOverride)
   await ensureSystemWordSets()
   const wordSets = await getWordSets(academyId, studentId, activeCategory)
 
@@ -430,19 +434,12 @@ export default async function WordsHubPage({ searchParams }: Props) {
           {/* 오늘의 복습 위젯 */}
           <DailyReviewWidget studentId={studentId} newWordHref="#word-sets" />
 
-          {/* 신규 학습 */}
-          <div
-            className="flex items-center gap-3 rounded-xl border bg-white p-4"
-            style={{ borderColor: '#DDD6FE' }}
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: '#F3F0FF' }}>
-              <Layers className="h-5 w-5" style={{ color: '#7854F7' }} />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-700">하루 신규 단어 한도</p>
-              <p className="text-xs text-gray-500">{dailyNewWords}개/일</p>
-            </div>
-          </div>
+          {/* 신규 학습 한도 (학생이 직접 조정) */}
+          <DailyLimitSetting
+            current={dailyNewWords}
+            academyDefault={academyDailyNewWords}
+            isCustom={studentOverride !== null}
+          />
         </div>
       </div>
 
