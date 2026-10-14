@@ -202,14 +202,14 @@ const ALL_TOPICS: TopicData[] = [
     maxWords: 110,
     level: 6,
   },
-  // Level 7 (B1 상): 관계대명사, 완료시제, 논리적 단락, 100~140단어
+  // Level 7 (B1 상): 관계대명사, 완료시제, 논리적 단락, 100~200단어
   {
     id: 'l7-1',
     titleKo: '기술 발전이 학교 생활에 미치는 영향',
     prompt:
       'How has technology changed school life? Discuss the benefits and drawbacks with specific examples.',
     minWords: 100,
-    maxWords: 140,
+    maxWords: 200,
     level: 7,
   },
   {
@@ -218,7 +218,7 @@ const ALL_TOPICS: TopicData[] = [
     prompt:
       'If you had 1,000,000 won, what would you do with it? Give two or three reasons for your choices and include examples.',
     minWords: 100,
-    maxWords: 140,
+    maxWords: 200,
     level: 7,
   },
   {
@@ -227,17 +227,17 @@ const ALL_TOPICS: TopicData[] = [
     prompt:
       'How does social media affect friendships among teenagers? Use relative clauses and give examples from your experience.',
     minWords: 100,
-    maxWords: 140,
+    maxWords: 200,
     level: 7,
   },
-  // Level 8 (B2 하): 복문/가정법, 추상 주제, 130~185단어
+  // Level 8 (B2 하): 복문/가정법, 추상 주제, 130~215단어
   {
     id: 'l8-1',
     titleKo: '소셜 미디어가 청소년에게 미치는 영향',
     prompt:
       'Discuss the impact of social media on teenagers. Consider both positive and negative effects with evidence and examples.',
     minWords: 130,
-    maxWords: 185,
+    maxWords: 215,
     level: 8,
   },
   {
@@ -246,7 +246,7 @@ const ALL_TOPICS: TopicData[] = [
     prompt:
       'Compare the advantages and disadvantages of city life and country life. Which do you prefer and why? Support your argument with specific reasons.',
     minWords: 130,
-    maxWords: 185,
+    maxWords: 215,
     level: 8,
   },
   {
@@ -255,7 +255,7 @@ const ALL_TOPICS: TopicData[] = [
     prompt:
       'How has technological advancement affected education? Discuss both the benefits and drawbacks, and propose solutions to the challenges.',
     minWords: 130,
-    maxWords: 185,
+    maxWords: 215,
     level: 8,
   },
   // Level 9 (B2 상): 정교한 문장, 학술 어휘, 180~225단어
