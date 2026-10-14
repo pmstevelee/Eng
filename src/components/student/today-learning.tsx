@@ -257,40 +257,32 @@ export function TodayLearningCard({ summary }: { summary: TodayLearningSummary }
   )
 }
 
-/** 오늘의 단어학습 허브 페이지 본문 */
+/** 오늘의 학습 허브 페이지 본문 (문법 미션만 — 단어 복습·새 단어는 단어학습 메뉴에서) */
 export function TodayLearningHub({
   summary,
-  canUseWords,
-  bonusXp,
 }: {
   summary: TodayLearningSummary
-  canUseWords: boolean
-  bonusXp: number
 }) {
-  const steps = buildSteps(summary)
-  const goal = summary.levelGoal
-  const bandInfo = goal ? getLevelInfo(goal.band) : null
+  const steps = buildSteps(summary).filter((s) => s.key === 'grammar')
+  const allDone = steps.length > 0 && steps.every((s) => s.done)
 
   return (
     <div className="space-y-5">
-      {/* 오늘 진행 요약 */}
       <div
         className="rounded-xl border p-5"
         style={
-          summary.isAllComplete
+          allDone
             ? { borderColor: '#1FAF5440', backgroundColor: '#1FAF540D' }
-            : { borderColor: '#DDD6FE', backgroundColor: '#F3F0FF' }
+            : { borderColor: '#BFDBFE', backgroundColor: '#EEF4FF' }
         }
       >
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-bold text-gray-900">
-              {summary.isAllComplete ? '🎉 오늘의 학습 완료!' : '오늘의 목표를 끝까지 달성해요'}
+              {allDone ? '🎉 오늘의 학습 완료!' : '오늘의 문법 미션을 풀어봐요'}
             </p>
             <p className="mt-0.5 text-xs text-gray-500">
-              {summary.isAllComplete
-                ? '내일도 새로운 단어와 문법이 준비돼요'
-                : `모두 마치면 보너스 ${bonusXp}P와 연속 학습일이 올라가요`}
+              {allDone ? '내일도 새로운 미션이 준비돼요' : '미션을 모두 마치면 연속 학습일이 올라가요'}
             </p>
           </div>
           <div className="text-right">
@@ -299,71 +291,30 @@ export function TodayLearningHub({
           </div>
         </div>
         <div className="mt-4">
-          <ProgressBar value={overallProgress(steps)} total={100} color={summary.isAllComplete ? '#1FAF54' : '#7854F7'} />
+          <ProgressBar value={overallProgress(steps)} total={100} color={allDone ? '#1FAF54' : '#1865F2'} />
         </div>
       </div>
 
-      {/* 3단계 */}
-      <div className="space-y-3">
-        {steps.map((step, i) => (
-          <StepRow key={step.key} step={step} index={i} />
-        ))}
-      </div>
-
-      {!canUseWords && (
-        <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4">
-          <Lock className="mt-0.5 h-5 w-5 shrink-0 text-gray-500" />
-          <div>
-            <p className="text-sm font-semibold text-gray-900">단어학습은 구독 학원에서 이용할 수 있어요</p>
-            <p className="mt-0.5 text-xs text-gray-500">학원 원장님께 문의하세요. 문법 미션은 지금 바로 풀 수 있어요.</p>
-          </div>
+      {steps.length > 0 ? (
+        <div className="space-y-3">
+          {steps.map((step, i) => (
+            <StepRow key={step.key} step={step} index={i} />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+          <p className="text-sm font-semibold text-gray-900">오늘 준비된 미션이 없어요</p>
+          <p className="mt-1 text-xs text-gray-500">잠시 후 다시 확인해 주세요.</p>
         </div>
       )}
 
-      {/* 레벨 단어 목표 */}
-      {goal && bandInfo && goal.totalWords > 0 && (
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <div className="mb-3 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-[#7854F7]" />
-            <p className="text-sm font-bold text-gray-900">
-              {bandInfo.cefr} 레벨 단어 목표
-            </p>
-          </div>
-          <div className="mb-2 flex items-end justify-between">
-            <p className="text-2xl font-black text-gray-900">
-              {goal.learnedWords.toLocaleString()}
-              <span className="text-sm font-semibold text-gray-500"> / {goal.totalWords.toLocaleString()}개</span>
-            </p>
-            <p className="text-xs text-gray-500">마스터 {goal.masteredWords.toLocaleString()}개</p>
-          </div>
-          <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-100">
-            <div className="absolute inset-y-0 left-0 rounded-full bg-[#7854F7]/40" style={{ width: `${pct(goal.learnedWords, goal.totalWords)}%` }} />
-            <div className="absolute inset-y-0 left-0 rounded-full bg-[#1FAF54]" style={{ width: `${pct(goal.masteredWords, goal.totalWords)}%` }} />
-          </div>
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-500">
-            <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-[#7854F7]/40" />학습 완료</span>
-            <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-[#1FAF54]" />마스터 (3번 이상 복습 정답)</span>
-            {goal.daysToGoal !== null && goal.daysToGoal > 0 && <span>매일 학습하면 약 {goal.daysToGoal}일 후 목표 달성</span>}
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-3">
-        <Link
-          href="/student/ranking"
-          className="flex min-h-[56px] items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-900 hover:border-gray-300"
-        >
-          <Trophy className="h-4 w-4 text-[#FFB100]" />
-          랭킹 보기
-        </Link>
-        <Link
-          href="/student/words/report"
-          className="flex min-h-[56px] items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-900 hover:border-gray-300"
-        >
-          <Layers className="h-4 w-4 text-[#7854F7]" />
-          내 학습 리포트
-        </Link>
-      </div>
+      <Link
+        href="/student/ranking"
+        className="flex min-h-[56px] items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-900 hover:border-gray-300"
+      >
+        <Trophy className="h-4 w-4 text-[#FFB100]" />
+        랭킹 보기
+      </Link>
     </div>
   )
 }

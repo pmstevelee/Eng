@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Flame, ChevronRight, ClipboardList, Clock } from 'lucide-react'
+import { Flame, ChevronRight, ClipboardList, Clock, Trophy, BarChart2, Award } from 'lucide-react'
 import { requireStudent } from '@/lib/auth-student'
 import { getStudentDashboardData } from './_actions/gamification'
 import { canUseWordLearning } from '@/lib/words/access-guard'
@@ -11,6 +11,12 @@ import {
   refreshTodayPlanCompletion,
 } from '@/lib/words/daily-plan'
 import { TodayLearningCard } from '@/components/student/today-learning'
+import { LearningCalendar } from '@/components/student/learning-calendar'
+import { getMonthlyLearningActivity } from '@/lib/learning/home-calendar'
+import { getLearningRanking } from '@/lib/learning/ranking'
+import { prisma } from '@/lib/prisma/client'
+import { getLevelInfo } from '@/lib/constants/levels'
+import { isMonthKey, todayKst } from '@/lib/attendance/time'
 
 /** 오늘의 단어 계획을 준비한 뒤 3단계 진행 요약을 조회 (실패해도 홈은 그대로 렌더) */
 async function loadTodayLearning(studentId: string, userId: string, academyId: string | null) {
@@ -35,16 +41,47 @@ async function loadTodayLearning(studentId: string, userId: string, academyId: s
   }
 }
 
-export default async function StudentDashboardPage() {
-  const { user, studentId, userId } = await requireStudent()
+/** 홈 요약 카드용: 이번 주 학원 내 내 순위 (실패해도 홈은 그대로 렌더) */
+async function loadMyRank(
+  studentId: string,
+  name: string,
+  academyId: string | null,
+  level: number,
+): Promise<{ rank: number | null; total: number }> {
+  try {
+    const result = await getLearningRanking({
+      scope: 'academy',
+      period: 'week',
+      academyId,
+      classId: null,
+      viewer: { studentId, name, level, className: null },
+    })
+    return { rank: result.me?.rank ?? null, total: result.totalParticipants }
+  } catch (e) {
+    console.error('[student-home] 랭킹 조회 실패:', e)
+    return { rank: null, total: 0 }
+  }
+}
+
+export default async function StudentDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>
+}) {
+  const [{ user, studentId, userId }, params] = await Promise.all([requireStudent(), searchParams])
+  const monthKey = isMonthKey(params.month) ? params.month : todayKst().slice(0, 7)
   // 대시보드 데이터(문법 미션 생성 포함)와 오늘의 단어 계획을 함께 준비한다.
-  const [data, todayLearning] = await Promise.all([
+  const [data, todayLearning, activity, badgeCount] = await Promise.all([
     getStudentDashboardData(),
     loadTodayLearning(studentId, userId, user.academyId),
+    getMonthlyLearningActivity(studentId, monthKey),
+    prisma.badgeEarning.count({ where: { studentId } }),
   ])
   if (!data) redirect('/login')
 
-  const { streak, isActiveToday, totalXp, upcomingSessions, recentActivities } = data
+  const { streak, isActiveToday, totalXp, upcomingSessions, recentActivities, currentLevel, recentAvgScore } = data
+  const myRank = await loadMyRank(studentId, user.name, user.academyId, currentLevel)
+  const levelInfo = getLevelInfo(currentLevel)
 
   const firstName = user.name.split(' ')[0]
 
@@ -87,8 +124,36 @@ export default async function StudentDashboardPage() {
         </div>
       </div>
 
+      {/* ── 요약: 랭킹 · 내 성적 · 배지 ─────────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <SummaryCard
+          href="/student/ranking"
+          icon={<Trophy size={18} className="text-[#FFB100]" />}
+          label="이번 주 랭킹"
+          value={myRank.rank ? `${myRank.rank}위` : '-'}
+          sub={myRank.total > 0 ? `학원 ${myRank.total}명 중` : '이번 주 학습을 시작해 보세요'}
+        />
+        <SummaryCard
+          href="/student/grades"
+          icon={<BarChart2 size={18} className="text-[#1865F2]" />}
+          label="내 성적"
+          value={`Lv.${currentLevel}`}
+          sub={`${levelInfo.cefr}${recentAvgScore !== null ? ` · 최근 평균 ${recentAvgScore}점` : ''}`}
+        />
+        <SummaryCard
+          href="/student/badges"
+          icon={<Award size={18} className="text-[#7854F7]" />}
+          label="배지"
+          value={`${badgeCount}개`}
+          sub="획득한 배지 보기"
+        />
+      </div>
+
       {/* ── 오늘의 단어학습 (복습 → 새 단어 → 문법) ─────────────────────── */}
       {todayLearning && <TodayLearningCard summary={todayLearning} />}
+
+      {/* ── 학습 캘린더 (단어 · 문법 · 쓰기) ───────────────────────────── */}
+      <LearningCalendar monthKey={monthKey} activity={activity} />
 
       {/* ── 예정된 테스트 카드 ───────────────────────────────────────────── */}
       {upcomingSessions.length > 0 && (
@@ -169,6 +234,37 @@ export default async function StudentDashboardPage() {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function SummaryCard({
+  href,
+  icon,
+  label,
+  value,
+  sub,
+}: {
+  href: string
+  icon: React.ReactNode
+  label: string
+  value: string
+  sub: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex min-h-[44px] flex-col rounded-xl border border-gray-200 bg-white p-4 transition-colors hover:bg-gray-50"
+    >
+      <div className="flex items-center justify-between">
+        <span className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+          {icon}
+          {label}
+        </span>
+        <ChevronRight size={14} className="text-gray-400" />
+      </div>
+      <span className="mt-2 text-2xl font-bold text-gray-900">{value}</span>
+      <span className="mt-0.5 text-xs text-gray-500">{sub}</span>
+    </Link>
+  )
+}
 
 function formatRelativeTime(date: Date): string {
   const now = new Date()

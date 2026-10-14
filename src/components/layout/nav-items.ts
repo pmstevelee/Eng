@@ -27,7 +27,6 @@ import {
   CalendarDays,
   SlidersHorizontal,
   Coins,
-  Trophy,
 } from 'lucide-react'
 import type { Role } from '@/types'
 
@@ -104,13 +103,10 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
   ],
   STUDENT: [
     { label: '홈', href: '/student', icon: Home },
-    { label: '오늘의 단어학습', href: '/student/daily-mission', icon: Target },
-    { label: '랭킹', href: '/student/ranking', icon: Trophy },
-    { label: '테스트', href: '/student/tests', icon: FileText },
-    { label: '학습공간', href: '/student/learn', icon: BookOpen },
+    { label: '오늘의 학습', href: '/student/daily-mission', icon: Target },
     { label: '단어학습', href: '/student/words', icon: Languages },
-    { label: '내 성적', href: '/student/grades', icon: BarChart2 },
-    { label: '배지', href: '/student/badges', icon: Award },
+    { label: '문법학습', href: '/student/learn/domain/grammar', icon: BookOpen },
+    { label: '쓰기학습', href: '/student/learn/writing', icon: FilePen },
     { label: '알림', href: '/student/notifications', icon: Bell },
     { label: '설정', href: '/student/settings', icon: Settings },
   ],
