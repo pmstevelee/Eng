@@ -272,8 +272,10 @@ function SpellCard({
   const [showHint, setShowHint] = useState(false)
   const [usedHint, setUsedHint] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const answeredAtRef = useRef(0)
 
   useEffect(() => {
+    answeredAtRef.current = 0
     setInput('')
     setAnswerState('idle')
     setShowHint(false)
@@ -294,6 +296,7 @@ function SpellCard({
         : QUALITY.SPELL_WRONG
     const ct = card.word.term
     setCorrectTerm(ct)
+    answeredAtRef.current = Date.now()
     const isCorrectish = correct || nearlyCorrect
     setAnswerState(correct ? 'correct' : nearlyCorrect ? 'nearly' : 'wrong')
     if (isCorrectish) playAudio(ct, card.word.audioUrl)
@@ -303,6 +306,7 @@ function SpellCard({
   function handleSkip() {
     if (answerState !== 'idle') return
     setCorrectTerm(card.word.term)
+    answeredAtRef.current = Date.now()
     setAnswerState('wrong')
     recordProgress({ wordId: card.word.id, stage: 'SPELL', quality: 2, isCorrect: false, userAnswer: '', context: 'REVIEW' })
   }
@@ -349,12 +353,16 @@ function SpellCard({
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             e.preventDefault()
-            if (isAnswered) onResult(isCorrectish)
-            else handleSubmit()
+            // 키 반복·연타로 정답/오답 해설을 보기도 전에 넘어가는 것을 막는다.
+            if (e.repeat) return
+            if (isAnswered) {
+              if (Date.now() - answeredAtRef.current < 400) return
+              onResult(isCorrectish)
+            } else handleSubmit()
           }
         }}
         autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false}
-        disabled={isAnswered}
+        readOnly={isAnswered}
         placeholder="영어 단어 입력..."
         className={`w-full h-14 rounded-xl border-2 px-4 text-lg font-mono tracking-widest text-center transition-colors outline-none mb-3 ${
           isAnswered
@@ -556,6 +564,8 @@ export function ReviewClient({ cards }: Props) {
 
   const [reviewMode, setReviewMode] = useState<ReviewMode>('AUTO')
   const requestedRecallIds = useRef<Set<string>>(new Set())
+  // 같은 카드에서 결과가 두 번 전달되어 단어가 건너뛰어지는 것을 막는다.
+  const handledIndexRef = useRef(-1)
 
   const currentCard = cards[index]
   const mode = currentCard ? modeForCard(currentCard, reviewMode) : 'RECALL'
@@ -577,6 +587,8 @@ export function ReviewClient({ cards }: Props) {
 
   const handleResult = useCallback(
     async (isCorrect: boolean) => {
+      if (handledIndexRef.current >= index) return
+      handledIndexRef.current = index
       const newAnswered = answeredCount + 1
       const newCorrect = correctCount + (isCorrect ? 1 : 0)
       setAnsweredCount(newAnswered)
