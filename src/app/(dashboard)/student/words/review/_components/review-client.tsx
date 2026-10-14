@@ -194,13 +194,40 @@ function RecallCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card.word.id, preloaded])
 
+  const answeredAtRef = useRef(0)
+  const isAnswered = selected !== null
+
   function handleSelect(id: string) {
     if (selected !== null) return
     setSelected(id)
+    answeredAtRef.current = Date.now()
     const isCorrect = id === correctId
     recordProgress({ wordId: card.word.id, stage: 'RECALL', quality: isCorrect ? 4 : 1, isCorrect, context: 'REVIEW' })
-    setTimeout(() => onResult(isCorrect), 900)
   }
+
+  // PC 키보드: 1~4 번호로 선택, Enter/Space/→ 로 다음 카드. 자동으로 넘어가지 않고 해설을 확인한 뒤 이동한다.
+  const keyHandlerRef = useRef<(e: KeyboardEvent) => void>(() => undefined)
+  keyHandlerRef.current = (e: KeyboardEvent) => {
+    if (loading || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return
+    if (!isAnswered) {
+      const n = Number(e.key)
+      if (n >= 1 && n <= options.length) {
+        e.preventDefault()
+        handleSelect(options[n - 1].id)
+      }
+      return
+    }
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') {
+      e.preventDefault()
+      if (Date.now() - answeredAtRef.current < 400) return
+      onResult(selected === correctId)
+    }
+  }
+  useEffect(() => {
+    const listener = (e: KeyboardEvent) => keyHandlerRef.current(e)
+    window.addEventListener('keydown', listener)
+    return () => window.removeEventListener('keydown', listener)
+  }, [])
 
   if (loading) {
     return (
@@ -211,7 +238,7 @@ function RecallCard({
     )
   }
 
-  const isAnswered = selected !== null
+  const correctOption = options.find((o) => o.id === correctId)
 
   return (
     <div>
@@ -253,6 +280,34 @@ function RecallCard({
           )
         })}
       </div>
+
+      {isAnswered && (
+        <div className="mt-4">
+          {selected === correctId ? (
+            <div className="rounded-xl bg-[#1FAF54]/10 border border-[#1FAF54]/20 px-4 py-3 flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-[#1FAF54] shrink-0" />
+              <p className="text-sm font-semibold text-[#1FAF54]">정답이에요!</p>
+            </div>
+          ) : (
+            <div className="rounded-xl bg-[#D92916]/5 border border-[#D92916]/20 px-4 py-3">
+              <p className="text-xs text-[#D92916] font-medium">
+                오답 — 정답: <span className="font-bold">{correctOption?.meaning}</span>
+              </p>
+            </div>
+          )}
+          {card.word.example && (
+            <p className="mt-2 text-sm text-gray-500 italic text-center">{card.word.example}</p>
+          )}
+          <Button
+            onClick={() => onResult(selected === correctId)}
+            className={`mt-4 w-full h-14 rounded-xl font-semibold text-base text-white ${
+              selected === correctId ? 'bg-[#1FAF54] hover:bg-[#1FAF54]/90' : 'bg-[#1865F2] hover:bg-[#1865F2]/90'
+            }`}
+          >
+            다음<ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
@@ -663,12 +718,11 @@ export function ReviewClient({ cards }: Props) {
         </span>
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div
+      {/* exit 애니메이션(mode="wait")은 빠르게 넘길 때 빈 화면이 되는 원인이라 진입 애니메이션만 사용 */}
+      <motion.div
           key={`${index}-${currentCard.wordId}-${mode}`}
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -40 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
           {mode === 'RECALL' ? (
@@ -677,7 +731,6 @@ export function ReviewClient({ cards }: Props) {
             <SpellCard card={currentCard} onResult={handleResult} />
           )}
         </motion.div>
-      </AnimatePresence>
     </div>
   )
 }
