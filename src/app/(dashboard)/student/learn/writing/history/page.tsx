@@ -1,76 +1,20 @@
 import Link from 'next/link'
-import { ChevronLeft, PenLine, ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronLeft, PenLine } from 'lucide-react'
 import { requireStudent } from '@/lib/auth-student'
 import { prisma } from '@/lib/prisma/client'
+import {
+  normalizeWritingPracticeData,
+  type WritingPracticeView,
+} from '@/lib/writing/practice-history'
 import { WritingHistoryAccordion } from './_components/writing-history-accordion'
 
-export type WritingPracticeData = {
-  topicTitle: string
-  topicPrompt: string
-  essay: string
-  wordCount: number
-  level: number
-  cefrLevel: string
-  scores: {
-    grammar: { score: number; maxForLevel: number; details: string }
-    organization: { score: number; maxForLevel: number; details: string }
-    vocabulary: { score: number; maxForLevel: number; details: string }
-    expression: { score: number; maxForLevel: number; details: string }
-  }
-  totalScore: number
-  totalMaxScore: number
-  percentage: number
-  overallComment: string
-  corrections: Array<{
-    original: string
-    corrected: string
-    explanation: string
-    category: string
-  }>
-  levelUpStrategy: {
-    currentLevel: number
-    targetLevel: number
-    currentWritingAvg: number
-    targetScore: number
-    gap: number
-    estimatedWeeks: number
-    priorityActions: Array<{
-      priority: number
-      area: string
-      action: string
-      detail: string
-      weeklyGoal: string
-    }>
-    weeklyPlan: string
-    encouragement: string
-  }
-  modelEssay: {
-    text: string
-    wordCount: number
-    keyFeatures: string[]
-  }
-}
+// 화면 표시용 정규화 모델 (구형/신형 dataJson 모두 지원)
+export type WritingPracticeData = WritingPracticeView
 
 export type WritingHistoryItem = {
   id: string
   createdAt: Date
   data: WritingPracticeData
-}
-
-function getScoreColor(pct: number) {
-  if (pct >= 80) return '#1FAF54'
-  if (pct >= 60) return '#FFB100'
-  return '#D92916'
-}
-
-function formatDate(date: Date) {
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
 }
 
 export default async function WritingHistoryPage() {
@@ -86,7 +30,7 @@ export default async function WritingHistoryPage() {
   const history: WritingHistoryItem[] = reports.map((r) => ({
     id: r.id,
     createdAt: r.createdAt,
-    data: r.dataJson as WritingPracticeData,
+    data: normalizeWritingPracticeData(r.dataJson),
   }))
 
   return (

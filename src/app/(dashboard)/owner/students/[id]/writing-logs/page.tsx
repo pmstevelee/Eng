@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ArrowLeft, PenLine, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
-import type { WritingPracticeData } from '@/app/(dashboard)/student/learn/writing/history/page'
+import { normalizeWritingPracticeData } from '@/lib/writing/practice-history'
 
 function getScoreColor(pct: number) {
   if (pct >= 80) return '#1FAF54'
@@ -25,13 +25,6 @@ function formatDate(date: Date) {
     hour: '2-digit',
     minute: '2-digit',
   })
-}
-
-const SCORE_LABELS: Record<string, string> = {
-  grammar: '문법',
-  organization: '구성',
-  vocabulary: '어휘',
-  expression: '표현',
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -63,7 +56,7 @@ export default async function OwnerWritingLogsPage({ params }: { params: { id: s
   const history = reports.map((r) => ({
     id: r.id,
     createdAt: r.createdAt,
-    data: r.dataJson as WritingPracticeData,
+    data: normalizeWritingPracticeData(r.dataJson),
   }))
 
   const avgScore =
@@ -91,9 +84,7 @@ export default async function OwnerWritingLogsPage({ params }: { params: { id: s
           <PenLine className="h-5 w-5" style={{ color: '#E35C20' }} />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-900">
-            {student.user.name} 쓰기 연습 기록
-          </h1>
+          <h1 className="text-xl font-bold text-gray-900">{student.user.name} 쓰기 연습 기록</h1>
           <p className="text-sm text-gray-500">
             {student.class?.name ?? '반 미배정'} · 총 {history.length}회 연습
           </p>
@@ -135,7 +126,9 @@ export default async function OwnerWritingLogsPage({ params }: { params: { id: s
             <PenLine className="h-7 w-7" style={{ color: '#E35C20' }} />
           </div>
           <p className="font-semibold text-gray-700">아직 쓰기 연습 기록이 없어요</p>
-          <p className="mt-1 text-sm text-gray-400">학생이 쓰기 연습을 완료하면 이곳에 기록됩니다</p>
+          <p className="mt-1 text-sm text-gray-400">
+            학생이 쓰기 연습을 완료하면 이곳에 기록됩니다
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -161,8 +154,10 @@ export default async function OwnerWritingLogsPage({ params }: { params: { id: s
                     <div>
                       <p className="font-semibold text-gray-900">{item.data.topicTitle}</p>
                       <p className="text-xs text-gray-400">
-                        Level {item.data.level} ({item.data.cefrLevel}) · {item.data.wordCount}단어 ·{' '}
-                        {formatDate(item.createdAt)}
+                        {item.data.level !== null && `Level ${item.data.level}`}
+                        {item.data.cefrLevel && ` (${item.data.cefrLevel})`}
+                        {item.data.level !== null && ' · '}
+                        {item.data.wordCount}단어 · {formatDate(item.createdAt)}
                       </p>
                     </div>
                   </div>
@@ -175,29 +170,31 @@ export default async function OwnerWritingLogsPage({ params }: { params: { id: s
                 </div>
 
                 {/* 영역별 점수 */}
-                <div className="grid grid-cols-4 divide-x divide-gray-100 border-t border-gray-100">
-                  {(Object.entries(item.data.scores) as [string, { score: number; maxForLevel: number; details: string }][]).map(
-                    ([key, val]) => (
-                      <div key={key} className="px-3 py-3 text-center">
-                        <p className="text-xs text-gray-400">{SCORE_LABELS[key]}</p>
+                {item.data.scores.length > 0 && (
+                  <div className="grid grid-cols-4 divide-x divide-gray-100 border-t border-gray-100">
+                    {item.data.scores.map((val) => (
+                      <div key={val.key} className="px-3 py-3 text-center">
+                        <p className="text-xs text-gray-400">{val.label}</p>
                         <p
                           className="text-base font-bold"
-                          style={{
-                            color: getScoreColor((val.score / val.maxForLevel) * 100),
-                          }}
+                          style={{ color: getScoreColor((val.score / val.max) * 100) }}
                         >
                           {val.score}
-                          <span className="text-xs font-normal text-gray-300">/{val.maxForLevel}</span>
+                          <span className="text-xs font-normal text-gray-300">/{val.max}</span>
                         </p>
                       </div>
-                    ),
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* AI 총평 */}
-                <div className="border-t border-gray-100 bg-gray-50 px-5 py-3">
-                  <p className="text-sm text-gray-600 leading-relaxed">{item.data.overallComment}</p>
-                </div>
+                {item.data.overallComment && (
+                  <div className="border-t border-gray-100 bg-gray-50 px-5 py-3">
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      {item.data.overallComment}
+                    </p>
+                  </div>
+                )}
 
                 {/* 에세이 원문 */}
                 <details className="group border-t border-gray-100">
@@ -223,7 +220,7 @@ export default async function OwnerWritingLogsPage({ params }: { params: { id: s
                           <div className="mb-1 flex items-center gap-1.5">
                             <AlertCircle className="h-3.5 w-3.5" style={{ color: '#D92916' }} />
                             <span className="text-xs font-medium" style={{ color: '#D92916' }}>
-                              {CATEGORY_LABELS[c.category] ?? c.category}
+                              {c.category ? (CATEGORY_LABELS[c.category] ?? c.category) : '교정'}
                             </span>
                           </div>
                           <p className="text-sm text-gray-400 line-through">{c.original}</p>
@@ -236,34 +233,39 @@ export default async function OwnerWritingLogsPage({ params }: { params: { id: s
                 )}
 
                 {/* 모범 답안 */}
-                <details className="group border-t border-gray-100">
-                  <summary className="cursor-pointer list-none px-5 py-3 text-xs font-semibold text-gray-500 hover:bg-gray-50 group-open:bg-gray-50">
-                    모범 답안 보기 ▾
-                  </summary>
-                  <div className="px-5 pb-4">
-                    <div
-                      className="rounded-xl border p-4"
-                      style={{ backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }}
-                    >
-                      <p className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed">
-                        {item.data.modelEssay.text}
-                      </p>
-                      {item.data.modelEssay.keyFeatures.length > 0 && (
-                        <ul className="mt-3 space-y-1">
-                          {item.data.modelEssay.keyFeatures.map((f, i) => (
-                            <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600">
-                              <CheckCircle2
-                                className="mt-0.5 h-3.5 w-3.5 shrink-0"
-                                style={{ color: '#1865F2' }}
-                              />
-                              {f}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                {item.data.modelEssay && (
+                  <details className="group border-t border-gray-100">
+                    <summary className="cursor-pointer list-none px-5 py-3 text-xs font-semibold text-gray-500 hover:bg-gray-50 group-open:bg-gray-50">
+                      모범 답안 보기 ▾
+                    </summary>
+                    <div className="px-5 pb-4">
+                      <div
+                        className="rounded-xl border p-4"
+                        style={{ backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }}
+                      >
+                        <p className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed">
+                          {item.data.modelEssay.text}
+                        </p>
+                        {item.data.modelEssay.keyFeatures.length > 0 && (
+                          <ul className="mt-3 space-y-1">
+                            {item.data.modelEssay.keyFeatures.map((f, i) => (
+                              <li
+                                key={i}
+                                className="flex items-start gap-1.5 text-xs text-gray-600"
+                              >
+                                <CheckCircle2
+                                  className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                                  style={{ color: '#1865F2' }}
+                                />
+                                {f}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </details>
+                  </details>
+                )}
               </div>
             )
           })}

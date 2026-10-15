@@ -4,13 +4,6 @@ import { useState } from 'react'
 import { ChevronDown, ChevronUp, CheckCircle2, AlertCircle, BookOpen } from 'lucide-react'
 import type { WritingHistoryItem } from '../page'
 
-const SCORE_LABELS: Record<string, string> = {
-  grammar: '문법',
-  organization: '구성',
-  vocabulary: '어휘',
-  expression: '표현',
-}
-
 const CATEGORY_LABELS: Record<string, string> = {
   grammar: '문법',
   vocabulary: '어휘',
@@ -51,10 +44,7 @@ export function WritingHistoryAccordion({ history }: { history: WritingHistoryIt
         const bg = getScoreBg(pct)
 
         return (
-          <div
-            key={item.id}
-            className="overflow-hidden rounded-xl border border-gray-200 bg-white"
-          >
+          <div key={item.id} className="overflow-hidden rounded-xl border border-gray-200 bg-white">
             {/* 헤더 */}
             <button
               className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-gray-50"
@@ -70,7 +60,8 @@ export function WritingHistoryAccordion({ history }: { history: WritingHistoryIt
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{item.data.topicTitle}</p>
                   <p className="text-xs text-gray-400">
-                    Level {item.data.level} · {item.data.wordCount}단어 · {formatDate(item.createdAt)}
+                    {item.data.level !== null && `Level ${item.data.level} · `}
+                    {item.data.wordCount}단어 · {formatDate(item.createdAt)}
                   </p>
                 </div>
               </div>
@@ -93,36 +84,49 @@ export function WritingHistoryAccordion({ history }: { history: WritingHistoryIt
             {isOpen && (
               <div className="border-t border-gray-100 px-4 pb-5 pt-4 space-y-5">
                 {/* 영역별 점수 */}
-                <div>
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    영역별 점수
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    {(Object.entries(item.data.scores) as [string, { score: number; maxForLevel: number; details: string }][]).map(
-                      ([key, val]) => (
+                {item.data.scores.length > 0 && (
+                  <div>
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      영역별 점수
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                      {item.data.scores.map((val) => (
                         <div
-                          key={key}
+                          key={val.key}
                           className="rounded-xl border border-gray-100 bg-gray-50 p-3 text-center"
                         >
-                          <p className="mb-1 text-xs text-gray-500">{SCORE_LABELS[key]}</p>
-                          <p className="text-lg font-bold" style={{ color: getScoreColor((val.score / val.maxForLevel) * 100) }}>
+                          <p className="mb-1 text-xs text-gray-500">{val.label}</p>
+                          <p
+                            className="text-lg font-bold"
+                            style={{
+                              color: getScoreColor((val.score / val.max) * 100),
+                            }}
+                          >
                             {val.score}
-                            <span className="text-xs font-normal text-gray-400">/{val.maxForLevel}</span>
+                            <span className="text-xs font-normal text-gray-400">/{val.max}</span>
                           </p>
-                          <p className="mt-1 text-xs text-gray-500 leading-relaxed">{val.details}</p>
+                          {val.details && (
+                            <p className="mt-1 text-xs text-gray-500 leading-relaxed">
+                              {val.details}
+                            </p>
+                          )}
                         </div>
-                      ),
-                    )}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* 전체 총평 */}
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    AI 총평
-                  </p>
-                  <p className="text-sm text-gray-700 leading-relaxed">{item.data.overallComment}</p>
-                </div>
+                {item.data.overallComment && (
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      AI 총평
+                    </p>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {item.data.overallComment}
+                    </p>
+                  </div>
+                )}
 
                 {/* 에세이 원문 */}
                 <div>
@@ -144,14 +148,14 @@ export function WritingHistoryAccordion({ history }: { history: WritingHistoryIt
                     </p>
                     <div className="space-y-2">
                       {item.data.corrections.map((c, i) => (
-                        <div
-                          key={i}
-                          className="rounded-xl border border-gray-100 bg-gray-50 p-3"
-                        >
+                        <div key={i} className="rounded-xl border border-gray-100 bg-gray-50 p-3">
                           <div className="mb-1 flex items-center gap-1.5">
-                            <AlertCircle className="h-3.5 w-3.5 shrink-0" style={{ color: '#D92916' }} />
+                            <AlertCircle
+                              className="h-3.5 w-3.5 shrink-0"
+                              style={{ color: '#D92916' }}
+                            />
                             <span className="text-xs font-medium" style={{ color: '#D92916' }}>
-                              {CATEGORY_LABELS[c.category] ?? c.category}
+                              {c.category ? (CATEGORY_LABELS[c.category] ?? c.category) : '교정'}
                             </span>
                           </div>
                           <p className="mb-0.5 text-sm text-gray-500 line-through">{c.original}</p>
@@ -164,32 +168,40 @@ export function WritingHistoryAccordion({ history }: { history: WritingHistoryIt
                 )}
 
                 {/* 모범 답안 */}
-                <div>
-                  <div className="mb-2 flex items-center gap-1.5">
-                    <BookOpen className="h-3.5 w-3.5" style={{ color: '#1865F2' }} />
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      모범 답안 ({item.data.modelEssay.wordCount}단어)
-                    </p>
+                {item.data.modelEssay && (
+                  <div>
+                    <div className="mb-2 flex items-center gap-1.5">
+                      <BookOpen className="h-3.5 w-3.5" style={{ color: '#1865F2' }} />
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        모범 답안 ({item.data.modelEssay.wordCount}단어)
+                      </p>
+                    </div>
+                    <div
+                      className="rounded-xl border p-4"
+                      style={{
+                        backgroundColor: '#EFF6FF',
+                        borderColor: '#BFDBFE',
+                      }}
+                    >
+                      <p className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed">
+                        {item.data.modelEssay.text}
+                      </p>
+                      {item.data.modelEssay.keyFeatures.length > 0 && (
+                        <ul className="mt-3 space-y-1">
+                          {item.data.modelEssay.keyFeatures.map((f, i) => (
+                            <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600">
+                              <CheckCircle2
+                                className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                                style={{ color: '#1865F2' }}
+                              />
+                              {f}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   </div>
-                  <div
-                    className="rounded-xl border p-4"
-                    style={{ backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }}
-                  >
-                    <p className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed">
-                      {item.data.modelEssay.text}
-                    </p>
-                    {item.data.modelEssay.keyFeatures.length > 0 && (
-                      <ul className="mt-3 space-y-1">
-                        {item.data.modelEssay.keyFeatures.map((f, i) => (
-                          <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600">
-                            <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: '#1865F2' }} />
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
+                )}
               </div>
             )}
           </div>
