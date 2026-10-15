@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
-import { RegisterTypeSelector } from '@/components/shared/register-type-selector'
 import {
   signIn,
   findId,
@@ -367,12 +366,15 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
           )}
         </div>
 
-        {!academyOptions && (
-          <div className="space-y-3">
-            <p className="text-center text-sm text-gray-500">계정이 없으신가요? 가입 유형을 선택하세요</p>
-            <RegisterTypeSelector />
-          </div>
-        )}
+        <p className="text-center text-sm text-gray-500">
+          계정이 없으신가요?{' '}
+          <Link
+            href="/register"
+            className="font-medium text-primary-700 hover:text-primary-600 transition-colors"
+          >
+            회원가입
+          </Link>
+        </p>
         <p className="text-center text-sm text-gray-500">
           <Link
             href="/"
