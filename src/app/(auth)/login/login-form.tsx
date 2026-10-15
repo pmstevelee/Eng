@@ -6,7 +6,8 @@ import { useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Building2, ChevronRight } from 'lucide-react'
+import Image from 'next/image'
+import { RegisterTypeSelector } from '@/components/shared/register-type-selector'
 import {
   signIn,
   findId,
@@ -140,9 +141,14 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
       <div className="w-full max-w-md space-y-8">
         {/* 로고 */}
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-700 mb-4">
-            <span className="text-white font-bold text-xl">{initials}</span>
-          </div>
+          <Image
+            src="/images/wegoup-favicon.png"
+            alt={initials}
+            width={56}
+            height={56}
+            priority
+            className="mx-auto mb-4 h-14 w-14 rounded-xl"
+          />
           <h1 className="text-2xl font-bold text-gray-900">{academyName}</h1>
           <p className="mt-1.5 text-sm text-gray-500">영어학원 학습관리 시스템</p>
         </div>
@@ -167,9 +173,6 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
                       disabled={isPending}
                       className="flex w-full min-h-[56px] items-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-left transition-colors hover:border-primary-700 hover:bg-primary-50 disabled:opacity-60"
                     >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
-                        <Building2 className="h-5 w-5" />
-                      </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-medium text-gray-900">{a.academyName}</span>
                         {a.isRecent && (
@@ -179,11 +182,7 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
                         )}
                       </span>
                       <span className="shrink-0 text-sm text-gray-400">
-                        {selectingProfileId === a.profileId ? (
-                          '접속 중...'
-                        ) : (
-                          <ChevronRight className="h-5 w-5" />
-                        )}
+                        {selectingProfileId === a.profileId ? '접속 중...' : '선택'}
                       </span>
                     </button>
                   </li>
@@ -368,15 +367,12 @@ function LoginFormInner({ academyName, academyInitials }: LoginFormProps) {
           )}
         </div>
 
-        <p className="text-center text-sm text-gray-500">
-          계정이 없으신가요?{' '}
-          <Link
-            href="/register"
-            className="font-medium text-primary-700 hover:text-primary-600 transition-colors"
-          >
-            회원가입
-          </Link>
-        </p>
+        {!academyOptions && (
+          <div className="space-y-3">
+            <p className="text-center text-sm text-gray-500">계정이 없으신가요? 가입 유형을 선택하세요</p>
+            <RegisterTypeSelector />
+          </div>
+        )}
         <p className="text-center text-sm text-gray-500">
           <Link
             href="/"

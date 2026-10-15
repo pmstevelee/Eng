@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { verifyInviteCode } from '../actions'
+import { verifyInviteCode, getDefaultInviteCode } from '../actions'
 import { registerStudent } from './actions'
 import type { RegisterStudentData } from './actions'
 import { LearningLevelPicker } from '@/components/shared/learning-level-picker'
@@ -43,6 +43,10 @@ export default function RegisterStudentPage() {
   const [inviteCode, setInviteCode] = useState('')
   const [academyId, setAcademyId] = useState('')
   const [academyName, setAcademyName] = useState('')
+  const [noInviteCode, setNoInviteCode] = useState(false)
+  const [defaultCode, setDefaultCode] = useState<string | null>(null)
+  const [defaultCodeError, setDefaultCodeError] = useState<string | null>(null)
+  const [isDefaultCodePending, startDefaultCodeTransition] = useTransition()
 
   // Step 2
   const [name, setName] = useState('')
@@ -75,6 +79,18 @@ export default function RegisterStudentPage() {
         setAcademyName(result.businessName)
         goNext(2)
       }
+    })
+  }
+
+  const handleNoInviteCodeChange = (checked: boolean) => {
+    setNoInviteCode(checked)
+    setError(null)
+    if (!checked || defaultCode) return
+    setDefaultCodeError(null)
+    startDefaultCodeTransition(async () => {
+      const result = await getDefaultInviteCode()
+      if ('error' in result) setDefaultCodeError(result.error)
+      else setDefaultCode(result.code)
     })
   }
 
@@ -150,6 +166,46 @@ export default function RegisterStudentPage() {
                     className="text-center text-lg tracking-widest font-mono"
                   />
                 </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={noInviteCode}
+                    onChange={(e) => handleNoInviteCodeChange(e.target.checked)}
+                    disabled={isPending}
+                    className="h-4 w-4 cursor-pointer accent-primary shrink-0"
+                  />
+                  <span className="text-sm text-gray-700">초대 코드가 없어요</span>
+                </label>
+                {noInviteCode && (
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+                    <p className="text-sm text-gray-600">
+                      아래 <span className="font-medium text-gray-900">위고업잉글리시</span> 초대
+                      코드로 가입할 수 있습니다.
+                    </p>
+                    {isDefaultCodePending ? (
+                      <p className="text-sm text-gray-500">초대 코드를 불러오는 중...</p>
+                    ) : defaultCodeError ? (
+                      <p className="text-sm text-accent-red">{defaultCodeError}</p>
+                    ) : (
+                      defaultCode && (
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-11 flex-1 items-center justify-center rounded-md border border-gray-200 bg-white font-mono text-lg tracking-widest text-gray-900">
+                            {defaultCode}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="shrink-0"
+                            onClick={() => { setInviteCode(defaultCode); setError(null) }}
+                            disabled={isPending}
+                          >
+                            이 코드 사용
+                          </Button>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
                 {error && (
                   <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
                     {error}
