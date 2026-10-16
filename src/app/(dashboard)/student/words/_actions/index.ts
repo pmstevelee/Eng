@@ -13,6 +13,7 @@ import { type SrsQuality } from '@/lib/words/srs'
 import { emitWordEvent } from '@/lib/words/word-events'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
+import { kstDateTime, todayKst } from '@/lib/attendance/time'
 import type { BadgeType } from '@/generated/prisma'
 
 // ─── 공통 응답 타입 ────────────────────────────────────────────────────────────
@@ -184,8 +185,8 @@ export async function startWordSet(setId: string): Promise<Result<{ created: num
 
     if (!wordSet) return err('NOT_FOUND', '단어 세트를 찾을 수 없습니다.')
 
-    const todayStart = new Date()
-    todayStart.setHours(0, 0, 0, 0)
+    // 서버(Vercel)는 UTC로 동작하므로 "오늘"은 KST 0시 기준으로 잡는다.
+    const todayStart = kstDateTime(todayKst(), '00:00')
 
     // 오늘 이 세트에서 새로 시작한 단어 수 (세트 단위 일일 한도)
     // 한도를 전역(모든 세트 합산)으로 세면 같은 날 여러 세트를 열었을 때
@@ -275,14 +276,21 @@ export async function getFlashcards(setId: string, _stage?: 'FLASHCARD' | 'RECAL
     // 진도가 시작된 단어만 대상
     const startedItems = wordSet.items.filter((item) => item.word.wordProgress.length > 0)
 
-    // 학습 배치 = 오늘 새로 시작한 단어 + 아직 한 번도 학습하지 않은 단어.
+    // 학습 배치 = 오늘 새로 시작한 단어 + 오늘 이전에 학습한 적이 없는 단어.
     // 이전 날 이미 학습한 단어는 배치에서 제외한다 (복습은 "오늘 복습할 단어"에서 SRS로 처리).
     // 마스터 여부(stage)로는 거르지 않아, 같은 날 반복 학습 시 배치가 들쭉날쭉해지지 않는다.
-    const todayStart = new Date()
-    todayStart.setHours(0, 0, 0, 0)
+    // 진도가 전날 만들어진 이월 단어(오늘의 단어 carry-over)는 createdAt이 오늘 이전이므로,
+    // "아직 학습하지 않음"만으로 판단하면 오늘 몇 개 학습하고 나갔다 오면 그 단어들이 배치에서 빠진다.
+    // → 오늘 학습한 기록(lastStudiedAt/learnedAt이 오늘)은 배치에 그대로 남긴다.
+    // 서버(Vercel)는 UTC로 동작하므로 "오늘"은 KST 0시 기준으로 잡는다.
+    const todayStart = kstDateTime(todayKst(), '00:00')
+    const notStudiedBeforeToday = (at: Date | null) => at === null || at >= todayStart
     const batchItems = startedItems.filter((item) => {
       const p = item.word.wordProgress[0]
-      return p.createdAt >= todayStart || (p.lastStudiedAt === null && p.learnedAt === null)
+      return (
+        p.createdAt >= todayStart ||
+        (notStudiedBeforeToday(p.lastStudiedAt) && notStudiedBeforeToday(p.learnedAt))
+      )
     })
 
     const cards = batchItems.map((item) => ({
