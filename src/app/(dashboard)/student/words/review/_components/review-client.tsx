@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   CheckCircle2,
@@ -12,6 +13,7 @@ import {
   Volume2,
   Zap,
   Flame,
+  RotateCcw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useWordHub } from '@/hooks/use-word-hub'
@@ -110,6 +112,7 @@ function BadgeModal({ badges, onClose }: { badges: BadgeType[]; onClose: () => v
 
 interface Props {
   cards: ReviewCard[]
+  fromDaily: boolean
 }
 
 function modeForCard(card: ReviewCard, reviewMode: ReviewMode): CardMode {
@@ -257,7 +260,8 @@ function RecallCard({
         {options.map((opt, i) => {
           const isSelected = selected === opt.id
           const isCorrect = opt.id === correctId
-          let cls = 'border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-700 hover:border-[#7854F7] hover:bg-[#7854F7]/5'
+          // 터치 기기는 탭한 위치의 hover가 남아 다음 카드 보기가 선택된 것처럼 보이므로 마우스 환경에서만 hover 적용
+          let cls = 'border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-700 [@media(hover:hover)]:hover:border-[#7854F7] [@media(hover:hover)]:hover:bg-[#7854F7]/5'
           if (isAnswered) {
             if (isCorrect) cls = 'border-[#1FAF54] bg-[#1FAF54]/10'
             else if (isSelected) cls = 'border-[#D92916] bg-[#D92916]/10'
@@ -609,7 +613,11 @@ function DoneScreen({
 
 // ─── 메인 ─────────────────────────────────────────────────────────────────────
 
-export function ReviewClient({ cards }: Props) {
+export function ReviewClient({ cards: initialCards, fromDaily }: Props) {
+  // 답안 기록(recordProgress)이 랭킹 캐시를 revalidate하면 Next가 현재 페이지를 서버에서 다시 그려
+  // 복습 대상(cards)이 1개씩 줄어든다. 그대로 쓰면 index가 다른 단어를 가리켜 카드가 바뀌어 보이거나
+  // 끝부분에서 index가 범위를 벗어나 빈 화면이 되므로, 세션 시작 시점의 목록을 고정해서 사용한다.
+  const [cards] = useState(initialCards)
   const [phase, setPhase] = useState<Phase>('quizzing')
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
@@ -681,56 +689,88 @@ export function ReviewClient({ cards }: Props) {
     )
   }
 
+  if (cards.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-5 text-center px-4">
+        <div className="w-20 h-20 rounded-full bg-[#1FAF54]/10 flex items-center justify-center">
+          <span className="text-4xl">🎉</span>
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">오늘 복습 완료!</h2>
+          <p className="text-sm text-gray-500">복습할 단어가 없어요. 내일 다시 확인해 보세요.</p>
+        </div>
+        <Link
+          href={fromDaily ? '/student/daily-mission' : '/student/words'}
+          className="inline-flex h-12 items-center gap-2 rounded-xl px-6 text-sm font-semibold text-white bg-[#7854F7] hover:bg-[#7854F7]/90 transition-colors"
+        >
+          {fromDaily ? '오늘의 학습으로' : '새 단어 시작하기'}
+        </Link>
+      </div>
+    )
+  }
+
   if (!currentCard) return null
 
   return (
-    <div>
-      <ProgressBar index={index} total={cards.length} correct={correctCount} answered={answeredCount} />
-
-      {/* 복습 방식 선택 */}
-      <div className="mb-3 flex justify-center">
-        <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1" role="radiogroup" aria-label="복습 방식 선택">
-          {REVIEW_MODES.map((m) => (
-            <button
-              key={m.value}
-              type="button"
-              role="radio"
-              aria-checked={reviewMode === m.value}
-              onClick={() => setReviewMode(m.value)}
-              className={`min-h-[44px] min-w-[64px] rounded-lg px-3 text-sm font-semibold transition-colors ${
-                reviewMode === m.value ? 'bg-[#7854F7] text-white' : 'text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#7854F7]">
+          <RotateCcw className="h-5 w-5 text-white" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">오늘 복습할 단어</h1>
+          <p className="text-xs text-gray-500">{cards.length - index}개 남음</p>
         </div>
       </div>
 
-      {/* 모드 배지 */}
-      <div className="flex justify-center mb-4">
-        <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
-          mode === 'RECALL'
-            ? 'bg-[#1865F2]/10 text-[#1865F2]'
-            : 'bg-[#7854F7]/10 text-[#7854F7]'
-        }`}>
-          {mode === 'RECALL' ? '4지선다 리콜' : '스펠 주관식'}
-        </span>
-      </div>
+      <div>
+        <ProgressBar index={index} total={cards.length} correct={correctCount} answered={answeredCount} />
 
-      {/* exit 애니메이션(mode="wait")은 빠르게 넘길 때 빈 화면이 되는 원인이라 진입 애니메이션만 사용 */}
-      <motion.div
-          key={`${index}-${currentCard.wordId}-${mode}`}
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
-        >
-          {mode === 'RECALL' ? (
-            <RecallCard card={currentCard} preloaded={recallOptionsMap[currentCard.wordId]} onResult={handleResult} />
-          ) : (
-            <SpellCard card={currentCard} onResult={handleResult} />
-          )}
-        </motion.div>
+        {/* 복습 방식 선택 */}
+        <div className="mb-3 flex justify-center">
+          <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1" role="radiogroup" aria-label="복습 방식 선택">
+            {REVIEW_MODES.map((m) => (
+              <button
+                key={m.value}
+                type="button"
+                role="radio"
+                aria-checked={reviewMode === m.value}
+                onClick={() => setReviewMode(m.value)}
+                className={`min-h-[44px] min-w-[64px] rounded-lg px-3 text-sm font-semibold transition-colors ${
+                  reviewMode === m.value ? 'bg-[#7854F7] text-white' : 'text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 모드 배지 */}
+        <div className="flex justify-center mb-4">
+          <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
+            mode === 'RECALL'
+              ? 'bg-[#1865F2]/10 text-[#1865F2]'
+              : 'bg-[#7854F7]/10 text-[#7854F7]'
+          }`}>
+            {mode === 'RECALL' ? '4지선다 리콜' : '스펠 주관식'}
+          </span>
+        </div>
+
+        {/* exit 애니메이션(mode="wait")은 빠르게 넘길 때 빈 화면이 되는 원인이라 진입 애니메이션만 사용 */}
+        <motion.div
+            key={`${index}-${currentCard.wordId}-${mode}`}
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+          >
+            {mode === 'RECALL' ? (
+              <RecallCard card={currentCard} preloaded={recallOptionsMap[currentCard.wordId]} onResult={handleResult} />
+            ) : (
+              <SpellCard card={currentCard} onResult={handleResult} />
+            )}
+          </motion.div>
+      </div>
     </div>
   )
 }
