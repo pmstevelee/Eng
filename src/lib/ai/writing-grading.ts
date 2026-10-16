@@ -290,6 +290,7 @@ export function stripNonErrors(errors: WritingError[]): WritingError[] {
 /**
  * rubricItems/overallEvaluation/categoryScores를 가진 보고서를 정규화한다.
  * - score를 [0, 100] 범위로 클램프 + 정수 반올림
+ * - detectedTaskFormat 평가항목표에 없는 항목은 제거한다 (가중치 합 100 초과 방지)
  * - weight는 AI가 임의로 바꿀 수 없도록 detectedTaskFormat에 대응하는 평가항목표의 고정값으로 덮어쓴다
  * - overallEvaluation.totalPoints/grade를 실제 rubricItems 가중합계 기준으로 재계산 (AI가 준 값은 무시)
  * - categoryScores를 0~100 범위로 클램프
@@ -306,7 +307,12 @@ export function normalizeRubricScoring<T extends NormalizableRubricReport>(repor
   }
 
   const defs = report.detectedTaskFormat ? WRITING_RUBRIC_DEFINITIONS[report.detectedTaskFormat] : null
-  const rubricItems = report.rubricItems.map((item) => {
+  // AI가 해당 과제 형식에 없는 항목(예: academic_essay에 sentenceStructure)을 끼워 넣으면
+  // 가중치 합이 100을 넘어 총점이 100점을 초과하므로, 정의된 항목만 남긴다.
+  const definedItems = defs
+    ? report.rubricItems.filter((item) => defs.some((d) => d.key === item.key))
+    : report.rubricItems
+  const rubricItems = (definedItems.length > 0 ? definedItems : report.rubricItems).map((item) => {
     const def = defs?.find((d) => d.key === item.key)
     return {
       ...item,
@@ -321,6 +327,21 @@ export function normalizeRubricScoring<T extends NormalizableRubricReport>(repor
     : report.overallEvaluation
 
   return { ...report, rubricItems, overallEvaluation, categoryScores }
+}
+
+/**
+ * 학생 쓰기 연습 결과에서 결과 화면·이력·skill_assessments가 모두 같은 쓰기 점수를 쓰도록
+ * AI가 따로 매긴 detailedScores.totalScore를 평가항목 합계(overallEvaluation.totalPoints)로 맞춘다.
+ */
+export function unifyWritingTotalScore<
+  T extends {
+    overallEvaluation?: { totalPoints: number } | null
+    detailedScores?: { totalScore: number } | null
+  },
+>(result: T): T {
+  const totalPoints = result.overallEvaluation?.totalPoints
+  if (typeof totalPoints !== 'number' || !result.detailedScores) return result
+  return { ...result, detailedScores: { ...result.detailedScores, totalScore: totalPoints } }
 }
 
 /**

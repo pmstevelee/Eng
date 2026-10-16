@@ -1,5 +1,6 @@
 import type { Prisma } from '@/generated/prisma'
 import type { WritingEvaluationResult } from '@/app/api/ai/evaluate-writing/route'
+import { normalizeRubricScoring, unifyWritingTotalScore } from '@/lib/ai/writing-grading'
 import type { DomainLevels } from '@/lib/ai/domain-level-calculator'
 
 /**
@@ -158,7 +159,8 @@ const FEEDBACK_REQUIRED_RECORDS = [
 function buildFeedback(data: JsonRecord): WritingEvaluationResult | null {
   if (FEEDBACK_REQUIRED_RECORDS.some((key) => !asRecord(data[key]))) return null
   const list = (value: unknown) => (Array.isArray(value) ? value : [])
-  return {
+  // 저장 당시 정규화 규칙이 달랐던 기록(예: 총점 100점 초과)도 현재 결과 화면과 같은 기준으로 다시 계산
+  const restored: WritingEvaluationResult = {
     ...(data as unknown as WritingEvaluationResult),
     corrections: list(data.corrections),
     rubricItems: list(data.rubricItems),
@@ -171,6 +173,7 @@ function buildFeedback(data: JsonRecord): WritingEvaluationResult | null {
     improvedVersion: asString(data.improvedVersion),
     nextStepRecommendation: asString(data.nextStepRecommendation),
   }
+  return unifyWritingTotalScore(normalizeRubricScoring(restored))
 }
 
 export function normalizeWritingPracticeData(raw: Prisma.JsonValue): WritingPracticeView {
@@ -183,7 +186,9 @@ export function normalizeWritingPracticeData(raw: Prisma.JsonValue): WritingPrac
   const legacyMax = asNumber(data.totalMaxScore)
   // 결과 화면의 총점은 평가항목(루브릭) 합계(overallEvaluation.totalPoints)이므로 이를 우선한다.
   // (이전에는 percentage에 detailedScores.totalScore가 저장되어 결과 화면 점수와 달랐음)
+  const feedback = buildFeedback(data)
   const percentage =
+    asNumber(feedback?.overallEvaluation?.totalPoints) ??
     asNumber(overall?.totalPoints) ??
     asNumber(data.percentage) ??
     asNumber(detailed?.totalScore) ??
@@ -213,7 +218,7 @@ export function normalizeWritingPracticeData(raw: Prisma.JsonValue): WritingPrac
     scores: buildScores(data),
     corrections: buildCorrections(data),
     modelEssay: buildModelEssay(data),
-    feedback: buildFeedback(data),
+    feedback,
     domainLevels: (asRecord(data.domainLevels) ?? null) as DomainLevels | null,
   }
 }

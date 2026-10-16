@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import Link from 'next/link'
 import {
   ChevronDown,
@@ -127,12 +127,24 @@ export function WritingFeedbackDisplay({
   const { writingLevelAssessment, detailedScores, crossDomainAnalysis, corrections, levelUpStrategy, modelEssay } = feedback
 
   const assessedLevel = writingLevelAssessment.assessedLevel
-  const maxGap = domainLevels?.gaps.maxGap ?? 0
+  // 결과 화면 전체에서 하나의 쓰기 점수(평가항목 합계)를 사용한다
+  const writingScore = feedback.overallEvaluation?.totalPoints ?? detailedScores.totalScore
+  // 다른 영역 중 가장 높은 레벨과 쓰기 판정 레벨의 차이 (쓰기가 더 높으면 0 이하)
+  const otherDomainLevels = domainLevels
+    ? [
+        domainLevels.grammar.level,
+        domainLevels.vocabulary.level,
+        domainLevels.reading.level,
+        ...(domainLevels.listening ? [domainLevels.listening.level] : []),
+      ]
+    : []
+  const writingGap =
+    otherDomainLevels.length > 0 ? Math.max(...otherDomainLevels) - assessedLevel : 0
 
   // 평가항목별 채점 + 6영역 상세 오류분석 카드용 어댑터 (교사 채점 리포트와 공통 컴포넌트 재사용)
   const detailedGradingReport: WritingGradingReport = {
     detectedTaskFormat: feedback.detectedTaskFormat,
-    overallScore: feedback.overallEvaluation?.totalPoints ?? detailedScores.totalScore,
+    overallScore: writingScore,
     cefrEstimate: writingLevelAssessment.assessedCefr,
     categoryScores: feedback.categoryScores,
     rubricItems: feedback.rubricItems,
@@ -200,7 +212,7 @@ export function WritingFeedbackDisplay({
                 { key: 'vocabulary', level: domainLevels.vocabulary.level, score: domainLevels.vocabulary.score, cefr: domainLevels.vocabulary.cefr },
                 { key: 'reading', level: domainLevels.reading.level, score: domainLevels.reading.score, cefr: domainLevels.reading.cefr },
                 ...(domainLevels.listening ? [{ key: 'listening', level: domainLevels.listening.level, score: domainLevels.listening.score, cefr: domainLevels.listening.cefr }] : []),
-                { key: 'writing', level: assessedLevel, score: detailedScores.totalScore, cefr: writingLevelAssessment.assessedCefr },
+                { key: 'writing', level: assessedLevel, score: writingScore, cefr: writingLevelAssessment.assessedCefr },
               ] as { key: string; level: number; score: number; cefr: string }[]
             ).map(({ key, level, score, cefr }) => {
               const isWriting = key === 'writing'
@@ -219,11 +231,10 @@ export function WritingFeedbackDisplay({
               )
             })}
           </div>
-          {maxGap >= 2 && (
+          {writingGap >= 2 && (
             <div className="mt-3 rounded-lg border border-[#FCA5A5] bg-[#FFF5F5] px-3 py-2">
               <p className="text-xs font-medium text-[#D92916]">
-                ⚠️ 쓰기가 다른 영역보다{' '}
-                {crossDomainAnalysis.levelMap.grammar.gap ?? 0}~{maxGap}단계 낮습니다!
+                ⚠️ 쓰기가 다른 영역보다 최대 {writingGap}단계 낮습니다!
               </p>
             </div>
           )}
@@ -374,9 +385,9 @@ export function WritingFeedbackDisplay({
               <span className="mt-1 text-xs text-gray-400">현재</span>
             </div>
             {levelUpStrategy.milestones.map((ms, i) => (
-              <>
-                <div key={`arrow-${i}`} className="shrink-0 text-gray-300">→</div>
-                <div key={`ms-${i}`} className="flex shrink-0 flex-col items-center">
+              <Fragment key={i}>
+                <div className="shrink-0 text-gray-300">→</div>
+                <div className="flex shrink-0 flex-col items-center">
                   <div
                     className="flex h-10 w-20 flex-col items-center justify-center rounded-xl border-2 border-dashed px-2 py-1 text-center"
                     style={{ borderColor: '#7854F7' }}
@@ -388,7 +399,7 @@ export function WritingFeedbackDisplay({
                   <span className="mt-1 text-xs text-gray-400">{ms.week}주 후</span>
                   <span className="text-xs text-gray-400">{ms.sign.slice(0, 10)}...</span>
                 </div>
-              </>
+              </Fragment>
             ))}
           </div>
         </div>

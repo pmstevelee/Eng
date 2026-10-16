@@ -11,6 +11,7 @@ import {
   buildRubricSchemaBlock,
   normalizeRubricScoring,
   stripNonErrors,
+  unifyWritingTotalScore,
   type GrammarErrorSummaryItem,
   type SpellingErrorSummaryItem,
   type WritingCategoryScores,
@@ -471,10 +472,10 @@ export async function POST(req: NextRequest) {
 
     // AI가 배점 합계/오류 없음 표시 등 프롬프트 지시를 어길 수 있으므로 서버에서 재검증한다.
     const parsedResult = JSON.parse(rawContent) as WritingEvaluationResult
-    const result: WritingEvaluationResult = {
+    const result = unifyWritingTotalScore({
       ...normalizeRubricScoring(parsedResult),
       errors: stripNonErrors(parsedResult.errors ?? []),
-    }
+    })
 
     // ── 사용량 기록 + 과금 (무료 한도 → 통합 크레딧 → 초과 요금) ──────────────
     // 기록 실패로 이미 받은 AI 평가 결과를 버리지 않도록 오류는 로그만 남긴다
@@ -539,8 +540,8 @@ export async function POST(req: NextRequest) {
                 grammarErrorSummary: result.grammarErrorSummary,
                 improvedVersion: result.improvedVersion,
                 nextStepRecommendation: result.nextStepRecommendation,
-                // 이력 목록 점수: 결과 화면에 표시되는 총점(평가항목 합계)과 동일한 값
-                percentage: result.overallEvaluation?.totalPoints ?? writingScore,
+                // 이력 목록 점수 (결과 화면 총점과 동일)
+                percentage: writingScore,
               },
             },
           }),
