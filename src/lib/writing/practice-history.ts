@@ -1,4 +1,6 @@
 import type { Prisma } from '@/generated/prisma'
+import type { WritingEvaluationResult } from '@/app/api/ai/evaluate-writing/route'
+import type { DomainLevels } from '@/lib/ai/domain-level-calculator'
 
 /**
  * 쓰기 연습 이력(reports.type = WRITING_PRACTICE) 화면 표시용 정규화 모델.
@@ -27,7 +29,10 @@ export type WritingPracticeView = {
   topicTitle: string
   essay: string
   wordCount: number
+  /** 작성 당시 학생 레벨 */
   level: number | null
+  /** 이번 글의 AI 쓰기 레벨 판정 (결과 화면의 Lv. 값) */
+  assessedLevel: number | null
   cefrLevel: string | null
   /** 0~100 백분율 점수 */
   percentage: number
@@ -37,6 +42,13 @@ export type WritingPracticeView = {
   scores: WritingPracticeScoreView[]
   corrections: WritingPracticeCorrectionView[]
   modelEssay: { text: string; wordCount: number; keyFeatures: string[] } | null
+  /**
+   * 신형(현재) 저장 데이터면 AI 피드백 직후 화면과 동일하게 보여주기 위한 원본 평가 결과.
+   * 필수 필드가 빠진 이전 형식이면 null (위 요약 필드로 표시).
+   */
+  feedback: WritingEvaluationResult | null
+  /** 평가 당시 학생의 영역별 레벨 (피드백 화면의 5영역 비교용) */
+  domainLevels: DomainLevels | null
 }
 
 type JsonRecord = Record<string, unknown>
@@ -132,6 +144,35 @@ function buildModelEssay(data: JsonRecord): WritingPracticeView['modelEssay'] {
   }
 }
 
+// evaluate-writing route가 저장하는 전체 평가 결과 필드 중 피드백 화면이 반드시 필요로 하는 객체들
+const FEEDBACK_REQUIRED_RECORDS = [
+  'writingLevelAssessment',
+  'detailedScores',
+  'crossDomainAnalysis',
+  'levelUpStrategy',
+  'modelEssay',
+  'categoryScores',
+] as const
+
+/** 저장된 dataJson을 AI 피드백 직후 화면에서 쓰던 결과 객체 그대로 복원한다. */
+function buildFeedback(data: JsonRecord): WritingEvaluationResult | null {
+  if (FEEDBACK_REQUIRED_RECORDS.some((key) => !asRecord(data[key]))) return null
+  const list = (value: unknown) => (Array.isArray(value) ? value : [])
+  return {
+    ...(data as unknown as WritingEvaluationResult),
+    corrections: list(data.corrections),
+    rubricItems: list(data.rubricItems),
+    strengths: list(data.strengths),
+    errors: list(data.errors),
+    spellingErrorSummary: list(data.spellingErrorSummary),
+    grammarErrorSummary: list(data.grammarErrorSummary),
+    essayAnalysis: (asRecord(data.essayAnalysis) ??
+      null) as WritingEvaluationResult['essayAnalysis'],
+    improvedVersion: asString(data.improvedVersion),
+    nextStepRecommendation: asString(data.nextStepRecommendation),
+  }
+}
+
 export function normalizeWritingPracticeData(raw: Prisma.JsonValue): WritingPracticeView {
   const data = asRecord(raw) ?? {}
   const detailed = asRecord(data.detailedScores)
@@ -140,9 +181,11 @@ export function normalizeWritingPracticeData(raw: Prisma.JsonValue): WritingPrac
 
   const legacyTotal = asNumber(data.totalScore)
   const legacyMax = asNumber(data.totalMaxScore)
+  // 결과 화면의 총점은 평가항목(루브릭) 합계(overallEvaluation.totalPoints)이므로 이를 우선한다.
+  // (이전에는 percentage에 detailedScores.totalScore가 저장되어 결과 화면 점수와 달랐음)
   const percentage =
-    asNumber(data.percentage) ??
     asNumber(overall?.totalPoints) ??
+    asNumber(data.percentage) ??
     asNumber(detailed?.totalScore) ??
     (legacyTotal !== null && legacyMax ? (legacyTotal / legacyMax) * 100 : 0)
 
@@ -154,6 +197,7 @@ export function normalizeWritingPracticeData(raw: Prisma.JsonValue): WritingPrac
     essay,
     wordCount: asNumber(data.wordCount) ?? essay.trim().split(/\s+/).filter(Boolean).length,
     level: asNumber(data.level),
+    assessedLevel: asNumber(data.assessedLevel),
     cefrLevel:
       asString(data.cefrLevel) ||
       asString(detailed?.totalCefr) ||
@@ -169,5 +213,7 @@ export function normalizeWritingPracticeData(raw: Prisma.JsonValue): WritingPrac
     scores: buildScores(data),
     corrections: buildCorrections(data),
     modelEssay: buildModelEssay(data),
+    feedback: buildFeedback(data),
+    domainLevels: (asRecord(data.domainLevels) ?? null) as DomainLevels | null,
   }
 }

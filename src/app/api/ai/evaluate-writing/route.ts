@@ -539,8 +539,8 @@ export async function POST(req: NextRequest) {
                 grammarErrorSummary: result.grammarErrorSummary,
                 improvedVersion: result.improvedVersion,
                 nextStepRecommendation: result.nextStepRecommendation,
-                // 이전 형식 호환용
-                percentage: writingScore,
+                // 이력 목록 점수: 결과 화면에 표시되는 총점(평가항목 합계)과 동일한 값
+                percentage: result.overallEvaluation?.totalPoints ?? writingScore,
               },
             },
           }),

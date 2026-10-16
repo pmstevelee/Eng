@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, CheckCircle2, AlertCircle, BookOpen } from 'lucide-react'
 import type { WritingHistoryItem } from '../page'
+import { WritingFeedbackDisplay } from '../../_components/writing-feedback-display'
 
 const CATEGORY_LABELS: Record<string, string> = {
   grammar: '문법',
@@ -60,7 +61,9 @@ export function WritingHistoryAccordion({ history }: { history: WritingHistoryIt
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{item.data.topicTitle}</p>
                   <p className="text-xs text-gray-400">
-                    {item.data.level !== null && `Level ${item.data.level} · `}
+                    {item.data.assessedLevel !== null
+                      ? `쓰기 Lv.${item.data.assessedLevel} · `
+                      : item.data.level !== null && `Level ${item.data.level} · `}
                     {item.data.wordCount}단어 · {formatDate(item.createdAt)}
                   </p>
                 </div>
@@ -80,8 +83,19 @@ export function WritingHistoryAccordion({ history }: { history: WritingHistoryIt
               </div>
             </button>
 
-            {/* 상세 내용 */}
-            {isOpen && (
+            {/* 상세 내용: 현재 형식 데이터는 AI 피드백 직후 결과 화면과 동일하게 표시 */}
+            {isOpen && item.data.feedback && (
+              <div className="border-t border-gray-100 bg-gray-50 px-3 pb-4 pt-4">
+                <WritingFeedbackDisplay
+                  feedback={item.data.feedback}
+                  domainLevels={item.data.domainLevels}
+                  essay={item.data.essay}
+                />
+              </div>
+            )}
+
+            {/* 상세 내용: 이전 형식 데이터 */}
+            {isOpen && !item.data.feedback && (
               <div className="border-t border-gray-100 px-4 pb-5 pt-4 space-y-5">
                 {/* 영역별 점수 */}
                 {item.data.scores.length > 0 && (
