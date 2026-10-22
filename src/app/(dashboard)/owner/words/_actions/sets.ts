@@ -46,6 +46,8 @@ export async function searchWordsForOwner(
   const skip = (page - 1) * PAGE_SIZE
 
   const where = {
+    // 공용 사전 + 우리 학원이 AI 플래시카드로 만든 전용 단어
+    AND: [{ OR: [{ academyId: null }, { academyId: owner.academyId }] }],
     ...(query
       ? {
           OR: [
@@ -113,6 +115,8 @@ function buildAutoWhere(
   examCategories: ExamCategory[] = [],
 ) {
   return {
+    // 자동 생성은 공용 사전 단어만
+    academyId: null,
     ...(cefrLevels.length > 0 ? { oxfordCefr: { in: cefrLevels } } : {}),
     ...(excludeWordIds.length > 0 ? { id: { notIn: excludeWordIds } } : {}),
     ...(examCategories.length > 0

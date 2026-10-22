@@ -1,10 +1,10 @@
 // 통합 크레딧 공용 상수·타입 (서버·클라이언트 공용)
-// 한 지갑으로 학부모 알림(알림톡·문자)과 AI 기능(쓰기 평가·문제 생성)을 함께 쓴다.
+// 한 지갑으로 학부모 알림(알림톡·문자)과 AI 기능(쓰기 평가·문제 생성·플래시카드 생성)을 함께 쓴다.
 
 /** 알림 발송 채널 */
 export type CreditChannelValue = 'ALIMTALK' | 'SMS'
 /** AI 기능 차감 항목 */
-export type AiCreditItemValue = 'AI_WRITING' | 'AI_QUESTION'
+export type AiCreditItemValue = 'AI_WRITING' | 'AI_QUESTION' | 'AI_FLASHCARD'
 /** 크레딧 차감 항목 전체 (DB enum CreditChannel) */
 export type CreditItemValue = CreditChannelValue | AiCreditItemValue
 export type CreditTransactionTypeValue = 'CHARGE' | 'USE' | 'REFUND' | 'ADMIN_ADJUST'
@@ -13,7 +13,7 @@ export type NotificationJobStatusValue = 'PENDING' | 'SENT' | 'FAILED' | 'SKIPPE
 
 export const CREDIT_CHANNELS: CreditChannelValue[] = ['ALIMTALK', 'SMS']
 
-export const AI_CREDIT_ITEMS: AiCreditItemValue[] = ['AI_WRITING', 'AI_QUESTION']
+export const AI_CREDIT_ITEMS: AiCreditItemValue[] = ['AI_WRITING', 'AI_QUESTION', 'AI_FLASHCARD']
 
 export const CREDIT_ITEMS: CreditItemValue[] = [...CREDIT_CHANNELS, ...AI_CREDIT_ITEMS]
 
@@ -22,6 +22,7 @@ export const CREDIT_ITEM_LABEL: Record<CreditItemValue, string> = {
   SMS: '문자(SMS)',
   AI_WRITING: 'AI 쓰기 평가',
   AI_QUESTION: 'AI 문제 생성',
+  AI_FLASHCARD: 'AI 플래시카드 생성',
 }
 
 /** 알림 채널 라벨 (CREDIT_ITEM_LABEL의 일부) */
@@ -30,16 +31,17 @@ export const CREDIT_CHANNEL_LABEL: Record<CreditChannelValue, string> = {
   SMS: CREDIT_ITEM_LABEL.SMS,
 }
 
-/** 단가 단위 (알림은 건, AI는 회) */
+/** 단가 단위 (알림은 건, AI는 회, 플래시카드는 단어) */
 export const CREDIT_ITEM_UNIT: Record<CreditItemValue, string> = {
   ALIMTALK: '건',
   SMS: '건',
   AI_WRITING: '회',
   AI_QUESTION: '회',
+  AI_FLASHCARD: '단어',
 }
 
 export function isAiCreditItem(item: CreditItemValue): item is AiCreditItemValue {
-  return item === 'AI_WRITING' || item === 'AI_QUESTION'
+  return item === 'AI_WRITING' || item === 'AI_QUESTION' || item === 'AI_FLASHCARD'
 }
 
 /** CreditPricing 행이 없을 때 쓰는 기본 단가 (마이그레이션 시드와 동일) */
@@ -48,6 +50,7 @@ export const DEFAULT_CREDIT_PRICING: Record<CreditItemValue, number> = {
   SMS: 30,
   AI_WRITING: 50,
   AI_QUESTION: 100,
+  AI_FLASHCARD: 5,
 }
 
 export const CREDIT_TX_TYPE_LABEL: Record<CreditTransactionTypeValue, string> = {

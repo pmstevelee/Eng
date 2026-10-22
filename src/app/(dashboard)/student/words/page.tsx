@@ -34,6 +34,7 @@ const CEFR_LABEL_MAP: Record<number, string> = {
 async function ensureSystemWordSets() {
   const levelGroups = await prisma.word.groupBy({
     by: ['cefrLevel'],
+    where: { academyId: null },
     _count: { _all: true },
     orderBy: { cefrLevel: 'asc' },
   })
@@ -47,7 +48,7 @@ async function ensureSystemWordSets() {
     if (existing) continue
 
     const words = await prisma.word.findMany({
-      where: { cefrLevel },
+      where: { cefrLevel, academyId: null },
       select: { id: true },
       orderBy: { term: 'asc' },
     })

@@ -217,6 +217,7 @@ export function BillingActions({
             <ul className="mb-6 space-y-1.5 rounded-lg bg-red-50 p-4 text-sm text-[#D92916]">
               <li>• AI 쓰기 평가 월 {planConfig.aiWritingLimit}회</li>
               <li>• AI 문제 생성 월 {planConfig.aiQuestionLimit}회</li>
+              <li>• AI 플래시카드 월 {planConfig.aiFlashcardLimit.toLocaleString()}단어</li>
               <li>• 학생 {planConfig.studentLimit === -1 ? '무제한' : `최대 ${planConfig.studentLimit}명`}</li>
             </ul>
 

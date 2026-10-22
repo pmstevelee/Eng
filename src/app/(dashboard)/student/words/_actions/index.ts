@@ -426,7 +426,9 @@ export async function getRecallOptionsBatch(
 ): Promise<Result<{ questions: Record<string, RecallQuestionData> }>> {
   try {
     const { wordIds: ids } = GetRecallOptionsBatchSchema.parse({ wordIds })
-    await getAuthContext()
+    const { academyId } = await getAuthContext()
+    // 보기 후보: 공용 사전 + 우리 학원 전용 단어 (다른 학원이 올린 단어는 보이지 않게)
+    const visibleWords = academyId ? { OR: [{ academyId: null }, { academyId }] } : { academyId: null }
 
     const targets = await prisma.word.findMany({ where: { id: { in: ids } } })
     if (targets.length === 0) return err('NOT_FOUND', '단어를 찾을 수 없습니다.')
@@ -447,8 +449,10 @@ export async function getRecallOptionsBatch(
       pairList.map(([, p]) =>
         prisma.word.findMany({
           where: {
+            ...visibleWords,
             cefrLevel: { in: [p.cefrLevel - 1, p.cefrLevel, p.cefrLevel + 1] },
             partOfSpeech: p.partOfSpeech,
+            meaning: { not: null },
           },
           select: { id: true, term: true, meaning: true, partOfSpeech: true, cefrLevel: true },
           take: 80,
@@ -456,6 +460,27 @@ export async function getRecallOptionsBatch(
       ),
     )
     const candidatesByPair = new Map(pairList.map(([key], i) => [key, candidateLists[i]]))
+
+    // 같은 품사 후보가 모자란 단어(숙어 등 AI 플래시카드 단어)는 품사와 무관하게 같은 레벨대에서 보충
+    const shortLevels = Array.from(
+      new Set(
+        targets
+          .filter((t) => (candidatesByPair.get(`${t.cefrLevel}|${t.partOfSpeech}`)?.length ?? 0) <= DISTRACTOR_COUNT)
+          .map((t) => t.cefrLevel),
+      ),
+    )
+    const fallbackPool =
+      shortLevels.length > 0
+        ? await prisma.word.findMany({
+            where: {
+              ...visibleWords,
+              cefrLevel: { in: shortLevels.flatMap((l) => [l - 1, l, l + 1]) },
+              meaning: { not: null },
+            },
+            select: { id: true, term: true, meaning: true, partOfSpeech: true, cefrLevel: true },
+            take: 120,
+          })
+        : []
 
     const questions: Record<string, RecallQuestionData> = {}
     for (const target of targets) {
@@ -466,6 +491,13 @@ export async function getRecallOptionsBatch(
       const nearLevel = pool.filter((w) => w.cefrLevel !== target.cefrLevel)
       const distractors = [...sameLevel.sort(() => Math.random() - 0.5), ...nearLevel.sort(() => Math.random() - 0.5)]
         .slice(0, DISTRACTOR_COUNT)
+      if (distractors.length < DISTRACTOR_COUNT) {
+        const used = new Set([target.id, ...distractors.map((d) => d.id)])
+        const extra = fallbackPool
+          .filter((w) => !used.has(w.id) && Math.abs(w.cefrLevel - target.cefrLevel) <= 1 && w.meaning !== target.meaning)
+          .sort(() => Math.random() - 0.5)
+        distractors.push(...extra.slice(0, DISTRACTOR_COUNT - distractors.length))
+      }
 
       const options = [target, ...distractors]
         .sort(() => Math.random() - 0.5)

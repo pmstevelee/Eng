@@ -147,7 +147,7 @@ export async function chargeAiCredits(params: {
         amount: -credits,
         balanceAfter,
         item,
-        memo: count > 1 ? `${CREDIT_ITEM_LABEL[item]} ${count}회` : null,
+        memo: count > 1 ? `${CREDIT_ITEM_LABEL[item]} ${count}${item === 'AI_FLASHCARD' ? '단어' : '회'}` : null,
       },
     })
     return { ok: true as const, credits, balanceAfter }

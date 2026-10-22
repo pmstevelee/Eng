@@ -13,6 +13,7 @@ import {
 } from '@/lib/credits/constants'
 import { getCreditUsage, getMonthlyAiCreditUse, getMonthlyJobCounts } from '@/lib/credits/queries'
 import { getCreditPricing, getWallet, walletAcademyIdOf } from '@/lib/credits/wallet'
+import { getMonthlyFlashcardUsage } from '@/lib/usage/flashcard-usage'
 import { CreditPackagesClient } from './_components/credit-packages-client'
 import { CreditUsageTable } from './_components/credit-usage-table'
 
@@ -89,7 +90,7 @@ export default async function OwnerCreditsPage({
   const monthKey = isMonthKey(params.month) ? params.month : thisMonth
   const walletAcademyId = await walletAcademyIdOf(user.academyId)
 
-  const [wallet, pricing, packages, usage, counts, aiCredit, aiFree] = await Promise.all([
+  const [wallet, pricing, packages, usage, counts, aiCredit, aiFree, flashcard] = await Promise.all([
     getWallet(walletAcademyId),
     getCreditPricing(),
     prisma.creditPackage.findMany({
@@ -101,19 +102,20 @@ export default async function OwnerCreditsPage({
     getMonthlyJobCounts(walletAcademyId, thisMonth),
     getMonthlyAiCreditUse(walletAcademyId, thisMonth),
     getMonthlyAiFreeUsage(user.academyId),
+    getMonthlyFlashcardUsage(user.academyId),
   ])
 
   const low = wallet.balance <= wallet.lowBalanceThreshold
   const charged = Number(params.charged)
   const minPrice = Math.min(pricing.ALIMTALK, pricing.AI_WRITING, pricing.AI_QUESTION)
-  const sendables: CreditItemValue[] = ['AI_WRITING', 'AI_QUESTION', 'ALIMTALK']
+  const sendables: CreditItemValue[] = ['AI_WRITING', 'AI_QUESTION', 'AI_FLASHCARD', 'ALIMTALK']
 
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">크레딧</h1>
         <p className="text-sm text-gray-500 mt-1">
-          AI 쓰기 평가·AI 문제 생성과 학부모 알림(등원·하원·미등원)에 함께 쓰는 통합 크레딧입니다. 한 번 충전하면
+          AI 쓰기 평가·문제 생성·플래시카드와 학부모 알림(등원·하원·미등원)에 함께 쓰는 통합 크레딧입니다. 한 번 충전하면
           필요한 곳에 자유롭게 쓸 수 있습니다.
         </p>
       </div>
@@ -143,7 +145,7 @@ export default async function OwnerCreditsPage({
           </div>
           <div>
             <p className="text-sm text-gray-500">한 가지에만 쓴다면</p>
-            <div className="mt-2 grid grid-cols-3 gap-2">
+            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {sendables.map((item) => (
                 <div key={item} className="rounded-xl bg-gray-50 p-3">
                   <p className="text-xs font-medium text-gray-500">{CREDIT_ITEM_LABEL[item]}</p>
@@ -177,6 +179,7 @@ export default async function OwnerCreditsPage({
             <div className="divide-y divide-gray-100">
               <PriceRow item="AI_WRITING" price={pricing.AI_WRITING} />
               <PriceRow item="AI_QUESTION" price={pricing.AI_QUESTION} note="(요청 1회)" />
+              <PriceRow item="AI_FLASHCARD" price={pricing.AI_FLASHCARD} note="(AI가 만든 단어 1개)" />
             </div>
           </div>
           <div className="mt-4">
@@ -199,6 +202,16 @@ export default async function OwnerCreditsPage({
             <div className="divide-y divide-gray-100">
               <AiUsageLine label="AI 쓰기 평가" free={aiFree?.writing ?? null} credit={aiCredit.writing} />
               <AiUsageLine label="AI 문제 생성" free={aiFree?.question ?? null} credit={aiCredit.question} />
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2">
+                <span className="text-sm font-medium text-gray-900">AI 플래시카드</span>
+                <span className="text-sm text-gray-500">
+                  플랜 무료{' '}
+                  <span className="tabular-nums text-gray-900">{formatCredits(flashcard.freeUsed)}</span>/
+                  {flashcard.freeLimit === -1 ? '무제한' : `${formatCredits(flashcard.freeLimit)}단어`} · 크레딧{' '}
+                  <span className="tabular-nums text-gray-900">{formatCredits(flashcard.paidWords)}</span>단어 (
+                  {formatCredits(flashcard.credits)}크레딧)
+                </span>
+              </div>
             </div>
           </div>
           <div className="mt-4">

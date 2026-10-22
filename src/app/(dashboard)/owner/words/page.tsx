@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Users, Star, Activity, Plus, BarChart2, ClipboardList, Trophy } from 'lucide-react'
+import { BookOpen, Users, Star, Activity, Plus, BarChart2, ClipboardList, Trophy, Sparkles } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { Button } from '@/components/ui/button'
@@ -39,12 +39,12 @@ export default async function OwnerWordsPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       {/* 헤더 */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-gray-900">단어학습 관리</h1>
           <p className="text-sm text-gray-400 mt-0.5">학원 전체 단어학습 현황 및 세트 관리</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link href="/owner/words/tests">
             <Button variant="outline" size="sm" className="h-9 gap-2 text-[#1865F2] border-[#1865F2]/30 hover:bg-[#EFF4FE]">
               <ClipboardList className="w-4 h-4" />
@@ -63,6 +63,14 @@ export default async function OwnerWordsPage({ searchParams }: Props) {
               랭킹
             </Button>
           </Link>
+          {activeTab === 'sets' && (
+            <Link href="/owner/words/sets/ai">
+              <Button variant="outline" size="sm" className="h-9 gap-2 text-[#7854F7] border-[#7854F7]/30 hover:bg-[#F3EFFF]">
+                <Sparkles className="w-4 h-4" />
+                AI 플래시카드
+              </Button>
+            </Link>
+          )}
           {activeTab === 'sets' && (
             <Link href="/owner/words/sets/new">
               <Button size="sm" className="h-9 gap-2 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white">
@@ -274,12 +282,20 @@ async function SetsTab({
           <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 py-10 text-center">
             <BookOpen className="w-8 h-8 mx-auto mb-2 text-gray-300" />
             <p className="text-sm text-gray-400 mb-3">아직 만든 세트가 없습니다.</p>
-            <Link href="/owner/words/sets/new">
-              <Button size="sm" className="h-9 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white">
-                <Plus className="w-4 h-4 mr-1" />
-                첫 세트 만들기
-              </Button>
-            </Link>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Link href="/owner/words/sets/new">
+                <Button size="sm" className="h-9 bg-[#1865F2] hover:bg-[#1865F2]/90 text-white">
+                  <Plus className="w-4 h-4 mr-1" />
+                  첫 세트 만들기
+                </Button>
+              </Link>
+              <Link href="/owner/words/sets/ai">
+                <Button size="sm" variant="outline" className="h-9 text-[#7854F7] border-[#7854F7]/30 hover:bg-[#F3EFFF]">
+                  <Sparkles className="w-4 h-4 mr-1" />
+                  단어 텍스트로 AI 플래시카드
+                </Button>
+              </Link>
+            </div>
           </div>
         ) : (
           <OwnerSetsList sets={customSets} />

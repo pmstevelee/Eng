@@ -23,7 +23,7 @@ export async function LowCreditBanner({ academyId }: { academyId: string }) {
       select: { id: true },
     }),
     prisma.creditTransaction.findFirst({
-      where: { academyId: walletAcademyId, type: 'USE', item: { in: ['AI_WRITING', 'AI_QUESTION'] }, createdAt: { gte: since } },
+      where: { academyId: walletAcademyId, type: 'USE', item: { in: ['AI_WRITING', 'AI_QUESTION', 'AI_FLASHCARD'] }, createdAt: { gte: since } },
       select: { id: true },
     }),
   ])

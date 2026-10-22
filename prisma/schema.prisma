@@ -366,6 +366,8 @@ model Academy {
   parentAcademy       Academy?                 @relation("AcademyBranches", fields: [parentAcademyId], references: [id])
   branches            Academy[]                @relation("AcademyBranches")
   wordSets            WordSet[]
+  words               Word[]
+  aiFlashcardUsages   AiFlashcardUsage[]
   wordTestAssignments WordTestAssignment[]
   leads               Lead[]
   followUpTasks       FollowUpTask[]
@@ -1291,20 +1293,43 @@ model Word {
   example      String?
   audioUrl     String?    @map("audio_url")
   source       WordSource @default(OXFORD_3000)
+  /// null = 공용 사전 단어, 값 있음 = 학원이 업로드한 전용 단어 (AI 플래시카드)
+  academyId    String?    @map("academy_id")
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
+  academy        Academy?           @relation(fields: [academyId], references: [id], onDelete: Cascade)
   wordSetItems   WordSetItem[]
   wordProgress   WordProgress[]
   examCategories WordExamCategory[]
 
   @@unique([term, partOfSpeech, homonymIndex])
   @@index([cefrLevel])
+  @@index([academyId])
   @@index([oxfordCefr])
   @@map("words")
 }
 
 /// 단어의 시험별 카테고리 태그 (한 단어가 여러 시험에 동시 소속 가능 — 중복 표시용)
+/// AI 플래시카드 생성 이력 — 월 무료 한도(단어 수) 집계와 크레딧 차감 기록
+model AiFlashcardUsage {
+  id          String   @id @default(uuid())
+  academyId   String   @map("academy_id")
+  userId      String   @map("user_id")
+  /// AI로 만든 단어 수 (사전에서 바로 가져온 단어는 제외)
+  wordCount   Int      @map("word_count")
+  /// 그중 플랜 무료 한도로 처리한 단어 수
+  freeCount   Int      @map("free_count")
+  /// 차감한 크레딧
+  creditsUsed Int      @default(0) @map("credits_used")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  academy Academy @relation(fields: [academyId], references: [id], onDelete: Cascade)
+
+  @@index([academyId, createdAt])
+  @@map("ai_flashcard_usages")
+}
+
 model WordExamCategory {
   id        String       @id @default(uuid())
   wordId    String       @map("word_id")
@@ -2060,6 +2085,7 @@ enum CreditChannel {
   SMS
   AI_WRITING // AI 쓰기 평가 1회
   AI_QUESTION // AI 문제 생성 1회
+  AI_FLASHCARD // AI 플래시카드 생성 (단어 1개)
 }
 
 enum NotificationJobType {

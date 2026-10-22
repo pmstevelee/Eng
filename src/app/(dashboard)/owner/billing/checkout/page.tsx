@@ -127,6 +127,7 @@ function getKeyFeatures(plan: Plan, billingCycle: BillingCycle): string[] {
   const teacherLimit = config.teacherLimit === -1 ? '무제한' : `${config.teacherLimit}개`
   const aiWriting = config.aiWritingLimit === -1 ? '무제한' : `월 ${config.aiWritingLimit}회`
   const aiQuestion = config.aiQuestionLimit === -1 ? '무제한' : `월 ${config.aiQuestionLimit}회`
+  const aiFlashcard = config.aiFlashcardLimit === -1 ? '무제한' : `월 ${config.aiFlashcardLimit.toLocaleString()}단어`
   const storage = config.storageLimitMb >= 1024 ? `${config.storageLimitMb / 1024}GB` : `${config.storageLimitMb}MB`
   const retention =
     config.dataRetentionDays === -1
@@ -140,6 +141,7 @@ function getKeyFeatures(plan: Plan, billingCycle: BillingCycle): string[] {
     `교사 계정 ${teacherLimit}`,
     `AI 쓰기 평가 ${aiWriting}`,
     `AI 문제 생성 ${aiQuestion}`,
+    `AI 플래시카드 ${aiFlashcard}`,
     `파일 저장 ${storage}`,
     `데이터 ${retention} 보관`,
     billingCycle === 'YEARLY' ? '연간 결제 (20% 절약)' : '언제든지 해지 가능',

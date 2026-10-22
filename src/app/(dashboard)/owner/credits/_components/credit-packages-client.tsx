@@ -80,6 +80,7 @@ export function CreditPackagesClient({ packages, pricing, customerName, customer
             <ul className="mt-2 space-y-0.5 text-xs text-gray-500">
               <li>AI 쓰기 평가 약 {formatCredits(estimateSendable(pkg.credits, pricing.AI_WRITING))}회</li>
               <li>AI 문제 생성 약 {formatCredits(estimateSendable(pkg.credits, pricing.AI_QUESTION))}회</li>
+              <li>AI 플래시카드 약 {formatCredits(estimateSendable(pkg.credits, pricing.AI_FLASHCARD))}단어</li>
               <li>알림톡 약 {formatCredits(estimateSendable(pkg.credits, pricing.ALIMTALK))}건</li>
             </ul>
             <p className="mt-4 text-lg font-bold text-gray-900">{pkg.priceKrw.toLocaleString('ko-KR')}원</p>

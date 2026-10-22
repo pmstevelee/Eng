@@ -74,6 +74,7 @@ async function pickNewWordIds(studentId: string, band: number, count: number): P
     const candidates = await prisma.word.findMany({
       where: {
         cefrLevel: b,
+        academyId: null,
         meaning: { not: null },
         wordProgress: { none: { studentId } },
         ...(picked.length > 0 ? { id: { notIn: picked } } : {}),
@@ -220,7 +221,7 @@ export interface TodayLearningSummary {
 }
 
 const getBandWordCount = (band: number) =>
-  unstable_cache(() => prisma.word.count({ where: { cefrLevel: band } }), ['word-band-count', String(band)], {
+  unstable_cache(() => prisma.word.count({ where: { cefrLevel: band, academyId: null } }), ['word-band-count', String(band)], {
     revalidate: 86400,
   })()
 

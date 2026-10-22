@@ -89,6 +89,18 @@ async function getAcademyPlan(academyId: string): Promise<Plan> {
   return academy ? PLAN_TYPE_TO_PLAN[academy.subscriptionPlan] : 'FREE'
 }
 
+/**
+ * 학원에 적용 중인 요금제 (카드 결제 구독이 있으면 그 플랜, 없으면 학원 수동 요금제)
+ * + 결제 실패로 AI 사용이 막혔는지 여부
+ */
+export async function getAcademyUsagePlan(
+  academyId: string,
+): Promise<{ plan: Plan; overageBlocked: boolean }> {
+  const sub = await getSubscriptionInfo(academyId)
+  if (sub) return { plan: sub.plan as Plan, overageBlocked: sub.overageBlocked }
+  return { plan: await getAcademyPlan(academyId), overageBlocked: false }
+}
+
 // 통합 크레딧 잔액 + 이 기능 1회 단가 (지점은 본원 지갑)
 async function getCreditInfo(academyId: string, type: AiUsageType) {
   const [wallet, pricing] = await Promise.all([

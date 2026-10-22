@@ -79,15 +79,15 @@ export async function getMonthlyAiCreditUse(walletAcademyId: string, monthKey: s
     where: {
       academyId: walletAcademyId,
       type: 'USE',
-      item: { in: ['AI_WRITING', 'AI_QUESTION'] },
+      item: { in: ['AI_WRITING', 'AI_QUESTION', 'AI_FLASHCARD'] },
       createdAt: { gte: from, lt: to },
     },
     _sum: { amount: true },
     _count: { _all: true },
   })
-  const pick = (item: 'AI_WRITING' | 'AI_QUESTION') => {
+  const pick = (item: 'AI_WRITING' | 'AI_QUESTION' | 'AI_FLASHCARD') => {
     const g = groups.find((x) => x.item === item)
     return { count: g?._count._all ?? 0, credits: -(g?._sum.amount ?? 0) }
   }
-  return { writing: pick('AI_WRITING'), question: pick('AI_QUESTION') }
+  return { writing: pick('AI_WRITING'), question: pick('AI_QUESTION'), flashcard: pick('AI_FLASHCARD') }
 }

@@ -206,8 +206,8 @@ export default async function BillingPage() {
           {formatCredits(wallet.balance)}
           <span className="ml-1 text-base font-medium text-gray-500">크레딧</span>
         </p>
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          {(['AI_WRITING', 'AI_QUESTION', 'ALIMTALK'] as const).map((item) => (
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {(['AI_WRITING', 'AI_QUESTION', 'AI_FLASHCARD', 'ALIMTALK'] as const).map((item) => (
             <div key={item} className="rounded-lg bg-gray-50 p-3">
               <p className="text-xs font-medium text-gray-500">{CREDIT_ITEM_LABEL[item]}</p>
               <p className="mt-0.5 text-lg font-bold text-gray-900">

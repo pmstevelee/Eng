@@ -9,6 +9,7 @@ export interface PlanConfig {
   aiWritingOveragePrice: number  // 원/회
   aiQuestionLimit: number
   aiQuestionOveragePrice: number // 원/회
+  aiFlashcardLimit: number   // 월 AI 플래시카드 생성 단어 수 (초과분은 통합 크레딧 차감)
   storageLimitMb: number
   storageOveragePrice: number    // 원/10GB
   publicQuestionBank: 'READ_ONLY' | 'FULL' | 'PRIORITY'
@@ -25,6 +26,7 @@ export const PLANS: Record<Plan, PlanConfig> = {
     aiWritingOveragePrice: 0,
     aiQuestionLimit: 3,
     aiQuestionOveragePrice: 0,
+    aiFlashcardLimit: 30,
     storageLimitMb: 1024,           // 1GB
     storageOveragePrice: 0,
     publicQuestionBank: 'READ_ONLY',
@@ -39,6 +41,7 @@ export const PLANS: Record<Plan, PlanConfig> = {
     aiWritingOveragePrice: 60,
     aiQuestionLimit: 30,
     aiQuestionOveragePrice: 100,
+    aiFlashcardLimit: 300,
     storageLimitMb: 10240,          // 10GB
     storageOveragePrice: 0,
     publicQuestionBank: 'READ_ONLY',
@@ -53,6 +56,7 @@ export const PLANS: Record<Plan, PlanConfig> = {
     aiWritingOveragePrice: 50,
     aiQuestionLimit: 100,
     aiQuestionOveragePrice: 80,
+    aiFlashcardLimit: 1000,
     storageLimitMb: 51200,          // 50GB
     storageOveragePrice: 5000,      // 10GB당 5,000원
     publicQuestionBank: 'FULL',
@@ -67,6 +71,7 @@ export const PLANS: Record<Plan, PlanConfig> = {
     aiWritingOveragePrice: 0,
     aiQuestionLimit: 500,
     aiQuestionOveragePrice: 0,
+    aiFlashcardLimit: 5000,
     storageLimitMb: 512000,         // 500GB
     storageOveragePrice: 3000,      // 10GB당 3,000원
     publicQuestionBank: 'PRIORITY',
