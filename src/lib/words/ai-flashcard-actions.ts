@@ -14,19 +14,53 @@ import {
 } from '@/lib/words/flashcard-text-parser'
 import { generateFlashcards, FLASHCARD_PARTS_OF_SPEECH, type FlashcardCefr } from '@/lib/openai/flashcard-generation'
 import { getFlashcardQuota, recordFlashcardUsage } from '@/lib/usage/flashcard-usage'
+import {
+  getStudentFlashcardQuota,
+  isStudentAiFlashcardEnabled,
+  recordStudentFlashcardUsage,
+} from '@/lib/student-credits/wallet'
 import type { AiFlashcardCard, AiFlashcardQuotaView } from '@/types/ai-flashcard'
 
 const OXFORD_CEFR = ['A1', 'A2', 'B1', 'B2', 'C1'] as const
 
-async function getAuthedStaff() {
+type Creator =
+  | { kind: 'STAFF'; id: string; academyId: string; role: 'TEACHER' | 'ACADEMY_OWNER' }
+  | { kind: 'STUDENT'; id: string; academyId: string; role: 'STUDENT'; studentId: string }
+
+/**
+ * AI 플래시카드를 만들 수 있는 사용자.
+ * 교사·학원장은 학원 요금제(무료 한도 → 학원 크레딧)로, 학생은 학생 결제를 허용한 학원(위고업잉글리시)에서만
+ * 학생 개인 무료 한도 → 학생 크레딧으로 과금한다.
+ */
+async function getAuthedCreator(): Promise<Creator | null> {
   const user = await getCurrentUser()
   if (!user || !user.academyId) return null
-  if (user.role !== 'TEACHER' && user.role !== 'ACADEMY_OWNER') return null
-  return { ...user, academyId: user.academyId, role: user.role }
+  if (user.role === 'TEACHER' || user.role === 'ACADEMY_OWNER') {
+    return { kind: 'STAFF', id: user.id, academyId: user.academyId, role: user.role }
+  }
+  if (user.role === 'STUDENT' && user.student && (await isStudentAiFlashcardEnabled(user.academyId))) {
+    return { kind: 'STUDENT', id: user.id, academyId: user.academyId, role: 'STUDENT', studentId: user.student.id }
+  }
+  return null
 }
 
-function basePathOf(role: 'TEACHER' | 'ACADEMY_OWNER'): string {
+function basePathOf(role: Creator['role']): string {
+  if (role === 'STUDENT') return '/student/words'
   return role === 'TEACHER' ? '/teacher/words' : '/owner/words'
+}
+
+async function quotaOf(creator: Creator): Promise<AiFlashcardQuotaView> {
+  if (creator.kind === 'STAFF') return toQuotaView(await getFlashcardQuota(creator.academyId))
+  const q = await getStudentFlashcardQuota(creator.studentId)
+  return {
+    usedThisMonth: q.usedFreeThisMonth,
+    freeLimit: q.freeLimit,
+    remainingFree: q.remainingFree,
+    creditBalance: q.creditBalance,
+    creditPerWord: q.creditPerWord,
+    maxWords: q.maxWords,
+    blocked: false,
+  }
 }
 
 /** 위고업 단계(1~10) → Oxford CEFR (AI 난이도 힌트) */
@@ -50,9 +84,9 @@ function toQuotaView(q: Awaited<ReturnType<typeof getFlashcardQuota>>): AiFlashc
 // ─── 남은 한도 ─────────────────────────────────────────────────────────────────
 
 export async function getAiFlashcardQuota(): Promise<AiFlashcardQuotaView | null> {
-  const user = await getAuthedStaff()
-  if (!user) return null
-  return toQuotaView(await getFlashcardQuota(user.academyId))
+  const creator = await getAuthedCreator()
+  if (!creator) return null
+  return quotaOf(creator)
 }
 
 // ─── AI 생성 ──────────────────────────────────────────────────────────────────
@@ -88,7 +122,7 @@ export type GenerateAiFlashcardsResult =
   | { ok: false; error: string; quota?: AiFlashcardQuotaView }
 
 export async function generateAiFlashcards(input: z.input<typeof GenerateSchema>): Promise<GenerateAiFlashcardsResult> {
-  const user = await getAuthedStaff()
+  const user = await getAuthedCreator()
   if (!user) return { ok: false, error: '인증이 필요합니다.' }
 
   const parsed = GenerateSchema.safeParse(input)
@@ -125,18 +159,17 @@ export async function generateAiFlashcards(input: z.input<typeof GenerateSchema>
   const aiEntries = entries.filter((e) => e.meaning || !dictionaryByTerm.has(e.term.toLowerCase()))
 
   // 2) 한도 확인 — AI로 만들 단어 수만큼 무료 한도 + 크레딧이 있어야 한다
-  const quota = await getFlashcardQuota(user.academyId)
+  const quota = await quotaOf(user)
   if (aiEntries.length > 0) {
     if (quota.blocked) {
-      return { ok: false, error: '결제 실패로 AI 사용이 차단되었습니다. 결제 수단을 갱신해주세요.', quota: toQuotaView(quota) }
+      return { ok: false, error: '결제 실패로 AI 사용이 차단되었습니다. 결제 수단을 갱신해주세요.', quota }
     }
-    if (aiEntries.length > quota.maxWords) {
-      const free = Number.isFinite(quota.remainingFree) ? `무료 ${quota.remainingFree}개` : '무료'
-      const byCredit = quota.maxWords - (Number.isFinite(quota.remainingFree) ? quota.remainingFree : 0)
+    if (quota.maxWords !== null && aiEntries.length > quota.maxWords) {
+      const free = quota.remainingFree ?? 0
       return {
         ok: false,
-        error: `AI로 만들 단어가 ${aiEntries.length}개인데 지금은 ${quota.maxWords}개(이번 달 ${free} + 크레딧 ${byCredit}개)까지 만들 수 있습니다. 크레딧을 충전하거나 단어 수를 줄여주세요.`,
-        quota: toQuotaView(quota),
+        error: `AI로 만들 단어가 ${aiEntries.length}개인데 지금은 ${quota.maxWords}개(이번 달 무료 ${free}개 + 크레딧 ${quota.maxWords - free}개)까지 만들 수 있습니다. 크레딧을 충전하거나 단어 수를 줄여주세요.`,
+        quota,
       }
     }
   }
@@ -148,7 +181,7 @@ export async function generateAiFlashcards(input: z.input<typeof GenerateSchema>
       generated = await generateFlashcards(aiEntries, cefrLevel ? levelToOxfordCefr(cefrLevel) : null)
     } catch (e) {
       console.error('[ai-flashcard] 생성 실패', e)
-      return { ok: false, error: 'AI 플래시카드를 만들지 못했습니다. 잠시 후 다시 시도해주세요.', quota: toQuotaView(quota) }
+      return { ok: false, error: 'AI 플래시카드를 만들지 못했습니다. 잠시 후 다시 시도해주세요.', quota }
     }
   }
   const aiByTerm = new Map<string, AiFlashcardCard | null>()
@@ -168,11 +201,10 @@ export async function generateAiFlashcards(input: z.input<typeof GenerateSchema>
 
   // 4) 과금 — 실제로 만든 단어만
   const aiCount = cards.filter((c) => c.origin === 'AI').length
-  const { freeCount, creditsUsed } = await recordFlashcardUsage({
-    academyId: user.academyId,
-    userId: user.id,
-    wordCount: aiCount,
-  })
+  const { freeCount, creditsUsed } =
+    user.kind === 'STAFF'
+      ? await recordFlashcardUsage({ academyId: user.academyId, userId: user.id, wordCount: aiCount })
+      : await recordStudentFlashcardUsage(user.studentId, aiCount)
 
   return {
     ok: true,
@@ -182,7 +214,7 @@ export async function generateAiFlashcards(input: z.input<typeof GenerateSchema>
     dictionaryCount: cards.length - aiCount,
     freeCount,
     creditsUsed,
-    quota: toQuotaView(await getFlashcardQuota(user.academyId)),
+    quota: await quotaOf(user),
   }
 }
 
@@ -222,7 +254,7 @@ function setCreationDateSuffix(): string {
 export async function saveAiFlashcardSet(
   input: z.input<typeof SaveSchema>,
 ): Promise<{ ok: true; setId: string; redirectTo: string } | { ok: false; error: string }> {
-  const user = await getAuthedStaff()
+  const user = await getAuthedCreator()
   if (!user) return { ok: false, error: '인증이 필요합니다.' }
 
   const parsed = SaveSchema.safeParse(input)
@@ -245,7 +277,7 @@ export async function saveAiFlashcardSet(
 
   // 배정 학생은 우리 학원 학생만
   const studentIds =
-    assignedStudentIds.length > 0
+    user.kind === 'STAFF' && assignedStudentIds.length > 0
       ? (
           await prisma.student.findMany({
             where: { id: { in: assignedStudentIds }, user: { academyId, isDeleted: false } },
@@ -307,15 +339,16 @@ export async function saveAiFlashcardSet(
       }
 
       const uniqueWordIds = Array.from(new Set(wordIds))
+      // 학생이 만든 세트는 학생 본인만 보는 개인 세트 (학원 세트 목록에는 나오지 않도록 academyId 없음)
       const created = await tx.wordSet.create({
         data: {
           title: `${title} ${dateSuffix}`,
           description: description || 'AI 플래시카드로 만든 세트',
           cefrLevel,
           isPublic: false,
-          source: 'AI_GENERATED',
+          source: user.kind === 'STUDENT' ? 'STUDENT' : 'AI_GENERATED',
           ownerId: user.id,
-          academyId,
+          academyId: user.kind === 'STUDENT' ? null : academyId,
         },
         select: { id: true },
       })
@@ -344,5 +377,7 @@ export async function saveAiFlashcardSet(
   const base = basePathOf(user.role)
   revalidatePath(base)
   revalidatePath('/student/words')
-  return { ok: true, setId: set.id, redirectTo: `${base}/sets/${set.id}` }
+  // 학생 세트 화면은 /student/words/{id}, 교사·학원장은 /…/words/sets/{id}
+  const redirectTo = user.kind === 'STUDENT' ? `${base}/${set.id}` : `${base}/sets/${set.id}`
+  return { ok: true, setId: set.id, redirectTo }
 }

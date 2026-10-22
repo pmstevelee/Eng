@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen, ChevronRight, Lock, Layers, ClipboardList, Download, CheckCircle2 } from 'lucide-react'
+import { BookOpen, ChevronRight, Lock, Layers, ClipboardList, Download, CheckCircle2, Sparkles, Wallet } from 'lucide-react'
 import { requireStudent } from '@/lib/auth-student'
 import { prisma } from '@/lib/prisma/client'
 import {
@@ -12,6 +12,7 @@ import { DailyReviewWidget } from '@/components/words/daily-review-widget'
 import { NavLinkWithLoading } from '@/components/shared/nav-link-with-loading'
 import { ExamCategoryBadges, EXAM_CATEGORY_OPTIONS } from '@/components/words/exam-category-badges'
 import type { ExamCategory } from '@/generated/prisma'
+import { parseStudentPaidFeatures } from '@/lib/student-credits/constants'
 
 async function getWordsHubData(studentId: string, userId: string) {
   const user = await prisma.user.findUnique({
@@ -318,7 +319,26 @@ export default async function WordsHubPage({ searchParams }: Props) {
   const studentOverride = user?.student?.dailyNewWordsOverride ?? null
   const dailyNewWords = resolveDailyNewWords(academyDailyNewWords, studentOverride)
   await ensureSystemWordSets()
-  const wordSets = await getWordSets(academyId, studentId, activeCategory)
+  // 학생 결제 허용 학원(위고업잉글리시)만 학생이 직접 AI 플래시카드를 만든다
+  const aiFlashcardEnabled = parseStudentPaidFeatures(user?.academy?.settingsJson).aiFlashcard
+  const [wordSets, mySets] = await Promise.all([
+    getWordSets(academyId, studentId, activeCategory),
+    aiFlashcardEnabled
+      ? prisma.wordSet.findMany({
+          where: { ownerId: userId, source: 'STUDENT' },
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            cefrLevel: true,
+            examCategory: true,
+            _count: { select: { items: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 30,
+        })
+      : Promise.resolve([]),
+  ])
 
   // 배정된 시험 목록과 세트별 학습 진행 현황은 서로 독립적이므로 함께 조회한다.
   const now = new Date()
@@ -347,7 +367,7 @@ export default async function WordsHubPage({ searchParams }: Props) {
       orderBy: { createdAt: 'desc' },
       take: 5,
     }),
-    getWordSetProgressMap(studentId, wordSets.map((s) => s.id)),
+    getWordSetProgressMap(studentId, [...mySets, ...wordSets].map((s) => s.id)),
   ])
 
   // 추천 세트: 현재 레벨 ±1 범위
@@ -451,6 +471,41 @@ export default async function WordsHubPage({ searchParams }: Props) {
           </Link>
         </div>
       </div>
+
+      {/* 내가 만든 AI 플래시카드 (학생 결제 허용 학원) */}
+      {aiFlashcardEnabled && (
+        <section className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-bold text-gray-900">내가 만든 플래시카드</h2>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/student/credits"
+                className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-600 hover:border-gray-300"
+              >
+                <Wallet className="h-4 w-4" />내 크레딧
+              </Link>
+              <Link
+                href="/student/words/ai"
+                className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-[#7854F7] px-4 text-sm font-semibold text-white hover:bg-[#7854F7]/90"
+              >
+                <Sparkles className="h-4 w-4" />AI 플래시카드 만들기
+              </Link>
+            </div>
+          </div>
+          {mySets.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 py-8 text-center">
+              <Sparkles className="mx-auto mb-2 h-8 w-8 text-gray-300" />
+              <p className="text-sm text-gray-500">외우고 싶은 단어를 적으면 AI가 플래시카드로 만들어 줍니다.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {mySets.map((set) => (
+                <WordSetCard key={set.id} set={set} studentLevel={studentLevel} progress={progressMap[set.id]} />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* 시험 카테고리 필터 */}
       <div className="flex gap-2 flex-wrap">

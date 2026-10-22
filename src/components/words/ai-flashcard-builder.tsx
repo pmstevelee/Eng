@@ -30,6 +30,8 @@ interface Props {
   initialQuota: AiFlashcardQuotaView
   /** 세트 목록 경로 (/teacher/words 또는 /owner/words) */
   basePath: string
+  /** student = 학생 개인 세트 (배정 없음, 학생 크레딧 사용) */
+  mode?: 'staff' | 'student'
 }
 
 const POS_OPTIONS: { value: string; label: string }[] = [
@@ -63,7 +65,7 @@ function formatNumber(n: number): string {
   return n.toLocaleString('ko-KR')
 }
 
-export function AiFlashcardBuilder({ classes, initialQuota, basePath }: Props) {
+export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'staff' }: Props) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -345,8 +347,13 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath }: Props) {
             )}
           </div>
           <p className="text-xs text-gray-500">
-            AI가 실제로 만든 단어만 차감됩니다. 무료 한도를 다 쓰면 통합 크레딧에서 차감됩니다.{' '}
-            {basePath.startsWith('/owner') ? (
+            AI가 실제로 만든 단어만 차감됩니다. 무료 한도를 다 쓰면 {mode === 'student' ? '내' : '통합'} 크레딧에서
+            차감됩니다.{' '}
+            {mode === 'student' ? (
+              <Link href="/student/credits" className="text-primary-700 font-medium hover:underline">
+                크레딧 충전
+              </Link>
+            ) : basePath.startsWith('/owner') ? (
               <Link href="/owner/credits" className="text-primary-700 font-medium hover:underline">
                 크레딧 충전
               </Link>
@@ -541,59 +548,61 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath }: Props) {
           </label>
         </div>
 
-        <div className="space-y-2">
-          <p className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700">
-            <Users className="h-4 w-4" />
-            학습할 학생 {totalAssigned > 0 && <span className="text-primary-700">({totalAssigned}명 선택)</span>}
-          </p>
-          <p className="text-xs text-gray-500">
-            학생을 고르지 않으면 학원 전체 학생의 단어 학습 목록에 보입니다. 학생은 플래시카드·리콜·스펠링으로 학습합니다.
-          </p>
-          {classes.length === 0 ? (
-            <p className="text-sm text-gray-400">등록된 반이 없습니다.</p>
-          ) : (
-            <div className="divide-y divide-gray-100 rounded-lg border border-gray-200">
-              {classes.map((cls) => {
-                const selected = cls.students.filter((s) => assigned.has(s.id)).length
-                const all = cls.students.length > 0 && selected === cls.students.length
-                const open = openClass === cls.id
-                return (
-                  <div key={cls.id}>
-                    <div className="flex items-center gap-3 px-3">
-                      <Checkbox
-                        checked={all}
-                        onCheckedChange={() => toggleClass(cls)}
-                        disabled={cls.students.length === 0}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setOpenClass(open ? null : cls.id)}
-                        className="flex min-h-11 flex-1 items-center justify-between text-left text-sm"
-                      >
-                        <span className="font-medium text-gray-900">{cls.name}</span>
-                        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-                          {selected}/{cls.students.length}명
-                          <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
-                        </span>
-                      </button>
-                    </div>
-                    {open && (
-                      <div className="grid grid-cols-2 gap-1 bg-gray-50 px-3 py-2 sm:grid-cols-3">
-                        {cls.students.map((s) => (
-                          <label key={s.id} className="flex min-h-11 items-center gap-2 text-sm text-gray-700">
-                            <Checkbox checked={assigned.has(s.id)} onCheckedChange={() => toggleStudent(s.id)} />
-                            {s.name}
-                          </label>
-                        ))}
-                        {cls.students.length === 0 && <p className="text-xs text-gray-400">학생이 없습니다.</p>}
+        {mode === 'staff' && (
+          <div className="space-y-2">
+            <p className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700">
+              <Users className="h-4 w-4" />
+              학습할 학생 {totalAssigned > 0 && <span className="text-primary-700">({totalAssigned}명 선택)</span>}
+            </p>
+            <p className="text-xs text-gray-500">
+              학생을 고르지 않으면 학원 전체 학생의 단어 학습 목록에 보입니다. 학생은 플래시카드·리콜·스펠링으로 학습합니다.
+            </p>
+            {classes.length === 0 ? (
+              <p className="text-sm text-gray-400">등록된 반이 없습니다.</p>
+            ) : (
+              <div className="divide-y divide-gray-100 rounded-lg border border-gray-200">
+                {classes.map((cls) => {
+                  const selected = cls.students.filter((s) => assigned.has(s.id)).length
+                  const all = cls.students.length > 0 && selected === cls.students.length
+                  const open = openClass === cls.id
+                  return (
+                    <div key={cls.id}>
+                      <div className="flex items-center gap-3 px-3">
+                        <Checkbox
+                          checked={all}
+                          onCheckedChange={() => toggleClass(cls)}
+                          disabled={cls.students.length === 0}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setOpenClass(open ? null : cls.id)}
+                          className="flex min-h-11 flex-1 items-center justify-between text-left text-sm"
+                        >
+                          <span className="font-medium text-gray-900">{cls.name}</span>
+                          <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                            {selected}/{cls.students.length}명
+                            <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+                          </span>
+                        </button>
                       </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
+                      {open && (
+                        <div className="grid grid-cols-2 gap-1 bg-gray-50 px-3 py-2 sm:grid-cols-3">
+                          {cls.students.map((s) => (
+                            <label key={s.id} className="flex min-h-11 items-center gap-2 text-sm text-gray-700">
+                              <Checkbox checked={assigned.has(s.id)} onCheckedChange={() => toggleStudent(s.id)} />
+                              {s.name}
+                            </label>
+                          ))}
+                          {cls.students.length === 0 && <p className="text-xs text-gray-400">학생이 없습니다.</p>}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       {errorBox}

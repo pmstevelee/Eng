@@ -368,6 +368,7 @@ model Academy {
   wordSets            WordSet[]
   words               Word[]
   aiFlashcardUsages   AiFlashcardUsage[]
+  studentPayments     StudentPayment[]
   wordTestAssignments WordTestAssignment[]
   leads               Lead[]
   followUpTasks       FollowUpTask[]
@@ -501,6 +502,10 @@ model Student {
   dailyWordPlans             DailyWordPlan[]
   dailyStats                 StudentDailyStat[]
   questionReviews            QuestionReview[]
+  creditWallet               StudentCreditWallet?
+  creditTransactions         StudentCreditTransaction[]
+  payments                   StudentPayment[]
+  aiFlashcardUsages          StudentAiFlashcardUsage[]
 
   @@index([classId])
   @@index([status])
@@ -1246,6 +1251,7 @@ enum WordSetSource {
   AI_GENERATED
   OXFORD_3000
   OXFORD_5000
+  STUDENT // 학생이 AI 플래시카드로 직접 만든 개인 세트 (학생 결제 허용 학원)
 }
 
 enum LearnStage {
@@ -1328,6 +1334,82 @@ model AiFlashcardUsage {
 
   @@index([academyId, createdAt])
   @@map("ai_flashcard_usages")
+}
+
+// ─── 학생 결제 (학생 결제 허용 학원 전용 — Academy.settingsJson.studentPaidFeatures) ───
+// 학원 통합 크레딧(CreditWallet)·결제(Payment)와 완전히 분리된 학생 개인 지갑
+
+/// 학생 개인 크레딧 지갑 (1크레딧 ≈ 1원, 현재 AI 플래시카드에 사용)
+model StudentCreditWallet {
+  id        String   @id @default(uuid())
+  studentId String   @unique @map("student_id")
+  balance   Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("student_credit_wallets")
+}
+
+/// 학생 크레딧 증감 원장 — amount는 차감이면 음수
+model StudentCreditTransaction {
+  id           String                @id @default(uuid())
+  studentId    String                @map("student_id")
+  type         CreditTransactionType
+  amount       Int
+  balanceAfter Int                   @map("balance_after")
+  /// 충전·회수 결제 (StudentPayment.orderId)
+  orderId      String?               @map("order_id")
+  memo         String?
+  createdAt    DateTime              @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  /// 같은 결제로 두 번 충전·회수되지 않도록
+  @@unique([orderId, type])
+  @@index([studentId, createdAt])
+  @@map("student_credit_transactions")
+}
+
+/// 학생 크레딧 충전 결제 (토스페이먼츠, orderId = 토스 orderId)
+model StudentPayment {
+  id            String        @id @default(uuid())
+  studentId     String        @map("student_id")
+  academyId     String        @map("academy_id")
+  orderId       String        @unique @map("order_id")
+  /// 충전 상품 키 (코드 상수 STUDENT_CREDIT_PACKAGES)
+  packageKey    String        @map("package_key")
+  credits       Int
+  amount        Int
+  status        PaymentStatus @default(PENDING)
+  pgTxId        String?       @map("pg_tx_id")
+  receiptUrl    String?       @map("receipt_url")
+  failureReason String?       @map("failure_reason")
+  paidAt        DateTime?     @map("paid_at")
+  canceledAt    DateTime?     @map("canceled_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academy Academy @relation(fields: [academyId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, createdAt])
+  @@index([academyId, createdAt])
+  @@map("student_payments")
+}
+
+/// 학생 AI 플래시카드 생성 이력 (학생 월 무료 한도 집계)
+model StudentAiFlashcardUsage {
+  id          String   @id @default(uuid())
+  studentId   String   @map("student_id")
+  wordCount   Int      @map("word_count")
+  freeCount   Int      @map("free_count")
+  creditsUsed Int      @default(0) @map("credits_used")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, createdAt])
+  @@map("student_ai_flashcard_usages")
 }
 
 model WordExamCategory {

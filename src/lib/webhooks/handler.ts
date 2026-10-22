@@ -10,6 +10,11 @@ import {
 import { getPayment } from '@/lib/tosspayments/server'
 import { sendSlackRecurringFailAlert, sendSlackPaymentAlert } from '@/lib/notifications/slack'
 import { chargeCreditsForPayment, refundCreditsForPayment } from '@/lib/credits/wallet'
+import {
+  handleStudentPaymentCancelled,
+  handleStudentPaymentFailed,
+  handleStudentPaymentPaid,
+} from '@/lib/student-credits/webhook'
 import type { TossWebhookEvent } from '@/lib/tosspayments/server'
 
 // ─── 감사 로그 헬퍼 ───────────────────────────────────────────────────────────
@@ -92,7 +97,11 @@ async function handlePaid(orderId: string): Promise<void> {
     include: { subscription: { include: { academy: true } } },
   })
 
-  if (!payment) return
+  // 학원 결제가 아니면 학생 충전 결제인지 확인 (학생 결제 허용 학원)
+  if (!payment) {
+    await handleStudentPaymentPaid(orderId)
+    return
+  }
 
   // 멱등성: 이미 PAID면 무시
   // (알림 크레딧은 승인 페이지에서 PAID 처리 직후 충전이 실패했을 수 있어 충전만 다시 확인 — 중복 충전은 unique로 차단)
@@ -191,7 +200,11 @@ async function handleFailed(orderId: string): Promise<void> {
     where: { paymentId: orderId },
     include: { subscription: { include: { academy: true } } },
   })
-  if (!payment || payment.status === PaymentStatus.FAILED) return
+  if (!payment) {
+    await handleStudentPaymentFailed(orderId)
+    return
+  }
+  if (payment.status === PaymentStatus.FAILED) return
 
   await prisma.payment.update({
     where: { paymentId: orderId },
@@ -238,7 +251,10 @@ async function handleCancelled(orderId: string, partial: boolean): Promise<void>
     where: { paymentId: orderId },
     include: { subscription: true },
   })
-  if (!payment) return
+  if (!payment) {
+    await handleStudentPaymentCancelled(orderId, partial)
+    return
+  }
 
   const newStatus = partial ? PaymentStatus.PARTIAL_CANCELED : PaymentStatus.CANCELED
 
