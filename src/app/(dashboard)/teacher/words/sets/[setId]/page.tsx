@@ -2,8 +2,13 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { getAiFlashcardQuota } from '@/lib/words/ai-flashcard-actions'
+import { AiSetWordManager } from '@/components/words/ai-set-word-manager'
 import { Button } from '@/components/ui/button'
 import { Download, Plus } from 'lucide-react'
+
+// AI 플래시카드 세트에 단어를 추가할 때 AI 생성이 서버 액션 기본 시간보다 오래 걸릴 수 있다
+export const maxDuration = 60
 
 interface Props {
   params: Promise<{ setId: string }>
@@ -48,6 +53,15 @@ export default async function TeacherWordSetPage({ params }: Props) {
   })
 
   if (!wordSet) redirect('/teacher/words')
+
+  // AI 플래시카드 세트는 단어 일괄 추가·삭제 (본인 세트만)
+  const canEditWords = wordSet.source === 'AI_GENERATED' && wordSet.academyId === user.academyId && wordSet.ownerId === user.id
+  const [editQuota, editMinQuestions] = canEditWords
+    ? await Promise.all([
+        getAiFlashcardQuota(),
+        prisma.wordTestAssignment.findMany({ where: { setId }, select: { numQuestions: true } }),
+      ])
+    : [null, []]
 
   const wordIds = wordSet.items.map((i) => i.word.id)
   const totalWords = wordSet.items.length
@@ -196,23 +210,34 @@ export default async function TeacherWordSetPage({ params }: Props) {
         </div>
       )}
 
-      {/* 단어 목록 */}
-      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-900">단어 목록</h2>
-        </div>
-        <div className="divide-y divide-gray-100">
-          {wordSet.items.map((item, i) => (
-            <div key={item.id} className="flex items-center gap-3 px-4 py-3">
-              <span className="text-xs text-gray-300 w-5 text-right shrink-0">{i + 1}</span>
-              <div className="flex-1 grid grid-cols-2 gap-2">
-                <p className="text-sm font-medium text-gray-900">{item.word.term}</p>
-                <p className="text-sm text-gray-500">{item.word.meaning}</p>
+      {/* 단어 목록 — AI 플래시카드 세트는 일괄 추가·삭제 가능 */}
+      {editQuota ? (
+        <AiSetWordManager
+          setId={setId}
+          words={wordSet.items.map((item) => item.word)}
+          setLevel={wordSet.cefrLevel}
+          initialQuota={editQuota}
+          minWords={Math.max(1, ...editMinQuestions.map((a) => a.numQuestions))}
+          creditsHref={null}
+        />
+      ) : (
+        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-100">
+            <h2 className="text-sm font-semibold text-gray-900">단어 목록</h2>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {wordSet.items.map((item, i) => (
+              <div key={item.id} className="flex items-center gap-3 px-4 py-3">
+                <span className="text-xs text-gray-300 w-5 text-right shrink-0">{i + 1}</span>
+                <div className="flex-1 grid grid-cols-2 gap-2">
+                  <p className="text-sm font-medium text-gray-900">{item.word.term}</p>
+                  <p className="text-sm text-gray-500">{item.word.meaning}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

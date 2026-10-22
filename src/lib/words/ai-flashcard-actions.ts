@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma/client'
+import type { Prisma } from '@/generated/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
@@ -242,27 +243,14 @@ const SaveSchema = z.object({
   assignedStudentIds: z.array(z.string().uuid()).default([]),
 })
 
-/** 세트 이름에 붙일 생성 날짜 접미사 (기존 세트 만들기와 동일) */
-function setCreationDateSuffix(): string {
-  const d = new Date()
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `(${y}-${m}-${day})`
-}
+type CardInput = z.infer<typeof CardSchema>
 
-export async function saveAiFlashcardSet(
-  input: z.input<typeof SaveSchema>,
-): Promise<{ ok: true; setId: string; redirectTo: string } | { ok: false; error: string }> {
-  const user = await getAuthedCreator()
-  if (!user) return { ok: false, error: '인증이 필요합니다.' }
-
-  const parsed = SaveSchema.safeParse(input)
-  if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? '입력 오류' }
-  const { title, description, cefrLevel, cards, assignedStudentIds } = parsed.data
-  const academyId = user.academyId
-
-  // 사전 단어 id는 공용 또는 우리 학원 단어만
+/**
+ * 카드 → 단어 id 변환 준비 (트랜잭션 밖에서 조회).
+ * 사전 단어 id는 공용 또는 우리 학원 단어만 인정하고, 같은 학원에 같은 단어·품사·뜻의 전용 단어가 있으면
+ * 다시 쓴다 (학습 기록 이어짐). 나머지는 학원 전용 단어로 새로 만든다.
+ */
+async function prepareCardResolver(academyId: string, cards: CardInput[]) {
   const givenIds = Array.from(new Set(cards.flatMap((c) => (c.wordId ? [c.wordId] : []))))
   const validIds = new Set(
     givenIds.length > 0
@@ -274,19 +262,6 @@ export async function saveAiFlashcardSet(
         ).map((w) => w.id)
       : [],
   )
-
-  // 배정 학생은 우리 학원 학생만
-  const studentIds =
-    user.kind === 'STAFF' && assignedStudentIds.length > 0
-      ? (
-          await prisma.student.findMany({
-            where: { id: { in: assignedStudentIds }, user: { academyId, isDeleted: false } },
-            select: { id: true },
-          })
-        ).map((s) => s.id)
-      : []
-
-  // 같은 학원에 이미 같은 단어·품사·뜻으로 만든 전용 단어가 있으면 다시 쓴다 (학습 기록 이어짐)
   const newCards = cards.filter((c) => !c.wordId || !validIds.has(c.wordId))
   const existingPrivate =
     newCards.length > 0
@@ -297,14 +272,13 @@ export async function saveAiFlashcardSet(
       : []
   const privateKey = (term: string, pos: string, meaning: string) => `${term.toLowerCase()}|${pos}|${meaning}`
   const privateIdByKey = new Map(existingPrivate.map((w) => [privateKey(w.term, w.partOfSpeech, w.meaning ?? ''), w.id]))
-
   const partsOfSpeech: readonly string[] = FLASHCARD_PARTS_OF_SPEECH
-  const dateSuffix = setCreationDateSuffix()
 
-  const set = await prisma.$transaction(
-    async (tx) => {
+  return {
+    /** 카드 순서대로 단어 id (중복 포함 가능) */
+    async resolve(tx: Prisma.TransactionClient, list: CardInput[]): Promise<string[]> {
       const wordIds: string[] = []
-      for (const c of cards) {
+      for (const c of list) {
         if (c.wordId && validIds.has(c.wordId)) {
           wordIds.push(c.wordId)
           continue
@@ -337,7 +311,48 @@ export async function saveAiFlashcardSet(
         privateIdByKey.set(key, word.id)
         wordIds.push(word.id)
       }
+      return wordIds
+    },
+  }
+}
 
+/** 세트 이름에 붙일 생성 날짜 접미사 (기존 세트 만들기와 동일) */
+function setCreationDateSuffix(): string {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `(${y}-${m}-${day})`
+}
+
+export async function saveAiFlashcardSet(
+  input: z.input<typeof SaveSchema>,
+): Promise<{ ok: true; setId: string; redirectTo: string } | { ok: false; error: string }> {
+  const user = await getAuthedCreator()
+  if (!user) return { ok: false, error: '인증이 필요합니다.' }
+
+  const parsed = SaveSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? '입력 오류' }
+  const { title, description, cefrLevel, cards, assignedStudentIds } = parsed.data
+  const academyId = user.academyId
+
+  // 배정 학생은 우리 학원 학생만
+  const studentIds =
+    user.kind === 'STAFF' && assignedStudentIds.length > 0
+      ? (
+          await prisma.student.findMany({
+            where: { id: { in: assignedStudentIds }, user: { academyId, isDeleted: false } },
+            select: { id: true },
+          })
+        ).map((s) => s.id)
+      : []
+
+  const resolver = await prepareCardResolver(academyId, cards)
+  const dateSuffix = setCreationDateSuffix()
+
+  const set = await prisma.$transaction(
+    async (tx) => {
+      const wordIds = await resolver.resolve(tx, cards)
       const uniqueWordIds = Array.from(new Set(wordIds))
       // 학생이 만든 세트는 학생 본인만 보는 개인 세트 (학원 세트 목록에는 나오지 않도록 academyId 없음)
       const created = await tx.wordSet.create({
@@ -380,4 +395,143 @@ export async function saveAiFlashcardSet(
   // 학생 세트 화면은 /student/words/{id}, 교사·학원장은 /…/words/sets/{id}
   const redirectTo = user.kind === 'STUDENT' ? `${base}/${set.id}` : `${base}/sets/${set.id}`
   return { ok: true, setId: set.id, redirectTo }
+}
+
+// ─── AI 플래시카드 세트 단어 편집 (일괄 추가·삭제) ──────────────────────────────
+
+/** 한 세트에 담을 수 있는 최대 단어 수 (기존 세트 만들기와 동일) */
+const SET_MAX_WORDS = 1000
+
+/**
+ * 편집할 수 있는 AI 플래시카드 세트인지.
+ * - 학생: 본인이 만든 학생 세트(source STUDENT)만 — 오늘의 단어·오답복습 세트는 제외
+ * - 교사: 본인이 만든 우리 학원 AI 세트(source AI_GENERATED)
+ * - 학원장: 우리 학원의 AI 세트 전체
+ */
+async function findEditableAiSet(creator: Creator, setId: string) {
+  const set = await prisma.wordSet.findUnique({
+    where: { id: setId },
+    select: {
+      id: true,
+      source: true,
+      ownerId: true,
+      academyId: true,
+      _count: { select: { items: true } },
+      wordTestAssignments: { select: { numQuestions: true } },
+    },
+  })
+  if (!set) return null
+  if (creator.kind === 'STUDENT') {
+    return set.source === 'STUDENT' && set.ownerId === creator.id ? set : null
+  }
+  if (set.source !== 'AI_GENERATED' || set.academyId !== creator.academyId) return null
+  if (creator.role === 'TEACHER' && set.ownerId !== creator.id) return null
+  return set
+}
+
+/** 출제된 시험 문항 수보다 단어가 적어지면 시험을 볼 수 없으므로 최소 단어 수 */
+function minWordsOf(set: { wordTestAssignments: { numQuestions: number }[] }): number {
+  return Math.max(1, ...set.wordTestAssignments.map((a) => a.numQuestions))
+}
+
+function revalidateSetPaths(creator: Creator, setId: string) {
+  const base = basePathOf(creator.role)
+  revalidatePath(creator.kind === 'STUDENT' ? `${base}/${setId}` : `${base}/sets/${setId}`)
+  revalidatePath(base)
+}
+
+const AddCardsSchema = z.object({
+  setId: z.string().uuid(),
+  cards: z
+    .array(CardSchema)
+    .min(1, '추가할 카드를 1개 이상 남겨주세요.')
+    .max(FLASHCARD_MAX_WORDS, `한 번에 최대 ${FLASHCARD_MAX_WORDS}개까지 추가할 수 있습니다.`),
+})
+
+/** 만든 카드를 기존 세트 끝에 추가 (이미 세트에 있는 단어는 건너뜀) */
+export async function addCardsToAiSet(
+  input: z.input<typeof AddCardsSchema>,
+): Promise<
+  | { ok: true; added: number; skipped: number; words: { id: string; term: string; meaning: string | null; partOfSpeech: string }[] }
+  | { ok: false; error: string }
+> {
+  const user = await getAuthedCreator()
+  if (!user) return { ok: false, error: '인증이 필요합니다.' }
+  const parsed = AddCardsSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? '입력 오류' }
+  const { setId, cards } = parsed.data
+
+  const set = await findEditableAiSet(user, setId)
+  if (!set) return { ok: false, error: '단어를 추가할 수 있는 세트가 아닙니다.' }
+
+  const resolver = await prepareCardResolver(user.academyId, cards)
+  const result = await prisma.$transaction(
+    async (tx) => {
+      const existing = await tx.wordSetItem.findMany({ where: { setId }, select: { wordId: true, order: true } })
+      const inSet = new Set(existing.map((i) => i.wordId))
+      const wordIds = await resolver.resolve(tx, cards)
+      const toAdd = Array.from(new Set(wordIds)).filter((id) => !inSet.has(id))
+      if (existing.length + toAdd.length > SET_MAX_WORDS) {
+        throw new Error(`한 세트에는 단어를 최대 ${SET_MAX_WORDS.toLocaleString()}개까지 담을 수 있습니다.`)
+      }
+      const start = existing.reduce((max, i) => Math.max(max, i.order), -1) + 1
+      if (toAdd.length > 0) {
+        await tx.wordSetItem.createMany({
+          data: toAdd.map((wordId, i) => ({ setId, wordId, order: start + i })),
+          skipDuplicates: true,
+        })
+      }
+      const words = await tx.word.findMany({
+        where: { id: { in: toAdd } },
+        select: { id: true, term: true, meaning: true, partOfSpeech: true },
+      })
+      const byId = new Map(words.map((w) => [w.id, w]))
+      return {
+        added: toAdd.length,
+        skipped: cards.length - toAdd.length,
+        words: toAdd.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : [])),
+      }
+    },
+    { timeout: 20_000 },
+  ).catch((e: unknown) => (e instanceof Error ? e.message : '단어를 추가하지 못했습니다.'))
+  if (typeof result === 'string') return { ok: false, error: result }
+
+  revalidateSetPaths(user, setId)
+  return { ok: true, ...result }
+}
+
+const RemoveWordsSchema = z.object({
+  setId: z.string().uuid(),
+  wordIds: z.array(z.string().uuid()).min(1, '삭제할 단어를 선택하세요.').max(SET_MAX_WORDS),
+})
+
+/** 선택한 단어를 세트에서 일괄 삭제 (단어 자체와 학습 기록은 남는다) */
+export async function removeWordsFromAiSet(
+  input: z.input<typeof RemoveWordsSchema>,
+): Promise<{ ok: true; removed: number } | { ok: false; error: string }> {
+  const user = await getAuthedCreator()
+  if (!user) return { ok: false, error: '인증이 필요합니다.' }
+  const parsed = RemoveWordsSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? '입력 오류' }
+  const { setId, wordIds } = parsed.data
+
+  const set = await findEditableAiSet(user, setId)
+  if (!set) return { ok: false, error: '단어를 삭제할 수 있는 세트가 아닙니다.' }
+
+  const targets = await prisma.wordSetItem.count({ where: { setId, wordId: { in: wordIds } } })
+  const remaining = set._count.items - targets
+  const minWords = minWordsOf(set)
+  if (remaining < minWords) {
+    return {
+      ok: false,
+      error:
+        minWords > 1
+          ? `이 세트로 출제한 시험이 ${minWords}문항이라 단어를 ${minWords}개 이상 남겨야 합니다.`
+          : '단어를 1개 이상 남겨야 합니다. 세트를 지우려면 세트 삭제를 이용하세요.',
+    }
+  }
+
+  const { count } = await prisma.wordSetItem.deleteMany({ where: { setId, wordId: { in: wordIds } } })
+  revalidateSetPaths(user, setId)
+  return { ok: true, removed: count }
 }

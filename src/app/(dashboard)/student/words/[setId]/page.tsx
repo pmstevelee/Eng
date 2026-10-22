@@ -5,6 +5,14 @@ import { getWordSetOverview } from '@/app/(dashboard)/student/words/_actions'
 import { NavLinkWithLoading } from '@/components/shared/nav-link-with-loading'
 import { ExamCategoryBadges } from '@/components/words/exam-category-badges'
 import { getLevelInfo } from '@/lib/constants/levels'
+import { requireStudent } from '@/lib/auth-student'
+import { prisma } from '@/lib/prisma/client'
+import { isStudentAiFlashcardEnabled } from '@/lib/student-credits/wallet'
+import { getAiFlashcardQuota } from '@/lib/words/ai-flashcard-actions'
+import { AiSetWordManager } from '@/components/words/ai-set-word-manager'
+
+// AI 플래시카드 세트에 단어를 추가할 때 AI 생성이 서버 액션 기본 시간보다 오래 걸릴 수 있다
+export const maxDuration = 60
 
 interface Props {
   params: Promise<{ setId: string }>
@@ -34,12 +42,30 @@ const STUDY_TYPES = [
   },
 ] as const
 
+/** 학생 본인이 AI 플래시카드로 만든 세트면 편집용 단어 목록·한도 (학생 결제 허용 학원만) */
+async function getEditableStudentSet(setId: string) {
+  const { user, userId } = await requireStudent()
+  const set = await prisma.wordSet.findFirst({
+    where: { id: setId, ownerId: userId, source: 'STUDENT' },
+    select: {
+      items: {
+        orderBy: { order: 'asc' },
+        select: { word: { select: { id: true, term: true, meaning: true, partOfSpeech: true } } },
+      },
+    },
+  })
+  if (!set || !(await isStudentAiFlashcardEnabled(user.academyId))) return null
+  const quota = await getAiFlashcardQuota()
+  if (!quota) return null
+  return { words: set.items.map((i) => i.word), quota }
+}
+
 export default async function WordSetOverviewPage({ params }: Props) {
   const { setId } = await params
 
   // 신규 단어 진도 초기화는 실제로 문제 유형을 선택해 학습을 시작할 때 수행한다
   // (개요 화면은 조회만 하므로 무거운 초기화 쿼리를 반복 실행하지 않는다).
-  const result = await getWordSetOverview(setId)
+  const [result, editable] = await Promise.all([getWordSetOverview(setId), getEditableStudentSet(setId)])
 
   if (!result.ok) {
     if (result.error.code === 'FORBIDDEN' || result.error.code === 'NOT_FOUND') {
@@ -138,6 +164,20 @@ export default async function WordSetOverviewPage({ params }: Props) {
           ))}
         </div>
       </div>
+
+      {/* 내가 만든 AI 플래시카드 세트는 단어 일괄 추가·삭제 */}
+      {editable && (
+        <div className="mt-6">
+          <AiSetWordManager
+            setId={setId}
+            words={editable.words}
+            setLevel={set.cefrLevel}
+            initialQuota={editable.quota}
+            minWords={1}
+            creditsHref="/student/credits"
+          />
+        </div>
+      )}
 
       <Link
         href={`/words/${setId}`}
