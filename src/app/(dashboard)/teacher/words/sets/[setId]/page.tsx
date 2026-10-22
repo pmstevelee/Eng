@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { getAiFlashcardQuota } from '@/lib/words/ai-flashcard-actions'
 import { AiSetWordManager } from '@/components/words/ai-set-word-manager'
+import { DeleteAiSetButton } from '@/components/words/delete-ai-set-button'
 import { Button } from '@/components/ui/button'
 import { Download, Plus } from 'lucide-react'
 
@@ -129,6 +130,7 @@ export default async function TeacherWordSetPage({ params }: Props) {
               시험 출제
             </Button>
           </Link>
+          {canEditWords && <DeleteAiSetButton setId={setId} setTitle={wordSet.title} className="flex flex-col items-end" />}
         </div>
       </div>
 

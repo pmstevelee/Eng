@@ -25,3 +25,11 @@ export type AiFlashcardQuotaView = {
   maxWords: number | null
   blocked: boolean
 }
+
+/** 카드로 만들지 못한 단어와 사유 (화면에 그대로 보여준다) */
+export type AiFlashcardFailure = {
+  term: string
+  reason: string
+  /** 다시 시도하면 만들어질 수 있는지 (AI 오류 = true, 중복 등 = false) */
+  retryable?: boolean
+}

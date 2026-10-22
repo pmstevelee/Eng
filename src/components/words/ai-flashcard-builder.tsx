@@ -21,7 +21,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { LEVELS } from '@/lib/constants/levels'
 import { FLASHCARD_MAX_WORDS, parseFlashcardText } from '@/lib/words/flashcard-text-parser'
 import { generateAiFlashcards, saveAiFlashcardSet } from '@/lib/words/ai-flashcard-actions'
-import type { AiFlashcardCard, AiFlashcardQuotaView } from '@/types/ai-flashcard'
+import type { AiFlashcardCard, AiFlashcardFailure, AiFlashcardQuotaView } from '@/types/ai-flashcard'
+import { SkippedWordsNotice, type SkippedWord } from '@/components/words/skipped-words-notice'
+import type { ParsedFlashcardEntry } from '@/lib/words/flashcard-text-parser'
 
 type ClassOption = { id: string; name: string; students: { id: string; name: string }[] }
 
@@ -73,10 +75,21 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'st
   const [cefrLevel, setCefrLevel] = useState(3)
   const [useDictionary, setUseDictionary] = useState(true)
   const [quota, setQuota] = useState(initialQuota)
-  const [showInvalid, setShowInvalid] = useState(false)
 
   const [cards, setCards] = useState<EditableCard[] | null>(null)
-  const [summary, setSummary] = useState<{ ai: number; dictionary: number; free: number; credits: number; failed: string[] } | null>(null)
+  const [summary, setSummary] = useState<{
+    ai: number
+    dictionary: number
+    free: number
+    credits: number
+    /** AI가 만들지 못한 단어 (다시 시도 가능) */
+    failed: AiFlashcardFailure[]
+    /** 입력 단계에서 빠진 줄·중복 */
+    skipped: SkippedWord[]
+  } | null>(null)
+  /** 다시 시도할 때 쓰려고 생성 당시 입력(뜻 포함)을 기억 */
+  const lastEntriesRef = useRef<Map<string, ParsedFlashcardEntry>>(new Map())
+  const [retrying, setRetrying] = useState(false)
   const [title, setTitle] = useState('')
   const [assigned, setAssigned] = useState<Set<string>>(new Set())
   const [openClass, setOpenClass] = useState<string | null>(null)
@@ -121,26 +134,73 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'st
 
   function handleGenerate() {
     setError(null)
+    const skipped: SkippedWord[] = [
+      ...parsed.invalidLines.map((l) => ({ label: l.line, reason: l.reason })),
+      ...parsed.duplicateTerms.map((t) => ({ label: t, reason: '같은 단어가 위에 이미 있어 한 번만 만들었습니다.' })),
+    ]
+    lastEntriesRef.current = new Map(parsed.entries.map((e) => [e.term.toLowerCase(), e]))
     startGenerate(async () => {
-      const res = await generateAiFlashcards({
-        entries: parsed.entries,
-        cefrLevel,
-        useDictionary,
-      })
+      try {
+        const res = await generateAiFlashcards({
+          entries: parsed.entries,
+          cefrLevel,
+          useDictionary,
+        })
+        if (res.quota) setQuota(res.quota)
+        if (!res.ok) {
+          setError(res.error)
+          return
+        }
+        setCards(res.cards.map((c, i) => ({ ...c, key: `${i}-${c.term}`, edited: false })))
+        setSummary({
+          ai: res.aiCount,
+          dictionary: res.dictionaryCount,
+          free: res.freeCount,
+          credits: res.creditsUsed,
+          failed: res.failed,
+          skipped,
+        })
+      } catch {
+        setError('시간이 너무 오래 걸려 중단됐습니다. 단어 수를 줄여(30개 정도) 다시 시도해주세요. 크레딧은 차감되지 않았습니다.')
+      }
+    })
+  }
+
+  /** AI가 만들지 못한 단어만 다시 만들어 카드 목록 뒤에 붙인다 */
+  async function retryFailed() {
+    if (!summary || !summary.failed.some((f) => f.retryable)) return
+    setError(null)
+    setRetrying(true)
+    try {
+      const entries = summary.failed.filter((f) => f.retryable).map(
+        (f) => lastEntriesRef.current.get(f.term.toLowerCase()) ?? { term: f.term, meaning: null },
+      )
+      const res = await generateAiFlashcards({ entries, cefrLevel, useDictionary })
       if (res.quota) setQuota(res.quota)
       if (!res.ok) {
         setError(res.error)
         return
       }
-      setCards(res.cards.map((c, i) => ({ ...c, key: `${i}-${c.term}`, edited: false })))
-      setSummary({
-        ai: res.aiCount,
-        dictionary: res.dictionaryCount,
-        free: res.freeCount,
-        credits: res.creditsUsed,
-        failed: res.failedTerms,
-      })
-    })
+      const existing = new Set((cards ?? []).map((c) => c.term.toLowerCase()))
+      const fresh = res.cards.filter((c) => !existing.has(c.term.toLowerCase()))
+      setCards((prev) => [...(prev ?? []), ...fresh.map((c, i) => ({ ...c, key: `retry-${Date.now()}-${i}`, edited: false }))])
+      setSummary((prev) =>
+        prev
+          ? {
+              ...prev,
+              ai: prev.ai + res.aiCount,
+              dictionary: prev.dictionary + res.dictionaryCount,
+              free: prev.free + res.freeCount,
+              credits: prev.credits + res.creditsUsed,
+              failed: [...prev.failed.filter((f) => !f.retryable), ...res.failed],
+            }
+          : prev,
+      )
+    } catch {
+      setError('다시 시도하지 못했습니다. 잠시 후 다시 눌러주세요.')
+    } finally {
+      setRetrying(false)
+    }
   }
 
   function updateCard(key: string, patch: Partial<AiFlashcardCard>) {
@@ -261,29 +321,14 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'st
               {overLimit && ` (최대 ${FLASHCARD_MAX_WORDS}개)`}
             </span>
             <span className="text-gray-500">뜻 포함 {formatNumber(withMeaning)}개</span>
-            {parsed.duplicateCount > 0 && <span className="text-gray-500">중복 {parsed.duplicateCount}개 제외</span>}
-            {parsed.invalidLines.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setShowInvalid((v) => !v)}
-                className="inline-flex items-center gap-1 text-accent-gold font-medium hover:underline"
-              >
-                <AlertTriangle className="h-3.5 w-3.5" />
-                해석하지 못한 줄 {parsed.invalidLines.length}개
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showInvalid ? 'rotate-180' : ''}`} />
-              </button>
+            {parsed.duplicateTerms.length > 0 && (
+              <span className="text-gray-500">중복 {parsed.duplicateTerms.length}개 제외</span>
             )}
           </div>
-          {showInvalid && parsed.invalidLines.length > 0 && (
-            <ul className="rounded-lg bg-gray-50 p-3 text-xs text-gray-600 space-y-0.5 max-h-40 overflow-y-auto">
-              {parsed.invalidLines.map((line, i) => (
-                <li key={i} className="font-mono">
-                  {line}
-                </li>
-              ))}
-              <li className="pt-1 text-gray-500">영어 단어로 시작하는 줄만 카드로 만듭니다.</li>
-            </ul>
-          )}
+          <SkippedWordsNotice
+            title="카드로 만들 수 없는 줄"
+            items={parsed.invalidLines.map((l) => ({ label: l.line, reason: l.reason }))}
+          />
         </section>
 
         <section className="rounded-xl border border-gray-200 bg-white p-5 md:p-6 space-y-4">
@@ -406,13 +451,29 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'st
               </>
             )}
           </p>
-          {summary.failed.length > 0 && (
-            <p className="text-accent-red">
-              만들지 못한 단어 {summary.failed.length}개 (차감 안 됨): {summary.failed.join(', ')}
-            </p>
-          )}
           <p className="text-xs text-gray-500">내용을 확인하고 필요하면 고친 뒤 저장하세요.</p>
         </div>
+      )}
+      {summary && (
+        <SkippedWordsNotice
+          items={[
+            ...summary.failed.map((f) => ({ label: f.term, reason: `${f.reason} (크레딧 차감 안 됨)` })),
+            ...summary.skipped,
+          ]}
+        >
+          {summary.failed.some((f) => f.retryable) && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={retryFailed}
+              disabled={retrying}
+              className="h-11 gap-2 bg-white"
+            >
+              {retrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+              만들지 못한 {summary.failed.filter((f) => f.retryable).length}개 다시 시도
+            </Button>
+          )}
+        </SkippedWordsNotice>
       )}
 
       <section className="space-y-3">

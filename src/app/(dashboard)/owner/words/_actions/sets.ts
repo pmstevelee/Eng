@@ -460,10 +460,13 @@ export async function deleteOwnerWordSet(
 
   const wordSet = await prisma.wordSet.findFirst({
     where: { id: setId, academyId: owner.academyId! },
-    select: { id: true, source: true },
+    select: { id: true, source: true, _count: { select: { wordTestAssignments: true } } },
   })
   if (!wordSet) return { error: '세트를 찾을 수 없습니다.' }
   if (wordSet.source === 'PUBLISHER') return { error: '시스템 기본 세트는 삭제할 수 없습니다.' }
+  if (wordSet._count.wordTestAssignments > 0) {
+    return { error: '이 세트로 출제한 시험이 있어 삭제할 수 없습니다. 출제한 시험을 먼저 삭제해주세요.' }
+  }
 
   await prisma.$transaction([
     prisma.wordSetItem.deleteMany({ where: { setId } }),

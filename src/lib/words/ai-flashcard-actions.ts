@@ -20,7 +20,7 @@ import {
   isStudentAiFlashcardEnabled,
   recordStudentFlashcardUsage,
 } from '@/lib/student-credits/wallet'
-import type { AiFlashcardCard, AiFlashcardQuotaView } from '@/types/ai-flashcard'
+import type { AiFlashcardCard, AiFlashcardFailure, AiFlashcardQuotaView } from '@/types/ai-flashcard'
 
 const OXFORD_CEFR = ['A1', 'A2', 'B1', 'B2', 'C1'] as const
 
@@ -113,7 +113,7 @@ export type GenerateAiFlashcardsResult =
       ok: true
       cards: AiFlashcardCard[]
       /** AI가 만들지 못한 단어 */
-      failedTerms: string[]
+      failed: AiFlashcardFailure[]
       aiCount: number
       dictionaryCount: number
       freeCount: number
@@ -185,19 +185,34 @@ export async function generateAiFlashcards(input: z.input<typeof GenerateSchema>
       return { ok: false, error: 'AI 플래시카드를 만들지 못했습니다. 잠시 후 다시 시도해주세요.', quota }
     }
   }
-  const aiByTerm = new Map<string, AiFlashcardCard | null>()
+  const aiByTerm = new Map<string, AiFlashcardCard | string>()
   aiEntries.forEach((e, i) => {
     const g = generated[i]
-    aiByTerm.set(e.term.toLowerCase(), g ? { wordId: null, ...g, origin: 'AI' } : null)
+    aiByTerm.set(e.term.toLowerCase(), g?.ok ? { wordId: null, ...g.card, origin: 'AI' } : (g?.reason ?? 'AI가 카드를 만들지 못했습니다.'))
   })
 
   const cards: AiFlashcardCard[] = []
-  const failedTerms: string[] = []
+  const failed: AiFlashcardFailure[] = []
+  const cardTerms = new Set<string>()
   for (const e of entries) {
     const key = e.term.toLowerCase()
-    const card = aiByTerm.has(key) ? aiByTerm.get(key) : dictionaryByTerm.get(key)
-    if (card) cards.push(card)
-    else failedTerms.push(e.term)
+    const result = aiByTerm.has(key) ? aiByTerm.get(key) : dictionaryByTerm.get(key)
+    if (!result) {
+      failed.push({ term: e.term, reason: 'AI가 카드를 만들지 못했습니다. 다시 시도해주세요.', retryable: true })
+      continue
+    }
+    if (typeof result === 'string') {
+      failed.push({ term: e.term, reason: result, retryable: true })
+      continue
+    }
+    // AI가 철자를 고쳐 다른 줄과 같은 단어가 된 경우 (예: recieve → receive)
+    const cardKey = result.term.toLowerCase()
+    if (cardTerms.has(cardKey)) {
+      failed.push({ term: e.term, reason: `철자를 고치면 '${result.term}'이(가) 되어 이미 목록에 있는 단어와 같습니다.` })
+      continue
+    }
+    cardTerms.add(cardKey)
+    cards.push(result)
   }
 
   // 4) 과금 — 실제로 만든 단어만
@@ -210,7 +225,7 @@ export async function generateAiFlashcards(input: z.input<typeof GenerateSchema>
   return {
     ok: true,
     cards,
-    failedTerms,
+    failed,
     aiCount,
     dictionaryCount: cards.length - aiCount,
     freeCount,
@@ -452,7 +467,13 @@ const AddCardsSchema = z.object({
 export async function addCardsToAiSet(
   input: z.input<typeof AddCardsSchema>,
 ): Promise<
-  | { ok: true; added: number; skipped: number; words: { id: string; term: string; meaning: string | null; partOfSpeech: string }[] }
+  | {
+      ok: true
+      added: number
+      /** 추가하지 않은 단어와 사유 */
+      skipped: AiFlashcardFailure[]
+      words: { id: string; term: string; meaning: string | null; partOfSpeech: string }[]
+    }
   | { ok: false; error: string }
 > {
   const user = await getAuthedCreator()
@@ -470,7 +491,13 @@ export async function addCardsToAiSet(
       const existing = await tx.wordSetItem.findMany({ where: { setId }, select: { wordId: true, order: true } })
       const inSet = new Set(existing.map((i) => i.wordId))
       const wordIds = await resolver.resolve(tx, cards)
-      const toAdd = Array.from(new Set(wordIds)).filter((id) => !inSet.has(id))
+      const toAdd: string[] = []
+      const skipped: AiFlashcardFailure[] = []
+      wordIds.forEach((id, i) => {
+        if (inSet.has(id)) skipped.push({ term: cards[i].term, reason: '이미 세트에 있는 단어입니다.' })
+        else if (toAdd.includes(id)) skipped.push({ term: cards[i].term, reason: '같은 단어가 두 번 들어 있어 한 번만 추가했습니다.' })
+        else toAdd.push(id)
+      })
       if (existing.length + toAdd.length > SET_MAX_WORDS) {
         throw new Error(`한 세트에는 단어를 최대 ${SET_MAX_WORDS.toLocaleString()}개까지 담을 수 있습니다.`)
       }
@@ -488,7 +515,7 @@ export async function addCardsToAiSet(
       const byId = new Map(words.map((w) => [w.id, w]))
       return {
         added: toAdd.length,
-        skipped: cards.length - toAdd.length,
+        skipped,
         words: toAdd.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : [])),
       }
     },
@@ -534,4 +561,35 @@ export async function removeWordsFromAiSet(
   const { count } = await prisma.wordSetItem.deleteMany({ where: { setId, wordId: { in: wordIds } } })
   revalidateSetPaths(user, setId)
   return { ok: true, removed: count }
+}
+
+/**
+ * AI 플래시카드 세트 삭제 (편집 권한과 같은 범위).
+ * 세트와 세트-단어 연결만 지우고, 단어 자체와 학생 학습 기록은 남긴다.
+ * 이 세트로 출제한 시험이 있으면 시험 결과가 세트를 참조하므로 지우지 않고 사유를 알려준다.
+ */
+export async function deleteAiFlashcardSet(
+  setId: string,
+): Promise<{ ok: true; redirectTo: string } | { ok: false; error: string }> {
+  const user = await getAuthedCreator()
+  if (!user) return { ok: false, error: '인증이 필요합니다.' }
+  if (!z.string().uuid().safeParse(setId).success) return { ok: false, error: '잘못된 세트입니다.' }
+
+  const set = await findEditableAiSet(user, setId)
+  if (!set) return { ok: false, error: '삭제할 수 있는 세트가 아닙니다.' }
+  if (set.wordTestAssignments.length > 0) {
+    return {
+      ok: false,
+      error: `이 세트로 출제한 시험이 ${set.wordTestAssignments.length}개 있어 삭제할 수 없습니다. 출제한 시험을 먼저 삭제해주세요.`,
+    }
+  }
+
+  await prisma.$transaction([
+    prisma.wordSetItem.deleteMany({ where: { setId } }),
+    prisma.wordSet.delete({ where: { id: setId } }),
+  ])
+
+  const base = basePathOf(user.role)
+  revalidatePath(base)
+  return { ok: true, redirectTo: base }
 }

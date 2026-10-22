@@ -24,9 +24,6 @@ export type GeneratedFlashcard = {
   oxfordCefr: FlashcardCefr
 }
 
-/** OpenAI 1회 요청에 담는 단어 수 */
-const BATCH_SIZE = 20
-
 function buildPrompt(batch: FlashcardGenerationInput[], levelHint: FlashcardCefr | null): string {
   const lines = batch
     .map((e, i) => `${i + 1}. "${e.term}"${e.meaning ? ` — Korean meaning given by the teacher: "${e.meaning}"` : ''}`)
@@ -73,18 +70,44 @@ function normalizeCefr(raw: string | undefined, fallback: FlashcardCefr): Flashc
   return OXFORD_CEFR.find((c) => c === v) ?? fallback
 }
 
+/** 단어별 생성 결과 — 실패면 사용자에게 보여줄 사유 */
+export type FlashcardGenerationResult = { ok: true; card: GeneratedFlashcard } | { ok: false; reason: string }
+
+/** 서버 액션 제한 시간(60초) 안에 끝내기 위한 전체 예산 */
+const TOTAL_BUDGET_MS = 50_000
+const REQUEST_TIMEOUT_MS = 30_000
+
+const MISSING_REASON = 'AI가 이 단어의 카드를 만들지 못했습니다. 철자를 확인하거나 뜻을 함께 적어 다시 시도해주세요.'
+
+/** OpenAI 오류 → 사용자 안내 문구 */
+function failureReason(e: unknown): string {
+  if (e instanceof OpenAI.APIConnectionTimeoutError) return 'AI 응답이 너무 오래 걸려 중단됐습니다. 단어 수를 줄여 다시 시도해주세요.'
+  if (e instanceof OpenAI.APIError) {
+    if (e.status === 401 || e.status === 403) return 'AI 서비스 인증 오류입니다. 관리자에게 문의해주세요.'
+    if (e.status === 429) return 'AI 사용량이 많아 잠시 처리하지 못했습니다. 잠시 후 다시 시도해주세요.'
+    if (e.status && e.status >= 500) return 'AI 서비스에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.'
+    return 'AI 요청이 거부되었습니다. 관리자에게 문의해주세요.'
+  }
+  if (e instanceof OpenAI.APIConnectionError) return 'AI 서비스에 연결하지 못했습니다. 잠시 후 다시 시도해주세요.'
+  return 'AI 응답을 처리하지 못했습니다. 다시 시도해주세요.'
+}
+
 async function generateBatch(
   openai: OpenAI,
   batch: FlashcardGenerationInput[],
   levelHint: FlashcardCefr | null,
+  timeoutMs: number,
 ): Promise<(GeneratedFlashcard | null)[]> {
-  const response = await openai.chat.completions.create({
-    model: AI_MODEL,
-    response_format: { type: 'json_object' },
-    messages: [{ role: 'user', content: buildPrompt(batch, levelHint) }],
-    temperature: 0.3,
-    max_tokens: 150 * batch.length + 200,
-  })
+  const response = await openai.chat.completions.create(
+    {
+      model: AI_MODEL,
+      response_format: { type: 'json_object' },
+      messages: [{ role: 'user', content: buildPrompt(batch, levelHint) }],
+      temperature: 0.3,
+      max_tokens: 200 * batch.length + 300,
+    },
+    { timeout: timeoutMs, maxRetries: 0 },
+  )
 
   const raw = response.choices[0]?.message?.content
   if (!raw) throw new Error('OpenAI 응답이 비어 있습니다.')
@@ -110,27 +133,57 @@ async function generateBatch(
 }
 
 /**
- * 단어 목록으로 플래시카드(품사·뜻·영영풀이·예문·레벨)를 만든다.
- * 결과는 입력과 같은 순서이며, 만들지 못한 단어는 null (과금 대상에서 빠진다).
+ * 단어 목록으로 플래시카드(품사·뜻·영영풀이·예문·레벨)를 만든다. 결과는 입력과 같은 순서.
+ * 10개씩 나눠 동시에 요청하고, 빠진 단어는 한 번 더 묶어서, 그래도 빠지면 한 단어씩 다시 요청한다
+ * (전체 50초 예산 안에서만). 끝내 만들지 못한 단어는 사유와 함께 돌려주며 과금 대상에서 빠진다.
  */
 export async function generateFlashcards(
   entries: FlashcardGenerationInput[],
   levelHint: FlashcardCefr | null,
-): Promise<(GeneratedFlashcard | null)[]> {
+): Promise<FlashcardGenerationResult[]> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) throw new Error('OPENAI_API_KEY가 설정되지 않았습니다.')
   const openai = new OpenAI({ apiKey })
+  const startedAt = Date.now()
+  const remaining = () => TOTAL_BUDGET_MS - (Date.now() - startedAt)
 
-  const batches: FlashcardGenerationInput[][] = []
-  for (let i = 0; i < entries.length; i += BATCH_SIZE) batches.push(entries.slice(i, i + BATCH_SIZE))
+  const results: (FlashcardGenerationResult | null)[] = entries.map(() => null)
+  const lastError = new Map<number, unknown>()
 
-  const results = await Promise.all(
-    batches.map((batch) =>
-      generateBatch(openai, batch, levelHint).catch((e: unknown) => {
-        console.error('[flashcard-generation] 배치 생성 실패', e)
-        return batch.map(() => null)
+  /** indexes(입력 위치)들을 size개씩 묶어 동시에 요청하고 성공한 것만 채운다 */
+  async function attempt(indexes: number[], size: number) {
+    const groups: number[][] = []
+    for (let i = 0; i < indexes.length; i += size) groups.push(indexes.slice(i, i + size))
+    const timeoutMs = Math.min(REQUEST_TIMEOUT_MS, remaining())
+    if (timeoutMs < 5_000) return
+    await Promise.all(
+      groups.map(async (group) => {
+        try {
+          const cards = await generateBatch(openai, group.map((idx) => entries[idx]), levelHint, timeoutMs)
+          group.forEach((idx, i) => {
+            const card = cards[i]
+            if (card) results[idx] = { ok: true, card }
+          })
+        } catch (e) {
+          console.error('[flashcard-generation] 요청 실패', {
+            words: group.length,
+            status: e instanceof OpenAI.APIError ? e.status : undefined,
+            message: e instanceof Error ? e.message : String(e),
+          })
+          group.forEach((idx) => lastError.set(idx, e))
+        }
       }),
-    ),
+    )
+  }
+
+  const pending = () => results.flatMap((r, i) => (r ? [] : [i]))
+
+  await attempt(pending(), 10)
+  // 빠진 단어 재시도: 한 번 더 묶어서 → 그래도 빠지면 한 단어씩
+  if (pending().length > 0 && remaining() > 25_000) await attempt(pending(), 5)
+  if (pending().length > 0 && pending().length <= 20 && remaining() > 15_000) await attempt(pending(), 1)
+
+  return results.map(
+    (r, i) => r ?? { ok: false, reason: lastError.has(i) ? failureReason(lastError.get(i)) : MISSING_REASON },
   )
-  return results.flat()
 }

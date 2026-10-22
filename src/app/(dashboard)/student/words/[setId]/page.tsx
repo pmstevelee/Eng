@@ -10,6 +10,7 @@ import { prisma } from '@/lib/prisma/client'
 import { isStudentAiFlashcardEnabled } from '@/lib/student-credits/wallet'
 import { getAiFlashcardQuota } from '@/lib/words/ai-flashcard-actions'
 import { AiSetWordManager } from '@/components/words/ai-set-word-manager'
+import { DeleteAiSetButton } from '@/components/words/delete-ai-set-button'
 
 // AI 플래시카드 세트에 단어를 추가할 때 AI 생성이 서버 액션 기본 시간보다 오래 걸릴 수 있다
 export const maxDuration = 60
@@ -176,6 +177,7 @@ export default async function WordSetOverviewPage({ params }: Props) {
             minWords={1}
             creditsHref="/student/credits"
           />
+          <DeleteAiSetButton setId={setId} setTitle={set.title} className="mt-3 flex flex-col items-end" />
         </div>
       )}
 

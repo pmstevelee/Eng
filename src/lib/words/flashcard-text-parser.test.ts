@@ -33,6 +33,10 @@ describe('parseFlashcardText', () => {
     ])
   })
 
+  it('번호 뒤에 띄어쓰기가 없어도 번호를 뗀다', () => {
+    expect(parseFlashcardText('1.apple\n2)banana 바나나\n10. cherry').entries.map((e) => e.term)).toEqual(['apple', 'banana', 'cherry'])
+  })
+
   it('뜻 없이 쉼표로 나열하면 여러 단어', () => {
     expect(parseFlashcardText('apple, banana, cherry').entries.map((e) => e.term)).toEqual(['apple', 'banana', 'cherry'])
   })
@@ -44,12 +48,39 @@ describe('parseFlashcardText', () => {
   it('중복은 건너뛰고 나중에 적은 뜻으로 채운다', () => {
     const r = parseFlashcardText('Apple\napple 사과')
     expect(r.entries).toEqual([{ term: 'Apple', meaning: '사과' }])
-    expect(r.duplicateCount).toBe(1)
+    expect(r.duplicateTerms).toEqual(['apple'])
   })
 
-  it('영어 단어가 없는 줄은 오류로 모은다', () => {
-    const r = parseFlashcardText('사과\n\n12345\napple')
+  it('영어 단어가 없는 줄은 사유와 함께 모은다', () => {
+    const r = parseFlashcardText('사과\n\n!!!\napple')
     expect(r.entries.map((e) => e.term)).toEqual(['apple'])
-    expect(r.invalidLines).toEqual(['사과', '12345'])
+    expect(r.invalidLines.map((l) => l.line)).toEqual(['사과', '!!!'])
+    expect(r.invalidLines[0].reason).toContain('한글로 시작')
+    expect(r.invalidLines[1].reason).toContain('영어 단어를 찾지')
+  })
+
+  it('악센트·숫자가 들어간 단어도 받는다', () => {
+    expect(parseFlashcardText('café\nnaïve 순진한\nMP3\nCOVID-19\n24/7\n3D').entries.map((e) => e.term)).toEqual([
+      'café',
+      'naïve',
+      'MP3',
+      'COVID-19',
+      '24/7',
+      '3D',
+    ])
+  })
+
+  it('괄호 안의 뜻과 약어를 처리한다', () => {
+    expect(parseFlashcardText('apple (사과)\ne.g. 예를 들어\nMr. 씨').entries).toEqual([
+      { term: 'apple', meaning: '사과' },
+      { term: 'e.g.', meaning: '예를 들어' },
+      { term: 'Mr.', meaning: '씨' },
+    ])
+  })
+
+  it('물음표 등 쓸 수 없는 기호가 있으면 사유를 알려준다', () => {
+    const r = parseFlashcardText('How are you? 잘 지내?')
+    expect(r.entries).toEqual([])
+    expect(r.invalidLines[0].reason).toContain('기호')
   })
 })

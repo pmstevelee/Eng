@@ -9,7 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { FLASHCARD_MAX_WORDS, parseFlashcardText } from '@/lib/words/flashcard-text-parser'
 import { addCardsToAiSet, generateAiFlashcards, removeWordsFromAiSet } from '@/lib/words/ai-flashcard-actions'
-import type { AiFlashcardCard, AiFlashcardQuotaView } from '@/types/ai-flashcard'
+import type { AiFlashcardCard, AiFlashcardFailure, AiFlashcardQuotaView } from '@/types/ai-flashcard'
+import { SkippedWordsNotice, type SkippedWord } from '@/components/words/skipped-words-notice'
+import type { ParsedFlashcardEntry } from '@/lib/words/flashcard-text-parser'
 
 type SetWord = { id: string; term: string; meaning: string | null; partOfSpeech: string | null }
 
@@ -49,6 +51,11 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
   const [drafts, setDrafts] = useState<DraftCard[] | null>(null)
   const [quota, setQuota] = useState(initialQuota)
   const [message, setMessage] = useState<{ type: 'ok' | 'error'; text: string } | null>(null)
+  /** 추가되지 않은 단어와 사유 (입력 단계 + AI 실패 + 세트 추가 시 제외) */
+  const [skipped, setSkipped] = useState<SkippedWord[]>([])
+  /** AI가 만들지 못한 단어 — 다시 시도용 */
+  const [failed, setFailed] = useState<AiFlashcardFailure[]>([])
+  const lastEntriesRef = useRef<Map<string, ParsedFlashcardEntry>>(new Map())
 
   const [removing, setRemoving] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -115,26 +122,51 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
     reader.readAsText(file, 'utf-8')
   }
 
-  function handleGenerate() {
+  function runGenerate(entries: ParsedFlashcardEntry[], inputSkipped: SkippedWord[], append: boolean) {
     setMessage(null)
     setGenerating(true)
     void (async () => {
-      const res = await generateAiFlashcards({ entries: newEntries, cefrLevel: setLevel, useDictionary: true })
+      const res = await generateAiFlashcards({ entries, cefrLevel: setLevel, useDictionary: true })
       if (res.quota) setQuota(res.quota)
       if (!res.ok) {
         setMessage({ type: 'error', text: res.error })
         return
       }
-      setDrafts(res.cards.map((c, i) => ({ ...c, key: `${i}-${c.term}`, edited: false })))
+      const fresh = res.cards.map((c, i) => ({ ...c, key: `${Date.now()}-${i}-${c.term}`, edited: false }))
+      setDrafts((prev) => (append && prev ? [...prev, ...fresh] : fresh))
+      setFailed(res.failed.filter((f) => f.retryable))
+      setSkipped([...inputSkipped, ...res.failed.map((f) => ({ label: f.term, reason: `${f.reason} (크레딧 차감 안 됨)` }))])
       const charge =
         res.aiCount > 0
           ? ` (AI ${fmt(res.aiCount)}개 · 무료 ${fmt(res.freeCount)}개${res.creditsUsed > 0 ? ` · ${fmt(res.creditsUsed)}크레딧 차감` : ''})`
           : ''
-      const failed = res.failedTerms.length > 0 ? ` 만들지 못한 단어: ${res.failedTerms.join(', ')}` : ''
-      setMessage({ type: 'ok', text: `카드 ${fmt(res.cards.length)}개를 만들었습니다${charge}. 확인 후 세트에 추가하세요.${failed}` })
+      setMessage({ type: 'ok', text: `카드 ${fmt(res.cards.length)}개를 만들었습니다${charge}. 확인 후 세트에 추가하세요.` })
     })()
-      .catch(() => setMessage({ type: 'error', text: 'AI 카드를 만들지 못했습니다. 잠시 후 다시 시도해주세요.' }))
+      .catch(() =>
+        setMessage({
+          type: 'error',
+          text: '시간이 너무 오래 걸려 중단됐습니다. 단어 수를 줄여(30개 정도) 다시 시도해주세요. 크레딧은 차감되지 않았습니다.',
+        }),
+      )
       .finally(() => setGenerating(false))
+  }
+
+  function handleGenerate() {
+    lastEntriesRef.current = new Map(parsed.entries.map((e) => [e.term.toLowerCase(), e]))
+    const inputSkipped: SkippedWord[] = [
+      ...parsed.invalidLines.map((l) => ({ label: l.line, reason: l.reason })),
+      ...parsed.duplicateTerms.map((t) => ({ label: t, reason: '같은 단어가 위에 이미 있어 한 번만 만들었습니다.' })),
+      ...parsed.entries
+        .filter((e) => termsInSet.has(e.term.toLowerCase()))
+        .map((e) => ({ label: e.term, reason: '이미 세트에 있는 단어입니다.' })),
+    ]
+    runGenerate(newEntries, inputSkipped, false)
+  }
+
+  function retryFailed() {
+    const entries = failed.map((f) => lastEntriesRef.current.get(f.term.toLowerCase()) ?? { term: f.term, meaning: null })
+    const keep = skipped.filter((s) => !failed.some((f) => f.term === s.label))
+    runGenerate(entries, keep, true)
   }
 
   function updateDraft(key: string, patch: Partial<AiFlashcardCard>) {
@@ -162,13 +194,15 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
         setMessage({ type: 'error', text: res.error })
         return
       }
-      setWords((prev) => [...prev, ...res.words.map((w) => ({ ...w, partOfSpeech: w.partOfSpeech }))])
+      setWords((prev) => [...prev, ...res.words])
       setDrafts(null)
       setText('')
       setAdding(false)
+      setFailed([])
+      setSkipped((prev) => [...prev, ...res.skipped.map((f) => ({ label: f.term, reason: f.reason }))])
       setMessage({
         type: 'ok',
-        text: `단어 ${fmt(res.added)}개를 추가했습니다.${res.skipped > 0 ? ` (이미 있는 단어 ${fmt(res.skipped)}개 제외)` : ''}`,
+        text: `단어 ${fmt(res.added)}개를 추가했습니다.${res.skipped.length > 0 ? ` (${fmt(res.skipped.length)}개는 아래 사유로 제외)` : ''}`,
       })
       router.refresh()
     })()
@@ -242,6 +276,24 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
         </div>
       )}
 
+      {skipped.length > 0 && (
+        <div className="border-b border-gray-100 p-4">
+          <SkippedWordsNotice items={skipped}>
+            <div className="flex flex-wrap gap-2">
+              {failed.length > 0 && drafts && (
+                <Button type="button" variant="outline" onClick={retryFailed} disabled={generating} className="h-11 gap-1.5 bg-white">
+                  {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  만들지 못한 {failed.length}개 다시 시도
+                </Button>
+              )}
+              <Button type="button" variant="outline" onClick={() => setSkipped([])} className="h-11 bg-white">
+                확인
+              </Button>
+            </div>
+          </SkippedWordsNotice>
+        </div>
+      )}
+
       {/* 일괄 추가 패널 */}
       {adding && (
         <div className="space-y-3 border-b border-gray-100 bg-accent-purple/5 p-4">
@@ -277,7 +329,7 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
                   </span>
                   {alreadyCount > 0 && <span className="text-gray-500">이미 세트에 있음 {fmt(alreadyCount)}개 제외</span>}
                   {parsed.invalidLines.length > 0 && (
-                    <span className="text-accent-gold">해석하지 못한 줄 {parsed.invalidLines.length}개</span>
+                    <span className="text-accent-gold">카드로 만들 수 없는 줄 {parsed.invalidLines.length}개 (아래 사유)</span>
                   )}
                 </div>
                 <Button type="button" variant="outline" className="h-11 gap-1.5" onClick={() => fileInputRef.current?.click()}>
@@ -292,6 +344,11 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
                   onChange={handleFile}
                 />
               </div>
+              <SkippedWordsNotice
+                title="카드로 만들 수 없는 줄"
+                defaultOpen={false}
+                items={parsed.invalidLines.map((l) => ({ label: l.line, reason: l.reason }))}
+              />
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-xs text-gray-500">
                   {quota.remainingFree === null ? '이번 달 무료 무제한' : `이번 달 무료 ${fmt(quota.remainingFree)}단어 남음`} · 크레딧{' '}
