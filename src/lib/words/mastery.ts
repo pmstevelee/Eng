@@ -12,7 +12,7 @@ import type { LearnStage } from '@/generated/prisma'
 export type StudyContext = 'LEARN' | 'REVIEW' | 'TEST'
 export type StudyActivity = 'FLASHCARD' | 'RECALL' | 'SPELL'
 
-/** 마스터에 필요한 서로 다른 날 연속 정답 수 (SRS 간격 1일 → 6일 → 15일) */
+/** 마스터에 필요한 서로 다른 날 연속 정답 수 — 학습 첫날의 첫 답(플래시카드 "안다" 포함)도 1회로 센다 (복습 간격 1일 → 6일) */
 export const MASTERY_REPETITIONS = 3
 
 /** 어려운 단어 판정 기준 */

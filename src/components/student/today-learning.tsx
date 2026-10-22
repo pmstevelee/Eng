@@ -370,7 +370,7 @@ export function TodayLearningHub({
           </div>
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-500">
             <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-[#7854F7]/40" />학습 완료</span>
-            <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-[#1FAF54]" />마스터 (3번 이상 복습 정답)</span>
+            <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-[#1FAF54]" />마스터 (학습한 날 포함, 서로 다른 날 3번 연속 정답)</span>
             {goal.daysToGoal !== null && goal.daysToGoal > 0 && <span>매일 학습하면 약 {goal.daysToGoal}일 후 목표 달성</span>}
           </div>
         </div>

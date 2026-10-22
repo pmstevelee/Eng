@@ -63,11 +63,11 @@ export default async function StudentWordReportPage() {
         </div>
         <div className="grid grid-cols-3 gap-2">
           <FunnelStep label="학습 중" desc="플래시카드·뜻·스펠링 진행" value={stats.funnel.inProgress} color="#FFB100" />
-          <FunnelStep label="학습 완료" desc="스펠링 정답 · 복습으로 검증 중" value={stats.funnel.learned} color="#7854F7" />
-          <FunnelStep label="마스터" desc="다른 날 3번 연속 복습 정답" value={stats.funnel.mastered} color="#1FAF54" />
+          <FunnelStep label="학습 완료" desc="리콜·스펠링 첫 정답 · 복습으로 검증 중" value={stats.funnel.learned} color="#7854F7" />
+          <FunnelStep label="마스터" desc="학습일 포함 다른 날 3번 연속 정답" value={stats.funnel.mastered} color="#1FAF54" />
         </div>
         <p className="text-xs text-gray-500 mt-3">
-          마스터한 단어도 복습에서 틀리면 다시 학습 단계로 돌아가 완전히 외울 때까지 반복해요.
+          하루의 첫 답만 횟수에 들어가고, 틀리면 처음부터 다시 쌓아요. 마스터한 단어도 복습이나 시험에서 틀리면 다시 학습 단계로 돌아가 완전히 외울 때까지 반복해요.
         </p>
       </div>
 

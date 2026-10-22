@@ -168,7 +168,7 @@ function RoundDone({
           {totalAnswered}문제 중 {correctCount}개 정답
         </p>
         <p className="mt-1 text-xs text-gray-500">
-          복습에서 날짜를 달리해 3번 연속 맞히면 마스터 단어가 돼요
+          오늘을 포함해 서로 다른 날 3번 연속 맞히면 마스터 단어가 돼요 (내일부터 복습 2번)
         </p>
       </div>
 
