@@ -11,6 +11,13 @@ import { recordProgress, finishWordSession } from '@/app/(dashboard)/student/wor
 import { speakEnglish } from '@/lib/words/speech'
 import { checkSpelling } from '@/lib/words/spell-check'
 import { QUALITY } from '@/lib/words/srs'
+import { useStudySessionSaver, useSavedStudySession } from '@/hooks/use-study-session-saver'
+import { ResumeBanner } from '@/components/words/resume-banner'
+import {
+  resolveStudySession,
+  toStudySessionState,
+  type StudySessionState,
+} from '@/lib/words/study-session'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -35,6 +42,8 @@ type AnswerState = 'idle' | 'correct' | 'nearly' | 'wrong'
 interface Props {
   setId: string
   initialCards: WordCard[]
+  /** 오늘 중단한 스펠 진행 (없으면 null) */
+  savedSession: StudySessionState | null
 }
 
 // ─── 발음 재생 ────────────────────────────────────────────────────────────────
@@ -198,20 +207,48 @@ function RoundDone({
 
 // ─── 메인 클라이언트 컴포넌트 ─────────────────────────────────────────────────
 
-export function SpellClient({ setId, initialCards }: Props) {
-  const [phase, setPhase] = useState<Phase>('quizzing')
-  const [deck, setDeck] = useState<WordCard[]>(initialCards)
-  const [qIndex, setQIndex] = useState(0)
+function SpellClientInner({ setId, initialCards, savedSession }: Props) {
+  // 오늘 중단한 진행이 있으면 그 위치부터 이어서 시작
+  const [resumed] = useState(() => resolveStudySession(savedSession, initialCards))
+  const roundFinished = resumed !== null && resumed.index >= resumed.deck.length
+  const [phase, setPhase] = useState<Phase>(roundFinished ? 'round-done' : 'quizzing')
+  const [deck, setDeck] = useState<WordCard[]>(resumed?.deck ?? initialCards)
+  const [qIndex, setQIndex] = useState(resumed && !roundFinished ? resumed.index : 0)
   const [input, setInput] = useState('')
   const [answerState, setAnswerState] = useState<AnswerState>('idle')
   const [correctTerm, setCorrectTerm] = useState('')
   const [usedHint, setUsedHint] = useState(false)
   const [showHint, setShowHint] = useState(false)
 
-  const [correctCount, setCorrectCount] = useState(0)
-  const [totalAnswered, setTotalAnswered] = useState(0)
-  const [wrongCards, setWrongCards] = useState<WordCard[]>([])
-  const [retryCount, setRetryCount] = useState(0)
+  const [correctCount, setCorrectCount] = useState(resumed?.correct ?? 0)
+  const [totalAnswered, setTotalAnswered] = useState(resumed?.answered ?? 0)
+  const [wrongCards, setWrongCards] = useState<WordCard[]>(resumed?.wrong ?? [])
+  const [retryCount, setRetryCount] = useState(resumed?.retry ?? 0)
+  const [showResume, setShowResume] = useState(resumed !== null && !roundFinished)
+  const session = useStudySessionSaver(setId, 'SPELL')
+
+  // 마지막 문제까지 답하고 결과 화면 전에 나갔다면 라운드 완료로 처리
+  useEffect(() => {
+    if (resumed && roundFinished) {
+      session.clear()
+      void finishWordSession({ setId, stage: 'SPELL', wordCount: resumed.deck.length })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 답할 때마다 진행 위치를 답안 기록과 같은 요청으로 저장 (중단 후 재접속 시 다음 문제부터 이어서)
+  function studySessionAfterAnswer(wasCorrect: boolean, nextWrong: WordCard[]) {
+    const state = toStudySessionState({
+      deck,
+      index: qIndex + 1,
+      wrong: nextWrong,
+      correct: correctCount + (wasCorrect ? 1 : 0),
+      answered: totalAnswered + 1,
+      retry: retryCount,
+    })
+    session.backup(state)
+    return { setId, stage: 'SPELL' as const, state }
+  }
 
   const inputRef = useRef<HTMLInputElement>(null)
   // 현재 문제가 이미 처리됐는지 추적 (handleSubmit + handleSkip 중복 실행 방지)
@@ -230,6 +267,7 @@ export function SpellClient({ setId, initialCards }: Props) {
     const nextIndex = qIndex + 1
     if (nextIndex >= deck.length) {
       setPhase('round-done')
+      session.clear()
       void finishWordSession({ setId, stage: 'SPELL', wordCount: deck.length })
     } else {
       setQIndex(nextIndex)
@@ -239,6 +277,7 @@ export function SpellClient({ setId, initialCards }: Props) {
       setShowHint(false)
       isAnsweredRef.current = false
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qIndex, deck.length])
 
   function handleSubmit() {
@@ -270,6 +309,7 @@ export function SpellClient({ setId, initialCards }: Props) {
       setWrongCards((prev) => [...prev, currentCard])
     }
     setAnswerState(state)
+    setShowResume(false)
 
     recordProgress({
       wordId: currentCard.word.id,
@@ -277,6 +317,7 @@ export function SpellClient({ setId, initialCards }: Props) {
       quality: quality as 0 | 1 | 2 | 3 | 4 | 5,
       isCorrect: correct,
       userAnswer: input,
+      studySession: studySessionAfterAnswer(correct, correct ? wrongCards : [...wrongCards, currentCard]),
     })
   }
 
@@ -287,12 +328,14 @@ export function SpellClient({ setId, initialCards }: Props) {
     setWrongCards((prev) => [...prev, currentCard])
     setAnswerState('wrong')
     setCorrectTerm(currentCard.word.term)
+    setShowResume(false)
     recordProgress({
       wordId: currentCard.word.id,
       stage: 'SPELL',
       quality: 2,
       isCorrect: false,
       userAnswer: '',
+      studySession: studySessionAfterAnswer(false, [...wrongCards, currentCard]),
     })
   }
 
@@ -337,6 +380,24 @@ export function SpellClient({ setId, initialCards }: Props) {
     setPhase('quizzing')
   }
 
+  // 저장된 진행을 버리고 오늘 배치를 처음부터
+  function handleRestart() {
+    session.clear()
+    isAnsweredRef.current = false
+    setDeck(initialCards)
+    setQIndex(0)
+    setWrongCards([])
+    setCorrectCount(0)
+    setTotalAnswered(0)
+    setInput('')
+    setAnswerState('idle')
+    setUsedHint(false)
+    setShowHint(false)
+    setRetryCount(0)
+    setShowResume(false)
+    setPhase('quizzing')
+  }
+
   if (initialCards.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-4">
@@ -366,6 +427,8 @@ export function SpellClient({ setId, initialCards }: Props) {
 
   return (
     <div className="flex flex-col" style={{ minHeight: 'calc(100dvh - 120px)' }}>
+      {showResume && <ResumeBanner done={qIndex} total={deck.length} onRestart={handleRestart} />}
+
       {/* 진행바 */}
       <div className="mb-6 shrink-0">
         <div className="flex items-center justify-between mb-2">
@@ -553,4 +616,11 @@ export function SpellClient({ setId, initialCards }: Props) {
       </AnimatePresence>
     </div>
   )
+}
+
+// 서버 기록과 브라우저 백업 중 최신 진행을 확인한 뒤 학습 화면을 그린다
+export function SpellClient(props: Props) {
+  const saved = useSavedStudySession(props.setId, 'SPELL', props.savedSession)
+  if (saved === undefined) return null
+  return <SpellClientInner {...props} savedSession={saved} />
 }

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { getFlashcards, startWordSet } from '@/app/(dashboard)/student/words/_actions'
+import { getWordStudySession } from '@/app/(dashboard)/student/words/_actions/study-session'
 import { RecallClient } from './_components/recall-client'
 
 interface Props {
@@ -16,7 +17,11 @@ export default async function RecallPage({ params, searchParams }: Props) {
   const hubLabel = from === 'daily' ? '오늘의 학습' : '단어 허브'
   // 플래시카드를 거치지 않고 리콜을 바로 선택한 경우를 대비해 진도를 초기화한다.
   await startWordSet(setId)
-  const result = await getFlashcards(setId, 'RECALL')
+  // 이 단계를 중간에 그만뒀다면 오늘 저장된 위치부터 이어서 진행한다
+  const [result, savedSession] = await Promise.all([
+    getFlashcards(setId, 'RECALL'),
+    getWordStudySession(setId, 'RECALL'),
+  ])
 
   if (!result.ok) {
     if (result.error.code === 'FORBIDDEN' || result.error.code === 'NOT_FOUND') {
@@ -52,7 +57,7 @@ export default async function RecallPage({ params, searchParams }: Props) {
         <span className="text-sm text-gray-400">리콜</span>
       </div>
 
-      <RecallClient setId={setId} initialCards={cards} />
+      <RecallClient setId={setId} initialCards={cards} savedSession={savedSession} />
     </div>
   )
 }

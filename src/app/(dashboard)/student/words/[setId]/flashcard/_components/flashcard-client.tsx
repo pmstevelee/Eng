@@ -10,6 +10,13 @@ import { Card } from '@/components/ui/card'
 import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import { recordProgress, finishWordSession } from '@/app/(dashboard)/student/words/_actions'
 import { speakEnglish } from '@/lib/words/speech'
+import { useStudySessionSaver, useSavedStudySession } from '@/hooks/use-study-session-saver'
+import { ResumeBanner } from '@/components/words/resume-banner'
+import {
+  resolveStudySession,
+  toStudySessionState,
+  type StudySessionState,
+} from '@/lib/words/study-session'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -33,6 +40,8 @@ interface Props {
   initialCards: WordCard[]
   totalWords: number
   masteredWords: number
+  /** 오늘 중단한 플래시카드 진행 (없으면 null) */
+  savedSession: StudySessionState | null
 }
 
 // ─── 단일 플래시카드 ──────────────────────────────────────────────────────────
@@ -258,18 +267,41 @@ function RoundDone({
 
 // ─── 메인 클라이언트 컴포넌트 ─────────────────────────────────────────────────
 
-export function FlashcardClient({ setId, initialCards, totalWords, masteredWords: initialMastered }: Props) {
+function FlashcardClientInner({
+  setId,
+  initialCards,
+  totalWords,
+  masteredWords: initialMastered,
+  savedSession,
+}: Props) {
   const router = useRouter()
   const hub = useWordHub()
   const [isNavigating, startNavigating] = useTransition()
-  const [deck, setDeck] = useState<WordCard[]>(initialCards)
-  const [index, setIndex] = useState(0)
-  const [unknownCards, setUnknownCards] = useState<WordCard[]>([])
+  // 오늘 중단한 진행이 있으면 그 위치부터 이어서 시작
+  const [resumed] = useState(() => resolveStudySession(savedSession, initialCards))
+  const [deck, setDeck] = useState<WordCard[]>(resumed?.deck ?? initialCards)
+  const [index, setIndex] = useState(resumed ? Math.min(resumed.index, resumed.deck.length - 1) : 0)
+  const [unknownCards, setUnknownCards] = useState<WordCard[]>(resumed?.wrong ?? [])
+  const [knownCount, setKnownCount] = useState(resumed?.correct ?? 0)
+  const [retry, setRetry] = useState(resumed?.retry ?? 0)
   const [isDone, setIsDone] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const [direction, setDirection] = useState(0)
   const [masteredWords, setMasteredWords] = useState(initialMastered)
+  const [showResume, setShowResume] = useState(resumed !== null)
   const pendingRef = useRef<Promise<unknown> | null>(null)
+  const session = useStudySessionSaver(setId, 'FLASHCARD')
+
+  // 마지막 카드까지 답하고 결과 화면 전에 나갔다면 라운드 완료로 처리
+  useEffect(() => {
+    if (resumed && resumed.index >= resumed.deck.length) {
+      setIsDone(true)
+      setShowResume(false)
+      session.clear()
+      void finishWordSession({ setId, stage: 'FLASHCARD', wordCount: resumed.deck.length })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const total = deck.length
   const current = deck[index]
@@ -285,7 +317,7 @@ export function FlashcardClient({ setId, initialCards, totalWords, masteredWords
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAnimating, isDone, index, deck])
+  }, [isAnimating, isDone, index, deck, unknownCards, knownCount, retry])
 
   // 카드 기록 + 이동
   async function submitAndAdvance(quality: 2 | 4, know: boolean) {
@@ -293,22 +325,39 @@ export function FlashcardClient({ setId, initialCards, totalWords, masteredWords
     setIsAnimating(true)
     setDirection(know ? 1 : -1)
 
-    if (!know) {
-      setUnknownCards((prev) => [...prev, current])
-    }
+    const nextUnknown = know ? unknownCards : [...unknownCards, current]
+    const nextKnown = knownCount + (know ? 1 : 0)
+    if (!know) setUnknownCards(nextUnknown)
+    else setKnownCount(nextKnown)
+    setShowResume(false)
 
+    const next = index + 1
+    const isLast = next >= total
     // 낙관적 업데이트: 비동기 기록 (결과 기다리지 않음)
+    // 진행 위치도 같은 요청으로 저장해 중단 후 재접속 시 다음 카드부터 이어서 학습
+    const snapshot = isLast
+      ? undefined
+      : toStudySessionState({
+          deck,
+          index: next,
+          wrong: nextUnknown,
+          correct: nextKnown,
+          answered: next,
+          retry,
+        })
+    if (snapshot) session.backup(snapshot)
     pendingRef.current = recordProgress({
       wordId: current.word.id,
       stage: 'FLASHCARD',
       quality,
       isCorrect: know,
+      studySession: snapshot ? { setId, stage: 'FLASHCARD', state: snapshot } : undefined,
     })
 
     setTimeout(() => {
-      const next = index + 1
-      if (next >= total) {
+      if (isLast) {
         setIsDone(true)
+        session.clear()
         void finishWordSession({ setId, stage: 'FLASHCARD', wordCount: total })
       } else {
         setIndex(next)
@@ -322,14 +371,30 @@ export function FlashcardClient({ setId, initialCards, totalWords, masteredWords
     // no-op here; flip is handled inside FlashCard
   }
 
-  const handleKnow = useCallback(() => submitAndAdvance(4, true), [index, current, isAnimating])
-  const handleUnknow = useCallback(() => submitAndAdvance(2, false), [index, current, isAnimating])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleKnow = useCallback(() => submitAndAdvance(4, true), [index, current, isAnimating, unknownCards, knownCount, deck, retry])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleUnknow = useCallback(() => submitAndAdvance(2, false), [index, current, isAnimating, unknownCards, knownCount, deck, retry])
 
   function handleRetry() {
     setDeck(unknownCards)
     setIndex(0)
     setUnknownCards([])
+    setKnownCount(0)
+    setRetry((n) => n + 1)
     setIsDone(false)
+  }
+
+  // 저장된 진행을 버리고 오늘 배치를 처음부터
+  function handleRestart() {
+    session.clear()
+    setDeck(initialCards)
+    setIndex(0)
+    setUnknownCards([])
+    setKnownCount(0)
+    setRetry(0)
+    setIsDone(false)
+    setShowResume(false)
   }
 
   // 세트 전체 진행 표시 영역 (항상 렌더)
@@ -395,6 +460,8 @@ export function FlashcardClient({ setId, initialCards, totalWords, masteredWords
     <div className="flex flex-col h-full min-h-[80vh] pb-8">
       {/* 세트 전체 진행 */}
       <SetProgress />
+
+      {showResume && <ResumeBanner done={index} total={total} onRestart={handleRestart} />}
 
       {/* 현재 라운드 진행바 */}
       <div className="mb-6">
@@ -466,4 +533,11 @@ export function FlashcardClient({ setId, initialCards, totalWords, masteredWords
       </p>
     </div>
   )
+}
+
+// 서버 기록과 브라우저 백업 중 최신 진행을 확인한 뒤 학습 화면을 그린다
+export function FlashcardClient(props: Props) {
+  const saved = useSavedStudySession(props.setId, 'FLASHCARD', props.savedSession)
+  if (saved === undefined) return null
+  return <FlashcardClientInner {...props} savedSession={saved} />
 }

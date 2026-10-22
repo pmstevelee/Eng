@@ -506,6 +506,7 @@ model Student {
   creditTransactions         StudentCreditTransaction[]
   payments                   StudentPayment[]
   aiFlashcardUsages          StudentAiFlashcardUsage[]
+  wordStudySessions          WordStudySession[]
 
   @@index([classId])
   @@index([status])
@@ -1448,11 +1449,33 @@ model WordSet {
   wordTestAssignments WordTestAssignment[]
   assignments         WordSetAssignment[]
   dailyWordPlan       DailyWordPlan?
+  studySessions       WordStudySession[]
 
   @@index([ownerId])
   @@index([academyId])
   @@index([examCategory])
   @@map("word_sets")
+}
+
+/// 단어 세트 학습 단계(플래시카드/리콜/스펠)별 진행 상태 — 중단 후 재접속 시 이어서 학습
+/// 학생·세트·단계마다 1행, studyDate(KST)가 오늘이 아니면 지난 진행으로 보고 새로 시작한다.
+model WordStudySession {
+  id        String     @id @default(uuid())
+  studentId String     @map("student_id")
+  setId     String     @map("set_id")
+  stage     LearnStage
+  /// 진행을 저장한 KST 날짜 (YYYY-MM-DD)
+  studyDate String     @map("study_date")
+  /// 라운드 상태 — lib/words/study-session.ts의 StudySessionState
+  stateJson Json       @map("state_json")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  set     WordSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, setId, stage])
+  @@index([setId])
+  @@map("word_study_sessions")
 }
 
 /// 단어 세트 배정 대상 (지정된 학생이 없으면 학원 전체에 공개)

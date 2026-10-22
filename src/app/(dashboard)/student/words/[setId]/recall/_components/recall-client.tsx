@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button'
 import { useWordHub } from '@/hooks/use-word-hub'
 import { LoadingOverlay } from '@/components/shared/loading-overlay'
 import { getRecallOptionsBatch, recordProgress, finishWordSession } from '@/app/(dashboard)/student/words/_actions'
+import { useStudySessionSaver, useSavedStudySession } from '@/hooks/use-study-session-saver'
+import { ResumeBanner } from '@/components/words/resume-banner'
+import {
+  resolveStudySession,
+  toStudySessionState,
+  type StudySessionState,
+} from '@/lib/words/study-session'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -46,6 +53,8 @@ interface LoadedQuestion {
 interface Props {
   setId: string
   initialCards: WordCard[]
+  /** 오늘 중단한 리콜 진행 (없으면 null) */
+  savedSession: StudySessionState | null
 }
 
 // ─── 모드 선택 화면 ──────────────────────────────────────────────────────────
@@ -340,20 +349,27 @@ function RoundDone({
 
 // ─── 메인 클라이언트 컴포넌트 ─────────────────────────────────────────────────
 
-export function RecallClient({ setId, initialCards }: Props) {
-  const [phase, setPhase] = useState<Phase>('mode-select')
-  const [mode, setMode] = useState<Mode>('EN_TO_KO')
-  const [deck, setDeck] = useState<WordCard[]>(initialCards)
-  const [qIndex, setQIndex] = useState(0)
+function RecallClientInner({ setId, initialCards, savedSession }: Props) {
+  // 오늘 중단한 진행이 있으면 모드 선택 없이 그 위치부터 이어서 시작
+  const [resumed] = useState(() => resolveStudySession(savedSession, initialCards))
+  const roundFinished = resumed !== null && resumed.index >= resumed.deck.length
+  const [phase, setPhase] = useState<Phase>(
+    resumed ? (roundFinished ? 'round-done' : 'quizzing') : 'mode-select',
+  )
+  const [mode, setMode] = useState<Mode>(resumed?.mode ?? 'EN_TO_KO')
+  const [deck, setDeck] = useState<WordCard[]>(resumed?.deck ?? initialCards)
+  const [qIndex, setQIndex] = useState(resumed && !roundFinished ? resumed.index : 0)
   const [question, setQuestion] = useState<LoadedQuestion | null>(null)
-  const [loadingQuestion, setLoadingQuestion] = useState(false)
+  const [loadingQuestion, setLoadingQuestion] = useState(resumed !== null && !roundFinished)
   const [selected, setSelected] = useState<string | null>(null)
 
   // 라운드별 통계
-  const [correctCount, setCorrectCount] = useState(0)
-  const [totalAnswered, setTotalAnswered] = useState(0)
-  const [wrongCards, setWrongCards] = useState<WordCard[]>([])
-  const [retryCount, setRetryCount] = useState(0)
+  const [correctCount, setCorrectCount] = useState(resumed?.correct ?? 0)
+  const [totalAnswered, setTotalAnswered] = useState(resumed?.answered ?? 0)
+  const [wrongCards, setWrongCards] = useState<WordCard[]>(resumed?.wrong ?? [])
+  const [retryCount, setRetryCount] = useState(resumed?.retry ?? 0)
+  const [showResume, setShowResume] = useState(resumed !== null && !roundFinished)
+  const session = useStudySessionSaver(setId, 'RECALL')
 
   // wordId → 보기 목록. 라운드 시작 시 세트 전체를 한 번에 불러와서
   // 문제 전환마다 발생하던 서버 왕복(다음 단어 로딩 지연)을 제거한다.
@@ -376,6 +392,57 @@ export function RecallClient({ setId, initialCards }: Props) {
     }
   }
 
+  // ─── 이어하기: 저장된 위치의 문제 불러오기 ─────────────────────────────────
+
+  const resumeStartedRef = useRef(false)
+  useEffect(() => {
+    // 개발 모드에서 effect가 두 번 실행돼도 한 번만 불러온다
+    if (!resumed || resumeStartedRef.current) return
+    resumeStartedRef.current = true
+    if (roundFinished) {
+      // 마지막 문제까지 답하고 결과 화면 전에 나갔다면 라운드 완료로 처리
+      session.clear()
+      void finishWordSession({ setId, stage: 'RECALL', wordCount: resumed.deck.length })
+      return
+    }
+    void (async () => {
+      // 보기 불러오기가 실패하면 두 번 더 시도
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          await ensureOptionsLoaded(resumed.deck)
+          break
+        } catch {
+          // 다음 시도
+        }
+      }
+      const q = buildQuestion(resumed.deck[resumed.index], resumed.mode ?? 'EN_TO_KO')
+      if (!q) {
+        // 끝내 보기를 못 불러오면 처음부터 시작
+        handleRestart()
+        return
+      }
+      setQuestion(q)
+      setLoadingQuestion(false)
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 저장된 진행을 버리고 모드 선택부터 다시
+  function handleRestart() {
+    session.clear()
+    setDeck(initialCards)
+    setQIndex(0)
+    setQuestion(null)
+    setSelected(null)
+    setCorrectCount(0)
+    setTotalAnswered(0)
+    setWrongCards([])
+    setRetryCount(0)
+    setShowResume(false)
+    setLoadingQuestion(false)
+    setPhase('mode-select')
+  }
+
   // ─── 모드 선택 후 시작 ──────────────────────────────────────────────────────
 
   async function handleModeSelect(m: Mode) {
@@ -394,12 +461,25 @@ export function RecallClient({ setId, initialCards }: Props) {
     setSelected(id)
 
     const isCorrect = id === question.correctId
-    setTotalAnswered((n) => n + 1)
-    if (isCorrect) {
-      setCorrectCount((n) => n + 1)
-    } else {
-      setWrongCards((prev) => [...prev, question.card])
-    }
+    const nextWrong = isCorrect ? wrongCards : [...wrongCards, question.card]
+    const nextCorrect = correctCount + (isCorrect ? 1 : 0)
+    setTotalAnswered(totalAnswered + 1)
+    setCorrectCount(nextCorrect)
+    setWrongCards(nextWrong)
+    setShowResume(false)
+
+
+    // 진행 위치도 같은 요청으로 저장 (중단 후 재접속 시 다음 문제부터 이어서)
+    const snapshot = toStudySessionState({
+      deck,
+      index: qIndex + 1,
+      wrong: nextWrong,
+      correct: nextCorrect,
+      answered: totalAnswered + 1,
+      retry: retryCount,
+      mode,
+    })
+    session.backup(snapshot)
 
     // 비동기 기록 (결과 기다리지 않음)
     recordProgress({
@@ -407,6 +487,7 @@ export function RecallClient({ setId, initialCards }: Props) {
       stage: 'RECALL',
       quality: isCorrect ? 4 : 1,
       isCorrect,
+      studySession: { setId, stage: 'RECALL', state: snapshot },
     })
   }
 
@@ -417,6 +498,7 @@ export function RecallClient({ setId, initialCards }: Props) {
     if (nextIndex >= deck.length) {
       // 라운드 종료
       setPhase('round-done')
+      session.clear()
       void finishWordSession({ setId, stage: 'RECALL', wordCount: deck.length })
       return
     }
@@ -456,7 +538,7 @@ export function RecallClient({ setId, initialCards }: Props) {
       if (opt) handleSelect(opt.id)
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [question, selected, phase],
+    [question, selected, phase, correctCount, totalAnswered, wrongCards, deck, qIndex, retryCount, mode],
   )
 
   useEffect(() => {
@@ -506,6 +588,8 @@ export function RecallClient({ setId, initialCards }: Props) {
 
   // quizzing
   return (
+    <>
+    {showResume && <ResumeBanner done={qIndex} total={deck.length} onRestart={handleRestart} />}
     <AnimatePresence mode="wait">
       <motion.div
         key={`${qIndex}-${question?.card.word.id}`}
@@ -531,5 +615,13 @@ export function RecallClient({ setId, initialCards }: Props) {
         )}
       </motion.div>
     </AnimatePresence>
+    </>
   )
+}
+
+// 서버 기록과 브라우저 백업 중 최신 진행을 확인한 뒤 학습 화면을 그린다
+export function RecallClient(props: Props) {
+  const saved = useSavedStudySession(props.setId, 'RECALL', props.savedSession)
+  if (saved === undefined) return null
+  return <RecallClientInner {...props} savedSession={saved} />
 }

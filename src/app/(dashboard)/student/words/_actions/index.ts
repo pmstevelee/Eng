@@ -14,6 +14,8 @@ import { emitWordEvent } from '@/lib/words/word-events'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import { kstDateTime, todayKst } from '@/lib/attendance/time'
+import { StudySessionStateSchema } from '@/lib/words/study-session'
+import { upsertStudySession } from '@/lib/words/study-session-store'
 import type { BadgeType } from '@/generated/prisma'
 
 // ─── 공통 응답 타입 ────────────────────────────────────────────────────────────
@@ -328,18 +330,36 @@ const RecordProgressSchema = z.object({
   userAnswer: z.string().optional(),
   /** LEARN: 세트 학습 단계(플래시카드→리콜→스펠), REVIEW: 오늘의 복습 */
   context: z.enum(['LEARN', 'REVIEW']).optional(),
+  /** 세트 학습 단계의 진행 위치 — 답안 기록과 같은 요청으로 저장해 중단 후 이어서 학습 */
+  studySession: z
+    .object({
+      setId: z.string().uuid(),
+      stage: z.enum(['FLASHCARD', 'RECALL', 'SPELL']),
+      state: StudySessionStateSchema,
+    })
+    .optional(),
 })
 
 export async function recordProgress(
   input: z.infer<typeof RecordProgressSchema>,
 ): Promise<Result<unknown>> {
   try {
-    const { wordId, stage, quality, isCorrect, context } = RecordProgressSchema.parse(input)
+    const { wordId, stage, quality, isCorrect, context, studySession } = RecordProgressSchema.parse(input)
     const { studentId } = await getAuthContext()
 
-    const existing = await prisma.wordProgress.findUnique({
-      where: { studentId_wordId: { studentId, wordId } },
-    })
+    // 진행 위치 저장은 답안 기록과 병렬로 (실패해도 학습 기록에는 영향 없음)
+    const sessionSave = studySession
+      ? upsertStudySession(studentId, studySession.setId, studySession.stage, studySession.state).catch(
+          () => undefined,
+        )
+      : Promise.resolve()
+
+    const [existing] = await Promise.all([
+      prisma.wordProgress.findUnique({
+        where: { studentId_wordId: { studentId, wordId } },
+      }),
+      sessionSave,
+    ])
 
     if (!existing) return err('NOT_FOUND', '진도 기록을 찾을 수 없습니다. startWordSet을 먼저 호출하세요.')
 

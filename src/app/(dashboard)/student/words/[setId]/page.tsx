@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Download, Layers, Target, PenLine } from 'lucide-react'
 import { getWordSetOverview } from '@/app/(dashboard)/student/words/_actions'
+import { getWordStudySessionSummary } from '@/app/(dashboard)/student/words/_actions/study-session'
 import { NavLinkWithLoading } from '@/components/shared/nav-link-with-loading'
 import { ExamCategoryBadges } from '@/components/words/exam-category-badges'
 import { getLevelInfo } from '@/lib/constants/levels'
@@ -22,6 +23,7 @@ interface Props {
 const STUDY_TYPES = [
   {
     key: 'flashcard',
+    stage: 'FLASHCARD',
     title: '플래시카드',
     description: '카드를 넘기며 뜻을 먼저 익혀요',
     icon: Layers,
@@ -29,6 +31,7 @@ const STUDY_TYPES = [
   },
   {
     key: 'recall',
+    stage: 'RECALL',
     title: '리콜 퀴즈',
     description: '객관식 문제로 기억을 확인해요',
     icon: Target,
@@ -36,6 +39,7 @@ const STUDY_TYPES = [
   },
   {
     key: 'spell',
+    stage: 'SPELL',
     title: '스펠링 연습',
     description: '철자를 직접 입력해 완성해요',
     icon: PenLine,
@@ -66,7 +70,11 @@ export default async function WordSetOverviewPage({ params }: Props) {
 
   // 신규 단어 진도 초기화는 실제로 문제 유형을 선택해 학습을 시작할 때 수행한다
   // (개요 화면은 조회만 하므로 무거운 초기화 쿼리를 반복 실행하지 않는다).
-  const [result, editable] = await Promise.all([getWordSetOverview(setId), getEditableStudentSet(setId)])
+  const [result, editable, inProgress] = await Promise.all([
+    getWordSetOverview(setId),
+    getEditableStudentSet(setId),
+    getWordStudySessionSummary(setId),
+  ])
 
   if (!result.ok) {
     if (result.error.code === 'FORBIDDEN' || result.error.code === 'NOT_FOUND') {
@@ -143,7 +151,9 @@ export default async function WordSetOverviewPage({ params }: Props) {
       <div className="mb-2">
         <h2 className="text-sm font-bold text-gray-900 mb-3">문제 유형 선택</h2>
         <div className="flex flex-col gap-3">
-          {STUDY_TYPES.map((type) => (
+          {STUDY_TYPES.map((type) => {
+            const resume = inProgress[type.stage]
+            return (
             <NavLinkWithLoading
               key={type.key}
               href={`/student/words/${setId}/${type.key}`}
@@ -157,12 +167,20 @@ export default async function WordSetOverviewPage({ params }: Props) {
                 <type.icon className="h-5 w-5" style={{ color: type.color }} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900">{type.title}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-gray-900">{type.title}</p>
+                  {resume && (
+                    <span className="rounded-full bg-[#FFB100]/15 px-2 py-0.5 text-[11px] font-semibold text-[#B37C00]">
+                      이어하기 {resume.done}/{resume.total}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-gray-500">{type.description}</p>
               </div>
               <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" />
             </NavLinkWithLoading>
-          ))}
+            )
+          })}
         </div>
       </div>
 
