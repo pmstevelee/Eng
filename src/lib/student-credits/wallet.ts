@@ -197,3 +197,23 @@ export async function refundStudentCreditsForPayment(orderId: string): Promise<v
     if (!isUniqueViolation(err)) throw err
   }
 }
+
+// ─── 관리자 수동 조정 ──────────────────────────────────────────────────────────
+
+/** 시스템 관리자가 학생 크레딧을 직접 지급(+)·차감(-) (ADMIN_ADJUST). 차감은 잔액까지만 허용 */
+export async function adjustStudentCreditsByAdmin(params: {
+  studentId: string
+  delta: number
+  memo: string
+}): Promise<{ balanceAfter: number } | { error: string }> {
+  const { studentId, delta, memo } = params
+  return prisma.$transaction(async (tx) => {
+    const balanceAfter =
+      delta >= 0 ? await addBalance(tx, studentId, delta) : await subtractBalance(tx, studentId, -delta)
+    if (balanceAfter === null) return { error: '차감할 크레딧이 잔액보다 많습니다.' }
+    await tx.studentCreditTransaction.create({
+      data: { studentId, type: 'ADMIN_ADJUST', amount: delta, balanceAfter, memo },
+    })
+    return { balanceAfter }
+  }, TX_OPTIONS)
+}

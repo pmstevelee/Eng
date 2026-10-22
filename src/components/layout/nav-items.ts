@@ -52,6 +52,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '구독 관리', href: '/admin/subscriptions', icon: CreditCard },
     { label: '결제 모니터링', href: '/admin/billing', icon: CreditCard },
     { label: '크레딧', href: '/admin/credits', icon: Coins },
+    { label: '학생 크레딧', href: '/admin/credits/students', icon: GraduationCap },
     { label: '문제 뱅크', href: '/admin/question-bank', icon: Library },
     { label: '활동 로그', href: '/admin/activity-logs', icon: Activity },
   ],

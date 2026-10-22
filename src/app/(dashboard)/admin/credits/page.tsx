@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma/client'
 import { getCreditPricing } from '@/lib/credits/wallet'
 import { DEFAULT_LOW_BALANCE_THRESHOLD } from '@/lib/credits/constants'
@@ -38,11 +39,19 @@ export default async function AdminCreditsPage() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">크레딧</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          학부모 알림과 AI 기능에 함께 쓰는 통합 크레딧의 단가·충전 상품을 관리하고, 학원별 잔액을 조회·조정합니다.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">크레딧</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            학부모 알림과 AI 기능에 함께 쓰는 통합 크레딧의 단가·충전 상품을 관리하고, 학원별 잔액을 조회·조정합니다.
+          </p>
+        </div>
+        <Link
+          href="/admin/credits/students"
+          className="inline-flex h-11 shrink-0 items-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-primary-700 hover:bg-gray-50"
+        >
+          학생 크레딧 관리
+        </Link>
       </div>
       <CreditAdminClient pricing={pricing} packages={packages} academies={rows} />
     </div>
