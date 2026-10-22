@@ -3,9 +3,9 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma/client'
 import { ChevronRight } from 'lucide-react'
 import type { SubscriptionStatus, PlanType, PaymentStatus, SubscriptionPeriod } from '@/generated/prisma'
-import { extendSubscription, changePlan, suspendAcademy } from './actions'
 import { DeleteAcademyModal } from './_components/delete-academy-modal'
-import { PLAN_TYPE_LABEL, SELECTABLE_PLAN_TYPES, isSelectablePlanType } from '@/lib/plan-types'
+import { AcademySubscriptionActions } from './_components/academy-subscription-actions'
+import { PLAN_TYPE_LABEL } from '@/lib/plan-types'
 
 const STATUS_LABEL: Record<SubscriptionStatus, string> = {
   TRIAL: '체험',
@@ -267,64 +267,10 @@ export default async function AcademyDetailPage({ params }: PageProps) {
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h2 className="text-sm font-semibold text-gray-700 mb-4">관리 액션</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* 구독 연장 */}
-          <form action={extendSubscription} className="space-y-2">
-            <input type="hidden" name="academyId" value={academy.id} />
-            <label className="block text-xs font-medium text-gray-600">구독 연장</label>
-            <select
-              name="months"
-              className="w-full h-9 px-3 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:outline-none focus:border-primary-700"
-            >
-              <option value="1">1개월</option>
-              <option value="3">3개월</option>
-              <option value="6">6개월</option>
-              <option value="12">12개월</option>
-            </select>
-            <button
-              type="submit"
-              className="w-full h-9 rounded-lg bg-primary-700 text-white text-sm font-medium hover:bg-primary-600 transition-colors"
-            >
-              연장
-            </button>
-          </form>
-
-          {/* 플랜 변경 */}
-          <form action={changePlan} className="space-y-2">
-            <input type="hidden" name="academyId" value={academy.id} />
-            <label className="block text-xs font-medium text-gray-600">플랜 변경</label>
-            <select
-              name="plan"
-              defaultValue={isSelectablePlanType(academy.subscriptionPlan) ? academy.subscriptionPlan : undefined}
-              className="w-full h-9 px-3 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:outline-none focus:border-primary-700"
-            >
-              {SELECTABLE_PLAN_TYPES.map((plan) => (
-                <option key={plan} value={plan}>
-                  {PLAN_TYPE_LABEL[plan]}
-                </option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              className="w-full h-9 rounded-lg bg-primary-700 text-white text-sm font-medium hover:bg-primary-600 transition-colors"
-            >
-              변경
-            </button>
-          </form>
-
-          {/* 정지 */}
-          <div className="space-y-2">
-            <label className="block text-xs font-medium text-gray-600">학원 정지</label>
-            <p className="text-xs text-gray-400">구독을 정지하고 접근을 제한합니다</p>
-            <form action={suspendAcademy}>
-              <input type="hidden" name="academyId" value={academy.id} />
-              <button
-                type="submit"
-                className="w-full h-9 rounded-lg border border-accent-gold text-accent-gold text-sm font-medium hover:bg-accent-gold-light transition-colors"
-              >
-                정지
-              </button>
-            </form>
-          </div>
+          <AcademySubscriptionActions
+            academyId={academy.id}
+            currentPlan={academy.subscriptionPlan}
+          />
 
           {/* 삭제 */}
           <div className="space-y-2">

@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma/client'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { getPlanTypeLimits, isSelectablePlanType } from '@/lib/plan-types'
+import { PLAN_TYPE_LABEL, getPlanTypeLimits, isSelectablePlanType } from '@/lib/plan-types'
 import { getCurrentUser } from '@/lib/auth'
 import { deleteOrphanAuthAccounts } from '@/lib/account/multi-academy'
 
@@ -13,84 +13,120 @@ async function requireAdmin() {
   if (!user || user.role !== 'SUPER_ADMIN') redirect('/login')
 }
 
-export async function extendSubscription(formData: FormData) {
-  await requireAdmin()
+export type AcademyActionResult = { ok: true; message: string } | { ok: false; error: string }
 
-  const academyId = formData.get('academyId') as string
-  const months = parseInt(formData.get('months') as string, 10)
-  if (!academyId || isNaN(months)) return
-
-  const academy = await prisma.academy.findUnique({
-    where: { id: academyId },
-    select: { subscriptionExpiresAt: true },
-  })
-  if (!academy) return
-
-  const base = academy.subscriptionExpiresAt && academy.subscriptionExpiresAt > new Date()
-    ? academy.subscriptionExpiresAt
-    : new Date()
-  const newExpiry = new Date(base)
-  newExpiry.setMonth(newExpiry.getMonth() + months)
-
-  await prisma.academy.update({
-    where: { id: academyId },
-    data: {
-      subscriptionExpiresAt: newExpiry,
-      subscriptionStatus: 'ACTIVE',
-    },
-  })
-
-  revalidatePath(`/admin/academies/${academyId}`)
-  revalidatePath('/admin/academies')
-  // 학원장 구독 페이지·학생 단어학습 접근 캐시 무효화
-  revalidateTag(`academy-${academyId}-subscription`)
+function formatDate(d: Date): string {
+  return d.toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })
 }
 
-export async function changePlan(formData: FormData) {
+/** 학원 구독 정보가 바뀐 뒤 관리자·학원장·학생 화면 캐시를 모두 무효화한다. */
+async function revalidateAcademySubscription(academyId: string) {
+  revalidatePath(`/admin/academies/${academyId}`)
+  revalidatePath('/admin/academies')
+  // 학원장 구독 페이지·학생 단어학습 접근 캐시
+  revalidateTag(`academy-${academyId}-subscription`)
+  revalidateTag(`academy-${academyId}`)
+  // 학원장 계정 페이지(요금제 표시)는 사용자 태그로 캐시됨
+  const owners = await prisma.user.findMany({
+    where: { academyId, role: 'ACADEMY_OWNER', isDeleted: false },
+    select: { id: true },
+  })
+  owners.forEach((o) => revalidateTag(`user-${o.id}`))
+}
+
+export async function extendSubscription(formData: FormData): Promise<AcademyActionResult> {
   await requireAdmin()
 
-  const academyId = formData.get('academyId') as string
-  const plan = formData.get('plan') as string
-  if (!academyId || !plan) return
+  const academyId = formData.get('academyId')
+  const months = Number(formData.get('months'))
+  if (typeof academyId !== 'string' || !academyId) return { ok: false, error: '학원 정보가 없습니다.' }
+  if (!Number.isInteger(months) || months < 1 || months > 36) {
+    return { ok: false, error: '연장 기간을 다시 선택해주세요.' }
+  }
 
+  try {
+    const academy = await prisma.academy.findUnique({
+      where: { id: academyId },
+      select: { subscriptionExpiresAt: true, subscriptionStartedAt: true },
+    })
+    if (!academy) return { ok: false, error: '학원을 찾을 수 없습니다.' }
+
+    const now = new Date()
+    const base = academy.subscriptionExpiresAt && academy.subscriptionExpiresAt > now
+      ? academy.subscriptionExpiresAt
+      : now
+    const newExpiry = new Date(base)
+    newExpiry.setMonth(newExpiry.getMonth() + months)
+
+    await prisma.academy.update({
+      where: { id: academyId },
+      data: {
+        subscriptionExpiresAt: newExpiry,
+        subscriptionStatus: 'ACTIVE',
+        // 처음 유료 전환되는 경우 구독 시작일 기록
+        ...(academy.subscriptionStartedAt ? {} : { subscriptionStartedAt: now }),
+      },
+    })
+
+    await revalidateAcademySubscription(academyId)
+    return { ok: true, message: `구독이 ${months}개월 연장되었습니다. 새 만료일: ${formatDate(newExpiry)}` }
+  } catch (e) {
+    console.error('[extendSubscription]', e)
+    return { ok: false, error: '구독 연장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
+}
+
+export async function changePlan(formData: FormData): Promise<AcademyActionResult> {
+  await requireAdmin()
+
+  const academyId = formData.get('academyId')
+  const plan = formData.get('plan')
+  if (typeof academyId !== 'string' || !academyId) return { ok: false, error: '학원 정보가 없습니다.' }
   // 실제 판매 요금제(무료/스타터/스탠다드/프리미엄)만 허용
-  if (!isSelectablePlanType(plan)) return
+  if (typeof plan !== 'string' || !isSelectablePlanType(plan)) {
+    return { ok: false, error: '변경할 플랜을 다시 선택해주세요.' }
+  }
 
-  const newPlan = plan
-  const limits = getPlanTypeLimits(newPlan)
+  const limits = getPlanTypeLimits(plan)
 
-  await prisma.academy.update({
-    where: { id: academyId },
-    data: {
-      subscriptionPlan: newPlan,
-      planType: newPlan,
-      // 플랜에 맞춰 정원(교사/학생 한도)도 함께 적용
-      maxStudents: limits.maxStudents,
-      maxTeachers: limits.maxTeachers,
-    },
-  })
+  try {
+    await prisma.academy.update({
+      where: { id: academyId },
+      data: {
+        subscriptionPlan: plan,
+        planType: plan,
+        // 플랜에 맞춰 정원(교사/학생 한도)도 함께 적용
+        maxStudents: limits.maxStudents,
+        maxTeachers: limits.maxTeachers,
+      },
+    })
 
-  revalidatePath(`/admin/academies/${academyId}`)
-  revalidatePath('/admin/academies')
-  // 학원장 구독 페이지·학생 단어학습 접근 캐시 무효화
-  revalidateTag(`academy-${academyId}-subscription`)
+    await revalidateAcademySubscription(academyId)
+    return { ok: true, message: `플랜이 ${PLAN_TYPE_LABEL[plan]}(으)로 변경되었습니다.` }
+  } catch (e) {
+    console.error('[changePlan]', e)
+    return { ok: false, error: '플랜 변경 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 }
 
-export async function suspendAcademy(formData: FormData) {
+export async function suspendAcademy(formData: FormData): Promise<AcademyActionResult> {
   await requireAdmin()
 
-  const academyId = formData.get('academyId') as string
-  if (!academyId) return
+  const academyId = formData.get('academyId')
+  if (typeof academyId !== 'string' || !academyId) return { ok: false, error: '학원 정보가 없습니다.' }
 
-  await prisma.academy.update({
-    where: { id: academyId },
-    data: { subscriptionStatus: 'CANCELLED' },
-  })
-
-  revalidatePath(`/admin/academies/${academyId}`)
-  revalidatePath('/admin/academies')
-  // 정지 즉시 학생 단어학습 접근이 막히도록 캐시 무효화
-  revalidateTag(`academy-${academyId}-subscription`)
+  try {
+    await prisma.academy.update({
+      where: { id: academyId },
+      data: { subscriptionStatus: 'CANCELLED' },
+    })
+    // 정지 즉시 학생 단어학습 접근이 막히도록 캐시 무효화
+    await revalidateAcademySubscription(academyId)
+    return { ok: true, message: '학원이 정지되었습니다.' }
+  } catch (e) {
+    console.error('[suspendAcademy]', e)
+    return { ok: false, error: '학원 정지 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 }
 
 export async function deleteAcademy(

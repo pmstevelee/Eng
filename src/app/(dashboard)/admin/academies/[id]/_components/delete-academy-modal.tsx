@@ -39,7 +39,7 @@ export function DeleteAcademyModal({ academyId, academyName }: DeleteAcademyModa
     <>
       <button
         onClick={() => setOpen(true)}
-        className="w-full h-9 rounded-lg border border-accent-red text-accent-red text-sm font-medium hover:bg-accent-red-light transition-colors"
+        className="w-full h-11 rounded-lg border border-accent-red text-accent-red text-sm font-medium hover:bg-accent-red-light transition-colors"
       >
         삭제
       </button>
