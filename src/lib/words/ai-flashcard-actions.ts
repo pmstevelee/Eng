@@ -245,6 +245,8 @@ const CardSchema = z.object({
   definition: z.string().trim().max(300),
   example: z.string().trim().max(300),
   oxfordCefr: z.enum(OXFORD_CEFR),
+  /** AI 없이 사용자가 직접 입력한 카드 */
+  manual: z.boolean().optional(),
 })
 
 const SaveSchema = z.object({
@@ -304,7 +306,11 @@ async function prepareCardResolver(academyId: string, cards: CardInput[]) {
         if (existingId) {
           await tx.word.update({
             where: { id: existingId },
-            data: { definition: c.definition || null, example: c.example || null },
+            // 직접 입력한 카드는 비워 둔 영영풀이·예문으로 기존 내용을 지우지 않는다
+            data: {
+              definition: c.definition || (c.manual ? undefined : null),
+              example: c.example || (c.manual ? undefined : null),
+            },
           })
           wordIds.push(existingId)
           continue
@@ -318,7 +324,7 @@ async function prepareCardResolver(academyId: string, cards: CardInput[]) {
             meaning: c.meaning,
             definition: c.definition || null,
             example: c.example || null,
-            source: 'AI_GENERATED',
+            source: c.manual ? 'TEACHER' : 'AI_GENERATED',
             academyId,
           },
           select: { id: true },

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { AlertTriangle, CheckCircle2, FileUp, Loader2, Plus, Sparkles, Trash2, X } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, FileUp, Loader2, PenLine, Plus, Sparkles, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -12,6 +12,7 @@ import { addCardsToAiSet, generateAiFlashcards, removeWordsFromAiSet } from '@/l
 import type { AiFlashcardCard, AiFlashcardFailure, AiFlashcardQuotaView } from '@/types/ai-flashcard'
 import { SkippedWordsNotice, type SkippedWord } from '@/components/words/skipped-words-notice'
 import type { ParsedFlashcardEntry } from '@/lib/words/flashcard-text-parser'
+import { countIncompleteCards, createManualCard } from '@/lib/words/manual-flashcard'
 
 type SetWord = { id: string; term: string; meaning: string | null; partOfSpeech: string | null }
 
@@ -53,7 +54,7 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
   const [message, setMessage] = useState<{ type: 'ok' | 'error'; text: string } | null>(null)
   /** 추가되지 않은 단어와 사유 (입력 단계 + AI 실패 + 세트 추가 시 제외) */
   const [skipped, setSkipped] = useState<SkippedWord[]>([])
-  /** AI가 만들지 못한 단어 — 다시 시도용 */
+  /** AI가 만들지 못한 단어 — 다시 시도·직접 입력용 */
   const [failed, setFailed] = useState<AiFlashcardFailure[]>([])
   const lastEntriesRef = useRef<Map<string, ParsedFlashcardEntry>>(new Map())
 
@@ -134,7 +135,7 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
       }
       const fresh = res.cards.map((c, i) => ({ ...c, key: `${Date.now()}-${i}-${c.term}`, edited: false }))
       setDrafts((prev) => (append && prev ? [...prev, ...fresh] : fresh))
-      setFailed(res.failed.filter((f) => f.retryable))
+      setFailed(res.failed)
       setSkipped([...inputSkipped, ...res.failed.map((f) => ({ label: f.term, reason: `${f.reason} (크레딧 차감 안 됨)` }))])
       const charge =
         res.aiCount > 0
@@ -163,11 +164,36 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
     runGenerate(newEntries, inputSkipped, false)
   }
 
+  const retryable = failed.filter((f) => f.retryable)
+
   function retryFailed() {
-    const entries = failed.map((f) => lastEntriesRef.current.get(f.term.toLowerCase()) ?? { term: f.term, meaning: null })
-    const keep = skipped.filter((s) => !failed.some((f) => f.term === s.label))
+    const entries = retryable.map((f) => lastEntriesRef.current.get(f.term.toLowerCase()) ?? { term: f.term, meaning: null })
+    const keep = skipped.filter((s) => !retryable.some((f) => f.term === s.label))
     runGenerate(entries, keep, true)
   }
+
+  /** AI가 만들지 못한 단어를 빈 카드로 바꿔 뜻을 직접 입력하게 한다 */
+  function addFailedAsManual() {
+    if (failed.length === 0) return
+    const existing = new Set((drafts ?? []).map((d) => d.term.toLowerCase()))
+    const manual = failed
+      .filter((f) => !existing.has(f.term.toLowerCase()) && !termsInSet.has(f.term.toLowerCase()))
+      .map((f, i) => {
+        const entry = lastEntriesRef.current.get(f.term.toLowerCase())
+        return { ...createManualCard(f.term, entry?.meaning ?? null, setLevel), key: `manual-${Date.now()}-${i}`, edited: false }
+      })
+    setDrafts((prev) => [...(prev ?? []), ...manual])
+    setSkipped((prev) => prev.filter((s) => !failed.some((f) => f.term === s.label)))
+    setFailed([])
+    setAdding(true)
+    setMessage({ type: 'ok', text: `단어 ${fmt(manual.length)}개를 직접 입력 목록에 넣었습니다. 뜻을 입력한 뒤 세트에 추가하세요.` })
+  }
+
+  function addBlankDraft() {
+    setDrafts((prev) => [...(prev ?? []), { ...createManualCard('', null, setLevel), key: `manual-${Date.now()}`, edited: false }])
+  }
+
+  const incomplete = drafts ? countIncompleteCards(drafts) : 0
 
   function updateDraft(key: string, patch: Partial<AiFlashcardCard>) {
     setDrafts((prev) => (prev ? prev.map((c) => (c.key === key ? { ...c, ...patch, wordId: null, edited: true } : c)) : prev))
@@ -182,6 +208,7 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
         setId,
         cards: drafts.map((c) => ({
           wordId: c.edited ? null : c.wordId,
+          manual: c.origin === 'MANUAL',
           term: c.term,
           partOfSpeech: c.partOfSpeech,
           meaning: c.meaning,
@@ -280,10 +307,16 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
         <div className="border-b border-gray-100 p-4">
           <SkippedWordsNotice items={skipped}>
             <div className="flex flex-wrap gap-2">
-              {failed.length > 0 && drafts && (
+              {retryable.length > 0 && drafts && (
                 <Button type="button" variant="outline" onClick={retryFailed} disabled={generating} className="h-11 gap-1.5 bg-white">
                   {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  만들지 못한 {failed.length}개 다시 시도
+                  만들지 못한 {retryable.length}개 다시 시도
+                </Button>
+              )}
+              {failed.length > 0 && (
+                <Button type="button" variant="outline" onClick={addFailedAsManual} disabled={generating} className="h-11 gap-1.5 bg-white">
+                  <PenLine className="h-4 w-4" />
+                  {failed.length}개 직접 입력해서 추가
                 </Button>
               )}
               <Button type="button" variant="outline" onClick={() => setSkipped([])} className="h-11 bg-white">
@@ -332,10 +365,16 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
                     <span className="text-accent-gold">카드로 만들 수 없는 줄 {parsed.invalidLines.length}개 (아래 사유)</span>
                   )}
                 </div>
-                <Button type="button" variant="outline" className="h-11 gap-1.5" onClick={() => fileInputRef.current?.click()}>
-                  <FileUp className="h-4 w-4" />
-                  텍스트 파일
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" variant="outline" className="h-11 gap-1.5" onClick={addBlankDraft}>
+                    <PenLine className="h-4 w-4" />
+                    AI 없이 직접 입력
+                  </Button>
+                  <Button type="button" variant="outline" className="h-11 gap-1.5" onClick={() => fileInputRef.current?.click()}>
+                    <FileUp className="h-4 w-4" />
+                    텍스트 파일
+                  </Button>
+                </div>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -381,13 +420,15 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
                       value={c.term}
                       onChange={(e) => updateDraft(c.key, { term: e.target.value })}
                       aria-label="단어"
+                      placeholder="단어 (필수)"
                       className="h-11 font-semibold"
                     />
                     <Input
                       value={c.meaning}
                       onChange={(e) => updateDraft(c.key, { meaning: e.target.value })}
                       aria-label="뜻"
-                      className="h-11"
+                      placeholder={c.origin === 'MANUAL' ? '뜻 직접 입력 (필수)' : '뜻 (필수)'}
+                      className={`h-11 ${c.meaning.trim() ? '' : 'border-accent-gold'}`}
                     />
                     <button
                       type="button"
@@ -399,8 +440,18 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
                     </button>
                   </div>
                 ))}
+                {drafts.length === 0 && <p className="px-3 py-6 text-center text-sm text-gray-500">추가할 카드가 없습니다.</p>}
               </div>
-              <p className="text-xs text-gray-500">영영풀이·예문은 AI가 만든 내용으로 저장됩니다.</p>
+              <Button type="button" variant="outline" onClick={addBlankDraft} className="h-11 w-full gap-1.5 border-dashed bg-white">
+                <Plus className="h-4 w-4" />
+                단어 직접 입력
+              </Button>
+              <p className="text-xs text-gray-500">
+                영영풀이·예문은 AI가 만든 내용으로 저장됩니다. 직접 입력한 단어는 단어·뜻만 저장됩니다 (크레딧 차감 없음).
+              </p>
+              {incomplete > 0 && (
+                <p className="text-sm text-accent-red">단어와 뜻을 모두 입력해야 추가할 수 있습니다 (빈 칸 {fmt(incomplete)}개).</p>
+              )}
               <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <Button type="button" variant="outline" className="h-11" onClick={() => setDrafts(null)}>
                   다시 입력
@@ -408,7 +459,7 @@ export function AiSetWordManager({ setId, words: serverWords, setLevel, initialQ
                 <Button
                   type="button"
                   onClick={handleAdd}
-                  disabled={saving || drafts.length === 0}
+                  disabled={saving || drafts.length === 0 || incomplete > 0}
                   className="h-11 gap-1.5 bg-primary-700 text-white hover:bg-primary-700/90"
                 >
                   {saving && <Loader2 className="h-4 w-4 animate-spin" />}

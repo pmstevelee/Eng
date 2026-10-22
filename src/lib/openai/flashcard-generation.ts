@@ -1,6 +1,6 @@
 import 'server-only'
 import OpenAI from 'openai'
-import { AI_MODEL } from './models'
+import { AI_FALLBACK_MODEL, AI_MODEL, completionParams } from './models'
 
 /** AI가 고르는 품사 — 기존 단어 DB 표기(n, v, adj …)와 같은 약어 */
 export const FLASHCARD_PARTS_OF_SPEECH = ['n', 'v', 'adj', 'adv', 'prep', 'pron', 'conj', 'det', 'exclam', 'phrase'] as const
@@ -79,17 +79,27 @@ const REQUEST_TIMEOUT_MS = 30_000
 
 const MISSING_REASON = 'AI가 이 단어의 카드를 만들지 못했습니다. 철자를 확인하거나 뜻을 함께 적어 다시 시도해주세요.'
 
-/** OpenAI 오류 → 사용자 안내 문구 */
+/** OpenAI 오류 → 사용자 안내 문구 (연결 오류도 APIError의 하위 클래스라 먼저 검사) */
 function failureReason(e: unknown): string {
   if (e instanceof OpenAI.APIConnectionTimeoutError) return 'AI 응답이 너무 오래 걸려 중단됐습니다. 단어 수를 줄여 다시 시도해주세요.'
+  if (e instanceof OpenAI.APIConnectionError) return 'AI 서비스에 연결하지 못했습니다. 잠시 후 다시 시도해주세요.'
+  if (e instanceof OpenAI.APIUserAbortError) return 'AI 요청이 중단됐습니다. 다시 시도해주세요.'
   if (e instanceof OpenAI.APIError) {
     if (e.status === 401 || e.status === 403) return 'AI 서비스 인증 오류입니다. 관리자에게 문의해주세요.'
     if (e.status === 429) return 'AI 사용량이 많아 잠시 처리하지 못했습니다. 잠시 후 다시 시도해주세요.'
     if (e.status && e.status >= 500) return 'AI 서비스에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.'
-    return 'AI 요청이 거부되었습니다. 관리자에게 문의해주세요.'
+    return `AI 요청이 거부되었습니다${e.status ? ` (오류 ${e.status})` : ''}. 다시 시도하거나 직접 입력해 추가해주세요.`
   }
-  if (e instanceof OpenAI.APIConnectionError) return 'AI 서비스에 연결하지 못했습니다. 잠시 후 다시 시도해주세요.'
   return 'AI 응답을 처리하지 못했습니다. 다시 시도해주세요.'
+}
+
+/** 모델 설정·파라미터 문제로 거부된 경우 — 기본 모델로 한 번 더 시도할 만하다 */
+function isRejectedByModel(e: unknown): boolean {
+  return (
+    e instanceof OpenAI.APIError &&
+    !(e instanceof OpenAI.APIConnectionError) &&
+    (e.status === 400 || e.status === 404)
+  )
 }
 
 async function generateBatch(
@@ -97,14 +107,14 @@ async function generateBatch(
   batch: FlashcardGenerationInput[],
   levelHint: FlashcardCefr | null,
   timeoutMs: number,
+  model: string,
 ): Promise<(GeneratedFlashcard | null)[]> {
   const response = await openai.chat.completions.create(
     {
-      model: AI_MODEL,
+      model,
       response_format: { type: 'json_object' },
       messages: [{ role: 'user', content: buildPrompt(batch, levelHint) }],
-      temperature: 0.3,
-      max_tokens: 200 * batch.length + 300,
+      ...completionParams(model, { maxTokens: 200 * batch.length + 300, temperature: 0.3 }),
     },
     { timeout: timeoutMs, maxRetries: 0 },
   )
@@ -149,6 +159,8 @@ export async function generateFlashcards(
 
   const results: (FlashcardGenerationResult | null)[] = entries.map(() => null)
   const lastError = new Map<number, unknown>()
+  /** 설정한 모델이 요청을 거부하면 이후 요청은 기본 모델로 보낸다 */
+  let model = AI_MODEL
 
   /** indexes(입력 위치)들을 size개씩 묶어 동시에 요청하고 성공한 것만 채운다 */
   async function attempt(indexes: number[], size: number) {
@@ -159,13 +171,29 @@ export async function generateFlashcards(
     await Promise.all(
       groups.map(async (group) => {
         try {
-          const cards = await generateBatch(openai, group.map((idx) => entries[idx]), levelHint, timeoutMs)
+          const batch = group.map((idx) => entries[idx])
+          let cards: (GeneratedFlashcard | null)[]
+          try {
+            cards = await generateBatch(openai, batch, levelHint, timeoutMs, model)
+          } catch (e) {
+            if (model === AI_FALLBACK_MODEL || !isRejectedByModel(e)) throw e
+            console.error('[flashcard-generation] 모델 거부, 기본 모델로 재시도', {
+              model,
+              status: e instanceof OpenAI.APIError ? e.status : undefined,
+              message: e instanceof Error ? e.message : String(e),
+            })
+            model = AI_FALLBACK_MODEL
+            const retryTimeoutMs = Math.min(REQUEST_TIMEOUT_MS, remaining())
+            if (retryTimeoutMs < 5_000) throw e
+            cards = await generateBatch(openai, batch, levelHint, retryTimeoutMs, model)
+          }
           group.forEach((idx, i) => {
             const card = cards[i]
             if (card) results[idx] = { ok: true, card }
           })
         } catch (e) {
           console.error('[flashcard-generation] 요청 실패', {
+            model,
             words: group.length,
             status: e instanceof OpenAI.APIError ? e.status : undefined,
             message: e instanceof Error ? e.message : String(e),

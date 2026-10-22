@@ -10,6 +10,8 @@ import {
   ChevronLeft,
   FileUp,
   Loader2,
+  PenLine,
+  Plus,
   RotateCcw,
   Sparkles,
   Trash2,
@@ -23,6 +25,7 @@ import { FLASHCARD_MAX_WORDS, parseFlashcardText } from '@/lib/words/flashcard-t
 import { generateAiFlashcards, saveAiFlashcardSet } from '@/lib/words/ai-flashcard-actions'
 import type { AiFlashcardCard, AiFlashcardFailure, AiFlashcardQuotaView } from '@/types/ai-flashcard'
 import { SkippedWordsNotice, type SkippedWord } from '@/components/words/skipped-words-notice'
+import { countIncompleteCards, createManualCard } from '@/lib/words/manual-flashcard'
 import type { ParsedFlashcardEntry } from '@/lib/words/flashcard-text-parser'
 
 type ClassOption = { id: string; name: string; students: { id: string; name: string }[] }
@@ -203,6 +206,24 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'st
     }
   }
 
+  /** AI가 만들지 못한 단어를 빈 카드로 바꿔 직접 입력하게 한다 */
+  function addFailedAsManual() {
+    if (!summary || summary.failed.length === 0) return
+    const existing = new Set((cards ?? []).map((c) => c.term.toLowerCase()))
+    const manual = summary.failed
+      .filter((f) => !existing.has(f.term.toLowerCase()))
+      .map((f, i) => {
+        const entry = lastEntriesRef.current.get(f.term.toLowerCase())
+        return { ...createManualCard(f.term, entry?.meaning ?? null, cefrLevel), key: `manual-${Date.now()}-${i}`, edited: false }
+      })
+    setCards((prev) => [...(prev ?? []), ...manual])
+    setSummary((prev) => (prev ? { ...prev, failed: [] } : prev))
+  }
+
+  function addBlankCard() {
+    setCards((prev) => [...(prev ?? []), { ...createManualCard('', null, cefrLevel), key: `manual-${Date.now()}`, edited: false }])
+  }
+
   function updateCard(key: string, patch: Partial<AiFlashcardCard>) {
     setCards((prev) =>
       prev ? prev.map((c) => (c.key === key ? { ...c, ...patch, wordId: null, edited: true } : c)) : prev,
@@ -243,6 +264,7 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'st
         cefrLevel,
         cards: cards.map((c) => ({
           wordId: c.edited ? null : c.wordId,
+          manual: c.origin === 'MANUAL',
           term: c.term,
           partOfSpeech: c.partOfSpeech,
           meaning: c.meaning,
@@ -434,6 +456,7 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'st
 
   // ─── 2단계: 카드 확인·수정 후 저장 ─────────────────────────────────────────
   const totalAssigned = assigned.size
+  const incomplete = countIncompleteCards(cards)
   return (
     <div className="space-y-5">
       {summary && (
@@ -461,17 +484,31 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'st
             ...summary.skipped,
           ]}
         >
-          {summary.failed.some((f) => f.retryable) && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={retryFailed}
-              disabled={retrying}
-              className="h-11 gap-2 bg-white"
-            >
-              {retrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
-              만들지 못한 {summary.failed.filter((f) => f.retryable).length}개 다시 시도
-            </Button>
+          {summary.failed.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {summary.failed.some((f) => f.retryable) && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={retryFailed}
+                  disabled={retrying}
+                  className="h-11 gap-2 bg-white"
+                >
+                  {retrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+                  만들지 못한 {summary.failed.filter((f) => f.retryable).length}개 다시 시도
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addFailedAsManual}
+                disabled={retrying}
+                className="h-11 gap-2 bg-white"
+              >
+                <PenLine className="h-4 w-4" />
+                {summary.failed.length}개 직접 입력해서 추가
+              </Button>
+            </div>
           )}
         </SkippedWordsNotice>
       )}
@@ -498,14 +535,19 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'st
                   value={c.term}
                   onChange={(e) => updateCard(c.key, { term: e.target.value })}
                   aria-label="단어"
+                  placeholder="단어 (필수)"
                   className="h-11 flex-1 text-base font-semibold"
                 />
                 <span
                   className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                    c.origin === 'AI' ? 'bg-accent-purple/10 text-accent-purple' : 'bg-primary-700/10 text-primary-700'
+                    c.origin === 'AI'
+                      ? 'bg-accent-purple/10 text-accent-purple'
+                      : c.origin === 'MANUAL'
+                        ? 'bg-accent-gold/15 text-gray-900'
+                        : 'bg-primary-700/10 text-primary-700'
                   }`}
                 >
-                  {c.edited ? '수정함' : c.origin === 'AI' ? 'AI' : '사전'}
+                  {c.origin === 'MANUAL' ? '직접 입력' : c.edited ? '수정함' : c.origin === 'AI' ? 'AI' : '사전'}
                 </span>
                 <button
                   type="button"
@@ -521,8 +563,8 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'st
                   value={c.meaning}
                   onChange={(e) => updateCard(c.key, { meaning: e.target.value })}
                   aria-label="뜻"
-                  placeholder="뜻"
-                  className="h-11"
+                  placeholder="뜻 (필수)"
+                  className={`h-11 ${c.meaning.trim() ? '' : 'border-accent-gold'}`}
                 />
                 <select
                   value={c.partOfSpeech}
@@ -577,6 +619,11 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'st
             <p className="text-sm text-gray-500">남은 카드가 없습니다.</p>
           </div>
         )}
+        <Button type="button" variant="outline" onClick={addBlankCard} className="h-11 w-full gap-2 border-dashed">
+          <Plus className="h-4 w-4" />
+          카드 직접 추가
+        </Button>
+        <p className="text-xs text-gray-500">직접 입력한 카드는 단어·뜻만 있으면 저장됩니다 (영영풀이·예문은 선택, 크레딧 차감 없음).</p>
       </section>
 
       <section className="rounded-xl border border-gray-200 bg-white p-5 md:p-6 space-y-4">
@@ -667,6 +714,9 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'st
       </section>
 
       {errorBox}
+      {incomplete > 0 && (
+        <p className="text-sm text-accent-red">단어와 뜻을 모두 입력해야 저장할 수 있습니다 (빈 카드 {incomplete}개).</p>
+      )}
 
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
         <Link href={basePath} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 min-h-11">
@@ -676,7 +726,7 @@ export function AiFlashcardBuilder({ classes, initialQuota, basePath, mode = 'st
         <Button
           type="button"
           onClick={handleSave}
-          disabled={saving || cards.length === 0 || !title.trim()}
+          disabled={saving || cards.length === 0 || !title.trim() || incomplete > 0}
           className="h-11 gap-2 bg-primary-700 text-white hover:bg-primary-700/90"
         >
           {saving && <Loader2 className="h-4 w-4 animate-spin" />}

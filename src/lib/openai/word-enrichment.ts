@@ -1,5 +1,5 @@
 import OpenAI from 'openai'
-import { AI_MODEL } from './models'
+import { AI_MODEL, completionParams } from './models'
 
 export type WordEnrichmentInput = {
   term: string
@@ -62,8 +62,7 @@ export async function enrichWord(input: WordEnrichmentInput): Promise<WordEnrich
         content: buildPrompt(input),
       },
     ],
-    temperature: 0.3,
-    max_tokens: 300,
+    ...completionParams(AI_MODEL, { maxTokens: 300, temperature: 0.3 }),
   })
 
   const raw = response.choices[0]?.message?.content
@@ -114,8 +113,7 @@ Return a JSON object with exactly this field:
     model: AI_MODEL,
     response_format: { type: 'json_object' },
     messages: [{ role: 'user', content: prompt }],
-    temperature: 0.3,
-    max_tokens: 100,
+    ...completionParams(AI_MODEL, { maxTokens: 100, temperature: 0.3 }),
   })
 
   const raw = response.choices[0]?.message?.content
@@ -163,8 +161,7 @@ Return a JSON object with exactly this field:
     model: AI_MODEL,
     response_format: { type: 'json_object' },
     messages: [{ role: 'user', content: prompt }],
-    temperature: 0.3,
-    max_tokens: 100,
+    ...completionParams(AI_MODEL, { maxTokens: 100, temperature: 0.3 }),
   })
 
   const raw = response.choices[0]?.message?.content

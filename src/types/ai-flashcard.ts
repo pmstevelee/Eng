@@ -9,8 +9,8 @@ export type AiFlashcardCard = {
   definition: string
   example: string
   oxfordCefr: 'A1' | 'A2' | 'B1' | 'B2' | 'C1'
-  /** DICTIONARY = 공용 사전에서 가져옴(무료), AI = AI가 만듦 */
-  origin: 'DICTIONARY' | 'AI'
+  /** DICTIONARY = 공용 사전에서 가져옴(무료), AI = AI가 만듦, MANUAL = 사용자가 직접 입력 */
+  origin: 'DICTIONARY' | 'AI' | 'MANUAL'
 }
 
 export type AiFlashcardQuotaView = {
