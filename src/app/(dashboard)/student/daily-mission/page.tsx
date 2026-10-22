@@ -9,6 +9,7 @@ import {
   refreshTodayPlanCompletion,
 } from '@/lib/words/daily-plan'
 import { TodayLearningHub } from '@/components/student/today-learning'
+import { getWordStudySessionSummary } from '@/app/(dashboard)/student/words/_actions/study-session'
 
 // 오늘의 학습 — 레벨 맞춤 신규 단어 자동 생성 + 복습 + 문법 미션
 // (기존 '오늘의 미션' 경로를 그대로 사용해 북마크·알림 링크가 깨지지 않게 한다)
@@ -40,6 +41,9 @@ export default async function DailyLearningPage() {
     if (res?.completedNow) summary = await getTodayLearningSummary(studentId)
   }
 
+  // 플래시카드·리콜·스펠 중 중간에 멈춘 단계의 진행 위치
+  const stageProgress = summary.plan?.setId ? await getWordStudySessionSummary(summary.plan.setId) : {}
+
   return (
     <div className="space-y-6">
       <div className="flex items-start gap-4">
@@ -54,7 +58,12 @@ export default async function DailyLearningPage() {
         </div>
       </div>
 
-      <TodayLearningHub summary={summary} canUseWords={canUseWords} bonusXp={DAILY_PLAN_BONUS_XP} />
+      <TodayLearningHub
+        summary={summary}
+        canUseWords={canUseWords}
+        bonusXp={DAILY_PLAN_BONUS_XP}
+        stageProgress={stageProgress}
+      />
     </div>
   )
 }

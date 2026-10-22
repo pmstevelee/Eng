@@ -28,7 +28,12 @@ type StudyChoice = {
   href: string
   done: boolean
   color: string
+  /** 중간에 멈춘 오늘의 진행 (답한 수 / 라운드 단어 수) */
+  inProgress: { done: number; total: number } | null
 }
+
+/** 단계별 오늘 진행 중 상태 (학습 화면에서 저장한 이어하기 위치) */
+export type StageProgressMap = Partial<Record<WordPlanStep, { done: number; total: number }>>
 
 type StepKey = 'review' | 'words' | 'grammar'
 
@@ -51,7 +56,7 @@ function pct(value: number, total: number): number {
   return Math.min(100, Math.round((value / total) * 100))
 }
 
-function buildSteps(summary: TodayLearningSummary): StepView[] {
+function buildSteps(summary: TodayLearningSummary, stageProgress: StageProgressMap = {}): StepView[] {
   const steps: StepView[] = []
   const { plan, grammar } = summary
 
@@ -76,9 +81,9 @@ function buildSteps(summary: TodayLearningSummary): StepView[] {
       plan.setId ? `/student/words/${plan.setId}/${STEP_PATH[step]}?from=daily` : null
     const choices: StudyChoice[] = plan.setId
       ? [
-          { step: 'FLASHCARD', label: '플래시카드', description: '뜻 먼저 익히기', href: setHref('FLASHCARD') ?? '', done: plan.flashcardDone, color: '#7854F7' },
-          { step: 'RECALL', label: '리콜 학습', description: '뜻 고르기', href: setHref('RECALL') ?? '', done: plan.recallDone, color: '#1865F2' },
-          { step: 'SPELL', label: '스펠 학습', description: '철자 입력하기', href: setHref('SPELL') ?? '', done: plan.spellDone, color: '#1FAF54' },
+          { step: 'FLASHCARD', label: '플래시카드', description: '뜻 먼저 익히기', href: setHref('FLASHCARD') ?? '', done: plan.flashcardDone, color: '#7854F7', inProgress: stageProgress.FLASHCARD ?? null },
+          { step: 'RECALL', label: '리콜 학습', description: '뜻 고르기', href: setHref('RECALL') ?? '', done: plan.recallDone, color: '#1865F2', inProgress: stageProgress.RECALL ?? null },
+          { step: 'SPELL', label: '스펠 학습', description: '철자 입력하기', href: setHref('SPELL') ?? '', done: plan.spellDone, color: '#1FAF54', inProgress: stageProgress.SPELL ?? null },
         ]
       : []
     const choosing = plan.flashcardDone && !plan.recallDone && !plan.spellDone
@@ -198,6 +203,7 @@ function StepRow({ step, index, compact }: { step: StepView; index: number; comp
                 {c.label}
               </span>
               <span className="mt-0.5 text-[11px] text-gray-500">{c.description}</span>
+              <ChoiceStatus choice={c} />
             </Link>
           ))}
         </div>
@@ -211,6 +217,26 @@ function StepRow({ step, index, compact }: { step: StepView; index: number; comp
     </Link>
   ) : (
     <div className="rounded-xl border border-gray-200 bg-white p-3">{content}</div>
+  )
+}
+
+/** 학습 방식 버튼의 진행 상태 — 진행 중(이어하기 n/m) · 완료 · 시작 전 */
+function ChoiceStatus({ choice }: { choice: StudyChoice }) {
+  if (choice.inProgress) {
+    const { done, total } = choice.inProgress
+    return (
+      <span className="mt-1.5 flex w-full max-w-[160px] flex-col items-center gap-1">
+        <span className="text-[11px] font-semibold" style={{ color: choice.color }}>
+          이어하기 {done}/{total}
+        </span>
+        <ProgressBar value={done} total={total} color={choice.color} />
+      </span>
+    )
+  }
+  return choice.done ? (
+    <span className="mt-1.5 rounded-full bg-[#1FAF54]/10 px-2 py-0.5 text-[10px] font-bold text-[#1FAF54]">완료</span>
+  ) : (
+    <span className="mt-1.5 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500">시작 전</span>
   )
 }
 
@@ -262,12 +288,14 @@ export function TodayLearningHub({
   summary,
   canUseWords,
   bonusXp,
+  stageProgress,
 }: {
   summary: TodayLearningSummary
   canUseWords: boolean
   bonusXp: number
+  stageProgress?: StageProgressMap
 }) {
-  const steps = buildSteps(summary)
+  const steps = buildSteps(summary, stageProgress)
   const goal = summary.levelGoal
   const bandInfo = goal ? getLevelInfo(goal.band) : null
 
