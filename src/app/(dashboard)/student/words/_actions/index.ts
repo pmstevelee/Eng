@@ -65,6 +65,15 @@ function wordSetAccessWhere(studentId: string, userId: string, academyId: string
   }
 }
 
+/**
+ * 교사·학원장·학생이 직접 만든 세트(AI 플래시카드, 오답 보충 세트)인지.
+ * 이런 세트는 하루 신규 단어 한도·이전 학습 여부와 관계없이 세트 전체를 학습한다.
+ * (오늘의 단어·주간 세트·오답복습 등 학생 소유 자동 세트는 academyId가 없어 제외된다)
+ */
+function isWholeSetStudy(wordSet: { source: string; academyId: string | null }): boolean {
+  return wordSet.source === 'STUDENT' || (wordSet.source === 'AI_GENERATED' && wordSet.academyId !== null)
+}
+
 // ─── 1. getWordSet ─────────────────────────────────────────────────────────────
 
 const GetWordSetSchema = z.object({ setId: z.string().uuid() })
@@ -208,7 +217,10 @@ export async function startWordSet(setId: string): Promise<Result<{ created: num
       }),
     ])
 
-    const remaining = limits.dailyNewWords - todayNewCount
+    // 직접 만든 세트는 단어 수만큼 크레딧을 쓰고 만든 것이므로 한도 없이 전부 시작한다.
+    const remaining = isWholeSetStudy(wordSet)
+      ? wordSet.items.length
+      : limits.dailyNewWords - todayNewCount
     // 한도 소진 시에도 에러 대신 0개 생성 — 오늘 이미 시작한 배치를 그대로 학습하면 된다.
     if (remaining <= 0) return ok({ created: 0 })
 
@@ -287,7 +299,10 @@ export async function getFlashcards(setId: string, _stage?: 'FLASHCARD' | 'RECAL
     // 서버(Vercel)는 UTC로 동작하므로 "오늘"은 KST 0시 기준으로 잡는다.
     const todayStart = kstDateTime(todayKst(), '00:00')
     const notStudiedBeforeToday = (at: Date | null) => at === null || at >= todayStart
+    // 직접 만든 세트는 다른 세트·오늘의 단어에서 이미 배운 단어도 포함해 세트 전체를 보여준다.
+    const wholeSet = isWholeSetStudy(wordSet)
     const batchItems = startedItems.filter((item) => {
+      if (wholeSet) return true
       const p = item.word.wordProgress[0]
       return (
         p.createdAt >= todayStart ||
