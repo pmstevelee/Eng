@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen, ChevronRight, Lock, Layers, ClipboardList, Download, CheckCircle2, Sparkles, Wallet } from 'lucide-react'
+import { BookOpen, ChevronRight, Lock, Layers, ClipboardList, Download, CheckCircle2, Sparkles } from 'lucide-react'
 import { requireStudent } from '@/lib/auth-student'
 import { prisma } from '@/lib/prisma/client'
 import { canUseWordLearning } from '@/lib/words/access-guard'
@@ -466,20 +466,12 @@ export default async function WordsHubPage({ searchParams }: Props) {
         <section className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-bold text-gray-900">내가 만든 플래시카드</h2>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/student/credits"
-                className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-600 hover:border-gray-300"
-              >
-                <Wallet className="h-4 w-4" />내 크레딧
-              </Link>
-              <Link
-                href="/student/words/ai"
-                className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-[#7854F7] px-4 text-sm font-semibold text-white hover:bg-[#7854F7]/90"
-              >
-                <Sparkles className="h-4 w-4" />AI 플래시카드 만들기
-              </Link>
-            </div>
+            <Link
+              href="/student/words/ai"
+              className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-[#7854F7] px-4 text-sm font-semibold text-white hover:bg-[#7854F7]/90"
+            >
+              <Sparkles className="h-4 w-4" />AI 플래시카드 만들기
+            </Link>
           </div>
           {mySets.length === 0 ? (
             <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 py-8 text-center">

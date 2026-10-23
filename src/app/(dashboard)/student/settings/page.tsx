@@ -1,9 +1,13 @@
+import Link from 'next/link'
 import { unstable_cache } from 'next/cache'
+import { ChevronRight, Wallet } from 'lucide-react'
 import { prisma } from '@/lib/prisma/client'
 import { requireStudent } from '@/lib/auth-student'
 import { hasOfficialLevelAssessment } from '@/lib/students/level-test-history'
 import { getAcademyDailyNewWords } from '@/lib/words/access-guard'
 import { resolveDailyNewWords } from '@/lib/words/settings'
+import { parseStudentPaidFeatures } from '@/lib/student-credits/constants'
+import { getStudentFlashcardQuota } from '@/lib/student-credits/wallet'
 import { DailyLimitSetting } from '@/components/words/daily-limit-setting'
 import { WithdrawModal } from './_components/withdraw-modal'
 import { LearningProfileForm } from './_components/learning-profile-form'
@@ -35,6 +39,9 @@ export default async function StudentSettingsPage() {
   if (!user) return null
 
   const academyDailyNewWords = getAcademyDailyNewWords(user.academy?.settingsJson)
+  // 학생 결제 허용 학원만 크레딧 영역 노출
+  const creditEnabled = parseStudentPaidFeatures(user.academy?.settingsJson).aiFlashcard
+  const quota = creditEnabled ? await getStudentFlashcardQuota(studentId) : null
   const academyName = user.academy?.businessName ?? user.academy?.name ?? '-'
 
   return (
@@ -90,6 +97,32 @@ export default async function StudentSettingsPage() {
             academyDefault={academyDailyNewWords}
             isCustom={user.student.dailyNewWordsOverride !== null}
           />
+        </div>
+      )}
+
+      {/* 내 크레딧 (학생 결제 허용 학원) */}
+      {quota && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">내 크레딧</h2>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-2xl font-bold text-gray-900">
+                {quota.creditBalance.toLocaleString('ko-KR')}
+                <span className="ml-1 text-sm font-medium text-gray-500">크레딧</span>
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                AI 플래시카드 이번 달 무료 {quota.remainingFree}/{quota.freeLimit}단어 남음
+              </p>
+            </div>
+            <Link
+              href="/student/credits"
+              className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 hover:border-gray-300"
+            >
+              <Wallet className="h-4 w-4" />
+              충전 · 내역 보기
+              <ChevronRight className="h-4 w-4 text-gray-400" />
+            </Link>
+          </div>
         </div>
       )}
 
