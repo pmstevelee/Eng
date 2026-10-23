@@ -7,6 +7,7 @@ import { CheckCircle2, XCircle, ArrowRight, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { submitWordTest } from '@/app/(dashboard)/student/words/_actions'
+import { submitWeeklyWordTest } from '@/app/(dashboard)/student/words/_actions/weekly-test'
 import type { WordTestQuestion } from '@/lib/words/test-grader'
 
 interface AssignmentMeta {
@@ -21,6 +22,8 @@ interface AssignmentMeta {
 interface Props {
   assignment: AssignmentMeta
   questions: WordTestQuestion[]
+  /** 주간 테스트로 응시할 때 (assignment.id 대신 주간 세트로 제출) */
+  weekly?: { setId: string }
 }
 
 // ─── 원형 타이머 ──────────────────────────────────────────────────────────────
@@ -242,7 +245,7 @@ function SpellQuestion({
 
 // ─── 메인 클라이언트 ─────────────────────────────────────────────────────────
 
-export function WordTestClient({ assignment, questions }: Props) {
+export function WordTestClient({ assignment, questions, weekly }: Props) {
   const router = useRouter()
   const [qIndex, setQIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
@@ -313,7 +316,18 @@ export function WordTestClient({ assignment, questions }: Props) {
 
   async function handleSubmit() {
     setSubmitting(true)
-    const result = await submitWordTest(assignment.id, answers)
+    const directions = Object.fromEntries(questions.map((item) => [item.wordId, item.direction]))
+    if (weekly) {
+      const weeklyResult = await submitWeeklyWordTest({ setId: weekly.setId, answers, directions })
+      if (weeklyResult.ok) {
+        router.push(`/student/words/weekly-test/result/${weeklyResult.data.resultId}`)
+      } else {
+        alert(weeklyResult.error.message)
+        setSubmitting(false)
+      }
+      return
+    }
+    const result = await submitWordTest(assignment.id, answers, directions)
     if (result.ok) {
       router.push(`/student/words/test/${assignment.id}/result`)
     } else {

@@ -706,6 +706,8 @@ export async function getWordTestAssignment(testId: string): Promise<Result<unkn
 export async function submitWordTest(
   testId: string,
   userAnswers: Record<string, string>,
+  /** MIXED 모드는 문항마다 방향이 무작위라 출제된 방향을 함께 받는다 */
+  directions?: Record<string, string>,
 ): Promise<Result<unknown>> {
   try {
     const { studentId, userId, academyId } = await getAuthContext()
@@ -743,7 +745,10 @@ export async function submitWordTest(
     const questions = questionItems.map((item) => {
       const isSpell = assignment.mode === 'SPELL'
       const direction: 'EN_TO_KO' | 'KO_TO_EN' =
-        assignment.mode === 'KO_TO_EN' ? 'KO_TO_EN' : 'EN_TO_KO'
+        assignment.mode === 'KO_TO_EN' ||
+        (assignment.mode === 'MIXED' && directions?.[item.word.id] === 'KO_TO_EN')
+          ? 'KO_TO_EN'
+          : 'EN_TO_KO'
       return {
         wordId: item.word.id,
         term: item.word.term,

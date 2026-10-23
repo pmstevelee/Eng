@@ -2,12 +2,11 @@ import Link from 'next/link'
 import { BookOpen, ChevronRight, Lock, Layers, ClipboardList, Download, CheckCircle2, Sparkles, Wallet } from 'lucide-react'
 import { requireStudent } from '@/lib/auth-student'
 import { prisma } from '@/lib/prisma/client'
-import {
-  canUseWordLearning,
-  getAcademyDailyNewWords,
-} from '@/lib/words/access-guard'
+import { canUseWordLearning } from '@/lib/words/access-guard'
 import { getLevelInfo } from '@/lib/constants/levels'
-import { resolveDailyNewWords } from '@/lib/words/settings'
+import { getOrCreateTodayWordPlan } from '@/lib/words/daily-plan'
+import { getWeeklyWordOverview } from '@/lib/words/weekly-words'
+import { WeeklyWordSets } from '@/components/words/weekly-word-sets'
 import { DailyReviewWidget } from '@/components/words/daily-review-widget'
 import { NavLinkWithLoading } from '@/components/shared/nav-link-with-loading'
 import { ExamCategoryBadges, EXAM_CATEGORY_OPTIONS } from '@/components/words/exam-category-badges'
@@ -20,7 +19,7 @@ async function getWordsHubData(studentId: string, userId: string) {
     select: {
       academyId: true,
       academy: { select: { settingsJson: true } },
-      student: { select: { currentLevel: true, dailyNewWordsOverride: true } },
+      student: { select: { currentLevel: true } },
     },
   })
 
@@ -315,10 +314,12 @@ export default async function WordsHubPage({ searchParams }: Props) {
 
   const studentLevel = user?.student?.currentLevel ?? 1
   const levelInfo = getLevelInfo(studentLevel)
-  const academyDailyNewWords = getAcademyDailyNewWords(user?.academy?.settingsJson)
-  const studentOverride = user?.student?.dailyNewWordsOverride ?? null
-  const dailyNewWords = resolveDailyNewWords(academyDailyNewWords, studentOverride)
   await ensureSystemWordSets()
+  // 오늘의 단어 세트가 아직 없으면 여기서도 만든다 (오늘의 학습 화면을 거치지 않아도 이번 주 목록에 보이도록)
+  await getOrCreateTodayWordPlan({ studentId, userId, academyId }).catch((e) => {
+    console.error('[words-hub] 오늘의 단어 생성 실패', e)
+    return null
+  })
   // 학생 결제 허용 학원(위고업잉글리시)만 학생이 직접 AI 플래시카드를 만든다
   const aiFlashcardEnabled = parseStudentPaidFeatures(user?.academy?.settingsJson).aiFlashcard
   const [wordSets, mySets] = await Promise.all([
@@ -342,7 +343,7 @@ export default async function WordsHubPage({ searchParams }: Props) {
 
   // 배정된 시험 목록과 세트별 학습 진행 현황은 서로 독립적이므로 함께 조회한다.
   const now = new Date()
-  const [pendingTests, progressMap] = await Promise.all([
+  const [pendingTests, progressMap, weeklyOverview] = await Promise.all([
     prisma.wordTestAssignment.findMany({
       where: {
         AND: [
@@ -368,6 +369,7 @@ export default async function WordsHubPage({ searchParams }: Props) {
       take: 5,
     }),
     getWordSetProgressMap(studentId, [...mySets, ...wordSets].map((s) => s.id)),
+    getWeeklyWordOverview(studentId, userId),
   ])
 
   // 추천 세트: 현재 레벨 ±1 범위
@@ -413,7 +415,7 @@ export default async function WordsHubPage({ searchParams }: Props) {
           <div>
             <h2 className="font-bold text-gray-900">오늘의 단어학습</h2>
             <p className="text-xs text-gray-500">
-              현재 레벨: {levelInfo.cefr} ({levelInfo.nameKo}) · 하루 신규 단어 {dailyNewWords}개
+              현재 레벨: {levelInfo.cefr} ({levelInfo.nameKo})
             </p>
           </div>
         </div>
@@ -452,25 +454,12 @@ export default async function WordsHubPage({ searchParams }: Props) {
           )}
 
           {/* 오늘의 복습 위젯 */}
-          <DailyReviewWidget studentId={studentId} newWordHref="#word-sets" />
-
-          {/* 신규 학습 한도 (조정은 설정 메뉴) */}
-          <Link
-            href="/student/settings"
-            className="flex items-center gap-3 rounded-xl border bg-white p-4"
-            style={{ borderColor: '#DDD6FE' }}
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: '#F3F0FF' }}>
-              <Layers className="h-5 w-5" style={{ color: '#7854F7' }} />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-gray-700">하루 신규 단어 한도</p>
-              <p className="text-xs text-gray-500">{dailyNewWords}개/일 · 설정에서 변경</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
-          </Link>
+          <DailyReviewWidget studentId={studentId} newWordHref="#weekly-words" />
         </div>
       </div>
+
+      {/* 이번 주 날짜별 오늘의 단어 + 주간 테스트 (매주 월요일 갱신) */}
+      <WeeklyWordSets overview={weeklyOverview} />
 
       {/* 내가 만든 AI 플래시카드 (학생 결제 허용 학원) */}
       {aiFlashcardEnabled && (
