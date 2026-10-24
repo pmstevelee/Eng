@@ -1,0 +1,2701 @@
+{
+  "version": 1,
+  "description": "본사 문법 커리큘럼 트리(대분류 → 중분류 → 포인트)와 기본 코스 템플릿. 코드는 한 번 정하면 바꾸지 않는다. 시드: npm run seed:grammar-curriculum",
+  "categories": [
+    {
+      "code": "G01",
+      "name": "문장의 기초",
+      "description": "품사, 문장 성분, be동사·일반동사, 문장의 형식, 전치사",
+      "sortOrder": 1,
+      "children": [
+        {
+          "code": "G01-01",
+          "name": "품사",
+          "sortOrder": 1,
+          "points": [
+            {
+              "code": "G01-01-01",
+              "title": "8품사 한눈에 보기",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G01-01-02",
+              "title": "명사·대명사·동사 구별하기",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G01-01-01"
+              ]
+            },
+            {
+              "code": "G01-01-03",
+              "title": "형용사와 부사 구별하기",
+              "levelMin": 1,
+              "levelMax": 3,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G01-01-01"
+              ]
+            },
+            {
+              "code": "G01-01-04",
+              "title": "전치사·접속사·감탄사",
+              "levelMin": 1,
+              "levelMax": 3,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G01-01-01"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G01-02",
+          "name": "문장 성분",
+          "sortOrder": 2,
+          "points": [
+            {
+              "code": "G01-02-01",
+              "title": "주어와 동사",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G01-01-02"
+              ]
+            },
+            {
+              "code": "G01-02-02",
+              "title": "목적어",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G01-02-01"
+              ]
+            },
+            {
+              "code": "G01-02-03",
+              "title": "보어",
+              "levelMin": 1,
+              "levelMax": 3,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G01-02-01"
+              ]
+            },
+            {
+              "code": "G01-02-04",
+              "title": "수식어와 구·절의 개념",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G01-02-01"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G01-03",
+          "name": "be동사와 일반동사",
+          "sortOrder": 3,
+          "points": [
+            {
+              "code": "G01-03-01",
+              "title": "be동사의 현재형",
+              "levelMin": 1,
+              "levelMax": 1,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G01-03-02",
+              "title": "be동사의 부정문·의문문",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G01-03-01"
+              ]
+            },
+            {
+              "code": "G01-03-03",
+              "title": "일반동사 현재형과 3인칭 단수",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 3,
+              "prerequisites": []
+            },
+            {
+              "code": "G01-03-04",
+              "title": "일반동사의 부정문·의문문",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G01-03-03"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G01-04",
+          "name": "문장의 형식",
+          "sortOrder": 4,
+          "points": [
+            {
+              "code": "G01-04-01",
+              "title": "1형식과 2형식",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G01-02-03"
+              ]
+            },
+            {
+              "code": "G01-04-02",
+              "title": "감각동사 + 형용사",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G01-04-01"
+              ]
+            },
+            {
+              "code": "G01-04-03",
+              "title": "3형식",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G01-02-02"
+              ]
+            },
+            {
+              "code": "G01-04-04",
+              "title": "4형식 수여동사",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G01-04-03"
+              ]
+            },
+            {
+              "code": "G01-04-05",
+              "title": "4형식을 3형식으로 바꾸기",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 5,
+              "prerequisites": [
+                "G01-04-04"
+              ]
+            },
+            {
+              "code": "G01-04-06",
+              "title": "5형식과 목적격보어",
+              "levelMin": 3,
+              "levelMax": 3,
+              "sortOrder": 6,
+              "prerequisites": [
+                "G01-04-03"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G01-05",
+          "name": "전치사",
+          "sortOrder": 5,
+          "points": [
+            {
+              "code": "G01-05-01",
+              "title": "시간 전치사 at·on·in",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G01-05-02",
+              "title": "장소 전치사",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 2,
+              "prerequisites": []
+            },
+            {
+              "code": "G01-05-03",
+              "title": "방향·수단 전치사",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G01-05-02"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "G02",
+      "name": "명사·관사·대명사",
+      "description": "명사의 수, 관사, 대명사, 수량 표현",
+      "sortOrder": 2,
+      "children": [
+        {
+          "code": "G02-01",
+          "name": "명사",
+          "sortOrder": 1,
+          "points": [
+            {
+              "code": "G02-01-01",
+              "title": "셀 수 있는 명사와 셀 수 없는 명사",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G02-01-02",
+              "title": "명사의 복수형 규칙",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G02-01-01"
+              ]
+            },
+            {
+              "code": "G02-01-03",
+              "title": "불규칙 복수형",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G02-01-02"
+              ]
+            },
+            {
+              "code": "G02-01-04",
+              "title": "물질명사의 수량 표현",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G02-01-01"
+              ]
+            },
+            {
+              "code": "G02-01-05",
+              "title": "명사의 소유격",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 5,
+              "prerequisites": []
+            }
+          ]
+        },
+        {
+          "code": "G02-02",
+          "name": "관사",
+          "sortOrder": 2,
+          "points": [
+            {
+              "code": "G02-02-01",
+              "title": "부정관사 a/an",
+              "levelMin": 1,
+              "levelMax": 1,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G02-01-01"
+              ]
+            },
+            {
+              "code": "G02-02-02",
+              "title": "정관사 the",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G02-02-01"
+              ]
+            },
+            {
+              "code": "G02-02-03",
+              "title": "관사를 쓰지 않는 경우",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G02-02-02"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G02-03",
+          "name": "대명사",
+          "sortOrder": 3,
+          "points": [
+            {
+              "code": "G02-03-01",
+              "title": "인칭대명사의 격",
+              "levelMin": 1,
+              "levelMax": 1,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G02-03-02",
+              "title": "소유대명사",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G02-03-01"
+              ]
+            },
+            {
+              "code": "G02-03-03",
+              "title": "재귀대명사",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G02-03-01"
+              ]
+            },
+            {
+              "code": "G02-03-04",
+              "title": "지시대명사 this·that",
+              "levelMin": 1,
+              "levelMax": 1,
+              "sortOrder": 4,
+              "prerequisites": []
+            },
+            {
+              "code": "G02-03-05",
+              "title": "비인칭 주어 it",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 5,
+              "prerequisites": []
+            },
+            {
+              "code": "G02-03-06",
+              "title": "부정대명사 one·another·other",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 6,
+              "prerequisites": []
+            },
+            {
+              "code": "G02-03-07",
+              "title": "some·any, all·each·every",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 7,
+              "prerequisites": []
+            },
+            {
+              "code": "G02-03-08",
+              "title": "both·either·neither",
+              "levelMin": 3,
+              "levelMax": 3,
+              "sortOrder": 8,
+              "prerequisites": [
+                "G02-03-07"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G02-04",
+          "name": "수량 표현",
+          "sortOrder": 4,
+          "points": [
+            {
+              "code": "G02-04-01",
+              "title": "many·much·a lot of",
+              "levelMin": 1,
+              "levelMax": 2,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G02-01-01"
+              ]
+            },
+            {
+              "code": "G02-04-02",
+              "title": "(a) few·(a) little",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G02-04-01"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "G03",
+      "name": "동사와 시제",
+      "description": "현재·과거·미래, 진행형, 완료형",
+      "sortOrder": 3,
+      "children": [
+        {
+          "code": "G03-01",
+          "name": "현재·과거·미래",
+          "sortOrder": 1,
+          "points": [
+            {
+              "code": "G03-01-01",
+              "title": "현재시제의 쓰임",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G01-03-03"
+              ]
+            },
+            {
+              "code": "G03-01-02",
+              "title": "과거시제 규칙 변화",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G01-03-03"
+              ]
+            },
+            {
+              "code": "G03-01-03",
+              "title": "과거시제 불규칙 변화",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G03-01-02"
+              ]
+            },
+            {
+              "code": "G03-01-04",
+              "title": "과거시제의 부정문·의문문",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G03-01-02"
+              ]
+            },
+            {
+              "code": "G03-01-05",
+              "title": "미래 will",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 5,
+              "prerequisites": []
+            },
+            {
+              "code": "G03-01-06",
+              "title": "미래 be going to",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 6,
+              "prerequisites": []
+            },
+            {
+              "code": "G03-01-07",
+              "title": "will과 be going to 비교",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 7,
+              "prerequisites": [
+                "G03-01-05",
+                "G03-01-06"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G03-02",
+          "name": "진행형",
+          "sortOrder": 2,
+          "points": [
+            {
+              "code": "G03-02-01",
+              "title": "현재진행형",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G01-03-01"
+              ]
+            },
+            {
+              "code": "G03-02-02",
+              "title": "과거진행형",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G03-02-01"
+              ]
+            },
+            {
+              "code": "G03-02-03",
+              "title": "진행형으로 쓰지 않는 동사",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G03-02-01"
+              ]
+            },
+            {
+              "code": "G03-02-04",
+              "title": "현재진행형으로 나타내는 미래",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G03-02-01"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G03-03",
+          "name": "현재완료",
+          "sortOrder": 3,
+          "points": [
+            {
+              "code": "G03-03-01",
+              "title": "현재완료의 형태",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G03-01-03"
+              ]
+            },
+            {
+              "code": "G03-03-02",
+              "title": "현재완료의 계속·경험",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G03-03-01"
+              ]
+            },
+            {
+              "code": "G03-03-03",
+              "title": "현재완료의 완료·결과",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G03-03-01"
+              ]
+            },
+            {
+              "code": "G03-03-04",
+              "title": "현재완료와 과거시제 비교",
+              "levelMin": 4,
+              "levelMax": 6,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G03-03-02",
+                "G03-03-03"
+              ]
+            },
+            {
+              "code": "G03-03-05",
+              "title": "현재완료진행형",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 5,
+              "prerequisites": [
+                "G03-03-02"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G03-04",
+          "name": "과거완료·미래완료",
+          "sortOrder": 4,
+          "points": [
+            {
+              "code": "G03-04-01",
+              "title": "과거완료",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G03-03-04"
+              ]
+            },
+            {
+              "code": "G03-04-02",
+              "title": "과거완료진행형",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G03-04-01"
+              ]
+            },
+            {
+              "code": "G03-04-03",
+              "title": "미래완료",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G03-03-01"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "G04",
+      "name": "조동사",
+      "description": "능력·허가, 의무·충고, 추측, 조동사 + have p.p.",
+      "sortOrder": 4,
+      "children": [
+        {
+          "code": "G04-01",
+          "name": "능력·허가",
+          "sortOrder": 1,
+          "points": [
+            {
+              "code": "G04-01-01",
+              "title": "can·could",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G04-01-02",
+              "title": "be able to",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G04-01-01"
+              ]
+            },
+            {
+              "code": "G04-01-03",
+              "title": "may·might의 허가",
+              "levelMin": 2,
+              "levelMax": 4,
+              "sortOrder": 3,
+              "prerequisites": []
+            }
+          ]
+        },
+        {
+          "code": "G04-02",
+          "name": "의무·충고·습관",
+          "sortOrder": 2,
+          "points": [
+            {
+              "code": "G04-02-01",
+              "title": "must·have to",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G04-02-02",
+              "title": "must not과 don't have to",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G04-02-01"
+              ]
+            },
+            {
+              "code": "G04-02-03",
+              "title": "should·ought to",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 3,
+              "prerequisites": []
+            },
+            {
+              "code": "G04-02-04",
+              "title": "had better",
+              "levelMin": 3,
+              "levelMax": 5,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G04-02-03"
+              ]
+            },
+            {
+              "code": "G04-02-05",
+              "title": "used to·would",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 5,
+              "prerequisites": []
+            }
+          ]
+        },
+        {
+          "code": "G04-03",
+          "name": "추측",
+          "sortOrder": 3,
+          "points": [
+            {
+              "code": "G04-03-01",
+              "title": "must·can't의 추측",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G04-02-01"
+              ]
+            },
+            {
+              "code": "G04-03-02",
+              "title": "may·might의 추측",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G04-01-03"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G04-04",
+          "name": "조동사 + have p.p.",
+          "sortOrder": 4,
+          "points": [
+            {
+              "code": "G04-04-01",
+              "title": "must have p.p.·can't have p.p.",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G04-03-01",
+                "G03-03-01"
+              ]
+            },
+            {
+              "code": "G04-04-02",
+              "title": "should have p.p.",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G04-02-03",
+                "G03-03-01"
+              ]
+            },
+            {
+              "code": "G04-04-03",
+              "title": "조동사 관용 표현(would rather, may well 등)",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 3,
+              "prerequisites": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "G05",
+      "name": "문장의 종류",
+      "description": "부정문·의문문, 간접의문문, 명령문·감탄문",
+      "sortOrder": 5,
+      "children": [
+        {
+          "code": "G05-01",
+          "name": "부정문·의문문",
+          "sortOrder": 1,
+          "points": [
+            {
+              "code": "G05-01-01",
+              "title": "부정문 만들기",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G01-03-02",
+                "G01-03-04"
+              ]
+            },
+            {
+              "code": "G05-01-02",
+              "title": "Yes/No 의문문",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G01-03-02",
+                "G01-03-04"
+              ]
+            },
+            {
+              "code": "G05-01-03",
+              "title": "의문사 의문문 who·what·which",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G05-01-02"
+              ]
+            },
+            {
+              "code": "G05-01-04",
+              "title": "의문사 의문문 when·where·why·how",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G05-01-02"
+              ]
+            },
+            {
+              "code": "G05-01-05",
+              "title": "How + 형용사/부사 의문문",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 5,
+              "prerequisites": [
+                "G05-01-04"
+              ]
+            },
+            {
+              "code": "G05-01-06",
+              "title": "선택의문문",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 6,
+              "prerequisites": [
+                "G05-01-02"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G05-02",
+          "name": "부가의문문·간접의문문",
+          "sortOrder": 2,
+          "points": [
+            {
+              "code": "G05-02-01",
+              "title": "부가의문문",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G05-01-02"
+              ]
+            },
+            {
+              "code": "G05-02-02",
+              "title": "간접의문문(의문사가 있을 때)",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G05-01-03",
+                "G05-01-04"
+              ]
+            },
+            {
+              "code": "G05-02-03",
+              "title": "간접의문문(if·whether)",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G05-01-02"
+              ]
+            },
+            {
+              "code": "G05-02-04",
+              "title": "do you think + 의문사 어순",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G05-02-02"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G05-03",
+          "name": "명령문·감탄문·제안문",
+          "sortOrder": 3,
+          "points": [
+            {
+              "code": "G05-03-01",
+              "title": "명령문",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G05-03-02",
+              "title": "명령문 + and/or",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G05-03-01"
+              ]
+            },
+            {
+              "code": "G05-03-03",
+              "title": "감탄문 What·How",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 3,
+              "prerequisites": []
+            },
+            {
+              "code": "G05-03-04",
+              "title": "제안문 Let's·Why don't we",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 4,
+              "prerequisites": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "G06",
+      "name": "수동태",
+      "description": "수동태의 기본, 시제·조동사별 수동태, 문형별 수동태",
+      "sortOrder": 6,
+      "children": [
+        {
+          "code": "G06-01",
+          "name": "수동태 기본",
+          "sortOrder": 1,
+          "points": [
+            {
+              "code": "G06-01-01",
+              "title": "능동태와 수동태",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G01-04-03"
+              ]
+            },
+            {
+              "code": "G06-01-02",
+              "title": "수동태의 형태 be + p.p.",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G06-01-01"
+              ]
+            },
+            {
+              "code": "G06-01-03",
+              "title": "by + 행위자와 생략",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G06-01-02"
+              ]
+            },
+            {
+              "code": "G06-01-04",
+              "title": "수동태의 부정문·의문문",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G06-01-02"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G06-02",
+          "name": "시제·조동사와 수동태",
+          "sortOrder": 2,
+          "points": [
+            {
+              "code": "G06-02-01",
+              "title": "과거·미래 수동태",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G06-01-02"
+              ]
+            },
+            {
+              "code": "G06-02-02",
+              "title": "진행형 수동태",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G06-01-02",
+                "G03-02-01"
+              ]
+            },
+            {
+              "code": "G06-02-03",
+              "title": "완료형 수동태",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G06-01-02",
+                "G03-03-01"
+              ]
+            },
+            {
+              "code": "G06-02-04",
+              "title": "조동사 수동태",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G06-01-02"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G06-03",
+          "name": "문형별 수동태",
+          "sortOrder": 3,
+          "points": [
+            {
+              "code": "G06-03-01",
+              "title": "4형식 문장의 수동태",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G06-01-02",
+                "G01-04-04"
+              ]
+            },
+            {
+              "code": "G06-03-02",
+              "title": "5형식 문장의 수동태",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G06-01-02",
+                "G01-04-06"
+              ]
+            },
+            {
+              "code": "G06-03-03",
+              "title": "지각·사역동사의 수동태",
+              "levelMin": 6,
+              "levelMax": 6,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G06-03-02"
+              ]
+            },
+            {
+              "code": "G06-03-04",
+              "title": "동사구의 수동태",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G06-01-02"
+              ]
+            },
+            {
+              "code": "G06-03-05",
+              "title": "by 이외의 전치사를 쓰는 수동태",
+              "levelMin": 4,
+              "levelMax": 6,
+              "sortOrder": 5,
+              "prerequisites": [
+                "G06-01-03"
+              ]
+            },
+            {
+              "code": "G06-03-06",
+              "title": "It is said that 구문",
+              "levelMin": 6,
+              "levelMax": 6,
+              "sortOrder": 6,
+              "prerequisites": [
+                "G06-01-02"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "G07",
+      "name": "준동사",
+      "description": "to부정사, 원형부정사, 동명사, 분사, 분사구문",
+      "sortOrder": 7,
+      "children": [
+        {
+          "code": "G07-01",
+          "name": "to부정사의 용법",
+          "sortOrder": 1,
+          "points": [
+            {
+              "code": "G07-01-01",
+              "title": "명사적 용법(주어·보어)",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G07-01-02",
+              "title": "명사적 용법(목적어)",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G07-01-01"
+              ]
+            },
+            {
+              "code": "G07-01-03",
+              "title": "의문사 + to부정사",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G07-01-02"
+              ]
+            },
+            {
+              "code": "G07-01-04",
+              "title": "형용사적 용법",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G07-01-01"
+              ]
+            },
+            {
+              "code": "G07-01-05",
+              "title": "부사적 용법(목적·감정의 원인)",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 5,
+              "prerequisites": [
+                "G07-01-01"
+              ]
+            },
+            {
+              "code": "G07-01-06",
+              "title": "부사적 용법(결과·판단의 근거)",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 6,
+              "prerequisites": [
+                "G07-01-05"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G07-02",
+          "name": "to부정사 구문",
+          "sortOrder": 2,
+          "points": [
+            {
+              "code": "G07-02-01",
+              "title": "가주어 it과 진주어 to부정사",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G07-01-01"
+              ]
+            },
+            {
+              "code": "G07-02-02",
+              "title": "to부정사의 의미상 주어 for·of",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G07-02-01"
+              ]
+            },
+            {
+              "code": "G07-02-03",
+              "title": "too ~ to·enough to",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G07-01-05"
+              ]
+            },
+            {
+              "code": "G07-02-04",
+              "title": "목적격보어 to부정사(want O to)",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G07-01-02",
+                "G01-04-06"
+              ]
+            },
+            {
+              "code": "G07-02-05",
+              "title": "seem to·be to 용법",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 5,
+              "prerequisites": [
+                "G07-01-01"
+              ]
+            },
+            {
+              "code": "G07-02-06",
+              "title": "완료부정사와 to부정사의 부정",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 6,
+              "prerequisites": [
+                "G07-02-05"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G07-03",
+          "name": "원형부정사",
+          "sortOrder": 3,
+          "points": [
+            {
+              "code": "G07-03-01",
+              "title": "사역동사 make·have·let",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G07-02-04"
+              ]
+            },
+            {
+              "code": "G07-03-02",
+              "title": "지각동사 + 원형부정사·현재분사",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G07-02-04"
+              ]
+            },
+            {
+              "code": "G07-03-03",
+              "title": "help·get의 목적격보어",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G07-03-01"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G07-04",
+          "name": "동명사",
+          "sortOrder": 4,
+          "points": [
+            {
+              "code": "G07-04-01",
+              "title": "동명사 주어·보어",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G07-04-02",
+              "title": "동명사 목적어",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G07-04-01"
+              ]
+            },
+            {
+              "code": "G07-04-03",
+              "title": "동명사와 to부정사 목적어 비교",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G07-04-02",
+                "G07-01-02"
+              ]
+            },
+            {
+              "code": "G07-04-04",
+              "title": "의미가 달라지는 동사(remember·forget·stop·try)",
+              "levelMin": 5,
+              "levelMax": 7,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G07-04-03"
+              ]
+            },
+            {
+              "code": "G07-04-05",
+              "title": "전치사 + 동명사",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 5,
+              "prerequisites": [
+                "G07-04-01"
+              ]
+            },
+            {
+              "code": "G07-04-06",
+              "title": "동명사 관용 표현",
+              "levelMin": 5,
+              "levelMax": 7,
+              "sortOrder": 6,
+              "prerequisites": [
+                "G07-04-05"
+              ]
+            },
+            {
+              "code": "G07-04-07",
+              "title": "동명사의 의미상 주어·완료형",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 7,
+              "prerequisites": [
+                "G07-04-01"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G07-05",
+          "name": "분사",
+          "sortOrder": 5,
+          "points": [
+            {
+              "code": "G07-05-01",
+              "title": "현재분사와 과거분사",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G07-05-02",
+              "title": "명사를 꾸미는 분사",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G07-05-01"
+              ]
+            },
+            {
+              "code": "G07-05-03",
+              "title": "감정을 나타내는 분사",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G07-05-01"
+              ]
+            },
+            {
+              "code": "G07-05-04",
+              "title": "have + 목적어 + 과거분사",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G07-05-01",
+                "G07-03-01"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G07-06",
+          "name": "분사구문",
+          "sortOrder": 6,
+          "points": [
+            {
+              "code": "G07-06-01",
+              "title": "분사구문 만들기",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G07-05-02"
+              ]
+            },
+            {
+              "code": "G07-06-02",
+              "title": "분사구문의 의미",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G07-06-01"
+              ]
+            },
+            {
+              "code": "G07-06-03",
+              "title": "with + 목적어 + 분사",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G07-06-01"
+              ]
+            },
+            {
+              "code": "G07-06-04",
+              "title": "완료·수동 분사구문",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G07-06-01"
+              ]
+            },
+            {
+              "code": "G07-06-05",
+              "title": "독립분사구문과 비인칭 분사구문",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 5,
+              "prerequisites": [
+                "G07-06-04"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "G08",
+      "name": "형용사·부사·비교",
+      "description": "형용사, 부사, 비교급·최상급, 비교 구문",
+      "sortOrder": 8,
+      "children": [
+        {
+          "code": "G08-01",
+          "name": "형용사",
+          "sortOrder": 1,
+          "points": [
+            {
+              "code": "G08-01-01",
+              "title": "형용사의 쓰임(꾸밈·서술)",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G01-01-03"
+              ]
+            },
+            {
+              "code": "G08-01-02",
+              "title": "-thing·-body + 형용사",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G08-01-01"
+              ]
+            },
+            {
+              "code": "G08-01-03",
+              "title": "형용사의 어순",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G08-01-01"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G08-02",
+          "name": "부사",
+          "sortOrder": 2,
+          "points": [
+            {
+              "code": "G08-02-01",
+              "title": "부사의 형태(-ly)",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G01-01-03"
+              ]
+            },
+            {
+              "code": "G08-02-02",
+              "title": "형용사와 형태가 같은 부사(hard·hardly)",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G08-02-01"
+              ]
+            },
+            {
+              "code": "G08-02-03",
+              "title": "빈도부사의 위치",
+              "levelMin": 2,
+              "levelMax": 3,
+              "sortOrder": 3,
+              "prerequisites": []
+            },
+            {
+              "code": "G08-02-04",
+              "title": "타동사 + 부사의 어순",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 4,
+              "prerequisites": []
+            }
+          ]
+        },
+        {
+          "code": "G08-03",
+          "name": "비교급·최상급",
+          "sortOrder": 3,
+          "points": [
+            {
+              "code": "G08-03-01",
+              "title": "비교급·최상급 만들기",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G08-03-02",
+              "title": "불규칙 비교 변화",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G08-03-01"
+              ]
+            },
+            {
+              "code": "G08-03-03",
+              "title": "원급 비교 as ~ as",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 3,
+              "prerequisites": []
+            },
+            {
+              "code": "G08-03-04",
+              "title": "비교급 + than",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G08-03-01"
+              ]
+            },
+            {
+              "code": "G08-03-05",
+              "title": "최상급 표현",
+              "levelMin": 3,
+              "levelMax": 4,
+              "sortOrder": 5,
+              "prerequisites": [
+                "G08-03-01"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G08-04",
+          "name": "비교 구문",
+          "sortOrder": 4,
+          "points": [
+            {
+              "code": "G08-04-01",
+              "title": "비교급 강조 much·even",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G08-03-04"
+              ]
+            },
+            {
+              "code": "G08-04-02",
+              "title": "배수 비교",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G08-03-03"
+              ]
+            },
+            {
+              "code": "G08-04-03",
+              "title": "the 비교급, the 비교급",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G08-03-04"
+              ]
+            },
+            {
+              "code": "G08-04-04",
+              "title": "비교급 and 비교급",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G08-03-04"
+              ]
+            },
+            {
+              "code": "G08-04-05",
+              "title": "원급·비교급으로 최상급 나타내기",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 5,
+              "prerequisites": [
+                "G08-03-05"
+              ]
+            },
+            {
+              "code": "G08-04-06",
+              "title": "as ~ as possible",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 6,
+              "prerequisites": [
+                "G08-03-03"
+              ]
+            },
+            {
+              "code": "G08-04-07",
+              "title": "라틴어 비교(superior to 등)",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 7,
+              "prerequisites": [
+                "G08-03-04"
+              ]
+            },
+            {
+              "code": "G08-04-08",
+              "title": "비교 관용 표현(no more than 등)",
+              "levelMin": 6,
+              "levelMax": 6,
+              "sortOrder": 8,
+              "prerequisites": [
+                "G08-03-04"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "G09",
+      "name": "접속사",
+      "description": "등위·상관접속사, 명사절, 부사절",
+      "sortOrder": 9,
+      "children": [
+        {
+          "code": "G09-01",
+          "name": "등위·상관접속사",
+          "sortOrder": 1,
+          "points": [
+            {
+              "code": "G09-01-01",
+              "title": "and·but·or·so",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G09-01-02",
+              "title": "both A and B·either A or B",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G09-01-01"
+              ]
+            },
+            {
+              "code": "G09-01-03",
+              "title": "not only A but also B·neither A nor B",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G09-01-02"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G09-02",
+          "name": "명사절",
+          "sortOrder": 2,
+          "points": [
+            {
+              "code": "G09-02-01",
+              "title": "that 명사절",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G09-02-02",
+              "title": "가주어 it + that절",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G09-02-01"
+              ]
+            },
+            {
+              "code": "G09-02-03",
+              "title": "if·whether 명사절",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G09-02-01",
+                "G05-02-03"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G09-03",
+          "name": "부사절",
+          "sortOrder": 3,
+          "points": [
+            {
+              "code": "G09-03-01",
+              "title": "시간 접속사 when·while·before·after·until",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G09-03-02",
+              "title": "as soon as·since",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G09-03-01"
+              ]
+            },
+            {
+              "code": "G09-03-03",
+              "title": "이유 접속사 because·since·as",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 3,
+              "prerequisites": []
+            },
+            {
+              "code": "G09-03-04",
+              "title": "조건 접속사 if·unless",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 4,
+              "prerequisites": []
+            },
+            {
+              "code": "G09-03-05",
+              "title": "시간·조건 부사절의 현재시제",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 5,
+              "prerequisites": [
+                "G09-03-01",
+                "G09-03-04"
+              ]
+            },
+            {
+              "code": "G09-03-06",
+              "title": "양보 접속사 though·even if",
+              "levelMin": 5,
+              "levelMax": 7,
+              "sortOrder": 6,
+              "prerequisites": []
+            },
+            {
+              "code": "G09-03-07",
+              "title": "목적·결과 so that·so ~ that",
+              "levelMin": 5,
+              "levelMax": 7,
+              "sortOrder": 7,
+              "prerequisites": []
+            },
+            {
+              "code": "G09-03-08",
+              "title": "접속사와 전치사 구별(because와 because of)",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 8,
+              "prerequisites": [
+                "G09-03-03"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "G10",
+      "name": "관계사",
+      "description": "관계대명사, 관계부사, 복합관계사",
+      "sortOrder": 10,
+      "children": [
+        {
+          "code": "G10-01",
+          "name": "관계대명사",
+          "sortOrder": 1,
+          "points": [
+            {
+              "code": "G10-01-01",
+              "title": "관계대명사의 개념",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G10-01-02",
+              "title": "주격 관계대명사 who·which·that",
+              "levelMin": 4,
+              "levelMax": 5,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G10-01-01"
+              ]
+            },
+            {
+              "code": "G10-01-03",
+              "title": "목적격 관계대명사와 생략",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G10-01-02"
+              ]
+            },
+            {
+              "code": "G10-01-04",
+              "title": "소유격 관계대명사 whose",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G10-01-02"
+              ]
+            },
+            {
+              "code": "G10-01-05",
+              "title": "관계대명사 that만 쓰는 경우",
+              "levelMin": 5,
+              "levelMax": 6,
+              "sortOrder": 5,
+              "prerequisites": [
+                "G10-01-02"
+              ]
+            },
+            {
+              "code": "G10-01-06",
+              "title": "관계대명사 what",
+              "levelMin": 5,
+              "levelMax": 7,
+              "sortOrder": 6,
+              "prerequisites": [
+                "G10-01-03"
+              ]
+            },
+            {
+              "code": "G10-01-07",
+              "title": "전치사 + 관계대명사",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 7,
+              "prerequisites": [
+                "G10-01-03"
+              ]
+            },
+            {
+              "code": "G10-01-08",
+              "title": "관계대명사의 계속적 용법",
+              "levelMin": 6,
+              "levelMax": 8,
+              "sortOrder": 8,
+              "prerequisites": [
+                "G10-01-02"
+              ]
+            },
+            {
+              "code": "G10-01-09",
+              "title": "주격 관계대명사 + be동사 생략",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 9,
+              "prerequisites": [
+                "G10-01-02",
+                "G07-05-02"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G10-02",
+          "name": "관계부사",
+          "sortOrder": 2,
+          "points": [
+            {
+              "code": "G10-02-01",
+              "title": "관계부사 when·where",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G10-01-07"
+              ]
+            },
+            {
+              "code": "G10-02-02",
+              "title": "관계부사 why·how",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G10-02-01"
+              ]
+            },
+            {
+              "code": "G10-02-03",
+              "title": "관계부사의 계속적 용법과 관계대명사 비교",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G10-02-01",
+                "G10-01-08"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G10-03",
+          "name": "복합관계사",
+          "sortOrder": 3,
+          "points": [
+            {
+              "code": "G10-03-01",
+              "title": "복합관계대명사 whoever·whatever",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G10-01-06"
+              ]
+            },
+            {
+              "code": "G10-03-02",
+              "title": "복합관계부사 whenever·wherever·however",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G10-02-01"
+              ]
+            },
+            {
+              "code": "G10-03-03",
+              "title": "유사관계대명사 as·than·but",
+              "levelMin": 8,
+              "levelMax": 8,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G10-01-02"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "G11",
+      "name": "가정법",
+      "description": "가정법 과거·과거완료, 혼합가정법, I wish·as if",
+      "sortOrder": 11,
+      "children": [
+        {
+          "code": "G11-01",
+          "name": "가정법 과거·과거완료",
+          "sortOrder": 1,
+          "points": [
+            {
+              "code": "G11-01-01",
+              "title": "조건문과 가정법의 차이",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G09-03-04"
+              ]
+            },
+            {
+              "code": "G11-01-02",
+              "title": "가정법 과거",
+              "levelMin": 6,
+              "levelMax": 7,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G11-01-01"
+              ]
+            },
+            {
+              "code": "G11-01-03",
+              "title": "가정법 과거완료",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G11-01-02",
+                "G03-04-01"
+              ]
+            },
+            {
+              "code": "G11-01-04",
+              "title": "혼합가정법",
+              "levelMin": 8,
+              "levelMax": 9,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G11-01-03"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G11-02",
+          "name": "여러 가지 가정법",
+          "sortOrder": 2,
+          "points": [
+            {
+              "code": "G11-02-01",
+              "title": "I wish 가정법",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G11-01-02"
+              ]
+            },
+            {
+              "code": "G11-02-02",
+              "title": "as if 가정법",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G11-01-02"
+              ]
+            },
+            {
+              "code": "G11-02-03",
+              "title": "It's time 가정법",
+              "levelMin": 8,
+              "levelMax": 9,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G11-01-02"
+              ]
+            },
+            {
+              "code": "G11-02-04",
+              "title": "without·but for 가정법",
+              "levelMin": 8,
+              "levelMax": 9,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G11-01-03"
+              ]
+            },
+            {
+              "code": "G11-02-05",
+              "title": "if 생략과 도치",
+              "levelMin": 8,
+              "levelMax": 9,
+              "sortOrder": 5,
+              "prerequisites": [
+                "G11-01-03"
+              ]
+            },
+            {
+              "code": "G11-02-06",
+              "title": "가정법 미래 should·were to",
+              "levelMin": 8,
+              "levelMax": 9,
+              "sortOrder": 6,
+              "prerequisites": [
+                "G11-01-02"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "G12",
+      "name": "특수구문·일치",
+      "description": "수 일치, 시제 일치·화법, 강조·도치·생략, 기타 구문",
+      "sortOrder": 12,
+      "children": [
+        {
+          "code": "G12-01",
+          "name": "수 일치",
+          "sortOrder": 1,
+          "points": [
+            {
+              "code": "G12-01-01",
+              "title": "주어와 동사의 수 일치",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G12-01-02",
+              "title": "수식어가 붙은 주어의 수 일치",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G12-01-01"
+              ]
+            },
+            {
+              "code": "G12-01-03",
+              "title": "상관접속사·부분 표현의 수 일치",
+              "levelMin": 8,
+              "levelMax": 9,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G12-01-01",
+                "G09-01-03"
+              ]
+            },
+            {
+              "code": "G12-01-04",
+              "title": "the number of·a number of",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 4,
+              "prerequisites": [
+                "G12-01-01"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G12-02",
+          "name": "시제 일치·화법",
+          "sortOrder": 2,
+          "points": [
+            {
+              "code": "G12-02-01",
+              "title": "시제 일치와 예외",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G03-04-01"
+              ]
+            },
+            {
+              "code": "G12-02-02",
+              "title": "평서문의 간접화법",
+              "levelMin": 8,
+              "levelMax": 9,
+              "sortOrder": 2,
+              "prerequisites": [
+                "G12-02-01"
+              ]
+            },
+            {
+              "code": "G12-02-03",
+              "title": "의문문·명령문의 간접화법",
+              "levelMin": 8,
+              "levelMax": 9,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G12-02-02",
+                "G05-02-02"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "G12-03",
+          "name": "강조·도치·생략",
+          "sortOrder": 3,
+          "points": [
+            {
+              "code": "G12-03-01",
+              "title": "It is ~ that 강조구문",
+              "levelMin": 8,
+              "levelMax": 9,
+              "sortOrder": 1,
+              "prerequisites": [
+                "G09-02-02"
+              ]
+            },
+            {
+              "code": "G12-03-02",
+              "title": "do 강조와 재귀대명사 강조",
+              "levelMin": 7,
+              "levelMax": 8,
+              "sortOrder": 2,
+              "prerequisites": []
+            },
+            {
+              "code": "G12-03-03",
+              "title": "부정어 도치",
+              "levelMin": 8,
+              "levelMax": 10,
+              "sortOrder": 3,
+              "prerequisites": []
+            },
+            {
+              "code": "G12-03-04",
+              "title": "장소 부사구 도치와 so·neither 도치",
+              "levelMin": 8,
+              "levelMax": 10,
+              "sortOrder": 4,
+              "prerequisites": []
+            },
+            {
+              "code": "G12-03-05",
+              "title": "생략과 대동사",
+              "levelMin": 8,
+              "levelMax": 10,
+              "sortOrder": 5,
+              "prerequisites": []
+            },
+            {
+              "code": "G12-03-06",
+              "title": "삽입과 동격",
+              "levelMin": 9,
+              "levelMax": 10,
+              "sortOrder": 6,
+              "prerequisites": []
+            }
+          ]
+        },
+        {
+          "code": "G12-04",
+          "name": "기타 구문",
+          "sortOrder": 4,
+          "points": [
+            {
+              "code": "G12-04-01",
+              "title": "무생물 주어 구문",
+              "levelMin": 8,
+              "levelMax": 10,
+              "sortOrder": 1,
+              "prerequisites": []
+            },
+            {
+              "code": "G12-04-02",
+              "title": "부분부정과 이중부정",
+              "levelMin": 8,
+              "levelMax": 10,
+              "sortOrder": 2,
+              "prerequisites": []
+            },
+            {
+              "code": "G12-04-03",
+              "title": "병렬 구조",
+              "levelMin": 9,
+              "levelMax": 10,
+              "sortOrder": 3,
+              "prerequisites": [
+                "G09-01-01"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "courses": [
+    {
+      "name": "초등 기초",
+      "description": "품사·문장 성분부터 be동사·일반동사, 기본 시제까지 문장을 만드는 기초",
+      "targetLevel": 2,
+      "points": [
+        "G01-01-01",
+        "G01-01-02",
+        "G01-01-03",
+        "G01-01-04",
+        "G01-02-01",
+        "G01-02-02",
+        "G01-03-01",
+        "G01-03-02",
+        "G01-03-03",
+        "G01-03-04",
+        "G01-05-01",
+        "G01-05-02",
+        "G02-01-01",
+        "G02-01-02",
+        "G02-01-03",
+        "G02-01-05",
+        "G02-02-01",
+        "G02-02-02",
+        "G02-03-01",
+        "G02-03-02",
+        "G02-03-04",
+        "G02-03-05",
+        "G02-04-01",
+        "G03-01-01",
+        "G03-01-02",
+        "G03-01-03",
+        "G03-01-05",
+        "G03-02-01",
+        "G04-01-01",
+        "G05-01-01",
+        "G05-01-02",
+        "G05-01-03",
+        "G05-01-04",
+        "G05-03-01",
+        "G05-03-04",
+        "G08-01-01",
+        "G08-02-03"
+      ],
+      "sortOrder": 1
+    },
+    {
+      "name": "중1 문법",
+      "description": "문장의 형식, 시제, 조동사 기초, 의문문, 비교의 기본",
+      "targetLevel": 3,
+      "points": [
+        "G01-02-03",
+        "G01-02-04",
+        "G01-04-01",
+        "G01-04-02",
+        "G01-04-03",
+        "G01-04-04",
+        "G01-04-05",
+        "G01-04-06",
+        "G01-05-03",
+        "G02-01-04",
+        "G02-02-03",
+        "G02-03-03",
+        "G02-03-06",
+        "G02-03-07",
+        "G02-03-08",
+        "G02-04-02",
+        "G03-01-01",
+        "G03-01-02",
+        "G03-01-03",
+        "G03-01-04",
+        "G03-01-05",
+        "G03-01-06",
+        "G03-01-07",
+        "G03-02-01",
+        "G03-02-02",
+        "G03-02-03",
+        "G03-02-04",
+        "G04-01-01",
+        "G04-01-02",
+        "G04-01-03",
+        "G04-02-01",
+        "G04-02-02",
+        "G04-02-03",
+        "G05-01-05",
+        "G05-01-06",
+        "G05-02-01",
+        "G05-03-02",
+        "G05-03-03",
+        "G08-01-02",
+        "G08-01-03",
+        "G08-02-01",
+        "G08-02-02",
+        "G08-03-01",
+        "G08-03-02",
+        "G08-03-03",
+        "G08-03-04",
+        "G08-03-05"
+      ],
+      "sortOrder": 2
+    },
+    {
+      "name": "중2 문법",
+      "description": "현재완료, to부정사·동명사, 수동태, 접속사, 관계대명사 기초",
+      "targetLevel": 5,
+      "points": [
+        "G03-03-01",
+        "G03-03-02",
+        "G03-03-03",
+        "G03-03-04",
+        "G04-02-04",
+        "G04-02-05",
+        "G04-03-01",
+        "G04-03-02",
+        "G05-02-02",
+        "G05-02-03",
+        "G05-02-04",
+        "G06-01-01",
+        "G06-01-02",
+        "G06-01-03",
+        "G06-01-04",
+        "G06-02-01",
+        "G06-03-05",
+        "G07-01-01",
+        "G07-01-02",
+        "G07-01-03",
+        "G07-01-04",
+        "G07-01-05",
+        "G07-01-06",
+        "G07-04-01",
+        "G07-04-02",
+        "G07-04-03",
+        "G07-04-05",
+        "G08-02-04",
+        "G08-04-01",
+        "G08-04-02",
+        "G08-04-06",
+        "G09-01-01",
+        "G09-01-02",
+        "G09-02-01",
+        "G09-03-01",
+        "G09-03-03",
+        "G09-03-04",
+        "G10-01-01",
+        "G10-01-02"
+      ],
+      "sortOrder": 3
+    },
+    {
+      "name": "중3 문법",
+      "description": "완료형 심화, 준동사 구문, 분사, 관계사, 가정법 입문",
+      "targetLevel": 6,
+      "points": [
+        "G03-03-05",
+        "G03-04-01",
+        "G03-04-03",
+        "G06-02-02",
+        "G06-02-03",
+        "G06-02-04",
+        "G06-03-01",
+        "G06-03-02",
+        "G06-03-04",
+        "G07-02-01",
+        "G07-02-02",
+        "G07-02-03",
+        "G07-02-04",
+        "G07-03-01",
+        "G07-03-02",
+        "G07-03-03",
+        "G07-04-04",
+        "G07-04-06",
+        "G07-05-01",
+        "G07-05-02",
+        "G07-05-03",
+        "G07-05-04",
+        "G08-04-03",
+        "G08-04-04",
+        "G08-04-05",
+        "G08-04-07",
+        "G09-01-03",
+        "G09-02-02",
+        "G09-02-03",
+        "G09-03-02",
+        "G09-03-05",
+        "G09-03-06",
+        "G09-03-07",
+        "G10-01-03",
+        "G10-01-04",
+        "G10-01-05",
+        "G10-01-06",
+        "G10-02-01",
+        "G11-01-01",
+        "G11-01-02"
+      ],
+      "sortOrder": 4
+    },
+    {
+      "name": "고1 총정리",
+      "description": "G01~G12 전 범위의 핵심 포인트를 한 번에 정리",
+      "targetLevel": 7,
+      "points": [
+        "G01-04-01",
+        "G01-04-04",
+        "G01-04-06",
+        "G02-03-03",
+        "G02-03-06",
+        "G03-03-04",
+        "G03-03-05",
+        "G03-04-01",
+        "G03-04-03",
+        "G04-03-01",
+        "G04-04-01",
+        "G04-04-02",
+        "G05-02-02",
+        "G05-02-04",
+        "G06-02-03",
+        "G06-03-01",
+        "G06-03-02",
+        "G06-03-06",
+        "G07-01-06",
+        "G07-02-01",
+        "G07-02-02",
+        "G07-02-04",
+        "G07-02-05",
+        "G07-03-01",
+        "G07-03-02",
+        "G07-04-03",
+        "G07-04-04",
+        "G07-05-02",
+        "G07-05-03",
+        "G07-06-01",
+        "G07-06-02",
+        "G08-04-03",
+        "G08-04-05",
+        "G09-02-02",
+        "G09-03-05",
+        "G09-03-07",
+        "G09-03-08",
+        "G10-01-03",
+        "G10-01-06",
+        "G10-01-07",
+        "G10-01-08",
+        "G10-02-01",
+        "G11-01-02",
+        "G11-01-03",
+        "G11-02-01",
+        "G11-02-02",
+        "G12-01-01",
+        "G12-02-01",
+        "G12-03-01"
+      ],
+      "sortOrder": 5
+    },
+    {
+      "name": "고2 심화",
+      "description": "접속사·관계사·가정법·특수구문(G09~G12) 중심의 심화 과정",
+      "targetLevel": 9,
+      "points": [
+        "G07-02-06",
+        "G07-04-07",
+        "G07-06-03",
+        "G07-06-04",
+        "G07-06-05",
+        "G09-01-03",
+        "G09-03-06",
+        "G09-03-08",
+        "G10-01-07",
+        "G10-01-08",
+        "G10-01-09",
+        "G10-02-01",
+        "G10-02-02",
+        "G10-02-03",
+        "G10-03-01",
+        "G10-03-02",
+        "G10-03-03",
+        "G11-01-01",
+        "G11-01-02",
+        "G11-01-03",
+        "G11-01-04",
+        "G11-02-01",
+        "G11-02-02",
+        "G11-02-03",
+        "G11-02-04",
+        "G11-02-05",
+        "G11-02-06",
+        "G12-01-01",
+        "G12-01-02",
+        "G12-01-03",
+        "G12-01-04",
+        "G12-02-01",
+        "G12-02-02",
+        "G12-02-03",
+        "G12-03-01",
+        "G12-03-02",
+        "G12-03-03",
+        "G12-03-04",
+        "G12-03-05",
+        "G12-03-06",
+        "G12-04-01",
+        "G12-04-02",
+        "G12-04-03"
+      ],
+      "sortOrder": 6
+    }
+  ]
+}
