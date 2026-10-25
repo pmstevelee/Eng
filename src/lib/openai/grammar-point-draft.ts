@@ -17,7 +17,7 @@ import {
 const REQUEST_TIMEOUT_MS = 90_000
 
 /** 학생이 이해하기 쉬운 설명·예문 기준 — 초안과 분석이 같이 쓴다 (강의 스크립트도 이 기준을 따를 것) */
-const EASY_EXPLANATION_RULES = `- 대상은 한국 중학생. 설명·해석·이유는 모두 한국어, 문법 용어는 국내 교과서 용어(예: 과거분사, 관계대명사)를 쓰고 처음 나올 때 쉬운 말로 풀어 준다.
+export const EASY_EXPLANATION_RULES = `- 대상은 한국 중학생. 설명·해석·이유는 모두 한국어, 문법 용어는 국내 교과서 용어(예: 과거분사, 관계대명사)를 쓰고 처음 나올 때 쉬운 말로 풀어 준다.
 - 한 문장에 한 가지만 말한다. 규칙은 "언제 쓰는지 → 어떻게 만드는지 → 주의할 점" 순서로 쌓는다.
 - 예문은 지정한 레벨 범위의 쉬운 어휘·짧은 문장으로 쓴다. 어려운 단어·고유명사·관용어는 쓰지 않는다.
 - 예문은 학교·가족·친구·취미 같은 일상 주제로, 이 문법 포인트가 분명히 드러나야 한다. 이 포인트 밖의 문법은 넣지 않는다.
@@ -42,11 +42,17 @@ function failureReason(e: unknown): string {
   return 'AI 응답을 처리하지 못했습니다. 다시 시도해 주세요.'
 }
 
-/** JSON 응답 호출. 설정 모델이 거부하면 기본 모델로 한 번 재시도 */
-async function requestJson(
+/**
+ * JSON 응답 호출. 설정 모델이 거부하면 기본 모델로 한 번 재시도.
+ * 기본은 관리자 콘텐츠 모델(AI_CONTENT_MODEL) — 문항 태깅처럼 단순·대량 작업은 model로 AI_MODEL을 넘긴다.
+ */
+export async function requestJson(
   messages: ChatMessages,
   maxTokens: number,
+  opts: { model?: string; temperature?: number } = {},
 ): Promise<{ ok: true; json: unknown } | { ok: false; error: string }> {
+  const primaryModel = opts.model ?? AI_CONTENT_MODEL
+  const temperature = opts.temperature ?? 0.5
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) return { ok: false, error: 'OPENAI_API_KEY가 설정되지 않았습니다.' }
   const openai = new OpenAI({ apiKey, timeout: REQUEST_TIMEOUT_MS, maxRetries: 1 })
@@ -56,17 +62,17 @@ async function requestJson(
       model,
       response_format: { type: 'json_object' },
       messages,
-      ...completionParams(model, { maxTokens, temperature: 0.5 }),
+      ...completionParams(model, { maxTokens, temperature }),
     })
 
   let raw: string | null | undefined
   try {
     let completion
     try {
-      completion = await call(AI_CONTENT_MODEL)
+      completion = await call(primaryModel)
     } catch (e) {
-      if (AI_CONTENT_MODEL === AI_FALLBACK_MODEL || !isRejectedByModel(e)) throw e
-      console.error('[grammar-content] 모델 거부, 기본 모델로 재시도', { model: AI_CONTENT_MODEL })
+      if (primaryModel === AI_FALLBACK_MODEL || !isRejectedByModel(e)) throw e
+      console.error('[grammar-content] 모델 거부, 기본 모델로 재시도', { model: primaryModel })
       completion = await call(AI_FALLBACK_MODEL)
     }
     raw = completion.choices[0]?.message?.content
@@ -83,7 +89,7 @@ async function requestJson(
   }
 }
 
-function levelLabel(level: number): string {
+export function levelLabel(level: number): string {
   const info = getLevelInfo(level)
   return `Level ${info.level}(${info.cefr})`
 }

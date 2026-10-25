@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ChevronRight, SpellCheck } from 'lucide-react'
+import { ChevronRight, SpellCheck, Tags } from 'lucide-react'
 import type { GrammarPointStatus } from '@/generated/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { getAdminGrammarTree, type GrammarTreePoint } from '@/lib/grammar/curriculum'
@@ -88,6 +88,13 @@ export default async function AdminGrammarPage({ searchParams }: { searchParams:
             문항이 {MIN_PUBLISH_QUESTIONS}개 이상 필요합니다.
           </p>
         </div>
+        <Link
+          href="/admin/grammar/tagging"
+          className="ml-auto inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          <Tags className="h-4 w-4 text-[#1865F2]" />
+          문항 태깅
+        </Link>
       </div>
 
       <WorkflowGuide />
