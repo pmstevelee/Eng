@@ -25,7 +25,7 @@ const VOICES_CACHE_MS = 60 * 60 * 1000
 /** 언어별 읽기 속도 — 영어 예문은 샘플처럼 조금 느리게 */
 export const ELEVENLABS_SPEED: Record<VideoLang, number> = { ko: 1, en: EN_SPEECH_RATE }
 
-export type ElevenLabsErrorKind = 'NO_KEY' | 'BAD_KEY' | 'QUOTA' | 'TEMPORARY' | 'VOICE' | 'BAD_REQUEST'
+export type ElevenLabsErrorKind = 'NO_KEY' | 'BAD_KEY' | 'QUOTA' | 'PAID_PLAN' | 'TEMPORARY' | 'VOICE' | 'BAD_REQUEST'
 
 export class ElevenLabsError extends Error {
   constructor(
@@ -42,6 +42,7 @@ const MESSAGES: Record<ElevenLabsErrorKind, string> = {
   NO_KEY: 'ElevenLabs API 키가 설정되지 않았습니다. 서버 환경 변수 ELEVENLABS_API_KEY를 확인해 주세요.',
   BAD_KEY: 'ElevenLabs API 키가 올바르지 않습니다. 키를 다시 확인해 주세요.',
   QUOTA: 'ElevenLabs 사용 한도를 넘었습니다. 요금제의 남은 글자 수를 확인해 주세요.',
+  PAID_PLAN: '이 목소리는 ElevenLabs 유료 요금제(또는 크레딧 충전)에서만 API로 쓸 수 있습니다. 요금제를 올리거나 기본 목소리를 골라 주세요.',
   TEMPORARY: 'ElevenLabs 일시 오류입니다. 잠시 후 다시 시도해 주세요.',
   VOICE: '선택한 목소리를 찾을 수 없습니다. 목소리를 다시 골라 주세요.',
   BAD_REQUEST: 'ElevenLabs가 요청을 처리하지 못했습니다. 문장 내용을 확인해 주세요.',
@@ -104,6 +105,8 @@ export async function toElevenLabsError(res: Response): Promise<ElevenLabsError>
   const detail = await readErrorDetail(res)
   const code = `${detail.code ?? ''} ${detail.status ?? ''} ${detail.type ?? ''}`.toLowerCase()
   const s = res.status
+  // 무료 요금제에서 라이브러리 목소리를 쓰면 402 paid_plan_required — 글자 한도와 다르다
+  if (code.includes('paid_plan')) return new ElevenLabsError('PAID_PLAN', MESSAGES.PAID_PLAN, s)
   if (s === 402 || code.includes('quota') || code.includes('insufficient') || code.includes('payment')) {
     return new ElevenLabsError('QUOTA', MESSAGES.QUOTA, s)
   }

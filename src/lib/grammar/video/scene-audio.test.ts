@@ -169,6 +169,14 @@ describe('ElevenLabs 오류 메시지', () => {
     await expect(synthesizeSegment('안녕하세요', 'ko', 'v')).rejects.toMatchObject({ kind: 'QUOTA' })
   })
 
+  it('무료 요금제 + 라이브러리 목소리는 PAID_PLAN (한도 초과와 구분)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ detail: { type: 'payment_required', code: 'paid_plan_required', status: 'payment_required' } }), { status: 402 })),
+    )
+    await expect(synthesizeSegment('안녕하세요', 'ko', 'v')).rejects.toMatchObject({ kind: 'PAID_PLAN' })
+  })
+
   it('잘못된 키는 BAD_KEY', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ detail: { code: 'invalid_api_key' } }), { status: 401 })))
     await expect(synthesizeSegment('안녕하세요', 'ko', 'v')).rejects.toMatchObject({ kind: 'BAD_KEY' })
