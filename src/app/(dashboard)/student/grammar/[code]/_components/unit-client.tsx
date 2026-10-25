@@ -6,13 +6,14 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
-import { Check, PlayCircle } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { GrammarConceptView } from '@/components/grammar/grammar-concept-view'
 import { GRAMMAR_STEP_LABEL, type GrammarStep } from '@/lib/grammar/constants'
 import type { GrammarCheckResult, GrammarUnitData } from '@/lib/grammar/unit-queries'
 import { cn } from '@/lib/utils'
 import { completeConcept, startGrammarUnit } from '../actions'
 import { CheckStep } from './check-step'
+import { LectureStep } from './lecture-step'
 import { PracticeStep } from './practice-step'
 import { ResultStep } from './result-step'
 
@@ -162,21 +163,7 @@ export function GrammarUnitClient({ data, studentId }: Props) {
       )}
 
       {step === 'LECTURE' && data.lecture && (
-        // 강의 플레이어는 2-4에서 붙인다 — 지금은 자리만
-        <div className="flex flex-col items-center rounded-xl border border-gray-200 bg-white px-6 py-12 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#EEF4FF]">
-            <PlayCircle className="h-7 w-7 text-[#1865F2]" />
-          </div>
-          <h3 className="mt-4 text-lg font-bold text-gray-900">{data.lecture.title}</h3>
-          <p className="mt-1 text-sm text-gray-500">강의 화면을 준비하고 있어요.</p>
-          <button
-            type="button"
-            onClick={() => moveTo('PRACTICE')}
-            className="mt-6 inline-flex min-h-[44px] items-center rounded-lg bg-[#1865F2] px-5 text-sm font-semibold text-white hover:bg-[#1558d6]"
-          >
-            연습 문제로
-          </button>
-        </div>
+        <LectureStep code={code} studentId={studentId} lecture={data.lecture} onNext={() => moveTo('PRACTICE')} />
       )}
 
       {(step === 'PRACTICE' || step === 'CHECK') && isRefreshing && (

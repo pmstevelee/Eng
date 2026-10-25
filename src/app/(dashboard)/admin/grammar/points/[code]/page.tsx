@@ -10,10 +10,12 @@ import { isValidGrammarCode } from '@/lib/grammar/code'
 import { parseGrammarCommonErrors, parseGrammarExamples, parseGrammarRules } from '@/types/grammar'
 import { getOpenGaps, getScriptsForPoint } from '@/lib/grammar/source-scripts'
 import { getPointQuestions } from '@/lib/grammar/questions'
+import { getPointLectures } from '@/lib/grammar/lectures'
 import { cn } from '@/lib/utils'
 import { ScriptPanel } from '../../_components/script-panel'
 import { PointEditor, type PrerequisiteOption } from './_components/point-editor'
 import { PointQuestions } from './_components/point-questions'
+import { PointLectures } from './_components/point-lectures'
 
 export default async function AdminGrammarPointPage({
   params,
@@ -27,7 +29,7 @@ export default async function AdminGrammarPointPage({
 
   const code = decodeURIComponent(params.code)
   if (!isValidGrammarCode(code, 3)) notFound()
-  const tab = searchParams.tab === 'questions' ? 'questions' : 'concept'
+  const tab = searchParams.tab === 'questions' || searchParams.tab === 'lecture' ? searchParams.tab : 'concept'
 
   const [point, tree, counts] = await Promise.all([
     getGrammarPointByCode(code),
@@ -36,13 +38,14 @@ export default async function AdminGrammarPointPage({
   ])
   if (!point || point.academyId !== null) notFound()
 
-  const [scripts, gaps, questions] = await Promise.all([
+  const [scripts, gaps, questions, lectures] = await Promise.all([
     getScriptsForPoint(point.id, {
       categoryId: point.category.id,
       parentCategoryId: point.parentCategory?.id ?? null,
     }),
     getOpenGaps({ pointIds: [point.id] }),
     getPointQuestions(point.id),
+    getPointLectures(point.id),
   ])
   const unverifiedCount = questions.filter((q) => q.isActive && !q.isVerified).length
   const tabs = [
@@ -55,6 +58,11 @@ export default async function AdminGrammarPointPage({
       value: 'questions',
       label: `문항 ${questions.filter((q) => q.isActive).length}`,
       href: `/admin/grammar/points/${point.code}?tab=questions`,
+    },
+    {
+      value: 'lecture',
+      label: `강의 ${lectures.length}`,
+      href: `/admin/grammar/points/${point.code}?tab=lecture`,
     },
   ] as const
 
@@ -113,7 +121,9 @@ export default async function AdminGrammarPointPage({
         ))}
       </nav>
 
-      {tab === 'questions' ? (
+      {tab === 'lecture' ? (
+        <PointLectures pointId={point.id} lectures={lectures} />
+      ) : tab === 'questions' ? (
         <PointQuestions
           pointId={point.id}
           questions={questions}

@@ -11,6 +11,7 @@ import { prisma } from '@/lib/prisma/client'
 import { requireStudent } from '@/lib/auth-student'
 import { CHECK_SIZE, PRACTICE_SIZE, XP_PASS, isGrammarStep, type GrammarStep } from '@/lib/grammar/constants'
 import { applyGrammarEvent, toScore, type GrammarEvent } from '@/lib/grammar/mastery-engine'
+import { saveLectureProgress } from '@/lib/grammar/lectures'
 import {
   normalizeSubmitted,
   runGrammarSideEffects as runSideEffects,
@@ -121,6 +122,34 @@ export async function completeConcept(code: string): Promise<ActionResult<{ next
   }
   revalidateGrammar()
   return { ok: true, nextStep: result.progress.currentStep }
+}
+
+// ─── 강의 ────────────────────────────────────────────────────────────────────
+
+/**
+ * 강의 시청률 저장 — 플레이어가 일시정지·종료·페이지 이탈 때만 부른다.
+ * 저장값은 줄어들지 않고, 80% 이상이면 강의 완료. 통과 판정에는 영향 없음.
+ */
+export async function saveGrammarLectureProgress(
+  code: string,
+  lectureId: string,
+  watchedPercent: number,
+): Promise<ActionResult<{ watchedPercent: number; completed: boolean }>> {
+  if (typeof lectureId !== 'string' || !lectureId || typeof watchedPercent !== 'number') {
+    return { ok: false, error: '잘못된 요청이에요.' }
+  }
+  const { studentId, academyId, point } = await loadContext(code)
+  if (!point) return { ok: false, error: NOT_FOUND }
+
+  try {
+    const saved = await saveLectureProgress({ lectureId, watchedPercent, studentId, academyId, grammarPointId: point.id })
+    if (!saved) return { ok: false, error: '강의를 찾을 수 없어요. 새로고침해 주세요.' }
+    if (saved.completed) revalidateGrammar()
+    return { ok: true, ...saved }
+  } catch (error) {
+    console.error('[grammar-unit] 강의 시청 저장 실패:', error)
+    return { ok: false, error: SAVE_FAILED }
+  }
 }
 
 // ─── 연습 ────────────────────────────────────────────────────────────────────

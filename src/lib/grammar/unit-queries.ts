@@ -22,6 +22,7 @@ import { isGrammarStep, type GrammarStep } from './constants'
 import { initialProgress, isPassedMastery, type GrammarMastery, type MasteryProgress } from './mastery-engine'
 import { pickQuestionIds, questionSetSeed } from './question-picker'
 import { parseGrammarLearningSettings, type GrammarLearningSettings } from './settings'
+import { lectureVisibleWhere, studentLectureSelect, toStudentLecture, type StudentLecture } from './lectures'
 
 // ─── 문항 풀 ─────────────────────────────────────────────────────────────────
 
@@ -300,8 +301,8 @@ export interface GrammarUnitData {
   point: GrammarUnitPoint
   progress: GrammarUnitProgress
   settings: GrammarLearningSettings
-  /** 강의 (2-4에서 플레이어 연결) — 학원 강의 우선, 없으면 본사 강의 */
-  lecture: { id: string; title: string; isAcademy: boolean } | null
+  /** 강의 — 학원 강의 우선, 없으면 본사 강의, 둘 다 없으면 null(강의 단계 없음) */
+  lecture: StudentLecture | null
   practice: PracticeQuestion[]
   check: PracticeQuestion[]
   /** 직전 확인 테스트 결과 (결과 단계 복원용) */
@@ -317,8 +318,8 @@ export async function getGrammarUnitData(studentId: string, academyId: string, c
     findPool({ code }, academyId),
     loadGrammarSettings(academyId),
     prisma.grammarLecture.findMany({
-      where: { grammarPoint: { code }, isActive: true, OR: [{ academyId: null }, { academyId }] },
-      select: { id: true, title: true, academyId: true },
+      where: { grammarPoint: { code }, ...lectureVisibleWhere(academyId) },
+      select: studentLectureSelect(studentId),
       take: 2,
     }),
     prisma.grammarAttempt.findFirst({
@@ -366,8 +367,6 @@ export async function getGrammarUnitData(studentId: string, academyId: string, c
   }
 
   const passedPrereq = new Set(prereqProgress.filter((p) => isPassedMastery(p.state)).map((p) => p.grammarPointId))
-  const academyLecture = lectures.find((l) => l.academyId === academyId)
-  const lecture = academyLecture ?? lectures.find((l) => l.academyId === null) ?? null
 
   return {
     point: {
@@ -392,7 +391,7 @@ export async function getGrammarUnitData(studentId: string, academyId: string, c
       nextReviewAt: shown.nextReviewAt ? shown.nextReviewAt.toISOString() : null,
     },
     settings,
-    lecture: lecture ? { id: lecture.id, title: lecture.title, isAcademy: lecture.academyId !== null } : null,
+    lecture: toStudentLecture(lectures, academyId),
     practice: toClient(practiceIds),
     check: toClient(checkIds),
     lastResult,
