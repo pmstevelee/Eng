@@ -6,7 +6,7 @@
 - Supabase (PostgreSQL) + Supabase Auth
 - Prisma ORM
 - Vercel 배포
-- OpenAI API (GPT-4o-mini)
+- OpenAI API (기본 gpt-4o-mini — 모델명은 `src/lib/openai/models.ts`의 `AI_MODEL`/`AI_CONTENT_MODEL` 사용, 하드코딩 금지)
 
 ## 코드 규칙
 - 모든 컴포넌트는 TypeScript (.tsx)
@@ -153,3 +153,20 @@
 - 적응형 테스트 완료 시 `recordLevelTestUsage()` + `updateQuestionQuality()` 호출로 사용 이력·품질점수 갱신 (`src/app/(dashboard)/student/tests/[sessionId]/adaptive-actions.ts`의 `recordAdaptiveUsage()`)
 - 관리자 대시보드: `/admin/question-bank` (히트맵, AI 자동 생성, 품질 관리)
 - 출처(source): SYSTEM / AI_GENERATED / AI_SHARED / TEACHER_CREATED
+
+## 문법학습관리 — 관리자 콘텐츠 제작 (모든 학원·학생 공용 문법 강의)
+- 목적: 본사 관리자가 만든 문법 커리큘럼·강의를 모든 학원 학생에게 제공. 관리자 화면 `/admin/grammar`
+- 콘텐츠의 기준은 **관리자 원고**(`GrammarSourceScript`). AI는 원고를 바탕으로 포인트 개념 정리(요약·규칙·예문·흔한 오류)와 강의 스크립트를 만든다. 원고와 다른 설명을 하지 않는다
+  - 원고는 대분류·중분류·포인트 어디에나 붙는다. 포인트에 쓰는 원고 = 포인트 + 중분류 + 대분류 원고(`isActive`만), `getScriptsForPoint()` / `getScriptsForCategory()` (`src/lib/grammar/source-scripts.ts`)
+  - 원고는 덮어쓰지 않고 보완 원고를 새 행으로 쌓는다(지속 업데이트). 빼려면 `isActive=false`
+  - AI 프롬프트에 넣을 때는 `formatScriptsForPrompt()`(포인트 → 중분류 → 대분류, 글자 수 상한)
+- **보완 요청 루프**(`GrammarContentGap`): AI가 원고에서 설명·예외·예문이 부족한 부분을 찾으면 OPEN 요청으로 남기고, 관리자가 "보완 원고 쓰기"로 답하면 RESOLVED → AI 초안을 다시 만든다
+  - 중분류 "원고 AI 분석"(origin ANALYZE)과 포인트 "AI 초안 생성"(origin DRAFT) 두 곳에서 생긴다. 재실행 시 같은 origin의 OPEN 요청만 교체
+  - 강의 스크립트 생성(2-5)도 같은 원고·같은 보완 요청 구조를 쓴다 (별도 원고 저장소를 만들지 말 것)
+- 학생이 이해하기 쉬운 설명 기준(`EASY_EXPLANATION_RULES`, `src/lib/openai/grammar-point-draft.ts`) — 강의 스크립트 프롬프트도 이 기준을 그대로 쓴다
+  - 대상 한국 중학생, 설명은 한국어·교과서 용어, 한 문장에 한 가지, "언제 쓰는지 → 만드는 법 → 주의할 점" 순서
+  - 예문은 **여러 개(포인트당 6~10개)**, 긍정·부정·의문문, 여러 주어·시제를 섞고 강조(highlight) 포함. 레벨 범위 어휘만
+  - "반드시/항상"은 예외가 없을 때만, 해석은 번역투 줄이기
+- 관리자가 쉽게 만들 수 있게: 목록·분류 화면에 제작 순서 안내(`WorkflowGuide`), AI 결과는 폼에 채우고 저장은 관리자가(포인트 편집), 일괄 생성은 초안(DRAFT) 포인트만·포인트 하나씩 호출(서버 시간 제한 회피)
+- AI 모델: 관리자 콘텐츠 생성은 `AI_CONTENT_MODEL`(env `OPENAI_CONTENT_MODEL`, 없으면 `OPENAI_MODEL`, 없으면 gpt-4o-mini). gpt-5·o 계열은 `completionParams()` 필수, 400/404면 `AI_FALLBACK_MODEL`로 재시도
+- 공개 조건: 검수 완료 문항(본사 공용·isVerified·isActive) 22개 이상 (`MIN_PUBLISH_QUESTIONS`)

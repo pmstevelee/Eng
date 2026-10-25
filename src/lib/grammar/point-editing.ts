@@ -98,14 +98,104 @@ export function getStatusChangeBlockReason(
   return null
 }
 
-/** AI 응답(JSON 파싱 결과) 검증 — 요약 1개, 규칙·예문·흔한 오류가 각각 1개 이상이어야 통과 */
-export function parseGrammarPointDraft(raw: unknown): GrammarPointDraft | null {
+/** AI 초안에 요구하는 최소 예문 수 (프롬프트는 6~10개를 요청) */
+export const DRAFT_MIN_EXAMPLES = 4
+
+/** AI가 원고에서 부족하다고 본 부분 — 관리자에게 보완 원고를 요청한다 */
+export interface GrammarContentGapDraft {
+  /** 무엇이 부족한지 */
+  message: string
+  /** 관리자에게 요청하는 보완 내용 */
+  request: string
+}
+
+function parseGapList(value: unknown): GrammarContentGapDraft[] {
+  if (!Array.isArray(value)) return []
+  return value.flatMap((item) => {
+    if (typeof item === 'string' && item.trim()) return [{ message: item.trim().slice(0, 500), request: '' }]
+    if (!item || typeof item !== 'object') return []
+    const g = item as Record<string, unknown>
+    const message = typeof g.message === 'string' ? g.message.trim() : ''
+    const request = typeof g.request === 'string' ? g.request.trim() : ''
+    if (!message) return []
+    return [{ message: message.slice(0, 500), request: request.slice(0, 500) }]
+  }).slice(0, 5)
+}
+
+/**
+ * AI 응답(JSON 파싱 결과) 검증 — 요약 1개, 규칙·흔한 오류 1개 이상, 예문 DRAFT_MIN_EXAMPLES개 이상이어야 통과.
+ * gaps(원고에서 부족한 부분)는 선택.
+ */
+export function parseGrammarPointDraft(raw: unknown): (GrammarPointDraft & { gaps: GrammarContentGapDraft[] }) | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
   const r = raw as Record<string, unknown>
   const summary = typeof r.summary === 'string' ? r.summary.trim() : ''
   const rules = parseGrammarRules(r.rules).slice(0, POINT_LIST_MAX)
   const examples = parseGrammarExamples(r.examples).slice(0, POINT_LIST_MAX)
   const commonErrors = parseGrammarCommonErrors(r.commonErrors).slice(0, POINT_LIST_MAX)
-  if (!summary || rules.length === 0 || examples.length === 0 || commonErrors.length === 0) return null
-  return { summary: summary.slice(0, POINT_SUMMARY_MAX), rules, examples, commonErrors }
+  if (!summary || rules.length === 0 || examples.length < DRAFT_MIN_EXAMPLES || commonErrors.length === 0) return null
+  return { summary: summary.slice(0, POINT_SUMMARY_MAX), rules, examples, commonErrors, gaps: parseGapList(r.gaps) }
+}
+
+// ─── 관리자 원고 ─────────────────────────────────────────────────────────────
+
+/** 원고 1건 최대 글자 수 */
+export const SCRIPT_CONTENT_MAX = 20000
+/** AI에 함께 보내는 원고 총 글자 수 상한 */
+export const SCRIPT_PROMPT_MAX = 40000
+
+export interface SourceScriptForPrompt {
+  /** 어디에 붙은 원고인지 (예: "대분류 G06 수동태", "포인트 G06-01-01") */
+  scope: string
+  title: string | null
+  content: string
+}
+
+/**
+ * 원고를 AI 프롬프트용 텍스트로 합친다. 앞쪽(좁은 범위·최신)을 우선 넣고 상한을 넘으면 뒤를 자른다.
+ * 호출하는 쪽에서 우선순위대로 정렬해서 넘길 것.
+ */
+export function formatScriptsForPrompt(scripts: SourceScriptForPrompt[], max = SCRIPT_PROMPT_MAX): string {
+  const parts: string[] = []
+  let used = 0
+  scripts.forEach((s, i) => {
+    if (used >= max) return
+    const header = `[원고 ${i + 1} · ${s.scope}${s.title ? ` · ${s.title}` : ''}]`
+    const room = max - used - header.length - 2
+    if (room <= 0) return
+    const body = s.content.length > room ? `${s.content.slice(0, room)}\n…(이하 생략)` : s.content
+    parts.push(`${header}\n${body}`)
+    used += header.length + body.length + 2
+  })
+  return parts.join('\n\n')
+}
+
+/** 분류 원고 분석 결과 — 포인트별 원고 충분도 */
+export type ScriptCoverage = 'ENOUGH' | 'PARTIAL' | 'MISSING'
+
+export interface PointCoverageResult {
+  code: string
+  coverage: ScriptCoverage
+  gaps: GrammarContentGapDraft[]
+}
+
+/** 분류 원고 분석 AI 응답 검증 — 알려준 포인트 코드만 받는다 */
+export function parseCategoryAnalysis(raw: unknown, pointCodes: string[]): PointCoverageResult[] | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const list = (raw as Record<string, unknown>).points
+  if (!Array.isArray(list)) return null
+  const allowed = new Set(pointCodes)
+  const seen = new Set<string>()
+  const results: PointCoverageResult[] = []
+  for (const item of list) {
+    if (!item || typeof item !== 'object') continue
+    const r = item as Record<string, unknown>
+    const code = typeof r.code === 'string' ? r.code.trim() : ''
+    if (!allowed.has(code) || seen.has(code)) continue
+    const coverage: ScriptCoverage =
+      r.coverage === 'ENOUGH' || r.coverage === 'PARTIAL' || r.coverage === 'MISSING' ? r.coverage : 'PARTIAL'
+    seen.add(code)
+    results.push({ code, coverage, gaps: coverage === 'ENOUGH' ? [] : parseGapList(r.gaps) })
+  }
+  return results
 }

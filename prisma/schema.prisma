@@ -445,6 +445,7 @@ model User {
   attendanceChangeLogs     AttendanceChangeLog[]     @relation("AttendanceChanger")
   keypadRegistrations      KeypadRegistrationCode[]  @relation("KeypadRegistrationCreator")
   createdGrammarLectures   GrammarLecture[]          @relation("GrammarLectureCreator")
+  grammarSourceScripts     GrammarSourceScript[]     @relation("GrammarSourceScriptCreator")
   grammarAssignmentsMade   GrammarAssignment[]       @relation("GrammarAssignmentCreator")
 
   @@unique([authId, academyId])
@@ -2371,6 +2372,8 @@ model GrammarCategory {
   children GrammarCategory[] @relation("GrammarCategoryTree")
   points   GrammarPoint[]
   attempts GrammarAttempt[]
+  scripts  GrammarSourceScript[]
+  gaps     GrammarContentGap[]
 
   @@index([parentId, sortOrder])
   @@map("grammar_categories")
@@ -2413,6 +2416,8 @@ model GrammarPoint {
   progresses     GrammarPointProgress[]
   attempts       GrammarAttempt[]
   tagSuggestions GrammarTagSuggestion[]
+  sourceScripts  GrammarSourceScript[]
+  contentGaps    GrammarContentGap[]
 
   @@index([categoryId, sortOrder])
   @@index([status])
@@ -2605,6 +2610,57 @@ model GrammarAttempt {
 }
 
 /// 기존 문법 문항의 AI 포인트 태깅 제안 — 관리자가 검수 화면에서 확정(ACCEPTED)하면 Question.grammarPointId에 반영
+/// 관리자 원고 — 문법 설명 스크립트. 대분류·중분류 또는 포인트에 붙는다.
+/// AI는 이 원고를 바탕으로 포인트 개념 정리와 강의 스크립트를 만든다. 보완 원고는 덮어쓰지 않고 새 행으로 쌓는다.
+model GrammarSourceScript {
+  id             String   @id @default(uuid())
+  categoryId     String?  @map("category_id")
+  grammarPointId String?  @map("grammar_point_id")
+  /// 원고 이름 (선택, 예: "수동태 기본 원고", "by 생략 보완")
+  title          String?
+  content        String
+  /// 이 원고로 답한 보완 요청 id (선택)
+  gapId          String?  @map("gap_id")
+  /// false면 AI 생성에 쓰지 않는다 (지우지 않고 보관)
+  isActive       Boolean  @default(true) @map("is_active")
+  createdById    String?  @map("created_by_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  category     GrammarCategory? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  grammarPoint GrammarPoint?    @relation(fields: [grammarPointId], references: [id], onDelete: Cascade)
+  createdBy    User?            @relation("GrammarSourceScriptCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([categoryId, createdAt])
+  @@index([grammarPointId, createdAt])
+  @@map("grammar_source_scripts")
+}
+
+/// AI 보완 요청 — 원고에서 설명·예문이 부족한 부분. 관리자가 보완 원고를 올리면 RESOLVED
+model GrammarContentGap {
+  id               String    @id @default(uuid())
+  categoryId       String?   @map("category_id")
+  grammarPointId   String?   @map("grammar_point_id")
+  /// 부족한 내용 (AI 작성, 한국어)
+  message          String
+  /// 관리자에게 요청하는 보완 원고 내용 (AI 작성, 한국어)
+  request          String?
+  /// OPEN | RESOLVED | DISMISSED
+  status           String    @default("OPEN")
+  /// ANALYZE(분류 원고 분석) | DRAFT(포인트 초안 생성) | LECTURE(강의 스크립트 생성)
+  origin           String    @default("ANALYZE")
+  resolvedScriptId String?   @map("resolved_script_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  resolvedAt       DateTime? @map("resolved_at")
+
+  category     GrammarCategory? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  grammarPoint GrammarPoint?    @relation(fields: [grammarPointId], references: [id], onDelete: Cascade)
+
+  @@index([status, categoryId])
+  @@index([status, grammarPointId])
+  @@map("grammar_content_gaps")
+}
+
 model GrammarTagSuggestion {
   id               String    @id @default(uuid())
   questionId       String    @unique @map("question_id")

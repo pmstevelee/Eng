@@ -8,6 +8,8 @@ import { getAdminGrammarTree, getGrammarPointByCode } from '@/lib/grammar/curric
 import { getVerifiedQuestionCounts } from '@/lib/grammar/admin'
 import { isValidGrammarCode } from '@/lib/grammar/code'
 import { parseGrammarCommonErrors, parseGrammarExamples, parseGrammarRules } from '@/types/grammar'
+import { getOpenGaps, getScriptsForPoint } from '@/lib/grammar/source-scripts'
+import { ScriptPanel } from '../../_components/script-panel'
 import { PointEditor, type PrerequisiteOption } from './_components/point-editor'
 
 export default async function AdminGrammarPointPage({ params }: { params: { code: string } }) {
@@ -23,6 +25,11 @@ export default async function AdminGrammarPointPage({ params }: { params: { code
     getVerifiedQuestionCounts(),
   ])
   if (!point || point.academyId !== null) notFound()
+
+  const [scripts, gaps] = await Promise.all([
+    getScriptsForPoint(point.id, { categoryId: point.category.id, parentCategoryId: point.parentCategory?.id ?? null }),
+    getOpenGaps({ pointIds: [point.id] }),
+  ])
 
   const options: PrerequisiteOption[] = tree.flatMap((c) =>
     c.children.flatMap((s) =>
@@ -44,7 +51,10 @@ export default async function AdminGrammarPointPage({ params }: { params: { code
         </Link>
         <p className="text-xs text-gray-400">
           {point.parentCategory ? `${point.parentCategory.name} › ` : ''}
-          {point.category.name} · <span className="font-mono">{point.code}</span>
+          <Link href={`/admin/grammar/categories/${point.category.code}`} className="hover:text-gray-700">
+            {point.category.name}
+          </Link>{' '}
+          · <span className="font-mono">{point.code}</span>
         </p>
       </div>
 
@@ -53,6 +63,7 @@ export default async function AdminGrammarPointPage({ params }: { params: { code
         code={point.code}
         status={point.status}
         verifiedCount={counts.get(point.id) ?? 0}
+        scriptCount={scripts.prompt.length}
         options={options}
         initial={{
           title: point.title,
@@ -64,6 +75,13 @@ export default async function AdminGrammarPointPage({ params }: { params: { code
           commonErrors: parseGrammarCommonErrors(point.commonErrorsJson),
           prerequisiteIds: point.prerequisiteIds,
         }}
+      />
+
+      <ScriptPanel
+        target={{ grammarPointId: point.id }}
+        targetLabel={`포인트 ${point.code} ${point.title}`}
+        scripts={scripts.rows}
+        gaps={gaps}
       />
     </div>
   )

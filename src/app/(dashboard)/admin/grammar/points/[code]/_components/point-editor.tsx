@@ -139,6 +139,7 @@ export function PointEditor({
   code,
   status,
   verifiedCount,
+  scriptCount,
   options,
   initial,
 }: {
@@ -146,6 +147,8 @@ export function PointEditor({
   code: string
   status: GrammarPointStatus
   verifiedCount: number
+  /** AI 생성에 쓰이는 관리자 원고 수 (포인트·중분류·대분류) */
+  scriptCount: number
   options: PrerequisiteOption[]
   initial: GrammarPointFormInput
 }) {
@@ -204,6 +207,11 @@ export function PointEditor({
   }
 
   function handleGenerate() {
+    if (
+      scriptCount === 0 &&
+      !window.confirm('이 포인트에 쓸 관리자 원고가 없습니다. 원고 없이 일반 문법 지식으로 초안을 만들까요?\n(아래 "관리자 원고"에서 원고를 먼저 올리는 것을 권장합니다)')
+    )
+      return
     const hasContent = input.summary || input.rules.length || input.examples.length || input.commonErrors.length
     if (hasContent && !window.confirm('지금 입력된 요약·규칙·예문·흔한 오류를 AI 초안으로 바꿉니다. 계속할까요?')) return
     setMessage(null)
@@ -225,7 +233,13 @@ export function PointEditor({
         examples: res.draft.examples.map((e) => ({ en: e.en, ko: e.ko, highlight: e.highlight ?? '' })),
         commonErrors: res.draft.commonErrors.map((e) => ({ ...e })),
       }))
-      setMessage({ kind: 'ok', text: 'AI 초안을 채웠습니다. 내용을 확인·수정한 뒤 저장해 주세요.' })
+      setMessage({
+        kind: 'ok',
+        text: `원고 ${res.scriptCount}건을 바탕으로 AI 초안을 채웠습니다. 확인·수정한 뒤 저장해 주세요.${
+          res.gaps.length ? ` 원고에서 부족한 부분 ${res.gaps.length}건은 아래 "AI 보완 요청"에 남겼습니다.` : ''
+        }`,
+      })
+      router.refresh()
     })
   }
 
@@ -268,7 +282,8 @@ export function PointEditor({
             <GrammarStatusBadge status={status} />
           </div>
           <p className="mt-1 text-sm text-gray-500">
-            검수 완료 문항{' '}
+            원고 <span className={cn('font-semibold', scriptCount === 0 ? 'text-[#8A5A00]' : 'text-gray-900')}>{scriptCount}건</span>
+            {' · '}검수 완료 문항{' '}
             <span
               className={cn(
                 'font-semibold tabular-nums',

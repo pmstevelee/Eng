@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  formatScriptsForPrompt,
   getPublishBlockReason,
+  parseCategoryAnalysis,
   getStatusChangeBlockReason,
   parseGrammarPointDraft,
   validateGrammarPointInput,
@@ -67,15 +69,71 @@ describe('parseGrammarPointDraft', () => {
     const d = parseGrammarPointDraft({
       summary: '요약',
       rules: [{ text: '규칙' }],
-      examples: [{ en: 'I am a boy.', ko: '나는 소년이다.' }],
+      examples: Array.from({ length: 5 }, (_, i) => ({ en: `I am a boy ${i}.`, ko: '나는 소년이다.' })),
       commonErrors: [{ wrong: 'I is', correct: 'I am', reason: '주어 일치' }],
+      gaps: [{ message: '부정문 설명 없음', request: '부정문 예시를 보내 주세요' }, '의문문 없음', { request: 'x' }],
     })
     expect(d?.rules).toHaveLength(1)
+    expect(d?.gaps).toEqual([
+      { message: '부정문 설명 없음', request: '부정문 예시를 보내 주세요' },
+      { message: '의문문 없음', request: '' },
+    ])
+  })
+
+  it('예문이 너무 적으면 null', () => {
+    expect(
+      parseGrammarPointDraft({
+        summary: '요약',
+        rules: [{ text: '규칙' }],
+        examples: [{ en: 'I am a boy.', ko: '나는 소년이다.' }],
+        commonErrors: [{ wrong: 'I is', correct: 'I am', reason: '주어 일치' }],
+      }),
+    ).toBeNull()
   })
 
   it('형식이 틀리면 null', () => {
     expect(parseGrammarPointDraft(null)).toBeNull()
     expect(parseGrammarPointDraft([])).toBeNull()
     expect(parseGrammarPointDraft({ summary: '요약', rules: 'x', examples: [], commonErrors: [] })).toBeNull()
+  })
+})
+
+describe('formatScriptsForPrompt', () => {
+  it('순서대로 합치고 상한을 넘으면 자른다', () => {
+    const text = formatScriptsForPrompt(
+      [
+        { scope: '포인트 G06-01-01', title: '기본', content: 'a'.repeat(50) },
+        { scope: '대분류 G06', title: null, content: 'b'.repeat(500) },
+      ],
+      200,
+    )
+    expect(text.startsWith('[원고 1 · 포인트 G06-01-01 · 기본]')).toBe(true)
+    expect(text).toContain('[원고 2 · 대분류 G06]')
+    expect(text).toContain('…(이하 생략)')
+    expect(text.length).toBeLessThan(230)
+  })
+})
+
+describe('parseCategoryAnalysis', () => {
+  it('알려준 코드만, 중복 없이 받는다', () => {
+    const r = parseCategoryAnalysis(
+      {
+        points: [
+          { code: 'G06-01-01', coverage: 'ENOUGH', gaps: [{ message: '무시됨' }] },
+          { code: 'G06-01-02', coverage: 'MISSING', gaps: [{ message: '원고 없음', request: '보내 주세요' }] },
+          { code: 'G06-01-02', coverage: 'ENOUGH' },
+          { code: 'G99-01-01', coverage: 'MISSING' },
+        ],
+      },
+      ['G06-01-01', 'G06-01-02'],
+    )
+    expect(r).toEqual([
+      { code: 'G06-01-01', coverage: 'ENOUGH', gaps: [] },
+      { code: 'G06-01-02', coverage: 'MISSING', gaps: [{ message: '원고 없음', request: '보내 주세요' }] },
+    ])
+  })
+
+  it('형식이 틀리면 null', () => {
+    expect(parseCategoryAnalysis({ points: 'x' }, [])).toBeNull()
   })
 })

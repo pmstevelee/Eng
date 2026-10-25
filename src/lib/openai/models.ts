@@ -4,6 +4,12 @@
 /** 기본 텍스트 모델 (채점·문제 생성·리포트·단어 보강 등) */
 export const AI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini'
 
+/**
+ * 관리자 콘텐츠 제작용 모델 (문법 개념 정리·원고 분석·강의 스크립트).
+ * 학생 수만큼 반복 호출되지 않으므로 더 좋은 모델을 따로 지정할 수 있다. 미설정 시 AI_MODEL.
+ */
+export const AI_CONTENT_MODEL = process.env.OPENAI_CONTENT_MODEL || AI_MODEL
+
 /** 이미지 입력이 필요한 요청용 모델 (지문 이미지가 있는 유사문제 생성) */
 export const AI_VISION_MODEL = process.env.OPENAI_VISION_MODEL || 'gpt-4o'
 

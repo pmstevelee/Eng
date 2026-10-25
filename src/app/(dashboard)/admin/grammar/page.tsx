@@ -7,11 +7,13 @@ import type { GrammarPointStatus } from '@/generated/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { getAdminGrammarTree, type GrammarTreePoint } from '@/lib/grammar/curriculum'
 import { getVerifiedQuestionCounts } from '@/lib/grammar/admin'
+import { getScriptAndGapCounts } from '@/lib/grammar/source-scripts'
 import { MIN_PUBLISH_QUESTIONS } from '@/lib/grammar/constants'
 import { GrammarStatusBadge } from '@/components/grammar/grammar-status-badge'
 import { cn } from '@/lib/utils'
+import { WorkflowGuide } from './_components/workflow-guide'
 
-type Filter = 'ALL' | GrammarPointStatus | 'SHORT'
+type Filter = 'ALL' | GrammarPointStatus | 'SHORT' | 'GAPS'
 
 const FILTERS: { value: Filter; label: string }[] = [
   { value: 'ALL', label: '전체' },
@@ -19,6 +21,7 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: 'REVIEW', label: '검수 대기' },
   { value: 'PUBLISHED', label: '공개' },
   { value: 'SHORT', label: '문항 부족' },
+  { value: 'GAPS', label: '보완 요청' },
 ]
 
 function parseFilter(value: string | undefined): Filter {
@@ -30,11 +33,18 @@ export default async function AdminGrammarPage({ searchParams }: { searchParams:
   if (!user || user.role !== 'SUPER_ADMIN') redirect('/login')
 
   const filter = parseFilter(searchParams.status)
-  const [tree, counts] = await Promise.all([getAdminGrammarTree(), getVerifiedQuestionCounts()])
+  const [tree, counts, sg] = await Promise.all([getAdminGrammarTree(), getVerifiedQuestionCounts(), getScriptAndGapCounts()])
 
   const countOf = (p: GrammarTreePoint) => counts.get(p.id) ?? 0
+  const gapsOf = (p: GrammarTreePoint) => sg.gapsByPoint.get(p.id) ?? 0
   const matches = (p: GrammarTreePoint) =>
-    filter === 'ALL' ? true : filter === 'SHORT' ? countOf(p) < MIN_PUBLISH_QUESTIONS : p.status === filter
+    filter === 'ALL'
+      ? true
+      : filter === 'SHORT'
+        ? countOf(p) < MIN_PUBLISH_QUESTIONS
+        : filter === 'GAPS'
+          ? gapsOf(p) > 0
+          : p.status === filter
 
   const allPoints = tree.flatMap((c) => c.children.flatMap((s) => s.points))
   const summary = {
@@ -43,6 +53,9 @@ export default async function AdminGrammarPage({ searchParams }: { searchParams:
     REVIEW: allPoints.filter((p) => p.status === 'REVIEW').length,
     PUBLISHED: allPoints.filter((p) => p.status === 'PUBLISHED').length,
     short: allPoints.filter((p) => countOf(p) < MIN_PUBLISH_QUESTIONS).length,
+    gaps: allPoints.reduce((n, p) => n + gapsOf(p), 0),
+    scripts: Array.from(sg.scriptsByCategory.values()).reduce((a, b) => a + b, 0) +
+      Array.from(sg.scriptsByPoint.values()).reduce((a, b) => a + b, 0),
   }
 
   const filtered = tree
@@ -58,6 +71,8 @@ export default async function AdminGrammarPage({ searchParams }: { searchParams:
     { label: '검수 대기', value: summary.REVIEW, color: 'text-[#8A5A00]' },
     { label: '공개', value: summary.PUBLISHED, color: 'text-[#15803D]' },
     { label: `문항 ${MIN_PUBLISH_QUESTIONS}개 미만`, value: summary.short, color: 'text-[#D92916]' },
+    { label: '관리자 원고', value: summary.scripts, color: 'text-[#1865F2]' },
+    { label: '보완 요청', value: summary.gaps, color: 'text-[#8A5A00]' },
   ]
 
   return (
@@ -69,13 +84,15 @@ export default async function AdminGrammarPage({ searchParams }: { searchParams:
         <div>
           <h1 className="text-2xl font-bold text-gray-900">문법 커리큘럼</h1>
           <p className="text-sm text-gray-500">
-            본사 공용 문법 포인트의 개념 정리를 작성·검수하고 공개합니다. 공개하려면 검수 완료 문항이{' '}
-            {MIN_PUBLISH_QUESTIONS}개 이상 필요합니다.
+            관리자 원고를 바탕으로 AI가 개념 정리·강의를 만들고, 부족한 곳은 보완을 요청합니다. 공개하려면 검수 완료
+            문항이 {MIN_PUBLISH_QUESTIONS}개 이상 필요합니다.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <WorkflowGuide />
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
         {statCards.map((s) => (
           <div key={s.label} className="rounded-xl border border-gray-200 bg-white px-4 py-3">
             <p className="text-xs text-gray-500">{s.label}</p>
@@ -97,14 +114,14 @@ export default async function AdminGrammarPage({ searchParams }: { searchParams:
             )}
           >
             {f.label}
-            {f.value === 'REVIEW' && summary.REVIEW > 0 && (
+            {((f.value === 'REVIEW' && summary.REVIEW > 0) || (f.value === 'GAPS' && summary.gaps > 0)) && (
               <span
                 className={cn(
                   'ml-1.5 rounded-full px-1.5 text-xs',
                   filter === f.value ? 'bg-white/20' : 'bg-[#FFF4D6] text-[#8A5A00]',
                 )}
               >
-                {summary.REVIEW}
+                {f.value === 'GAPS' ? summary.gaps : summary.REVIEW}
               </span>
             )}
           </Link>
@@ -137,6 +154,12 @@ export default async function AdminGrammarPage({ searchParams }: { searchParams:
                   <span className="font-mono text-xs text-gray-400">{cat.code}</span>
                   <span className="font-semibold text-gray-900">{cat.name}</span>
                   <span className="ml-auto text-xs text-gray-500">{catPoints}개</span>
+                  <Link
+                    href={`/admin/grammar/categories/${cat.code}`}
+                    className="inline-flex min-h-[36px] items-center rounded-lg border border-gray-200 px-3 text-xs text-gray-700 hover:bg-gray-50"
+                  >
+                    원고 {sg.scriptsByCategory.get(cat.id) ?? 0}
+                  </Link>
                 </summary>
                 <div className="space-y-2 border-t border-gray-100 px-3 py-3">
                   {cat.children.map((sub) => (
@@ -146,6 +169,17 @@ export default async function AdminGrammarPage({ searchParams }: { searchParams:
                         <span className="font-mono text-xs text-gray-400">{sub.code}</span>
                         <span className="text-sm font-medium text-gray-800">{sub.name}</span>
                         <span className="ml-auto text-xs text-gray-500">{sub.points.length}개</span>
+                        <Link
+                          href={`/admin/grammar/categories/${sub.code}`}
+                          className="inline-flex min-h-[36px] items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 hover:bg-gray-50"
+                        >
+                          원고 {sg.scriptsByCategory.get(sub.id) ?? 0}
+                          {sub.points.some((p) => gapsOf(p) > 0) && (
+                            <span className="rounded-full bg-[#FFF4D6] px-1.5 font-semibold text-[#8A5A00]">
+                              보완 {sub.points.reduce((n, p) => n + gapsOf(p), 0)}
+                            </span>
+                          )}
+                        </Link>
                       </summary>
                       <ul className="divide-y divide-gray-100 rounded-b-lg bg-white">
                         {sub.points.map((p) => {
@@ -158,6 +192,11 @@ export default async function AdminGrammarPage({ searchParams }: { searchParams:
                               >
                                 <span className="w-24 shrink-0 font-mono text-xs text-gray-400">{p.code}</span>
                                 <span className="min-w-0 flex-1 truncate text-sm text-gray-900">{p.title}</span>
+                                {gapsOf(p) > 0 && (
+                                  <span className="shrink-0 rounded-full bg-[#FFF4D6] px-2 py-0.5 text-xs font-semibold text-[#8A5A00]">
+                                    보완 {gapsOf(p)}
+                                  </span>
+                                )}
                                 <span className="hidden shrink-0 text-xs text-gray-400 sm:inline">
                                   Lv {p.levelMin}~{p.levelMax}
                                 </span>
