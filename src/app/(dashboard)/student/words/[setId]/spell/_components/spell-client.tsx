@@ -287,13 +287,12 @@ function SpellClientInner({ setId, initialCards, savedSession }: Props) {
 
     // 채점 로직이 순수 함수라 서버 왕복 없이 클라이언트에서 즉시 처리한다 (다음 문제 전환 지연 제거).
     const { correct, nearlyCorrect } = checkSpelling(currentCard.word.term, input)
+    // 한 글자 차이도 오답이다 (안내 문구만 다르게 보여줌) — SRS 품질도 오답과 같게 기록
     const quality = correct
       ? usedHint
         ? QUALITY.SPELL_HINT
         : QUALITY.SPELL_CORRECT
-      : nearlyCorrect
-        ? 4
-        : QUALITY.SPELL_WRONG
+      : QUALITY.SPELL_WRONG
     const ct = currentCard.word.term
 
     setCorrectTerm(ct)
@@ -560,6 +559,14 @@ function SpellClientInner({ setId, initialCards, savedSession }: Props) {
                       {answerState === 'nearly' ? '오답 (철자 한 글자 차이예요)' : '오답'}
                     </p>
                     <DiffView correct={correctTerm} userAnswer={input || '(건너뜀)'} />
+                    <button
+                      type="button"
+                      onClick={() => playAudio(correctTerm, card.word.audioUrl)}
+                      className="mt-2 flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-[#1865F2] hover:text-[#1865F2]/80 transition-colors"
+                    >
+                      <Volume2 className="w-4 h-4" />
+                      정답 발음 듣기
+                    </button>
                   </div>
                 )}
               </motion.div>

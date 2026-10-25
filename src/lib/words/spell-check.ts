@@ -1,6 +1,6 @@
 export interface SpellCheckResult {
   correct: boolean
-  nearlyCorrect: boolean // 편집거리 1 (질 4)
+  nearlyCorrect: boolean // 편집거리 1 (오답이지만 "한 글자 차이" 안내용)
   normalized: {
     answer: string
     term: string

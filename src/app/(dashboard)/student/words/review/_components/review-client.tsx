@@ -346,20 +346,18 @@ function SpellCard({
     if (answerState !== 'idle' || input.trim() === '') return
     // 채점 로직이 순수 함수라 서버 왕복 없이 클라이언트에서 즉시 처리한다.
     const { correct, nearlyCorrect } = checkSpelling(card.word.term, input)
+    // 한 글자 차이도 오답이다 (안내 문구만 다르게 보여줌)
     const quality = correct
       ? usedHint
         ? QUALITY.SPELL_HINT
         : QUALITY.SPELL_CORRECT
-      : nearlyCorrect
-        ? 4
-        : QUALITY.SPELL_WRONG
+      : QUALITY.SPELL_WRONG
     const ct = card.word.term
     setCorrectTerm(ct)
     answeredAtRef.current = Date.now()
-    const isCorrectish = correct || nearlyCorrect
     setAnswerState(correct ? 'correct' : nearlyCorrect ? 'nearly' : 'wrong')
-    if (isCorrectish) playAudio(ct, card.word.audioUrl)
-    recordProgress({ wordId: card.word.id, stage: 'SPELL', quality: quality as 0|1|2|3|4|5, isCorrect: isCorrectish, userAnswer: input, context: 'REVIEW' })
+    if (correct) playAudio(ct, card.word.audioUrl)
+    recordProgress({ wordId: card.word.id, stage: 'SPELL', quality: quality as 0|1|2|3|4|5, isCorrect: correct, userAnswer: input, context: 'REVIEW' })
   }
 
   function handleSkip() {
@@ -371,7 +369,7 @@ function SpellCard({
   }
 
   const isAnswered = answerState !== 'idle'
-  const isCorrectish = answerState === 'correct' || answerState === 'nearly'
+  const isCorrectish = answerState === 'correct'
 
   return (
     <div>
@@ -442,9 +440,7 @@ function SpellCard({
               <div className="rounded-xl bg-[#1FAF54]/10 border border-[#1FAF54]/20 px-4 py-3 flex items-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-[#1FAF54] shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-[#1FAF54]">
-                    {answerState === 'nearly' ? '거의 맞았어요! (오타 1개)' : '정답이에요!'}
-                  </p>
+                  <p className="text-sm font-semibold text-[#1FAF54]">정답이에요!</p>
                   <button
                     onClick={() => playAudio(correctTerm, card.word.audioUrl)}
                     className="flex items-center gap-1 text-xs text-[#1FAF54]/70 mt-0.5 hover:text-[#1FAF54]"
@@ -455,7 +451,16 @@ function SpellCard({
               </div>
             ) : (
               <div className="rounded-xl bg-[#D92916]/5 border border-[#D92916]/20 px-4 py-3">
-                <p className="text-xs text-[#D92916] font-medium mb-1">오답 — 정답: <span className="font-bold">{correctTerm}</span></p>
+                <p className="text-xs text-[#D92916] font-medium mb-1">
+                  {answerState === 'nearly' ? '오답 (철자 한 글자 차이예요)' : '오답'} — 정답: <span className="font-bold">{correctTerm}</span>
+                </p>
+                <button
+                  type="button"
+                  onClick={() => playAudio(correctTerm, card.word.audioUrl)}
+                  className="flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-[#1865F2] hover:text-[#1865F2]/80"
+                >
+                  <Volume2 className="w-4 h-4" />정답 발음 듣기
+                </button>
               </div>
             )}
           </motion.div>
