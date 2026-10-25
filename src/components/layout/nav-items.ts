@@ -108,7 +108,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '홈', href: '/student', icon: Home },
     { label: '오늘의 학습', href: '/student/daily-mission', icon: Target },
     { label: '단어학습', href: '/student/words', icon: Languages },
-    { label: '문법학습', href: '/student/learn/domain/grammar', icon: BookOpen },
+    { label: '문법학습', href: '/student/grammar', icon: BookOpen },
     { label: '쓰기학습', href: '/student/learn/writing', icon: FilePen },
     { label: '알림', href: '/student/notifications', icon: Bell },
     { label: '설정', href: '/student/settings', icon: Settings },

@@ -218,3 +218,44 @@ export function getGrammarPointByCode(code: string): Promise<GrammarPointDetail 
 export function revalidateGrammarCurriculum(): void {
   revalidateTag(GRAMMAR_CURRICULUM_TAG)
 }
+
+// ─── 본사 기본 코스 ──────────────────────────────────────────────────────────
+
+export interface GrammarCourseSummary {
+  id: string
+  name: string
+  targetLevel: number | null
+  sortOrder: number
+  /** 코스 순서대로 정렬된 포인트 id (공개 여부와 무관 — 쓰는 쪽에서 트리로 거를 것) */
+  pointIds: string[]
+}
+
+const getDefaultGrammarCoursesCached = unstable_cache(
+  async (): Promise<GrammarCourseSummary[]> => {
+    const courses = await prisma.grammarCourse.findMany({
+      where: { academyId: null, isActive: true },
+      select: {
+        id: true,
+        name: true,
+        targetLevel: true,
+        sortOrder: true,
+        items: { select: { grammarPointId: true }, orderBy: { sortOrder: 'asc' } },
+      },
+      orderBy: { sortOrder: 'asc' },
+    })
+    return courses.map((c) => ({
+      id: c.id,
+      name: c.name,
+      targetLevel: c.targetLevel,
+      sortOrder: c.sortOrder,
+      pointIds: c.items.map((i) => i.grammarPointId),
+    }))
+  },
+  ['grammar-default-courses'],
+  { revalidate: CACHE_SECONDS, tags: [GRAMMAR_CURRICULUM_TAG] },
+)
+
+/** 본사 기본 코스 (자율 모드 추천용) */
+export function getDefaultGrammarCourses(): Promise<GrammarCourseSummary[]> {
+  return getDefaultGrammarCoursesCached()
+}
