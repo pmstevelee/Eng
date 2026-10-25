@@ -1,4 +1,6 @@
 export const dynamic = 'force-dynamic'
+// AI 강의 스크립트 생성(OpenAI)·장면 음성 생성(ElevenLabs) 서버 액션이 이 페이지에서 불린다
+export const maxDuration = 300
 
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
@@ -11,11 +13,15 @@ import { parseGrammarCommonErrors, parseGrammarExamples, parseGrammarRules } fro
 import { getOpenGaps, getScriptsForPoint } from '@/lib/grammar/source-scripts'
 import { getPointQuestions } from '@/lib/grammar/questions'
 import { getPointLectures } from '@/lib/grammar/lectures'
+import { getPointLectureScripts } from '@/lib/grammar/lecture-scripts'
+import { resolveAudioVoices } from '@/lib/grammar/elevenlabs'
+import type { AudioVoices } from '@/lib/grammar/video/audio-plan'
 import { cn } from '@/lib/utils'
 import { ScriptPanel } from '../../_components/script-panel'
 import { PointEditor, type PrerequisiteOption } from './_components/point-editor'
 import { PointQuestions } from './_components/point-questions'
 import { PointLectures } from './_components/point-lectures'
+import { LectureStudio } from './_components/lecture-studio/lecture-studio'
 
 export default async function AdminGrammarPointPage({
   params,
@@ -38,7 +44,7 @@ export default async function AdminGrammarPointPage({
   ])
   if (!point || point.academyId !== null) notFound()
 
-  const [scripts, gaps, questions, lectures] = await Promise.all([
+  const [scripts, gaps, questions, lectures, lectureScripts] = await Promise.all([
     getScriptsForPoint(point.id, {
       categoryId: point.category.id,
       parentCategoryId: point.parentCategory?.id ?? null,
@@ -46,7 +52,11 @@ export default async function AdminGrammarPointPage({
     getOpenGaps({ pointIds: [point.id] }),
     getPointQuestions(point.id),
     getPointLectures(point.id),
+    tab === 'lecture' ? getPointLectureScripts(point.id) : Promise.resolve([]),
   ])
+  const voicesByScript: Record<string, AudioVoices | null> = Object.fromEntries(
+    lectureScripts.map((s) => [s.id, resolveAudioVoices(s.koVoiceId, s.enVoiceId)]),
+  )
   const unverifiedCount = questions.filter((q) => q.isActive && !q.isVerified).length
   const tabs = [
     {
@@ -122,7 +132,10 @@ export default async function AdminGrammarPointPage({
       </nav>
 
       {tab === 'lecture' ? (
-        <PointLectures pointId={point.id} lectures={lectures} />
+        <div className="space-y-5">
+          <PointLectures pointId={point.id} lectures={lectures} />
+          <LectureStudio pointId={point.id} scripts={lectureScripts} voicesByScript={voicesByScript} />
+        </div>
       ) : tab === 'questions' ? (
         <PointQuestions
           pointId={point.id}

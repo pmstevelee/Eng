@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest'
 import sample from './samples/passive-voice.json'
 import { parseVideoScenes, type Segment } from '../../../types/grammar-video'
 import {
+  carryOverAudio,
   isSpokenSegment,
   normalizeSpeechText,
   planScriptAudio,
   segmentAudioHash,
   segmentAudioPath,
   segmentAudioState,
+  statusAfterEdit,
   type AudioVoices,
 } from './audio-plan'
 
@@ -82,5 +84,46 @@ describe('planScriptAudio', () => {
 describe('segmentAudioPath', () => {
   it('{scriptId}/{segmentId}-{hash}.mp3, 경로에 못 쓰는 글자는 _', () => {
     expect(segmentAudioPath('abc-123', 'opening/1', 'h1')).toBe('abc-123/opening_1-h1.mp3')
+  })
+})
+
+describe('carryOverAudio', () => {
+  const withAudio = scenes.map((scene) => ({
+    ...scene,
+    segments: scene.segments.map((s) =>
+      isSpokenSegment(s) ? { ...s, audioPath: `p/${s.id}.mp3`, durationSec: 1, textHash: segmentAudioHash(s, voices) } : s,
+    ),
+  })) as typeof scenes
+
+  it('화면이 보낸 음성 필드는 무시하고 저장된 값을 id로 이어 붙인다', () => {
+    const fromClient = withAudio.map((scene) => ({
+      ...scene,
+      segments: scene.segments.map((s) => ({ ...s, audioPath: 'hacked.mp3', durationSec: 99 })),
+    })) as typeof scenes
+    const out = carryOverAudio(withAudio, fromClient)
+    const first = out.scenes[0].segments[0]
+    expect(first.audioPath).toBe(`p/${first.id}.mp3`)
+    expect(first.durationSec).toBe(1)
+    expect(out.removedPaths).toEqual([])
+  })
+
+  it('문장을 고치면 음성은 남지만 수정됨, 지운 세그먼트의 파일은 삭제 대상', () => {
+    const edited = withAudio.map((scene, i) =>
+      i === 0 ? { ...scene, segments: scene.segments.map((s, j) => (j === 0 ? { ...s, text: `${s.text}!` } : s)) } : scene,
+    ) as typeof scenes
+    const removedSeg = withAudio[1].segments[0]
+    const trimmed = edited.map((scene, i) => (i === 1 ? { ...scene, segments: scene.segments.slice(1) } : scene)) as typeof scenes
+    const out = carryOverAudio(withAudio, trimmed)
+    expect(segmentAudioState(out.scenes[0].segments[0], voices)).toBe('stale')
+    expect(out.removedPaths).toEqual([`p/${removedSeg.id}.mp3`])
+  })
+})
+
+describe('statusAfterEdit', () => {
+  it('초안·연결은 그대로, 승인 이후는 음성 상태로', () => {
+    expect(statusAfterEdit('DRAFT', true)).toBe('DRAFT')
+    expect(statusAfterEdit('LINKED', false)).toBe('LINKED')
+    expect(statusAfterEdit('AUDIO_READY', false)).toBe('APPROVED')
+    expect(statusAfterEdit('APPROVED', true)).toBe('AUDIO_READY')
   })
 })

@@ -8,6 +8,8 @@ import { getCurrentUser } from '@/lib/auth'
 import { getAdminGrammarTree, type GrammarTreePoint } from '@/lib/grammar/curriculum'
 import { getVerifiedQuestionCounts } from '@/lib/grammar/admin'
 import { getScriptAndGapCounts } from '@/lib/grammar/source-scripts'
+import { getLectureProductionByPoint } from '@/lib/grammar/lecture-scripts'
+import { LectureProductionBadge } from '@/components/grammar/lecture-script-badge'
 import { MIN_PUBLISH_QUESTIONS } from '@/lib/grammar/constants'
 import { GrammarStatusBadge } from '@/components/grammar/grammar-status-badge'
 import { cn } from '@/lib/utils'
@@ -33,7 +35,12 @@ export default async function AdminGrammarPage({ searchParams }: { searchParams:
   if (!user || user.role !== 'SUPER_ADMIN') redirect('/login')
 
   const filter = parseFilter(searchParams.status)
-  const [tree, counts, sg] = await Promise.all([getAdminGrammarTree(), getVerifiedQuestionCounts(), getScriptAndGapCounts()])
+  const [tree, counts, sg, production] = await Promise.all([
+    getAdminGrammarTree(),
+    getVerifiedQuestionCounts(),
+    getScriptAndGapCounts(),
+    getLectureProductionByPoint(),
+  ])
 
   const countOf = (p: GrammarTreePoint) => counts.get(p.id) ?? 0
   const gapsOf = (p: GrammarTreePoint) => sg.gapsByPoint.get(p.id) ?? 0
@@ -213,6 +220,7 @@ export default async function AdminGrammarPage({ searchParams }: { searchParams:
                                     보완 {gapsOf(p)}
                                   </span>
                                 )}
+                                <LectureProductionBadge stage={production.get(p.id)} />
                                 <span className="hidden shrink-0 text-xs text-gray-400 sm:inline">
                                   Lv {p.levelMin}~{p.levelMax}
                                 </span>

@@ -117,3 +117,43 @@ export function referencedAudioPaths(scenes: VideoScene[]): Set<string> {
   for (const scene of scenes) for (const s of scene.segments) if (s.audioPath) out.add(s.audioPath)
   return out
 }
+
+// ── 장면 편집 저장 ──────────────────────────────────────────
+
+/**
+ * 장면 편집 저장 시 음성 필드는 화면이 보낸 값을 믿지 않고 저장돼 있던 값을 세그먼트 id로 이어 붙인다.
+ * 문장이 바뀐 세그먼트도 음성 필드는 그대로 두므로 해시가 달라져 '수정됨'(다시 생성 대상)이 된다.
+ * removedPaths: 이번 편집으로 아무 세그먼트도 쓰지 않게 된 음성 파일
+ */
+export function carryOverAudio(prev: VideoScene[], next: VideoScene[]): { scenes: VideoScene[]; removedPaths: string[] } {
+  const audioById = new Map<string, Pick<Segment, 'audioPath' | 'durationSec' | 'textHash'>>()
+  for (const scene of prev) {
+    for (const s of scene.segments) {
+      if (s.audioPath) audioById.set(s.id, { audioPath: s.audioPath, durationSec: s.durationSec, textHash: s.textHash })
+    }
+  }
+  const scenes = next.map((scene) => {
+    const segments = scene.segments.map((s) => {
+      const { audioPath: _p, durationSec: _d, textHash: _h, ...rest } = s
+      void _p
+      void _d
+      void _h
+      const audio = audioById.get(s.id)
+      if (!audio || s.waitMs) return rest as Segment
+      return { ...rest, ...audio } as Segment
+    })
+    return { ...scene, segments } as VideoScene
+  })
+  const still = referencedAudioPaths(scenes)
+  const removedPaths = Array.from(referencedAudioPaths(prev)).filter((p) => !still.has(p))
+  return { scenes, removedPaths }
+}
+
+export type LectureScriptStatus = 'DRAFT' | 'APPROVED' | 'AUDIO_READY' | 'LINKED'
+
+/** 장면을 고친 뒤 상태 — 승인은 유지하고, 음성이 모두 최신인지만 다시 본다. YouTube 연결은 그대로 */
+export function statusAfterEdit(current: string, audioReady: boolean): LectureScriptStatus {
+  if (current === 'LINKED') return 'LINKED'
+  if (current === 'DRAFT') return 'DRAFT'
+  return audioReady ? 'AUDIO_READY' : 'APPROVED'
+}
