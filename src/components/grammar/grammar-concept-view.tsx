@@ -9,6 +9,10 @@ export interface GrammarConceptViewProps {
   rules: GrammarRule[]
   examples: GrammarExample[]
   commonErrors: GrammarCommonError[]
+  /** 학생 화면: 예문 해석을 접어 두고 눌러서 펼치기 (기본값 false = 항상 보임) */
+  foldTranslations?: boolean
+  /** 제목 숨기기 (페이지 머리글에 제목이 이미 있을 때) */
+  hideTitle?: boolean
 }
 
 function HighlightedSentence({ text, highlight }: { text: string; highlight?: string }) {
@@ -23,13 +27,21 @@ function HighlightedSentence({ text, highlight }: { text: string; highlight?: st
   )
 }
 
-export function GrammarConceptView({ title, summary, rules, examples, commonErrors }: GrammarConceptViewProps) {
+export function GrammarConceptView({
+  title,
+  summary,
+  rules,
+  examples,
+  commonErrors,
+  foldTranslations = false,
+  hideTitle = false,
+}: GrammarConceptViewProps) {
   const empty = !summary && rules.length === 0 && examples.length === 0 && commonErrors.length === 0
 
   return (
     <article className="space-y-6">
       <header>
-        <h2 className="text-xl font-bold text-gray-900">{title || '제목 없음'}</h2>
+        {!hideTitle && <h2 className="text-xl font-bold text-gray-900">{title || '제목 없음'}</h2>}
         {summary && <p className="mt-2 text-base leading-relaxed text-gray-700">{summary}</p>}
       </header>
 
@@ -67,7 +79,17 @@ export function GrammarConceptView({ title, summary, rules, examples, commonErro
                 <p className="text-base text-gray-900">
                   <HighlightedSentence text={e.en} highlight={e.highlight} />
                 </p>
-                <p className="mt-0.5 text-sm text-gray-500">{e.ko}</p>
+                {foldTranslations ? (
+                  <details className="group mt-1">
+                    <summary className="inline-flex min-h-[44px] cursor-pointer list-none items-center text-sm font-medium text-[#1865F2] [&::-webkit-details-marker]:hidden">
+                      <span className="group-open:hidden">해석 보기</span>
+                      <span className="hidden group-open:inline">해석 접기</span>
+                    </summary>
+                    <p className="text-sm text-gray-500">{e.ko}</p>
+                  </details>
+                ) : (
+                  <p className="mt-0.5 text-sm text-gray-500">{e.ko}</p>
+                )}
               </li>
             ))}
           </ul>

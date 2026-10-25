@@ -1,31 +1,45 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { BookOpen } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { requireStudent } from '@/lib/auth-student'
-import { getGrammarPointByCode } from '@/lib/grammar/curriculum'
-import { GrammarComingSoon } from '../_components/coming-soon'
+import { getGrammarUnitData } from '@/lib/grammar/unit-queries'
+import { GrammarStateBadge } from '@/components/grammar/grammar-state-badge'
+import { GrammarUnitClient } from './_components/unit-client'
 
-// 단원 학습 화면은 2-2에서 만든다. 지금은 단원 정보와 준비 중 안내만 보여 준다.
+// 문법 단원 학습 — 개념 → (강의) → 연습 → 확인 테스트 → 결과
 export default async function StudentGrammarUnitPage({ params }: { params: { code: string } }) {
-  const [{ user }, point] = await Promise.all([requireStudent(), getGrammarPointByCode(decodeURIComponent(params.code))])
-  if (!point || point.status !== 'PUBLISHED' || (point.academyId !== null && point.academyId !== user.academyId)) {
-    notFound()
-  }
+  const { user, studentId } = await requireStudent()
+  const data = user.academyId ? await getGrammarUnitData(studentId, user.academyId, decodeURIComponent(params.code)) : null
+  if (!data) notFound()
+
+  const { point, progress } = data
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
+        <Link
+          href="/student/grammar/map"
+          className="-ml-2 inline-flex min-h-[44px] items-center gap-1 rounded-lg px-2 text-sm text-gray-500 hover:text-gray-900"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          커리큘럼 지도
+        </Link>
         <p className="text-sm text-gray-500">
-          {point.parentCategory ? `${point.parentCategory.name} · ` : ''}
-          {point.category.name}
+          {point.parentCategoryName ? `${point.parentCategoryName} · ` : ''}
+          {point.categoryName}
         </p>
-        <h2 className="mt-1 text-xl font-bold text-gray-900">{point.title}</h2>
-        {point.summary && <p className="mt-1 text-sm text-gray-600">{point.summary}</p>}
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          <h2 className="text-xl font-bold text-gray-900">{point.title}</h2>
+          <GrammarStateBadge state={progress.state} />
+        </div>
+        {progress.bestCheckScore !== null && (
+          <p className="mt-1 text-sm text-gray-500">
+            확인 테스트 최고 {progress.bestCheckScore}점 · {progress.checkAttempts}회 응시
+          </p>
+        )}
       </div>
-      <GrammarComingSoon
-        icon={BookOpen}
-        title="단원 학습 화면을 준비하고 있어요"
-        description="개념 → 연습 → 확인 테스트 순서로 배우는 화면이 곧 열려요."
-      />
+
+      <GrammarUnitClient data={data} studentId={studentId} />
     </div>
   )
 }

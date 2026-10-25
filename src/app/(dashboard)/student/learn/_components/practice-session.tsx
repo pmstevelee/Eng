@@ -257,41 +257,14 @@ export function PracticeSession({ questions: initialQuestions, onGrade, onLoadMo
 
         <div className="px-5 py-5">
           {/* 문제 렌더링 */}
-          {currentQuestion.content.type === 'multiple_choice' && currentQuestion.content.passage ? (
-            <ReadingQuestion
-              content={currentQuestion.content}
-              answer={selectedAnswer}
-              onAnswer={setSelectedAnswer}
-              readingTab={readingTab}
-              onReadingTabChange={setReadingTab}
-              gradeResult={gradeResult}
-            />
-          ) : (currentQuestion.content.type === 'fill_blank' ||
-              currentQuestion.content.type === 'short_answer') &&
-            !(currentQuestion.content.options && currentQuestion.content.options.length > 0) ? (
-            // 보기(options)가 있으면 fill_blank/short_answer여도 선택형으로 렌더링한다.
-            // 정답이 보기 문자("B")로 저장된 문제를 텍스트로 입력하면 항상 오답 처리되는 것을 방지.
-            <FillBlankQuestion
-              content={currentQuestion.content}
-              answer={selectedAnswer}
-              onAnswer={setSelectedAnswer}
-              gradeResult={gradeResult}
-            />
-          ) : currentQuestion.content.type === 'essay' ? (
-            <EssayQuestion
-              content={currentQuestion.content}
-              answer={selectedAnswer}
-              onAnswer={setSelectedAnswer}
-              gradeResult={gradeResult}
-            />
-          ) : (
-            <MultipleChoiceQuestion
-              content={currentQuestion.content}
-              answer={selectedAnswer}
-              onAnswer={setSelectedAnswer}
-              gradeResult={gradeResult}
-            />
-          )}
+          <PracticeQuestionBody
+            question={currentQuestion}
+            answer={selectedAnswer}
+            onAnswer={setSelectedAnswer}
+            gradeResult={gradeResult}
+            readingTab={readingTab}
+            onReadingTabChange={setReadingTab}
+          />
 
           {/* 즉시 피드백 패널 */}
           {phase === 'feedback' && gradeResult && (
@@ -346,9 +319,51 @@ export function PracticeSession({ questions: initialQuestions, onGrade, onLoadMo
   )
 }
 
+// ── 문제 본문 (유형별 렌더링) ─────────────────────────────────────────────────
+// 문법 단원 학습(/student/grammar/[code])에서도 같은 문제 화면을 쓰도록 내보낸다.
+
+export function PracticeQuestionBody({
+  question,
+  answer,
+  onAnswer,
+  gradeResult,
+  readingTab,
+  onReadingTabChange,
+}: {
+  question: PracticeQuestion
+  answer: string
+  onAnswer: (v: string) => void
+  gradeResult: GradeResult | null
+  readingTab: 'passage' | 'question'
+  onReadingTabChange: (tab: 'passage' | 'question') => void
+}) {
+  const content = question.content
+  if (content.type === 'multiple_choice' && content.passage) {
+    return (
+      <ReadingQuestion
+        content={content}
+        answer={answer}
+        onAnswer={onAnswer}
+        readingTab={readingTab}
+        onReadingTabChange={onReadingTabChange}
+        gradeResult={gradeResult}
+      />
+    )
+  }
+  // 보기(options)가 있으면 fill_blank/short_answer여도 선택형으로 렌더링한다.
+  // 정답이 보기 문자("B")로 저장된 문제를 텍스트로 입력하면 항상 오답 처리되는 것을 방지.
+  if ((content.type === 'fill_blank' || content.type === 'short_answer') && !(content.options && content.options.length > 0)) {
+    return <FillBlankQuestion content={content} answer={answer} onAnswer={onAnswer} gradeResult={gradeResult} />
+  }
+  if (content.type === 'essay') {
+    return <EssayQuestion content={content} answer={answer} onAnswer={onAnswer} gradeResult={gradeResult} />
+  }
+  return <MultipleChoiceQuestion content={content} answer={answer} onAnswer={onAnswer} gradeResult={gradeResult} />
+}
+
 // ── 피드백 패널 ────────────────────────────────────────────────────────────────
 
-function FeedbackPanel({ result }: { result: GradeResult }) {
+export function FeedbackPanel({ result }: { result: GradeResult }) {
   return (
     <div
       className="mt-4 rounded-xl border p-4"
