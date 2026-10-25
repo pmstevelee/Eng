@@ -10,6 +10,8 @@ import {
 } from '@/lib/words/daily-plan'
 import { TodayLearningHub } from '@/components/student/today-learning'
 import { getWordStudySessionSummary } from '@/app/(dashboard)/student/words/_actions/study-session'
+import { getGrammarHomeData } from '@/lib/grammar/student-queries'
+import { TodayGrammarCard } from '@/components/grammar/today-grammar-card'
 
 // 오늘의 학습 — 레벨 맞춤 신규 단어 자동 생성 + 복습 + 문법 미션
 // (기존 '오늘의 미션' 경로를 그대로 사용해 북마크·알림 링크가 깨지지 않게 한다)
@@ -18,10 +20,18 @@ export default async function DailyLearningPage() {
   const { user, studentId, userId } = await requireStudent()
   const academyId = user.academyId
 
+  // 오늘의 문법 카드 데이터는 다른 조회와 독립적이므로 가장 먼저 시작해 기존 대기와 겹친다 (왕복 추가 없음)
+  const grammarPromise = academyId
+    ? getGrammarHomeData(studentId, academyId).catch((e) => {
+        console.error('[daily-learning] 오늘의 문법 조회 실패:', e)
+        return null
+      })
+    : Promise.resolve(null)
+
   const canUseWords = academyId ? await canUseWordLearning(academyId) : false
 
   // 오늘의 단어 계획과 문법 미션은 서로 독립적이므로 함께 생성/조회한다.
-  await Promise.all([
+  const [, , grammar] = await Promise.all([
     academyId && canUseWords
       ? getOrCreateTodayWordPlan({ studentId, userId, academyId }).catch((e) => {
           console.error('[daily-learning] 오늘의 단어 생성 실패:', e)
@@ -32,6 +42,7 @@ export default async function DailyLearningPage() {
       console.error('[daily-learning] 문법 미션 생성 실패:', e)
       return null
     }),
+    grammarPromise,
   ])
 
   let summary = await getTodayLearningSummary(studentId)
@@ -64,6 +75,8 @@ export default async function DailyLearningPage() {
         bonusXp={DAILY_PLAN_BONUS_XP}
         stageProgress={stageProgress}
       />
+
+      {grammar && <TodayGrammarCard data={grammar} />}
     </div>
   )
 }

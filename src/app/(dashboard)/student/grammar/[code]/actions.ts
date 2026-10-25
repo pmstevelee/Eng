@@ -9,12 +9,14 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import { requireStudent } from '@/lib/auth-student'
-import { recordQuestionAnswers } from '@/lib/missions/question-review'
-import { awardXP } from '@/lib/missions/xp-manager'
-import { updateStreak } from '@/lib/missions/streak-manager'
-import type { Prisma, QuestionDomain } from '@/generated/prisma'
-import { CHECK_SIZE, PRACTICE_SIZE, XP_PASS, XP_MASTER, isGrammarStep, type GrammarStep } from '@/lib/grammar/constants'
-import { applyGrammarEvent, toScore, type GrammarEvent, type MasteryResult } from '@/lib/grammar/mastery-engine'
+import { CHECK_SIZE, PRACTICE_SIZE, XP_PASS, isGrammarStep, type GrammarStep } from '@/lib/grammar/constants'
+import { applyGrammarEvent, toScore, type GrammarEvent } from '@/lib/grammar/mastery-engine'
+import {
+  normalizeSubmitted,
+  runGrammarSideEffects as runSideEffects,
+  saveGrammarProgress as saveProgress,
+  type SubmittedAnswer,
+} from '@/lib/grammar/unit-save'
 import {
   buildResultItems,
   checkQuestionIds,
@@ -24,20 +26,13 @@ import {
   loadLastAttemptIds,
   loadPoolQuestion,
   loadQuestionPool,
-  progressData,
   toMasteryProgress,
-  type GradedAnswer,
   type GrammarCheckResult,
-  type PoolQuestion,
 } from '@/lib/grammar/unit-queries'
-import type { GrammarAttemptAnswer } from '@/types/grammar'
 
 export type ActionResult<T> = ({ ok: true } & T) | { ok: false; error: string }
 
-export interface SubmittedAnswer {
-  questionId: string
-  answer: string
-}
+export type { SubmittedAnswer }
 
 export interface PracticeGrade {
   isCorrect: boolean
@@ -62,81 +57,8 @@ function loadProgress(studentId: string, grammarPointId: string) {
     .then(toMasteryProgress)
 }
 
-/** 진도 저장 (+ 시도 기록) — 한 트랜잭션 */
-async function saveProgress(
-  studentId: string,
-  grammarPointId: string,
-  result: MasteryResult,
-  attempt?: { kind: 'PRACTICE' | 'CHECK'; graded: GradedAnswer[] },
-) {
-  const data = progressData(result.progress)
-  const upsert = prisma.grammarPointProgress.upsert({
-    where: { studentId_grammarPointId: { studentId, grammarPointId } },
-    create: { studentId, grammarPointId, ...data },
-    update: data,
-  })
-  if (!attempt) {
-    await upsert
-    return
-  }
-  const correct = attempt.graded.filter((g) => g.isCorrect).length
-  const answers: GrammarAttemptAnswer[] = attempt.graded.map((g) => ({
-    questionId: g.questionId,
-    answer: g.answer,
-    isCorrect: g.isCorrect,
-  }))
-  await prisma.$transaction([
-    prisma.grammarAttempt.create({
-      data: {
-        studentId,
-        grammarPointId,
-        kind: attempt.kind,
-        score: toScore(correct, attempt.graded.length),
-        correctCount: correct,
-        totalCount: attempt.graded.length,
-        answersJson: answers as unknown as Prisma.InputJsonValue,
-      },
-    }),
-    upsert,
-  ])
-}
-
-/** 부가 작업 — 오답노트(+문법 일자 통계), 통과·숙달 보상. 실패해도 학습은 계속 */
-async function runSideEffects(studentId: string, grammarPointId: string, pool: Map<string, PoolQuestion>, graded: GradedAnswer[], result: MasteryResult) {
-  const tasks: Promise<unknown>[] = [
-    // recordQuestionAnswers가 StudentDailyStat.grammarSolved/grammarCorrect도 함께 올린다
-    recordQuestionAnswers(
-      studentId,
-      graded.flatMap((g) => {
-        const q = pool.get(g.questionId)
-        return q ? [{ questionId: g.questionId, domain: q.domain as QuestionDomain, isCorrect: g.isCorrect, gradable: true }] : []
-      }),
-    ),
-  ]
-  if (result.firstPass) tasks.push(awardXP(studentId, XP_PASS, 'GRAMMAR_PASS', grammarPointId))
-  if (result.firstMastery) tasks.push(awardXP(studentId, XP_MASTER, 'GRAMMAR_MASTER', grammarPointId))
-  if (result.firstPass || result.firstMastery) tasks.push(updateStreak(studentId))
-
-  const settled = await Promise.allSettled(tasks)
-  for (const s of settled) {
-    if (s.status === 'rejected') console.error('[grammar-unit] 부가 작업 실패:', s.reason)
-  }
-}
-
 function revalidateGrammar() {
   revalidatePath('/student/grammar', 'layout')
-}
-
-/** 제출 답안 정리 — 중복 문항 제거, 답은 문자열 300자까지 */
-function normalizeSubmitted(answers: SubmittedAnswer[]): SubmittedAnswer[] {
-  const seen = new Set<string>()
-  const out: SubmittedAnswer[] = []
-  for (const a of Array.isArray(answers) ? answers : []) {
-    if (!a || typeof a.questionId !== 'string' || seen.has(a.questionId)) continue
-    seen.add(a.questionId)
-    out.push({ questionId: a.questionId, answer: typeof a.answer === 'string' ? a.answer.slice(0, 300) : '' })
-  }
-  return out
 }
 
 // ─── 단계 이동 ───────────────────────────────────────────────────────────────

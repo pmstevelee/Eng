@@ -97,3 +97,11 @@ export type GrammarTagStatus = (typeof GRAMMAR_TAG_STATUSES)[number]
 
 /** 커리큘럼 캐시 태그 — 트리·포인트 편집 시 revalidateTag */
 export const GRAMMAR_CURRICULUM_TAG = 'grammar-curriculum'
+
+/** "다음 단원" 카드 제목 — 문법 홈·오늘의 학습 공용 (next-unit.ts NextUnitReason) */
+export const NEXT_UNIT_REASON_LABEL: Record<'IN_PROGRESS' | 'WEAK_STALE' | 'ASSIGNED' | 'COURSE', string> = {
+  IN_PROGRESS: '이어서 학습',
+  WEAK_STALE: '다시 볼 취약 단원',
+  ASSIGNED: '선생님이 배정한 단원',
+  COURSE: '추천 단원',
+}

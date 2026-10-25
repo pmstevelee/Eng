@@ -44,7 +44,7 @@ function pointQuestionWhere(point: { id: string } | { code: string }, academyId:
   }
 }
 
-function isGradable(content: QuestionContentJson | null): content is QuestionContentJson {
+export function isGradable(content: QuestionContentJson | null): content is QuestionContentJson {
   return (
     !!content &&
     typeof content.question_text === 'string' &&
@@ -70,6 +70,11 @@ function findPool(point: { id: string } | { code: string }, academyId: string): 
 
 export function loadQuestionPool(pointId: string, academyId: string): Promise<PoolQuestion[]> {
   return findPool({ id: pointId }, academyId)
+}
+
+/** 포인트 code로 문항 풀 조회 — 포인트 조회와 같은 웨이브에서 부를 때 */
+export function loadQuestionPoolByCode(code: string, academyId: string): Promise<PoolQuestion[]> {
+  return findPool({ code }, academyId)
 }
 
 /** 포인트 문항 1개 (연습 문항 즉시 채점용) — 다른 포인트·숨김 문항이면 null */
@@ -225,7 +230,7 @@ export function findStudentPoint(code: string, academyId: string): Promise<Gramm
   return getGrammarPointByCode(code).then((p) => (canStudentSeePoint(p, academyId) ? p : null))
 }
 
-function lastAttemptIds(row: { answersJson: Prisma.JsonValue } | null): string[] {
+export function lastAttemptIds(row: { answersJson: Prisma.JsonValue } | null): string[] {
   return row ? parseGrammarAttemptAnswers(row.answersJson).map((a) => a.questionId) : []
 }
 

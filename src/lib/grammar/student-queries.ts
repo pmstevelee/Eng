@@ -14,6 +14,7 @@ import {
   type GrammarTreeSubCategory,
 } from './curriculum'
 import { GRAMMAR_STEP_LABEL, isGrammarStep } from './constants'
+import { isPointReviewDue } from './review-logic'
 import { getNextGrammarUnit, isPassedState, pickCourseForLevel, sortAssignments, type NextUnitReason } from './next-unit'
 
 /** 홈 "마감 임박"에 보여 줄 기간(일) */
@@ -152,7 +153,7 @@ export async function getGrammarHomeData(studentId: string, academyId: string): 
     findMyAssignments(studentId, academyId),
     prisma.student.findUnique({ where: { id: studentId }, select: { currentLevel: true } }),
     prisma.questionReview.count({
-      where: { studentId, isMastered: false, nextReviewAt: { lt: reviewDue }, question: { domain: 'GRAMMAR' } },
+      where: { studentId, isMastered: false, nextReviewAt: { lt: reviewDue }, question: { domain: 'GRAMMAR', isActive: true } },
     }),
   ])
 
@@ -190,9 +191,7 @@ export async function getGrammarHomeData(studentId: string, academyId: string): 
   }
 
   // ② 오늘 복습
-  const pointReviews = visibleProgress.filter(
-    (p) => p.nextReviewAt !== null && p.nextReviewAt < reviewDue && p.state !== 'NOT_STARTED',
-  ).length
+  const pointReviews = visibleProgress.filter((p) => isPointReviewDue(p, reviewDue)).length
 
   // ③ 마감 7일 이내(지난 것 포함) 미통과 배정
   const dueLimit = addDays(today, DUE_SOON_DAYS)

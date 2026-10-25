@@ -3,15 +3,8 @@ import { AlertTriangle, BookOpen, CalendarClock, ChevronRight, Map, RotateCcw } 
 import { requireStudent } from '@/lib/auth-student'
 import { getGrammarHomeData, type GrammarHomeData } from '@/lib/grammar/student-queries'
 import { GrammarStateBadge } from '@/components/grammar/grammar-state-badge'
-import type { NextUnitReason } from '@/lib/grammar/next-unit'
+import { NEXT_UNIT_REASON_LABEL } from '@/lib/grammar/constants'
 import { formatDaysLeft, formatDueKey } from './_components/format'
-
-const REASON_LABEL: Record<NextUnitReason, string> = {
-  IN_PROGRESS: '이어서 학습',
-  WEAK_STALE: '다시 볼 취약 단원',
-  ASSIGNED: '선생님이 배정한 단원',
-  COURSE: '추천 단원',
-}
 
 const FREE_PRACTICE_HREF = '/student/learn/domain/grammar'
 
@@ -79,7 +72,7 @@ function NextUnitCard({ next }: { next: GrammarHomeData['next'] }) {
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-6">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-semibold text-[#1865F2]">{REASON_LABEL[next.reason]}</span>
+        <span className="text-sm font-semibold text-[#1865F2]">{NEXT_UNIT_REASON_LABEL[next.reason]}</span>
         <GrammarStateBadge state={next.state} />
       </div>
       <p className="mt-3 text-sm text-gray-500">
