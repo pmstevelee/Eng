@@ -27,6 +27,7 @@ import {
   CalendarDays,
   SlidersHorizontal,
   Coins,
+  SpellCheck,
 } from 'lucide-react'
 import type { Role } from '@/types'
 
@@ -54,6 +55,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '크레딧', href: '/admin/credits', icon: Coins },
     { label: '학생 크레딧', href: '/admin/credits/students', icon: GraduationCap },
     { label: '문제 뱅크', href: '/admin/question-bank', icon: Library },
+    { label: '문법 커리큘럼', href: '/admin/grammar', icon: SpellCheck },
     { label: '활동 로그', href: '/admin/activity-logs', icon: Activity },
   ],
   ACADEMY_OWNER: [
