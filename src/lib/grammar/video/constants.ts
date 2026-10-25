@@ -1,7 +1,7 @@
 // AI 강의 영상 화면·타이밍 기준 (참고 샘플: 영문법 영상 샘플 — 수동태)
 // 이 색·모눈은 영상 화면 전용이며 앱 화면 디자인 규칙(CLAUDE.md)과는 별개다.
 
-import type { TokenRole } from '@/types/grammar-video'
+import type { TokenRole } from '../../../types/grammar-video'
 
 /** 영상 크기 (px) */
 export const VIDEO_WIDTH = 1920
