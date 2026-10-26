@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
@@ -5,6 +6,8 @@ import { getSelectedBranchId, getViewableAcademyIds } from '@/lib/branch'
 import { AnalyticsClient } from './_components/analytics-client'
 import type { AnalyticsData } from './_components/analytics-client'
 import type { ClassTrendItem } from './_components/analytics-charts'
+import { AcademyGrammarCard, AcademyGrammarCardSkeleton } from '@/components/grammar/manage/academy-grammar-card'
+import { getAcademyGrammarSummary } from '@/lib/grammar/achievement-queries'
 
 // ─── Date Helpers ─────────────────────────────────────────────────────────────
 
@@ -639,7 +642,27 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
   const viewIds = await getViewableAcademyIds(user.id, selectedBranchId)
 
   const { from, to } = getPeriodDates(period)
+  // 문법 성취도 카드는 '학생 성적 분석' 탭에만 — 기존 분석 쿼리와 동시에 시작하고 Suspense로 따로 내보낸다
+  const grammarSummary =
+    activeTab === 'scores'
+      ? getAcademyGrammarSummary({ userId: user.id, role: 'ACADEMY_OWNER', academyIds: viewIds })
+      : null
+  // 카드가 await하기 전에 실패해도 처리되지 않은 거부로 남지 않게
+  grammarSummary?.catch(() => undefined)
   const data = await getAnalyticsData(viewIds, from, to)
 
-  return <AnalyticsClient data={data} period={period} activeTab={activeTab} />
+  return (
+    <AnalyticsClient
+      data={data}
+      period={period}
+      activeTab={activeTab}
+      grammarCard={
+        grammarSummary ? (
+          <Suspense fallback={<AcademyGrammarCardSkeleton />}>
+            <AcademyGrammarCard summary={grammarSummary} />
+          </Suspense>
+        ) : null
+      }
+    />
+  )
 }

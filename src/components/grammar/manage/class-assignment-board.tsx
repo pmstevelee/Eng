@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatLectureDuration } from '@/lib/grammar/lecture-input'
-import { deleteAcademyLecture, moveClassAssignment, removeClassAssignments } from '@/lib/grammar/manage-actions'
+import { addPointsToClass, deleteAcademyLecture, moveClassAssignment, removeClassAssignments } from '@/lib/grammar/manage-actions'
 import type { ClassAssignmentData, ClassAssignmentRow } from '@/lib/grammar/manage-queries'
 import { cn } from '@/lib/utils'
 import { AddPointsDialog } from './add-points-dialog'
@@ -184,9 +184,9 @@ export function ClassAssignmentBoard({ role, basePath, data }: Props) {
       <AddPointsDialog
         open={addOpen}
         onClose={() => setAddOpen(false)}
-        classId={data.classId}
         tree={data.tree}
         assignedPointIds={assignedPointIds}
+        onAssign={(input) => addPointsToClass(data.classId, input)}
         onDone={done}
       />
       <AssignmentDateDialog target={dateTarget} onClose={() => setDateTarget(null)} onDone={done} />

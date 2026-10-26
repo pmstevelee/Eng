@@ -221,7 +221,7 @@ export default async function StudentDetailPage({
         levelAssessments={serializedLevelAssessments}
         promotionProgress={promotionProgress}
         wordDetail={wordDetail}
-        initialTab={searchParams.tab === 'consultation' ? 'consultation' : undefined}
+        initialTab={searchParams.tab === 'consultation' || searchParams.tab === 'grammar' ? searchParams.tab : undefined}
         consultation={<StudentConsultationPanel studentId={student.id} />}
       />
     </div>

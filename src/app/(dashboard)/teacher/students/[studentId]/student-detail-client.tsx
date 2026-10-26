@@ -18,6 +18,7 @@ import {
 import {
   BarChart2,
   BookOpen,
+  BookOpenCheck,
   MessageSquare,
   Calendar,
   RefreshCw,
@@ -38,6 +39,7 @@ import { saveTeacherComment, updateAttendance, regenerateLearningPath, overrideS
 import type { PromotionProgress } from '@/lib/assessment/promotion-engine'
 import type { StudentWordDetail } from '@/lib/words/student-word-stats'
 import { CefrProgressChart, WeeklyActivityHeatmap } from '@/app/(dashboard)/student/words/report/_components/report-charts'
+import { StudentGrammarTab } from '@/components/grammar/manage/student-grammar-tab'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1371,6 +1373,7 @@ const TABS = [
   { id: 'score', label: '성적 종합', icon: BarChart2 },
   { id: 'level', label: '레벨 관리', icon: TrendingUp },
   { id: 'vocab', label: '단어학습', icon: SpellCheck },
+  { id: 'grammar', label: '문법', icon: BookOpenCheck },
   { id: 'path', label: '학습 경로', icon: BookOpen },
   { id: 'comment', label: '교사 코멘트', icon: MessageSquare },
   { id: 'attendance', label: '출석', icon: Calendar },
@@ -1444,6 +1447,7 @@ export function StudentDetailClient({
         />
       )}
       {activeTab === 'vocab' && <VocabTab detail={wordDetail} />}
+      {activeTab === 'grammar' && <StudentGrammarTab studentId={studentId} />}
       {activeTab === 'path' && (
         <LearningPathTab studentId={studentId} learningPath={learningPath} />
       )}

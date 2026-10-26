@@ -1,6 +1,7 @@
 'use client'
 
 // ② 포인트 추가 — 트리에서 체크해 배정 목록 끝에 붙인다 (이미 배정된 포인트는 고를 수 없음)
+// 반 배정과 학생 개인 배정(학생 상세 '문법' 탭)이 같이 쓴다 — 저장은 onAssign이 한다
 
 import { useState, useTransition } from 'react'
 import { Loader2 } from 'lucide-react'
@@ -8,20 +9,32 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { GrammarTreeCategory } from '@/lib/grammar/curriculum'
-import { addPointsToClass } from '@/lib/grammar/manage-actions'
 import { ManageDialog } from './manage-dialog'
 import { PointPicker } from './point-picker'
 
 interface Props {
   open: boolean
   onClose: () => void
-  classId: string
   tree: GrammarTreeCategory[]
   assignedPointIds: Set<string>
+  onAssign: (input: { pointIds: string[]; dueDate: string | null }) => Promise<AssignResult>
   onDone: (message: string) => void
+  title?: string
+  description?: string
 }
 
-export function AddPointsDialog({ open, onClose, classId, tree, assignedPointIds, onDone }: Props) {
+export type AssignResult = { ok: true; added: number; skippedDuplicate: number } | { ok: false; error: string }
+
+export function AddPointsDialog({
+  open,
+  onClose,
+  tree,
+  assignedPointIds,
+  onAssign,
+  onDone,
+  title = '포인트 추가',
+  description = '고른 순서대로 배정 목록 끝에 붙습니다.',
+}: Props) {
   const [selected, setSelected] = useState<string[]>([])
   const [dueDate, setDueDate] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -31,7 +44,7 @@ export function AddPointsDialog({ open, onClose, classId, tree, assignedPointIds
     setError(null)
     if (selected.length === 0) return setError('추가할 포인트를 골라 주세요.')
     startTransition(async () => {
-      const res = await addPointsToClass(classId, { pointIds: selected, dueDate: dueDate || null })
+      const res = await onAssign({ pointIds: selected, dueDate: dueDate || null })
       if (!res.ok) return setError(res.error)
       onDone(
         res.skippedDuplicate > 0
@@ -45,7 +58,7 @@ export function AddPointsDialog({ open, onClose, classId, tree, assignedPointIds
   }
 
   return (
-    <ManageDialog open={open} onClose={onClose} busy={pending} title="포인트 추가" description="고른 순서대로 배정 목록 끝에 붙습니다." className="max-w-2xl">
+    <ManageDialog open={open} onClose={onClose} busy={pending} title={title} description={description} className="max-w-2xl">
       <div className="space-y-4">
         <PointPicker tree={tree} selected={selected} onChange={setSelected} disabledIds={assignedPointIds} />
         <div className="sticky bottom-0 -mx-5 -mb-4 space-y-3 border-t border-gray-100 bg-white px-5 py-3">

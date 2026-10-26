@@ -14,8 +14,11 @@ import {
   getGrammarClassCards,
   getPendingAcademyQuestions,
 } from '@/lib/grammar/manage-queries'
+import { getClassAchievementData } from '@/lib/grammar/achievement-queries'
+import { cn } from '@/lib/utils'
 import { ClassAssignmentBoard } from './class-assignment-board'
 import { ClassCardList } from './class-card-list'
+import { ClassHeatmap } from './class-heatmap'
 import { CourseEditor } from './course-editor'
 import { CourseTemplateList } from './course-template-list'
 import { GrammarManageHeader, GrammarManageNav, grammarManageBase, type GrammarManageRole } from './manage-nav'
@@ -62,13 +65,57 @@ export async function GrammarManageHomeScreen({ role }: { role: GrammarManageRol
   )
 }
 
-/** 반 배정 화면 */
-export async function GrammarClassScreen({ role, classId }: { role: GrammarManageRole; classId: string }) {
+export type GrammarClassView = 'assign' | 'achievement'
+
+export function parseGrammarClassView(value: string | string[] | undefined): GrammarClassView {
+  return value === 'achievement' ? 'achievement' : 'assign'
+}
+
+function ClassViewTabs({ href, active }: { href: string; active: GrammarClassView }) {
+  const tabs: { key: GrammarClassView; label: string; href: string }[] = [
+    { key: 'assign', label: '배정', href },
+    { key: 'achievement', label: '성취도', href: `${href}?view=achievement` },
+  ]
+  return (
+    <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1" role="tablist" aria-label="반 문법 화면">
+      {tabs.map((t) => (
+        <Link
+          key={t.key}
+          href={t.href}
+          role="tab"
+          aria-selected={active === t.key}
+          className={cn(
+            'flex min-h-[40px] items-center rounded-md px-4 text-sm font-medium transition-colors',
+            active === t.key ? 'bg-[#1865F2] text-white' : 'text-gray-600 hover:bg-gray-50',
+          )}
+        >
+          {t.label}
+        </Link>
+      ))}
+    </div>
+  )
+}
+
+/** 반 배정 화면 — '배정' / '성취도'(히트맵) 탭. 탭마다 필요한 데이터만 불러온다 */
+export async function GrammarClassScreen({
+  role,
+  classId,
+  view = 'assign',
+}: {
+  role: GrammarManageRole
+  classId: string
+  view?: GrammarClassView
+}) {
   const scope = await requireScope(role)
   const cls = await findManagedClass(scope, classId)
   if (!cls) notFound()
-  const [data, pending] = await Promise.all([getClassAssignmentData(cls), countPending(scope)])
   const base = grammarManageBase(role)
+  const [assignData, achievementData, pending] = await Promise.all([
+    view === 'assign' ? getClassAssignmentData(cls) : Promise.resolve(null),
+    view === 'achievement' ? getClassAchievementData(cls) : Promise.resolve(null),
+    countPending(scope),
+  ])
+  const studentHref = role === 'TEACHER' ? '/teacher/students' : '/owner/students'
   return (
     <div className="space-y-5">
       <div>
@@ -76,10 +123,25 @@ export async function GrammarClassScreen({ role, classId }: { role: GrammarManag
           <ChevronLeft className="mr-0.5 h-4 w-4" />
           반 목록
         </Link>
-        <GrammarManageHeader title={`${cls.name} 문법 진도`} description="배정 순서대로 학생 문법 홈의 '이어서 학습'에 나옵니다. 마감일이 빠른 단원이 먼저예요." />
+        <GrammarManageHeader
+          title={`${cls.name} 문법 진도`}
+          description={
+            view === 'assign'
+              ? "배정 순서대로 학생 문법 홈의 '이어서 학습'에 나옵니다. 마감일이 빠른 단원이 먼저예요."
+              : '학생별로 배정 단원의 통과·숙달·취약 상태를 한눈에 봅니다.'
+          }
+        />
       </div>
       <GrammarManageNav role={role} active="classes" pendingCount={pending} />
-      <ClassAssignmentBoard role={role} basePath={base} data={data} />
+      <ClassViewTabs href={`${base}/classes/${cls.id}`} active={view} />
+      {assignData && <ClassAssignmentBoard role={role} basePath={base} data={assignData} />}
+      {achievementData && (
+        <ClassHeatmap
+          data={achievementData}
+          studentHrefBase={studentHref}
+          studentHrefQuery={role === 'TEACHER' ? '?tab=grammar' : ''}
+        />
+      )}
     </div>
   )
 }

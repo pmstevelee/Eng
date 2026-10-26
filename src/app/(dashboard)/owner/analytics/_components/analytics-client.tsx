@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useCallback } from 'react'
+import { useCallback, type ReactNode } from 'react'
 import { Download, TrendingUp, TrendingDown, Minus, AlertTriangle, Star } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -184,7 +184,7 @@ function ScoreColor({ score }: { score: number | null }) {
 
 // ─── Tab: 학생 성적 분석 ───────────────────────────────────────────────────────
 
-function ScoreAnalysisTab({ data }: { data: AnalyticsData }) {
+function ScoreAnalysisTab({ data, grammarCard }: { data: AnalyticsData; grammarCard?: ReactNode }) {
   const { scoreHistogram, scoreStats, levelDistribution, levelAvgScores, levelUpStudents, domainAvgs, weakestDomain, monthlyTrend, classTrendNames, classTrendData, nearPromotion } = data
 
   return (
@@ -319,6 +319,9 @@ function ScoreAnalysisTab({ data }: { data: AnalyticsData }) {
           </CardContent>
         </Card>
       )}
+
+      {/* 문법 성취도 (서버에서 Suspense로 따로 스트리밍) */}
+      {grammarCard}
 
       {/* Domain analysis */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -791,9 +794,11 @@ interface AnalyticsClientProps {
   data: AnalyticsData
   period: string
   activeTab: string
+  /** '학생 성적 분석' 탭의 문법 성취도 카드 */
+  grammarCard?: ReactNode
 }
 
-export function AnalyticsClient({ data, period, activeTab }: AnalyticsClientProps) {
+export function AnalyticsClient({ data, period, activeTab, grammarCard }: AnalyticsClientProps) {
   const router = useRouter()
 
   const updateParam = useCallback(
@@ -863,7 +868,7 @@ export function AnalyticsClient({ data, period, activeTab }: AnalyticsClientProp
 
       {/* Tab Content */}
       <div>
-        {activeTab === 'scores' && <ScoreAnalysisTab data={data} />}
+        {activeTab === 'scores' && <ScoreAnalysisTab data={data} grammarCard={grammarCard} />}
         {activeTab === 'classes' && <ClassComparisonTab data={data} />}
         {activeTab === 'teachers' && <TeacherPerformanceTab data={data} />}
         {activeTab === 'attendance' && <AttendanceTab data={data} />}
