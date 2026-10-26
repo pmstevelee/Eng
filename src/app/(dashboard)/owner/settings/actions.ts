@@ -11,6 +11,9 @@ import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import { getCurrentUser } from '@/lib/auth'
 import { deleteOrphanAuthAccounts } from '@/lib/account/multi-academy'
 import { GRAMMAR_QUESTIONS_RANGE } from '@/lib/words/settings'
+import { getOwnerAcademyIds } from '@/lib/branch'
+import { MASTERY_REVIEW_STREAK_RANGE, PASS_SCORE_RANGE } from '@/lib/grammar/constants'
+import { isValidPassScore, PASS_SCORE_STEP } from '@/lib/grammar/assignment-plan'
 
 export async function withdrawAcademy(
   formData: FormData,
@@ -236,6 +239,67 @@ export async function updateWordLearningSettings(settings: {
   revalidateTag(`academy-${user.academyId}`)
   revalidateTag('ranking-optout')
   revalidatePath('/owner/settings/word-learning')
+  return { success: true }
+}
+
+/**
+ * 학원 문법학습 설정 (settingsJson.grammarLearning) — 통과 기준·숙달 복습 횟수.
+ * 지점 학생도 같은 기준을 쓰도록 본원과 소유 지점 모두에 저장한다.
+ * 이미 통과·숙달한 기록은 다시 판정하지 않는다 (다음 확인 테스트·복습부터 적용).
+ */
+export async function updateGrammarLearningSettings(settings: {
+  passScore: number
+  masteryReviewStreak: number
+}): Promise<{ error?: string; success?: boolean }> {
+  if (!isValidPassScore(settings?.passScore, PASS_SCORE_RANGE)) {
+    return { error: `통과 기준은 ${PASS_SCORE_RANGE.min}~${PASS_SCORE_RANGE.max}% 사이, ${PASS_SCORE_STEP}% 단위로 정해 주세요.` }
+  }
+  const streak = settings.masteryReviewStreak
+  if (!Number.isInteger(streak) || streak < MASTERY_REVIEW_STREAK_RANGE.min || streak > MASTERY_REVIEW_STREAK_RANGE.max) {
+    return { error: `숙달 복습 횟수는 ${MASTERY_REVIEW_STREAK_RANGE.min}~${MASTERY_REVIEW_STREAK_RANGE.max}회 사이여야 합니다.` }
+  }
+
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'ACADEMY_OWNER' || !user.academyId) return { error: '권한이 없습니다.' }
+
+  const ownerIds = await getOwnerAcademyIds(user.id)
+  const academyIds = Array.from(new Set([user.academyId, ...ownerIds]))
+  const academies = await prisma.academy.findMany({
+    where: { id: { in: academyIds } },
+    select: { id: true, settingsJson: true },
+  })
+
+  await prisma.$transaction(
+    academies.map((academy) => {
+      const current =
+        academy.settingsJson && typeof academy.settingsJson === 'object' && !Array.isArray(academy.settingsJson)
+          ? (academy.settingsJson as Record<string, unknown>)
+          : {}
+      const currentGrammar =
+        current.grammarLearning && typeof current.grammarLearning === 'object'
+          ? (current.grammarLearning as Record<string, unknown>)
+          : {}
+      return prisma.academy.update({
+        where: { id: academy.id },
+        data: {
+          settingsJson: {
+            ...current,
+            grammarLearning: { ...currentGrammar, passScore: settings.passScore, masteryReviewStreak: streak },
+          },
+        },
+      })
+    }),
+  )
+
+  await logActivity({
+    userId: user.id,
+    role: user.role,
+    academyId: user.academyId,
+    action: ACTIVITY_ACTIONS.GRAMMAR_SETTINGS_UPDATE,
+    metadata: { passScore: settings.passScore, masteryReviewStreak: streak, academyCount: academies.length },
+  })
+  for (const academy of academies) revalidateTag(`academy-${academy.id}`)
+  revalidatePath('/owner/settings/grammar-learning')
   return { success: true }
 }
 

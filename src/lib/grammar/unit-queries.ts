@@ -36,12 +36,18 @@ export interface PoolQuestion {
   content: QuestionContentJson
 }
 
-/** 포인트 문항 조건: 연결된 문항 + 활성 + (본사 공용은 검수 완료, 학원 전용 포함) */
+/**
+ * 포인트 문항 조건: 연결된 문항 + 활성 + (본사 공용은 검수 완료, 학원 전용 포함).
+ * 학원 전용 중 AI 생성 문항(3-1 "문제 AI 생성")은 교사·학원장이 검수 완료한 것만.
+ */
 function pointQuestionWhere(point: { id: string } | { code: string }, academyId: string): Prisma.QuestionWhereInput {
   return {
     ...('id' in point ? { grammarPointId: point.id } : { grammarPoint: { code: point.code } }),
     isActive: true,
-    OR: [{ academyId: null, isVerified: true }, { academyId }],
+    OR: [
+      { academyId: null, isVerified: true },
+      { academyId, OR: [{ isVerified: true }, { source: { not: 'AI_GENERATED' } }] },
+    ],
   }
 }
 

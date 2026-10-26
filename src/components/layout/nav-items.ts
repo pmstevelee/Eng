@@ -79,6 +79,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '문제 뱅크', href: '/owner/tests/questions', icon: Library },
     { label: '분석통계', href: '/owner/analytics', icon: BarChart2 },
     { label: '단어학습 관리', href: '/owner/words', icon: Languages },
+    { label: '문법학습 관리', href: '/owner/grammar', icon: BookOpen },
     { label: '일정', href: '/owner/schedule', icon: Calendar },
     { label: '지점관리', href: '/owner/branches', icon: GitBranch },
     { label: '설정', href: '/owner/settings', icon: Settings },
@@ -88,6 +89,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '테스트 출제/채점', href: '/teacher/tests', icon: FilePen },
     { label: '문제 뱅크', href: '/teacher/tests/questions', icon: Library },
     { label: '단어학습 관리', href: '/teacher/words', icon: Languages },
+    { label: '문법학습 관리', href: '/teacher/grammar', icon: BookOpen },
     { label: '학생학습관리', href: '/teacher/students', icon: Users },
     {
       label: '출결관리',
