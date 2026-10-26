@@ -9,6 +9,7 @@ import { Check, Clapperboard, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LectureScriptBadge } from '@/components/grammar/lecture-script-badge'
 import type { AdminLectureScript } from '@/lib/grammar/lecture-scripts'
+import type { ManagedLecture } from '@/lib/grammar/lectures'
 import type { AudioVoices } from '@/lib/grammar/video/audio-plan'
 import type { ExportPointInfo } from '@/lib/grammar/video/export/youtube-text'
 import { cn } from '@/lib/utils'
@@ -17,6 +18,7 @@ import { CreateScriptPanel } from './create-script-panel'
 import { SceneEditor } from './scene-editor'
 import { AudioPanel } from './audio-panel'
 import { ExportPanel } from './export-panel'
+import { YoutubePanel } from './youtube-panel'
 import { NoticeBox, SelectInput, type Notice } from './studio-ui'
 
 type Step = 'script' | 'scenes' | 'audio' | 'export' | 'youtube'
@@ -39,7 +41,8 @@ function doneSteps(status: string): Set<Step> {
 
 function defaultStep(status: string): Step {
   if (status === 'APPROVED') return 'audio'
-  if (status === 'AUDIO_READY' || status === 'LINKED') return 'export'
+  if (status === 'LINKED') return 'youtube'
+  if (status === 'AUDIO_READY') return 'export'
   return 'scenes'
 }
 
@@ -48,12 +51,15 @@ export function LectureStudio({
   point,
   scripts,
   voicesByScript,
+  hqLecture,
 }: {
   pointId: string
   /** 내보내기 파일 이름·YouTube 설명문용 */
   point: ExportPointInfo
   scripts: AdminLectureScript[]
   voicesByScript: Record<string, AudioVoices | null>
+  /** 지금 이 포인트의 본사 기본 강의 (교체 안내용) */
+  hqLecture: ManagedLecture | null
 }) {
   const router = useRouter()
   const [selectedId, setSelectedId] = useState<string | null>(scripts[0]?.id ?? null)
@@ -179,8 +185,8 @@ export function LectureStudio({
 
           <ol className="flex gap-1 overflow-x-auto border-b border-gray-200" aria-label="제작 단계">
             {STEPS.map((s, i) => {
-              // 미리보기·내보내기는 음성이 다 만들어진 뒤에 열린다
-              const disabled = s.value === 'script' || s.value === 'youtube' || (s.value === 'export' && !done.has('audio'))
+              // 미리보기·내보내기·YouTube 연결은 음성이 다 만들어진 뒤에 열린다
+              const disabled = s.value === 'script' || ((s.value === 'export' || s.value === 'youtube') && !done.has('audio'))
               return (
                 <li key={s.value} className="shrink-0">
                   <button
@@ -212,10 +218,8 @@ export function LectureStudio({
           {step === 'scenes' && <SceneEditor key={selected.id} script={selected} voices={voicesByScript[selected.id] ?? null} />}
           {step === 'audio' && <AudioPanel key={selected.id} script={selected} />}
           {step === 'export' && <ExportPanel key={selected.id} script={selected} point={point} />}
-          {step === 'youtube' && (
-            <p className="rounded-xl border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500">
-              YouTube 연결은 다음 작업에서 열립니다.
-            </p>
+          {step === 'youtube' && done.has('audio') && (
+            <YoutubePanel key={selected.id} script={selected} hqLecture={hqLecture} />
           )}
         </>
       )}

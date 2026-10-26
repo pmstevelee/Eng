@@ -51,8 +51,8 @@ type Check =
 const CHECK_TIMEOUT_MS = 12000
 const DURATION_WAIT_MS = 6000
 
-/** 숨긴 플레이어로 재생 가능 여부·길이·제목 확인 */
-function probeVideo(
+/** 숨긴 플레이어로 재생 가능 여부·길이·제목 확인 (AI 강의 YouTube 연결 칸에서도 쓴다) */
+export function probeVideo(
   host: HTMLElement,
   videoId: string,
 ): Promise<{ ok: true; durationSec: number | null; title: string | null } | { ok: false; error: string } | { ok: 'timeout' }> {

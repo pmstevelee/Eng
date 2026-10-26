@@ -157,3 +157,9 @@ export function statusAfterEdit(current: string, audioReady: boolean): LectureSc
   if (current === 'DRAFT') return 'DRAFT'
   return audioReady ? 'AUDIO_READY' : 'APPROVED'
 }
+
+/** YouTube 연결이 풀린 뒤 상태 — 음성이 모두 최신이면 AUDIO_READY, 아니면 APPROVED (초안은 그대로) */
+export function statusAfterUnlink(current: string, audioReady: boolean): LectureScriptStatus {
+  if (current === 'DRAFT') return 'DRAFT'
+  return audioReady ? 'AUDIO_READY' : 'APPROVED'
+}

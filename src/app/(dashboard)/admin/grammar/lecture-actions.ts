@@ -9,6 +9,7 @@ import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import { validateLectureInput } from '@/lib/grammar/lecture-input'
 import { deleteLecture, upsertLecture } from '@/lib/grammar/lectures'
+import { releaseScriptLink } from '@/lib/grammar/lecture-script-link'
 
 type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -20,6 +21,7 @@ async function getAdmin() {
 
 function revalidateLecturePages(code: string) {
   revalidatePath(`/admin/grammar/points/${code}`)
+  revalidatePath('/admin/grammar')
   revalidatePath('/student/grammar', 'layout')
 }
 
@@ -37,11 +39,19 @@ export async function saveHqLecture(pointId: string, input: unknown): Promise<Ac
 
   try {
     const saved = await upsertLecture({ grammarPointId: point.id, academyId: null, input: parsed.value, userId: admin.id })
+    // 다른 영상으로 바꿨으면 AI 강의 스크립트는 'YouTube 연결' 전 상태로 돌아간다
+    await releaseScriptLink(saved.detachedScriptId)
     await logActivity({
       userId: admin.id,
       role: admin.role,
       action: ACTIVITY_ACTIONS.GRAMMAR_LECTURE_SAVE,
-      metadata: { pointCode: point.code, lectureId: saved.id, videoId: parsed.value.videoId, created: saved.created },
+      metadata: {
+        pointCode: point.code,
+        lectureId: saved.id,
+        videoId: parsed.value.videoId,
+        created: saved.created,
+        detachedScriptId: saved.detachedScriptId,
+      },
     })
   } catch (error) {
     console.error('[grammar-lecture] 저장 실패:', error)
@@ -60,12 +70,13 @@ export async function deleteHqLecture(lectureId: string): Promise<ActionResult> 
   try {
     const removed = await deleteLecture(lectureId, null)
     if (!removed) return { ok: false, error: '강의를 찾을 수 없습니다.' }
+    await releaseScriptLink(removed.scriptId)
     const point = await prisma.grammarPoint.findUnique({ where: { id: removed.grammarPointId }, select: { code: true } })
     await logActivity({
       userId: admin.id,
       role: admin.role,
       action: ACTIVITY_ACTIONS.GRAMMAR_LECTURE_DELETE,
-      metadata: { pointCode: point?.code ?? null, lectureId },
+      metadata: { pointCode: point?.code ?? null, lectureId, scriptId: removed.scriptId },
     })
     if (point) revalidateLecturePages(point.code)
   } catch (error) {

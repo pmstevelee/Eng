@@ -25,8 +25,9 @@ export interface AdminLectureScript {
   updatedAt: string
   approvedAt: string | null
   audioReadyAt: string | null
-  /** 연결된 YouTube 강의 */
-  lecture: { id: string; videoId: string; title: string } | null
+  linkedAt: string | null
+  /** 연결된 YouTube 강의 (본사 기본 강의) */
+  lecture: { id: string; videoId: string; title: string; durationSec: number | null; completedCount: number } | null
 }
 
 /** 포인트의 강의 스크립트 (최근 순) */
@@ -51,7 +52,16 @@ export async function getPointLectureScripts(pointId: string): Promise<AdminLect
       approvedAt: true,
       audioReadyAt: true,
       createdBy: { select: { name: true } },
-      lecture: { select: { id: true, videoId: true, title: true } },
+      linkedAt: true,
+      lecture: {
+        select: {
+          id: true,
+          videoId: true,
+          title: true,
+          durationSec: true,
+          _count: { select: { views: { where: { completedAt: { not: null } } } } },
+        },
+      },
     },
   })
   return rows.map((r) => ({
@@ -71,7 +81,16 @@ export async function getPointLectureScripts(pointId: string): Promise<AdminLect
     updatedAt: r.updatedAt.toISOString(),
     approvedAt: r.approvedAt?.toISOString() ?? null,
     audioReadyAt: r.audioReadyAt?.toISOString() ?? null,
-    lecture: r.lecture,
+    linkedAt: r.linkedAt?.toISOString() ?? null,
+    lecture: r.lecture
+      ? {
+          id: r.lecture.id,
+          videoId: r.lecture.videoId,
+          title: r.lecture.title,
+          durationSec: r.lecture.durationSec,
+          completedCount: r.lecture._count.views,
+        }
+      : null,
   }))
 }
 

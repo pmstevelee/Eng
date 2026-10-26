@@ -10,6 +10,7 @@ import {
   segmentAudioPath,
   segmentAudioState,
   statusAfterEdit,
+  statusAfterUnlink,
   type AudioVoices,
 } from './audio-plan'
 
@@ -125,5 +126,13 @@ describe('statusAfterEdit', () => {
     expect(statusAfterEdit('LINKED', false)).toBe('LINKED')
     expect(statusAfterEdit('AUDIO_READY', false)).toBe('APPROVED')
     expect(statusAfterEdit('APPROVED', true)).toBe('AUDIO_READY')
+  })
+})
+
+describe('statusAfterUnlink', () => {
+  it('연결이 풀리면 음성 상태에 따라 AUDIO_READY 또는 APPROVED로 돌아간다', () => {
+    expect(statusAfterUnlink('LINKED', true)).toBe('AUDIO_READY')
+    expect(statusAfterUnlink('LINKED', false)).toBe('APPROVED')
+    expect(statusAfterUnlink('DRAFT', true)).toBe('DRAFT')
   })
 })

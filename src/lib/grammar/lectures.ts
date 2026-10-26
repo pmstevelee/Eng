@@ -143,11 +143,11 @@ export async function upsertLecture(params: {
   academyId: string | null
   input: LectureInput
   userId: string
-}): Promise<{ id: string; created: boolean }> {
+}): Promise<{ id: string; created: boolean; detachedScriptId: string | null }> {
   const { grammarPointId, academyId, input, userId } = params
   const existing = await prisma.grammarLecture.findFirst({
     where: { grammarPointId, academyId, isActive: true },
-    select: { id: true, videoId: true },
+    select: { id: true, videoId: true, scriptId: true },
     orderBy: { updatedAt: 'desc' },
   })
   const data = {
@@ -162,28 +162,32 @@ export async function upsertLecture(params: {
       data: { ...data, grammarPointId, academyId, createdById: userId },
       select: { id: true },
     })
-    return { id: created.id, created: true }
+    return { id: created.id, created: true, detachedScriptId: null }
   }
   if (existing.videoId !== input.videoId) {
+    // 다른 영상으로 바꾸면 AI 강의 스크립트와의 연결도 끊는다 (스크립트 상태는 호출한 쪽에서 되돌림)
     await prisma.$transaction([
       prisma.grammarLectureView.deleteMany({ where: { lectureId: existing.id } }),
-      prisma.grammarLecture.update({ where: { id: existing.id }, data: { ...data, createdById: userId } }),
+      prisma.grammarLecture.update({ where: { id: existing.id }, data: { ...data, createdById: userId, scriptId: null } }),
     ])
-  } else {
-    await prisma.grammarLecture.update({ where: { id: existing.id }, data })
+    return { id: existing.id, created: false, detachedScriptId: existing.scriptId }
   }
-  return { id: existing.id, created: false }
+  await prisma.grammarLecture.update({ where: { id: existing.id }, data })
+  return { id: existing.id, created: false, detachedScriptId: null }
 }
 
 /** 강의 삭제 — academyId가 맞는 강의만 (시청 기록은 함께 삭제됨) */
-export async function deleteLecture(lectureId: string, academyId: string | null): Promise<{ grammarPointId: string } | null> {
+export async function deleteLecture(
+  lectureId: string,
+  academyId: string | null,
+): Promise<{ grammarPointId: string; scriptId: string | null } | null> {
   const lecture = await prisma.grammarLecture.findFirst({
     where: { id: lectureId, academyId },
-    select: { id: true, grammarPointId: true },
+    select: { id: true, grammarPointId: true, scriptId: true },
   })
   if (!lecture) return null
   await prisma.grammarLecture.delete({ where: { id: lecture.id } })
-  return { grammarPointId: lecture.grammarPointId }
+  return { grammarPointId: lecture.grammarPointId, scriptId: lecture.scriptId }
 }
 
 // ─── 학생 시청 기록 ──────────────────────────────────────────────────────────
