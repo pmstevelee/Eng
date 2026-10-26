@@ -519,6 +519,7 @@ model Student {
   grammarAttempts            GrammarAttempt[]
   grammarLectureViews        GrammarLectureView[]
   grammarAssignments         GrammarAssignment[]
+  grammarWeakComments        GrammarWeakComment[]
 
   @@index([classId])
   @@index([status])
@@ -2420,6 +2421,7 @@ model GrammarPoint {
   sourceScripts  GrammarSourceScript[]
   contentGaps    GrammarContentGap[]
   lectureScripts GrammarLectureScript[]
+  weakComments   GrammarWeakComment[]
 
   @@index([categoryId, sortOrder])
   @@index([status])
@@ -2721,4 +2723,26 @@ model GrammarTagSuggestion {
 
   @@index([status])
   @@map("grammar_tag_suggestions")
+}
+
+/// 취약 포인트 AI 코멘트 — 학생·포인트·주(KST 월요일) 단위 캐시. 같은 주에는 OpenAI를 다시 부르지 않는다
+model GrammarWeakComment {
+  id             String   @id @default(uuid())
+  studentId      String   @map("student_id")
+  grammarPointId String   @map("grammar_point_id")
+  /// KST 주 시작일(월요일)
+  weekStart      DateTime @map("week_start") @db.Date
+  /// 2~3문장 한국어 코멘트
+  comment        String
+  /// 근거로 쓴 틀린 문장 — [{ question, myAnswer, correctAnswer }]
+  samplesJson    Json     @map("samples_json")
+  model          String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  grammarPoint GrammarPoint @relation(fields: [grammarPointId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, grammarPointId, weekStart])
+  @@index([grammarPointId])
+  @@map("grammar_weak_comments")
 }

@@ -11,6 +11,7 @@ import { fromDbDate, todayKst } from '@/lib/attendance/time'
 import { getGrammarTree, type GrammarTreeCategory } from './curriculum'
 import { getGrammarClassCards } from './manage-queries'
 import { classStudentWhere, type GrammarManageScope } from './manage-access'
+import { getGrammarWeeklyReport, type GrammarWeeklyReport } from './weekly-report'
 import { countPassedStates, groupStudentPoints, type StudentPointGroup, type StudentPointRowInput } from './achievement-logic'
 
 // ─── 반 히트맵 ───────────────────────────────────────────────────────────────
@@ -141,6 +142,8 @@ export interface StudentGrammarDetail {
   totals: { passed: number; mastered: number; weak: number; inProgress: number; assigned: number }
   /** 단원 추가 배정용 트리 (공개 포인트) */
   tree: GrammarTreeCategory[]
+  /** 최근 7일 주간 리포트 (탭 상단 '이번 주 문법') */
+  weekly: GrammarWeeklyReport
   todayKey: string
 }
 
@@ -158,7 +161,7 @@ export const RECENT_CHECK_LIMIT = 10
 
 export async function getStudentGrammarDetail(student: { id: string; academyId: string }): Promise<StudentGrammarDetail> {
   const studentId = student.id
-  const [progress, assignments, recentChecks, tree] = await Promise.all([
+  const [progress, assignments, recentChecks, tree, weekly] = await Promise.all([
     prisma.grammarPointProgress.findMany({
       where: { studentId },
       select: {
@@ -188,6 +191,7 @@ export async function getStudentGrammarDetail(student: { id: string; academyId: 
       take: RECENT_CHECK_LIMIT,
     }),
     getGrammarTree(student.academyId),
+    getGrammarWeeklyReport(studentId),
   ])
 
   // 포인트별 한 행 — 진도가 없어도 배정된 포인트는 미학습으로 보인다
@@ -249,6 +253,7 @@ export async function getStudentGrammarDetail(student: { id: string; academyId: 
       assigned: assignedIds.size,
     },
     tree,
+    weekly,
     todayKey: todayKst(),
   }
 }

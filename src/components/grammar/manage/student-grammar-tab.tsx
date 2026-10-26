@@ -12,6 +12,7 @@ import type { StudentGrammarDetail } from '@/lib/grammar/achievement-queries'
 import { assignGrammarToStudent, removeStudentAssignment } from '@/lib/grammar/manage-actions'
 import type { GrammarMasteryState } from '@/generated/prisma'
 import { cn } from '@/lib/utils'
+import { WeeklyGrammarCard } from '../weekly-grammar-card'
 import { AddPointsDialog } from './add-points-dialog'
 import { formatDateKey } from './format'
 
@@ -101,6 +102,8 @@ export function StudentGrammarTab({ studentId }: { studentId: string }) {
 
   return (
     <div className="space-y-5">
+      <WeeklyGrammarCard report={data.weekly} studentId={studentId} />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-gray-500">반 배정과 개인 배정, 학생이 스스로 공부한 단원이 모두 보여요.</p>
         <Button type="button" className="min-h-[44px]" onClick={() => setAddOpen(true)}>

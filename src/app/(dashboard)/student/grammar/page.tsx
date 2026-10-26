@@ -2,7 +2,9 @@ import Link from 'next/link'
 import { AlertTriangle, BookOpen, CalendarClock, ChevronRight, Map, RotateCcw } from 'lucide-react'
 import { requireStudent } from '@/lib/auth-student'
 import { getGrammarHomeData, type GrammarHomeData } from '@/lib/grammar/student-queries'
+import { getGrammarWeeklyReport } from '@/lib/grammar/weekly-report'
 import { GrammarStateBadge } from '@/components/grammar/grammar-state-badge'
+import { WeeklyGrammarCard } from '@/components/grammar/weekly-grammar-card'
 import { NEXT_UNIT_REASON_LABEL } from '@/lib/grammar/constants'
 import { formatDaysLeft, formatDueKey } from './_components/format'
 
@@ -10,7 +12,10 @@ const FREE_PRACTICE_HREF = '/student/learn/domain/grammar'
 
 export default async function StudentGrammarHomePage() {
   const { user, studentId } = await requireStudent()
-  const data = user.academyId ? await getGrammarHomeData(studentId, user.academyId) : null
+  const [data, weekly] = await Promise.all([
+    user.academyId ? getGrammarHomeData(studentId, user.academyId) : Promise.resolve(null),
+    getGrammarWeeklyReport(studentId),
+  ])
 
   if (!data || !data.hasPoints) {
     return (
@@ -45,6 +50,8 @@ export default async function StudentGrammarHomePage() {
         <DueSoonCard items={data.dueSoon} />
         <WeakCard items={data.weak} />
       </div>
+
+      <WeeklyGrammarCard report={weekly} />
     </div>
   )
 }
