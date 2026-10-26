@@ -134,7 +134,10 @@ export default async function AdminGrammarPointPage({
       {tab === 'lecture' ? (
         <div className="space-y-5">
           <PointLectures pointId={point.id} lectures={lectures} />
-          <LectureStudio pointId={point.id} scripts={lectureScripts} voicesByScript={voicesByScript} />
+          <LectureStudio
+            pointId={point.id}
+            point={{ code: point.code, title: point.title, summary: point.summary, categoryName: point.category.name }}
+            scripts={lectureScripts} voicesByScript={voicesByScript} />
         </div>
       ) : tab === 'questions' ? (
         <PointQuestions

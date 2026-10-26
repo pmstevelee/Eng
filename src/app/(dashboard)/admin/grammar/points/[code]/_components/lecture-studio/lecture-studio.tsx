@@ -1,6 +1,6 @@
 'use client'
 
-// 포인트 "강의" 탭의 AI 강의 제작 — 스크립트 → 장면 편집 → 음성 → 미리보기·내보내기(2-5-5) → YouTube 연결(2-5-6)
+// 포인트 "강의" 탭의 AI 강의 제작 — 스크립트 → 장면 편집 → 음성 → 미리보기·내보내기 → YouTube 연결(2-5-6)
 // 관리자 전용. 만든 영상은 관리자가 YouTube에 올리고 링크를 본사 기본 강의로 연결한다.
 
 import { useState, useTransition } from 'react'
@@ -10,11 +10,13 @@ import { Button } from '@/components/ui/button'
 import { LectureScriptBadge } from '@/components/grammar/lecture-script-badge'
 import type { AdminLectureScript } from '@/lib/grammar/lecture-scripts'
 import type { AudioVoices } from '@/lib/grammar/video/audio-plan'
+import type { ExportPointInfo } from '@/lib/grammar/video/export/youtube-text'
 import { cn } from '@/lib/utils'
 import { deleteScript } from '../../../../lecture-script-actions'
 import { CreateScriptPanel } from './create-script-panel'
 import { SceneEditor } from './scene-editor'
 import { AudioPanel } from './audio-panel'
+import { ExportPanel } from './export-panel'
 import { NoticeBox, SelectInput, type Notice } from './studio-ui'
 
 type Step = 'script' | 'scenes' | 'audio' | 'export' | 'youtube'
@@ -43,10 +45,13 @@ function defaultStep(status: string): Step {
 
 export function LectureStudio({
   pointId,
+  point,
   scripts,
   voicesByScript,
 }: {
   pointId: string
+  /** 내보내기 파일 이름·YouTube 설명문용 */
+  point: ExportPointInfo
   scripts: AdminLectureScript[]
   voicesByScript: Record<string, AudioVoices | null>
 }) {
@@ -174,7 +179,8 @@ export function LectureStudio({
 
           <ol className="flex gap-1 overflow-x-auto border-b border-gray-200" aria-label="제작 단계">
             {STEPS.map((s, i) => {
-              const disabled = s.value === 'script' || s.value === 'export' || s.value === 'youtube'
+              // 미리보기·내보내기는 음성이 다 만들어진 뒤에 열린다
+              const disabled = s.value === 'script' || s.value === 'youtube' || (s.value === 'export' && !done.has('audio'))
               return (
                 <li key={s.value} className="shrink-0">
                   <button
@@ -205,9 +211,10 @@ export function LectureStudio({
 
           {step === 'scenes' && <SceneEditor key={selected.id} script={selected} voices={voicesByScript[selected.id] ?? null} />}
           {step === 'audio' && <AudioPanel key={selected.id} script={selected} />}
-          {(step === 'export' || step === 'youtube') && (
+          {step === 'export' && <ExportPanel key={selected.id} script={selected} point={point} />}
+          {step === 'youtube' && (
             <p className="rounded-xl border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500">
-              미리보기·MP4 내보내기와 YouTube 연결은 다음 작업에서 열립니다.
+              YouTube 연결은 다음 작업에서 열립니다.
             </p>
           )}
         </>
