@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma/client'
-import { Search, Building2 } from 'lucide-react'
+import { Search, Building2, UserPlus } from 'lucide-react'
 import type { SubscriptionStatus, PlanType } from '@/generated/prisma'
 import { PLAN_TYPE_LABEL, SELECTABLE_PLAN_TYPES } from '@/lib/plan-types'
 
@@ -100,9 +100,18 @@ export default async function AcademiesPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">학원 관리</h1>
-        <p className="text-sm text-gray-500 mt-1">전체 {academies.length}개 학원</p>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">학원 관리</h1>
+          <p className="text-sm text-gray-500 mt-1">전체 {academies.length}개 학원</p>
+        </div>
+        <Link
+          href="/admin/academies/new"
+          className="inline-flex items-center gap-2 h-11 px-5 rounded-lg bg-primary-700 text-white text-sm font-medium hover:bg-primary-600 transition-colors"
+        >
+          <UserPlus size={16} />
+          학원장 계정 만들기
+        </Link>
       </div>
 
       {/* Search + Filters */}
