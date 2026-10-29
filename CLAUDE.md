@@ -170,3 +170,6 @@
 - 관리자가 쉽게 만들 수 있게: 목록·분류 화면에 제작 순서 안내(`WorkflowGuide`), AI 결과는 폼에 채우고 저장은 관리자가(포인트 편집), 일괄 생성은 초안(DRAFT) 포인트만·포인트 하나씩 호출(서버 시간 제한 회피)
 - AI 모델: 관리자 콘텐츠 생성은 `AI_CONTENT_MODEL`(env `OPENAI_CONTENT_MODEL`, 없으면 `OPENAI_MODEL`, 없으면 gpt-4o-mini). gpt-5·o 계열은 `completionParams()` 필수, 400/404면 `AI_FALLBACK_MODEL`로 재시도
 - 공개 조건: 검수 완료 문항(본사 공용·isVerified·isActive) 22개 이상 (`MIN_PUBLISH_QUESTIONS`)
+- AI 강의 영상: 장면 배경 그림은 OpenAI 이미지 API(`AI_IMAGE_MODEL`, env `OPENAI_IMAGE_MODEL`, 기본 gpt-image-1-mini) → `SceneBase.image`(path·prompt·strength), 그림 변경은 `lecture-image-actions.ts`만, 장면 저장은 `carryOverImages`로 서버 값 유지
+  - 화면은 Canvas 렌더러(`renderFrame`) 하나를 미리보기·브라우저 MP4·Remotion이 함께 쓴다. Remotion 컴포지션 `src/components/grammar/video/remotion/`, 진입점 `remotion/index.ts`(상대 경로만 — '@/' 금지)
+  - Remotion MP4는 관리자 PC에서 `npm run lecture:render -- <스크립트 id|포인트 코드>` (out/lectures). Vercel에서 렌더하지 않는다

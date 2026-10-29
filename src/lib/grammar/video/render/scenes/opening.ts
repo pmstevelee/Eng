@@ -5,7 +5,6 @@ import { VIDEO_COLORS, VIDEO_FONT_SIZES } from '../../constants'
 import { CONTENT_BOTTOM, CONTENT_LEFT, CONTENT_TOP, CONTENT_WIDTH, drawBrand, type SceneDrawArgs } from '../layout'
 import {
   baselineOf,
-  drawNight,
   drawTextLayout,
   font,
   fontString,
@@ -28,7 +27,7 @@ const HOOK = font(VIDEO_FONT_SIZES.openingHook, 500)
 const HOOK_GAP = 48
 
 export function drawOpening({ ctx, data, view }: SceneDrawArgs<OpeningData>): void {
-  drawNight(ctx)
+  // 남색 배경·배경 그림은 drawScene이 먼저 그린다
 
   // 제목 줄: 한글 + 영어가 한 줄에 들어가도록 함께 줄인다
   const koW = measure(ctx, data.titleKo, TITLE, TITLE.size * TITLE_TRACKING)

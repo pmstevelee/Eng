@@ -14,6 +14,15 @@ export const AI_CONTENT_MODEL = process.env.OPENAI_CONTENT_MODEL || AI_MODEL
 export const AI_VISION_MODEL = process.env.OPENAI_VISION_MODEL || 'gpt-4o'
 
 /**
+ * 이미지 생성 모델 (관리자 AI 강의 장면 배경 그림). 미설정 시 gpt-image-1-mini.
+ * GPT 이미지 모델은 OpenAI 조직 인증(Verify Organization)이 끝나야 쓸 수 있다.
+ */
+export const AI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1-mini'
+
+/** 이미지 모델이 요청을 거부(400·404)할 때 한 번 더 시도할 모델 */
+export const AI_IMAGE_FALLBACK_MODEL = 'gpt-image-1'
+
+/**
  * 추론형 모델(gpt-5·o 계열)인지. 이 모델들은 max_tokens·temperature(기본값 외)를 거부(400)하고
  * 출력 한도 안에 추론 토큰까지 쓰므로 요청 파라미터를 다르게 줘야 한다.
  */

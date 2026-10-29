@@ -36,6 +36,8 @@ import {
 import { cn } from '@/lib/utils'
 import { getAudioUrls } from '../../../../lecture-audio-actions'
 import { NoticeBox, type Notice } from './studio-ui'
+import { RemotionPanel } from './remotion-panel'
+import { useSceneImages } from './use-scene-images'
 
 type AudioState =
   | { kind: 'loading'; done: number; total: number }
@@ -83,6 +85,8 @@ export function ExportPanel({ script, point }: { script: AdminLectureScript; poi
   const [notice, setNotice] = useState<Notice>(null)
   const [busyFile, setBusyFile] = useState<string | null>(null)
   const [support, setSupport] = useState<{ video: boolean; audio: boolean } | null>(null)
+  const [audioUrls, setAudioUrls] = useState<Record<string, string>>({})
+  const sceneImages = useSceneImages(script.id, scenes)
 
   const tRef = useRef(0)
   const rafRef = useRef<number | null>(null)
@@ -109,6 +113,7 @@ export function ExportPanel({ script, point }: { script: AdminLectureScript; poi
       }
       const urls: Record<string, string> = {}
       for (const [id, u] of Object.entries(res.urls)) if (u.url) urls[id] = u.url
+      setAudioUrls(urls)
       try {
         const audio = await loadMixedAudio(timeline, urls, {
           signal: abort.signal,
@@ -267,6 +272,7 @@ export function ExportPanel({ script, point }: { script: AdminLectureScript; poi
         timeline,
         audio,
         subtitles: burnSubtitles,
+        images: sceneImages.images,
         signal: abort.signal,
         onProgress: (p) => setExportState({ kind: 'running', frame: p.frame, totalFrames: p.totalFrames, startedAt }),
       })
@@ -291,7 +297,7 @@ export function ExportPanel({ script, point }: { script: AdminLectureScript; poi
       if (kind === 'srt') downloadBlob(textBlob(toSrt(timeline)), `${fileBase}.srt`)
       else if (kind === 'description') downloadBlob(textBlob(buildYoutubeDescription(scenes, timeline, point)), `${fileBase}-설명문.txt`)
       else if (kind === 'script') downloadBlob(textBlob(buildScriptText(scenes, timeline, script.title, point)), `${fileBase}-스크립트.txt`)
-      else if (kind === 'thumbnail') downloadBlob(await renderThumbnailPng(scenes, timeline), `${fileBase}-썸네일.png`)
+      else if (kind === 'thumbnail') downloadBlob(await renderThumbnailPng(scenes, timeline, sceneImages.images), `${fileBase}-썸네일.png`)
       else if (kind === 'm4a') {
         if (!audio) return
         const { exportNarrationM4a, checkEncoderSupport, UNSUPPORTED_ENCODER_MESSAGE } = await import('@/lib/grammar/video/export/encode')
@@ -320,7 +326,16 @@ export function ExportPanel({ script, point }: { script: AdminLectureScript; poi
 
       {/* 미리보기 */}
       <div className="space-y-3">
-        <VideoCanvas scenes={scenes} timeline={timeline} t={t} subtitles={subtitles} onFontsReady={setFontsLoaded} />
+        <VideoCanvas
+          scenes={scenes}
+          timeline={timeline}
+          t={t}
+          subtitles={subtitles}
+          images={sceneImages.images}
+          onFontsReady={setFontsLoaded}
+        />
+        {sceneImages.loading && <p className="text-xs text-gray-500">배경 그림 불러오는 중…</p>}
+        {sceneImages.error && <p className="text-xs text-[#D92916]">{sceneImages.error}</p>}
 
         {audioState.kind === 'loading' && (
           <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -456,7 +471,7 @@ export function ExportPanel({ script, point }: { script: AdminLectureScript; poi
               type="button"
               className="h-11 bg-[#1865F2] hover:bg-[#1554C9]"
               onClick={handleExport}
-              disabled={!audio || encoderOk === false}
+              disabled={!audio || encoderOk === false || sceneImages.loading}
             >
               <Film className="mr-1.5 h-4 w-4" />
               {exportState.kind === 'done' ? 'MP4 다시 만들기' : 'MP4 만들기'}
@@ -478,6 +493,14 @@ export function ExportPanel({ script, point }: { script: AdminLectureScript; poi
           </div>
         )}
       </div>
+
+      <RemotionPanel
+        scriptId={script.id}
+        scenes={scenes}
+        audioUrls={audioUrls}
+        imageUrls={sceneImages.urls}
+        subtitles={burnSubtitles}
+      />
 
       {/* 함께 내려받기 */}
       <div className="space-y-3 rounded-xl border border-gray-200 p-4">

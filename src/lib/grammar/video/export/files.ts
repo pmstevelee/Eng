@@ -2,14 +2,14 @@
 
 import type { VideoScene } from '../../../../types/grammar-video'
 import { sceneSettledTime, type Timeline } from '../timeline'
-import { renderFrame } from '../render'
+import { renderFrame, type SceneImageSources } from '../render'
 import { VIDEO_HEIGHT, VIDEO_WIDTH } from '../constants'
 
 export const THUMBNAIL_WIDTH = 1280
 export const THUMBNAIL_HEIGHT = 720
 
 /** 썸네일: 오프닝 장면(없으면 첫 장면)이 다 보인 화면을 자막 없이 1280×720으로 */
-export async function renderThumbnailPng(scenes: VideoScene[], timeline: Timeline): Promise<Blob> {
+export async function renderThumbnailPng(scenes: VideoScene[], timeline: Timeline, images?: SceneImageSources): Promise<Blob> {
   const canvas = document.createElement('canvas')
   canvas.width = THUMBNAIL_WIDTH
   canvas.height = THUMBNAIL_HEIGHT
@@ -17,7 +17,7 @@ export async function renderThumbnailPng(scenes: VideoScene[], timeline: Timelin
   if (!ctx) throw new Error('캔버스를 만들지 못했어요.')
   ctx.setTransform(THUMBNAIL_WIDTH / VIDEO_WIDTH, 0, 0, THUMBNAIL_HEIGHT / VIDEO_HEIGHT, 0, 0)
   const index = Math.max(0, scenes.findIndex((s) => s.template === 'opening'))
-  renderFrame(ctx, scenes, timeline, sceneSettledTime(timeline, index), { subtitles: false })
+  renderFrame(ctx, scenes, timeline, sceneSettledTime(timeline, index), { subtitles: false, images })
   return new Promise((resolve, reject) =>
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('썸네일을 만들지 못했어요.'))), 'image/png'),
   )

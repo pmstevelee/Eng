@@ -13,7 +13,7 @@ import {
 } from 'mediabunny'
 import type { VideoScene } from '../../../../types/grammar-video'
 import type { Timeline } from '../timeline'
-import { renderFrame } from '../render'
+import { renderFrame, type SceneImageSources } from '../render'
 import { VIDEO_FPS, VIDEO_HEIGHT, VIDEO_WIDTH } from '../constants'
 import { frameCount, frameTimeMs } from './plan'
 import { toAudioBuffer, type MixedAudio } from './load-audio'
@@ -73,10 +73,11 @@ export async function exportLectureMp4(params: {
   timeline: Timeline
   audio: MixedAudio
   subtitles: boolean
+  images?: SceneImageSources
   signal?: AbortSignal
   onProgress?: (p: ExportProgress) => void
 }): Promise<Blob> {
-  const { scenes, timeline, audio, subtitles, signal, onProgress } = params
+  const { scenes, timeline, audio, subtitles, images, signal, onProgress } = params
   const canvas = document.createElement('canvas')
   canvas.width = VIDEO_WIDTH
   canvas.height = VIDEO_HEIGHT
@@ -95,7 +96,7 @@ export async function exportLectureMp4(params: {
     await output.start()
     for (let i = 0; i < total; i++) {
       if (signal?.aborted) throw abortError()
-      renderFrame(ctx, scenes, timeline, Math.min(frameTimeMs(i), timeline.duration), { subtitles })
+      renderFrame(ctx, scenes, timeline, Math.min(frameTimeMs(i), timeline.duration), { subtitles, images })
       await video.add(i / VIDEO_FPS, 1 / VIDEO_FPS)
       await feedAudio((i + 1) / VIDEO_FPS + AUDIO_LEAD_SEC)
       if (i % 10 === 0 || i === total - 1) {

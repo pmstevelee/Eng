@@ -29,6 +29,17 @@ export async function uploadLectureAudio(path: string, audio: Uint8Array): Promi
   }
 }
 
+/** 장면 배경 그림 저장 (같은 버킷, scripts/{id}/images/) — 삭제·서명 URL은 음성과 같은 함수를 쓴다 */
+export async function uploadLectureImage(path: string, bytes: Uint8Array, contentType: string): Promise<void> {
+  const { error } = await getAdminStorage()
+    .storage.from(LECTURE_AUDIO_BUCKET)
+    .upload(path, bytes, { contentType, upsert: true, cacheControl: '31536000' })
+  if (error) {
+    console.error('[lecture-image] 업로드 실패:', error)
+    throw new Error('그림 파일을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.')
+  }
+}
+
 /** 파일 삭제 — 실패해도 흐름을 막지 않는다(로그만) */
 export async function removeLectureAudio(paths: string[]): Promise<void> {
   const list = Array.from(new Set(paths.filter(Boolean)))
@@ -42,13 +53,13 @@ export async function removeLectureAudio(paths: string[]): Promise<void> {
 }
 
 /** 경로 → 짧은 서명 URL (없는 파일은 빠진다) */
-export async function signLectureAudioUrls(paths: string[]): Promise<Map<string, string>> {
+export async function signLectureAudioUrls(paths: string[], ttlSec: number = LECTURE_AUDIO_URL_TTL_SEC): Promise<Map<string, string>> {
   const list = Array.from(new Set(paths.filter(Boolean)))
   const out = new Map<string, string>()
   if (list.length === 0) return out
   const { data, error } = await getAdminStorage()
     .storage.from(LECTURE_AUDIO_BUCKET)
-    .createSignedUrls(list, LECTURE_AUDIO_URL_TTL_SEC)
+    .createSignedUrls(list, ttlSec)
   if (error) {
     console.error('[lecture-audio] 서명 URL 실패:', error)
     throw new Error('음성 주소를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.')

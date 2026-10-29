@@ -4,7 +4,8 @@
 import type { VideoScene } from '../../../../types/grammar-video'
 import { getFrameState, type FrameState, type SceneView, type Timeline } from '../timeline'
 import { VIDEO_COLORS, VIDEO_FONT_SIZES, VIDEO_HEIGHT, VIDEO_WIDTH } from '../constants'
-import { drawTextLayout, drawPaper, fillRoundRect, font, layoutText, withAlpha, type Ctx2D } from './primitives'
+import { drawNight, drawTextLayout, drawPaper, fillRoundRect, font, layoutText, withAlpha, type Ctx2D } from './primitives'
+import { coverRect, isNightTemplate, sceneImageAlpha } from '../image-plan'
 import { drawOpening } from './scenes/opening'
 import { drawCompare } from './scenes/compare'
 import { drawSteps } from './scenes/steps'
@@ -17,13 +18,30 @@ import { drawSummary } from './scenes/summary'
 export type { Ctx2D } from './primitives'
 export { clearFontMetricsCache } from './primitives'
 
+/** 배경 그림 경로(SceneImage.path) → 불러온 그림. 아직 없는 그림은 빼고 그린다 */
+export type SceneImageSources = ReadonlyMap<string, ImageBitmap>
+
 export interface RenderOptions {
   /** 하단 자막 상자 (기본 켜짐 — 샘플과 같음) */
   subtitles: boolean
+  images?: SceneImageSources
+}
+
+/** 장면 배경: 남색 장면은 남색을 칠하고, 배경 그림이 있으면 옅게 깐다 (흰 종이는 renderFrame이 먼저 칠함) */
+function drawSceneBackdrop(ctx: Ctx2D, scene: VideoScene, images?: SceneImageSources): void {
+  if (isNightTemplate(scene.template)) drawNight(ctx)
+  const img = scene.image ? images?.get(scene.image.path) : undefined
+  if (!scene.image || !img) return
+  const r = coverRect(img.width, img.height, VIDEO_WIDTH, VIDEO_HEIGHT)
+  if (r.sw <= 0) return
+  withAlpha(ctx, sceneImageAlpha(scene.template, scene.image.strength), () => {
+    ctx.drawImage(img, r.sx, r.sy, r.sw, r.sh, 0, 0, VIDEO_WIDTH, VIDEO_HEIGHT)
+  })
 }
 
 /** 장면 하나를 view 상태로 그린다 (전환 투명도는 호출하는 쪽에서) */
-export function drawScene(ctx: Ctx2D, scene: VideoScene, view: SceneView): void {
+export function drawScene(ctx: Ctx2D, scene: VideoScene, view: SceneView, images?: SceneImageSources): void {
+  drawSceneBackdrop(ctx, scene, images)
   switch (scene.template) {
     case 'opening':
       return drawOpening({ ctx, data: scene.data, view })
@@ -92,7 +110,7 @@ export function renderFrame(
   const draw = (view: SceneView) => {
     const scene = scenes[view.sceneIndex]
     if (!scene) return
-    withAlpha(ctx, view.opacity, () => drawScene(ctx, scene, view))
+    withAlpha(ctx, view.opacity, () => drawScene(ctx, scene, view, options.images))
   }
   if (state.previous) draw(state.previous)
   draw(state.current)

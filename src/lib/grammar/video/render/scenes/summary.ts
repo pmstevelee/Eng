@@ -3,7 +3,7 @@
 import type { SummaryData } from '../../../../../types/grammar-video'
 import { VIDEO_COLORS, VIDEO_FONT_SIZES } from '../../constants'
 import { CONTENT_BOTTOM, CONTENT_LEFT, CONTENT_WIDTH, drawBrand, drawHeading, type SceneDrawArgs } from '../layout'
-import { drawNight, drawTextLayout, drawTokenLayout, font, layoutText, layoutTokens, reveal } from '../primitives'
+import { drawTextLayout, drawTokenLayout, font, layoutText, layoutTokens, reveal } from '../primitives'
 
 const LINE_GAP = 34
 const LINE = font(VIDEO_FONT_SIZES.summaryLine, 500)
@@ -11,7 +11,7 @@ const LINE_CHIP = font(VIDEO_FONT_SIZES.summaryLine, 700)
 const CTA = font(VIDEO_FONT_SIZES.cta, 900)
 
 export function drawSummary({ ctx, data, view }: SceneDrawArgs<SummaryData>): void {
-  drawNight(ctx)
+  // 남색 배경·배경 그림은 drawScene이 먼저 그린다
   let y = drawHeading(ctx, data.title, undefined, VIDEO_COLORS.nightText)
 
   data.lines.forEach((line, i) => {

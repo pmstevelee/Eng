@@ -20,11 +20,14 @@ import { buildTimeline, sceneSettledTime } from '@/lib/grammar/video/timeline'
 import { checkScriptStructure, createBlankScene, narrationChars } from '@/lib/grammar/video/script-prompt'
 import type { AudioVoices } from '@/lib/grammar/video/audio-plan'
 import type { AdminLectureScript } from '@/lib/grammar/lecture-scripts'
+import type { ExportPointInfo } from '@/lib/grammar/video/export/youtube-text'
 import { cn } from '@/lib/utils'
 import { approveScript, updateScenes } from '../../../../lecture-script-actions'
 import { Field, IconButton, NoticeBox, SelectInput, TextInput, type Notice } from './studio-ui'
 import { SceneDataForm } from './scene-data-form'
 import { SegmentList } from './segment-list'
+import { SceneImagePanel } from './scene-image-panel'
+import { useSceneImages } from './use-scene-images'
 
 function formatDuration(ms: number): string {
   const s = Math.round(ms / 1000)
@@ -41,7 +44,15 @@ function useDebounced<T>(value: T, ms: number): T {
   return v
 }
 
-export function SceneEditor({ script, voices }: { script: AdminLectureScript; voices: AudioVoices | null }) {
+export function SceneEditor({
+  script,
+  voices,
+  point,
+}: {
+  script: AdminLectureScript
+  voices: AudioVoices | null
+  point: ExportPointInfo
+}) {
   const router = useRouter()
   const initial = useMemo(() => parseVideoScenes(script.scenesJson), [script.scenesJson])
   const [title, setTitle] = useState(script.title)
@@ -87,6 +98,9 @@ export function SceneEditor({ script, voices }: { script: AdminLectureScript; vo
     return m
   }, [check])
   const structure = useMemo(() => checkScriptStructure(scenes), [scenes])
+  // 배경 그림은 서버에 저장된 장면 기준으로 불러온다 (경로 → 그림)
+  const sceneImages = useSceneImages(script.id, initial.scenes)
+  const savedSceneIds = useMemo(() => new Set(initial.scenes.map((s) => s.id)), [initial.scenes])
 
   const previewScenes = useDebounced(check.scenes, 400)
   const previewTimeline = useMemo(() => buildTimeline(previewScenes), [previewScenes])
@@ -198,6 +212,7 @@ export function SceneEditor({ script, voices }: { script: AdminLectureScript; vo
                           timeline={previewTimeline}
                           t={sceneSettledTime(previewTimeline, pi)}
                           subtitles={false}
+                          images={sceneImages.images}
                           className="rounded-md"
                         />
                       ) : (
@@ -258,6 +273,25 @@ export function SceneEditor({ script, voices }: { script: AdminLectureScript; vo
             <section className="space-y-2">
               <h4 className="text-sm font-semibold text-gray-900">화면</h4>
               <SceneDataForm scene={selected} onChange={replaceScene} />
+            </section>
+
+            <section className="space-y-2">
+              <h4 className="text-sm font-semibold text-gray-900">배경 그림 (선택)</h4>
+              {sceneImages.error && <p className="text-xs text-[#D92916]">{sceneImages.error}</p>}
+              <SceneImagePanel
+                key={selected.id}
+                scriptId={script.id}
+                scene={selected}
+                pointTitle={point.title}
+                images={sceneImages.images}
+                blockedReason={
+                  dirty
+                    ? '저장하지 않은 장면 변경이 있어요. 먼저 "장면 저장"을 눌러 주세요.'
+                    : !savedSceneIds.has(selected.id)
+                      ? '새 장면은 저장한 뒤 그림을 만들 수 있어요.'
+                      : null
+                }
+              />
             </section>
 
             <section className="space-y-2">

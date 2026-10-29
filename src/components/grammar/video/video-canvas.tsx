@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { VideoScene } from '@/types/grammar-video'
 import type { Timeline } from '@/lib/grammar/video/timeline'
-import { renderFrame } from '@/lib/grammar/video/render'
+import { renderFrame, type SceneImageSources } from '@/lib/grammar/video/render'
 import { loadVideoFonts } from '@/lib/grammar/video/render/fonts'
 import { VIDEO_HEIGHT, VIDEO_WIDTH } from '@/lib/grammar/video/constants'
 import { cn } from '@/lib/utils'
@@ -17,12 +17,14 @@ interface VideoCanvasProps {
   /** ms */
   t: number
   subtitles?: boolean
+  /** 장면 배경 그림 (없으면 그림 없이) */
+  images?: SceneImageSources
   className?: string
   /** 글꼴 준비 결과 (false면 일부 글꼴을 못 받아 대체 글꼴로 그려짐) */
   onFontsReady?: (loaded: boolean) => void
 }
 
-export function VideoCanvas({ scenes, timeline, t, subtitles = true, className, onFontsReady }: VideoCanvasProps) {
+export function VideoCanvas({ scenes, timeline, t, subtitles = true, images, className, onFontsReady }: VideoCanvasProps) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [width, setWidth] = useState(0)
@@ -62,8 +64,8 @@ export function VideoCanvas({ scenes, timeline, t, subtitles = true, className, 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     ctx.setTransform(pxW / VIDEO_WIDTH, 0, 0, pxH / VIDEO_HEIGHT, 0, 0)
-    renderFrame(ctx, scenes, timeline, t, { subtitles })
-  }, [scenes, timeline, t, subtitles, width, fontsReady])
+    renderFrame(ctx, scenes, timeline, t, { subtitles, images })
+  }, [scenes, timeline, t, subtitles, images, width, fontsReady])
 
   return (
     <div ref={wrapRef} className={cn('relative aspect-video w-full overflow-hidden rounded-xl border border-gray-200 bg-white', className)}>

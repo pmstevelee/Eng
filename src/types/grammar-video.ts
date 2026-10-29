@@ -142,12 +142,31 @@ export interface SummaryData {
   ctaStep: number
 }
 
+/** 배경 그림 진하기 — 글자가 잘 보이도록 그림은 항상 옅게 깔린다 */
+export type SceneImageStrength = 'light' | 'medium' | 'strong'
+
+export const SCENE_IMAGE_STRENGTHS: readonly SceneImageStrength[] = ['light', 'medium', 'strong'] as const
+
+/**
+ * 장면 배경 그림 (AI 이미지 생성 결과). 서버 액션만 바꾼다 —
+ * 장면 저장(updateScenes)은 화면에서 온 값을 무시하고 저장돼 있던 값을 이어 붙인다.
+ */
+export interface SceneImage {
+  /** Storage 경로 (grammar-lectures 버킷) */
+  path: string
+  /** 그림을 만든 프롬프트 (다시 만들기·기록용) */
+  prompt: string
+  strength: SceneImageStrength
+}
+
 interface SceneBase {
   /** 스크립트 안에서 유일 */
   id: string
   /** 챕터 이름 (YouTube 챕터·장면 목록) */
   name: string
   segments: Segment[]
+  /** 배경 그림 (없으면 그림 없이 그린다) */
+  image?: SceneImage
 }
 
 export type VideoScene =
@@ -543,6 +562,14 @@ export function sceneSteps(scene: VideoScene): number[] {
 }
 
 /** 장면 하나 검증 — 오류가 있으면 scene은 null */
+/** 배경 그림 — 선택 항목이라 형식이 틀리면 오류 없이 버린다 (서버가 관리하는 값) */
+function readSceneImage(raw: unknown): SceneImage | null {
+  const r = asRecord(raw)
+  if (!r || typeof r.path !== 'string' || !r.path.trim()) return null
+  const strength = (SCENE_IMAGE_STRENGTHS as readonly unknown[]).includes(r.strength) ? (r.strength as SceneImageStrength) : 'medium'
+  return { path: r.path.trim(), prompt: typeof r.prompt === 'string' ? r.prompt : '', strength }
+}
+
 function parseScene(raw: unknown): { scene: VideoScene | null; errors: string[][]; id?: string } {
   const r = new SceneReader()
   const s = asRecord(raw)
@@ -558,7 +585,8 @@ function parseScene(raw: unknown): { scene: VideoScene | null; errors: string[][
   const segments = readSegments(r, s.segments)
   if (!data || r.errors.length > 0) return { scene: null, errors: r.errors, id: id || undefined }
 
-  const scene = { id, name, template, data, segments } as VideoScene
+  const image = readSceneImage(s.image)
+  const scene = { id, name, template, data, segments, ...(image ? { image } : {}) } as VideoScene
 
   // 나레이션과 화면이 맞물리는지 — 공개되지 않는 항목은 영상에서 끝까지 안 보인다
   const maxReveal = Math.max(-1, ...segments.map((x) => (x.reveal === undefined ? -1 : x.reveal)))

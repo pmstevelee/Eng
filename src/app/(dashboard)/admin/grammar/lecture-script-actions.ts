@@ -23,6 +23,7 @@ import {
   type ScriptGapDraft,
 } from '@/lib/grammar/video/script-prompt'
 import { carryOverAudio, planScriptAudio, statusAfterEdit } from '@/lib/grammar/video/audio-plan'
+import { carryOverImages, referencedImagePaths } from '@/lib/grammar/video/image-plan'
 import { buildTimeline } from '@/lib/grammar/video/timeline'
 import { resolveAudioVoices } from '@/lib/grammar/elevenlabs'
 import { removeLectureAudio } from '@/lib/grammar/lecture-audio-storage'
@@ -183,7 +184,11 @@ export async function updateScenes(
   }
 
   const prev = parseVideoScenes(script.scenesJson).scenes
-  const { scenes, removedPaths } = carryOverAudio(prev, parsed.scenes)
+  // 음성·배경 그림은 서버에 저장돼 있던 값을 이어 붙인다 (화면 값 무시)
+  const audioCarried = carryOverAudio(prev, parsed.scenes)
+  const imageCarried = carryOverImages(prev, audioCarried.scenes)
+  const scenes = imageCarried.scenes
+  const removedPaths = [...audioCarried.removedPaths, ...imageCarried.removedPaths]
   const voices = resolveAudioVoices(script.koVoiceId, script.enVoiceId)
   const ready = voices ? planScriptAudio(scenes, voices).ready : false
   const status = statusAfterEdit(script.status, ready)
@@ -246,9 +251,11 @@ export async function deleteScript(scriptId: string): Promise<{ ok: true } | Fai
   })
   if (!script) return { ok: false, error: '스크립트를 찾을 수 없습니다.' }
 
-  const paths = parseVideoScenes(script.scenesJson)
-    .scenes.flatMap((s) => s.segments.map((g) => g.audioPath))
-    .filter((p): p is string => Boolean(p))
+  const savedScenes = parseVideoScenes(script.scenesJson).scenes
+  const paths = [
+    ...savedScenes.flatMap((s) => s.segments.map((g) => g.audioPath)).filter((p): p is string => Boolean(p)),
+    ...Array.from(referencedImagePaths(savedScenes)),
+  ]
   // 연결된 YouTube 강의는 남는다 (scriptId만 비워짐)
   await prisma.grammarLectureScript.delete({ where: { id: script.id } })
   await removeLectureAudio(paths)

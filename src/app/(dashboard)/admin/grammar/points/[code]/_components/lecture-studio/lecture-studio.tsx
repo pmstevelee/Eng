@@ -113,7 +113,7 @@ export function LectureStudio({
           <div>
             <h3 className="text-base font-semibold text-gray-900">AI 강의 제작</h3>
             <p className="mt-0.5 text-sm text-gray-500">
-              관리자 원고로 강의 영상 스크립트를 만들고 음성을 입힙니다. 완성한 영상은 YouTube에 올려 위 본사 기본 강의로 연결해요.
+              관리자 원고로 강의 영상 스크립트를 만들고 AI 배경 그림·음성을 입힙니다. 완성한 영상은 YouTube에 올려 위 본사 기본 강의로 연결해요.
             </p>
           </div>
         </div>
@@ -215,7 +215,7 @@ export function LectureStudio({
             })}
           </ol>
 
-          {step === 'scenes' && <SceneEditor key={selected.id} script={selected} voices={voicesByScript[selected.id] ?? null} />}
+          {step === 'scenes' && <SceneEditor key={selected.id} script={selected} voices={voicesByScript[selected.id] ?? null} point={point} />}
           {step === 'audio' && <AudioPanel key={selected.id} script={selected} />}
           {step === 'export' && <ExportPanel key={selected.id} script={selected} point={point} />}
           {step === 'youtube' && done.has('audio') && (
