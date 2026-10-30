@@ -41,3 +41,9 @@ next-env.d.ts
 
 # Claude Code local settings
 .claude/
+
+# 강의 영상 파이프라인 — 대본(script.json·script-review.md)과 발음 사전만 커밋
+/lectures/*/audio/
+/lectures/*/*.mp4
+/lectures/*/*.wav
+/lectures/*/.preview-props.json

@@ -1,0 +1,367 @@
+{
+  "version": 1,
+  "slug": "present-perfect",
+  "title": "현재완료 시제",
+  "grammarPoint": {
+    "code": "G03-03",
+    "title": "현재완료"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-10-29T22:29:01.203Z",
+  "slides": [
+    {
+      "id": "s1",
+      "type": "title",
+      "data": {
+        "title": "현재완료 시제",
+        "subtitle": "Present Perfect"
+      },
+      "chapter": "맛보기"
+    },
+    {
+      "id": "s2",
+      "type": "formula",
+      "data": {
+        "heading": "현재완료의 형태",
+        "blocks": [
+          {
+            "text": "주어",
+            "role": "subject"
+          },
+          {
+            "text": "have/has",
+            "role": "verb"
+          },
+          {
+            "text": "과거분사",
+            "role": "verb",
+            "note": "p.p."
+          }
+        ],
+        "example": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "have",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "finished",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "my homework",
+            "role": "object"
+          }
+        ],
+        "exampleKo": "나는 숙제를 다 끝냈다"
+      },
+      "chapter": "만드는 법"
+    },
+    {
+      "id": "s3",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "She",
+            "role": "subject"
+          },
+          {
+            "text": "has",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "lived",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "here",
+            "role": "object"
+          },
+          {
+            "text": "for",
+            "role": "object"
+          },
+          {
+            "text": "three years.",
+            "role": "object"
+          }
+        ],
+        "ko": "그녀는 여기서 3년 동안 살아왔다",
+        "note": "계속의 의미"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "compare",
+      "data": {
+        "rows": [
+          {
+            "sentence": [
+              {
+                "text": "I",
+                "role": "subject"
+              },
+              {
+                "text": "have",
+                "role": "verb",
+                "point": true
+              },
+              {
+                "text": "seen",
+                "role": "verb",
+                "point": true
+              },
+              {
+                "text": "him",
+                "role": "object"
+              },
+              {
+                "text": "yesterday.",
+                "role": "object"
+              }
+            ],
+            "correct": false,
+            "ko": "현재완료는 yesterday와 함께 못 쓴다"
+          },
+          {
+            "sentence": [
+              {
+                "text": "I",
+                "role": "subject"
+              },
+              {
+                "text": "saw",
+                "role": "verb",
+                "point": true
+              },
+              {
+                "text": "him",
+                "role": "object"
+              },
+              {
+                "text": "yesterday.",
+                "role": "object"
+              }
+            ],
+            "correct": true,
+            "ko": "나는 어제 그를 봤다"
+          }
+        ]
+      },
+      "chapter": "비교"
+    },
+    {
+      "id": "s5",
+      "type": "quiz",
+      "data": {
+        "question": "다음 중 현재완료 시제가 맞는 문장은?",
+        "choices": [
+          "He has eats breakfast.",
+          "He has eaten breakfast.",
+          "He eat breakfast."
+        ],
+        "answer": 1,
+        "explanation": "have/has + 과거분사가 필요하다"
+      },
+      "chapter": "퀴즈"
+    },
+    {
+      "id": "s6",
+      "type": "outro",
+      "data": {
+        "message": "현재완료 시제, 꼭 연습해 보세요!",
+        "next": "현재완료의 계속·경험"
+      },
+      "chapter": "마무리"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "안녕하세요, 위고업잉글리시예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s1-2",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "오늘은 영어에서 아주 중요한 현재완료 시제를 배워 볼 거예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "먼저, 현재완료의 기본 형태를 알아볼게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "현재완료는 주어 다음에 해브나 해즈, 그리고 과거분사가 와요.",
+      "emotion": "강조",
+      "reveal": 1
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "I have finished my homework.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s2-4",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "이 문장은 '나는 숙제를 다 끝냈다'라는 뜻이에요.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "이번에는 현재완료가 '계속'의 의미로 쓰인 예문을 볼게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "She has lived here for three years.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "이 문장은 '그녀는 여기서 3년 동안 살아왔다'라는 뜻이에요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "현재완료는 이렇게 지금까지 계속되는 상황을 나타낼 수 있어요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이번에는 현재완료와 과거시제를 비교해 볼게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "I have seen him yesterday.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s4-3",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이 문장은 틀렸어요. 왜 틀렸을까요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s4-4",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "I saw him yesterday.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s4-5",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이렇게 과거의 특정 시간을 말할 때는 과거시제를 써야 해요.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "현재완료 시제가 맞는 문장을 골라 볼까요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s5-2",
+      "slideId": "s5",
+      "lang": "en",
+      "text": "He has eats breakfast.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-3",
+      "slideId": "s5",
+      "lang": "en",
+      "text": "He has eaten breakfast.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-4",
+      "slideId": "s5",
+      "lang": "en",
+      "text": "He eat breakfast.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-5",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 5
+    },
+    {
+      "id": "s5-6",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "정답은 두 번째 문장이에요.",
+      "emotion": "강조",
+      "reveal": 1
+    },
+    {
+      "id": "s5-7",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "현재완료 시제는 반드시 해브나 해즈와 과거분사가 함께 와야 해요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s5-8",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "잘 맞혔다면 정말 잘했어요!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s6-1",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "현재완료 시제, 꼭 연습해 보세요!",
+      "emotion": "설명"
+    }
+  ]
+}

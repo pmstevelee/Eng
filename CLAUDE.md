@@ -173,3 +173,11 @@
 - AI 강의 영상: 장면 배경 그림은 OpenAI 이미지 API(`AI_IMAGE_MODEL`, env `OPENAI_IMAGE_MODEL`, 기본 gpt-image-1-mini) → `SceneBase.image`(path·prompt·strength), 그림 변경은 `lecture-image-actions.ts`만, 장면 저장은 `carryOverImages`로 서버 값 유지
   - 화면은 Canvas 렌더러(`renderFrame`) 하나를 미리보기·브라우저 MP4·Remotion이 함께 쓴다. Remotion 컴포지션 `src/components/grammar/video/remotion/`, 진입점 `remotion/index.ts`(상대 경로만 — '@/' 금지)
   - Remotion MP4는 관리자 PC에서 `npm run lecture:render -- <스크립트 id|포인트 코드>` (out/lectures). Vercel에서 렌더하지 않는다
+
+## 강의 영상 파이프라인 (파일 기반, 관리자 PC 전용)
+- `npm run script|voice|preview|render|all` — 강의 타이틀 → `lectures/{slug}/` (script.json, audio/, narration.wav, timeline.json, qa-report.md, output.mp4, subtitles.srt, thumbnail.png, youtube.md). 사용법 `lectures/README.md`
+- 기존 관리자 화면 AI 강의 제작(장면 8종, DB `GrammarLectureScript`)과 별개. 완성 mp4는 YouTube 업로드 후 포인트 "강의" 탭에 등록
+- 대본 형식·검증 `src/lib/lecture-pipeline/types.ts`, 발음 사전 `lectures/pronunciation-dict.json`(+`normalize.ts`), 한국어 속 영어 자동 분리 `mixed.ts`, 쉼·자막·챕터 `timing.ts`, Whisper 비교 `qa.ts`
+- TTS 추상화 `scripts/lecture/tts.ts` (`LECTURE_TTS_PROVIDER`, 기본 ElevenLabs `eleven_v4` + with-timestamps), 오디오 후처리 `audio.ts`(ffmpeg는 시스템 → Remotion 내장 순, 내장판엔 s16le 출력 없음 → wav 파이프)
+- 대본 AI 모델 `LECTURE_SCRIPT_MODEL`(없으면 `AI_CONTENT_MODEL`). gpt-4o-mini는 문법 오류가 잦아 gpt-4.1 사용. gpt-5 계열은 `completionParams`의 reasoning_effort와 맞지 않아 기본 모델로 떨어짐
+- Remotion 컴포지션 `src/components/lecture-video/`(슬라이드 10종, 절대 시간 기준 — Sequence 안 씀), 진입점 `remotion/lecture-pipeline.ts`, 글꼴 `public/fonts/pretendard`

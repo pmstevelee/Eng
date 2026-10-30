@@ -36,7 +36,12 @@
     "words:import-csat": "tsx scripts/oxford/import-csat-words.ts",
     "words:seed-category-sets": "tsx scripts/oxford/seed-exam-category-sets.ts",
     "lecture:render": "tsx scripts/render-lecture.ts",
-    "lecture:studio": "remotion studio remotion/index.ts"
+    "lecture:studio": "remotion studio remotion/index.ts",
+    "script": "tsx scripts/lecture/run-script.ts",
+    "voice": "tsx scripts/lecture/run-voice.ts",
+    "preview": "tsx scripts/lecture/run-preview.ts",
+    "render": "tsx scripts/lecture/run-render.ts",
+    "all": "tsx scripts/lecture/run-all.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

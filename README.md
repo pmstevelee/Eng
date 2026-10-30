@@ -34,3 +34,12 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## 문법 강의 영상 만들기 (위고업잉글리시)
+
+강의 제목만 넣으면 대본·음성·mp4·썸네일·YouTube 자료를 만드는 도구가 있어요.
+사용법은 [lectures/README.md](lectures/README.md)를 보세요.
+
+```bash
+npm run all -- "현재완료 시제"
+```
