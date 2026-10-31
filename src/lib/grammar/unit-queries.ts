@@ -373,6 +373,8 @@ export async function getGrammarUnitData(studentId: string, academyId: string, c
   }
 
   const passedPrereq = new Set(prereqProgress.filter((p) => isPassedMastery(p.state)).map((p) => p.grammarPointId))
+  // 아직 공개 안 된 선수 포인트는 안내·링크에서 뺀다 (누르면 열리지 않음)
+  const publishedPrereqs = point.prerequisites.filter((p) => p.status === 'PUBLISHED')
 
   return {
     point: {
@@ -385,7 +387,7 @@ export async function getGrammarUnitData(studentId: string, academyId: string, c
       rules: parseGrammarRules(point.rulesJson),
       examples: parseGrammarExamples(point.examplesJson),
       commonErrors: parseGrammarCommonErrors(point.commonErrorsJson),
-      prerequisites: point.prerequisites.map((p) => ({ code: p.code, title: p.title })),
+      prerequisites: publishedPrereqs.map((p) => ({ code: p.code, title: p.title })),
     },
     progress: {
       state: shown.state,
@@ -401,7 +403,7 @@ export async function getGrammarUnitData(studentId: string, academyId: string, c
     practice: toClient(practiceIds),
     check: toClient(checkIds),
     lastResult,
-    unmetPrerequisites: point.prerequisites
+    unmetPrerequisites: publishedPrereqs
       .filter((p) => !passedPrereq.has(p.id))
       .map((p) => ({ code: p.code, title: p.title })),
   }

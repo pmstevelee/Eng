@@ -51,7 +51,8 @@ export interface GrammarPointDetail extends GrammarTreePoint {
   commonErrorsJson: Prisma.JsonValue
   category: { id: string; code: string; name: string }
   parentCategory: { id: string; code: string; name: string } | null
-  prerequisites: { id: string; code: string; title: string }[]
+  /** status: 학생 화면은 공개(PUBLISHED)된 선수 포인트만 보여 준다 */
+  prerequisites: { id: string; code: string; title: string; status: GrammarPointStatus }[]
 }
 
 // ─── 내부: 트리 조립 ─────────────────────────────────────────────────────────
@@ -179,7 +180,7 @@ const fetchGrammarPointByCode = async (code: string): Promise<GrammarPointDetail
         select: { id: true, code: true, name: true, parent: { select: { id: true, code: true, name: true } } },
       },
       prerequisites: {
-        select: { requiredPointId: true, requiredPoint: { select: { id: true, code: true, title: true } } },
+        select: { requiredPointId: true, requiredPoint: { select: { id: true, code: true, title: true, status: true } } },
       },
     },
   })
