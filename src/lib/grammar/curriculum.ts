@@ -164,54 +164,53 @@ export function getAdminGrammarTree(): Promise<GrammarTreeCategory[]> {
   return getAdminGrammarTreeCached()
 }
 
-const getGrammarPointByCodeCached = unstable_cache(
-  async (code: string): Promise<GrammarPointDetail | null> => {
-    const p = await prisma.grammarPoint.findUnique({
-      where: { code },
-      select: {
-        ...pointSelect,
-        rulesJson: true,
-        examplesJson: true,
-        commonErrorsJson: true,
-        category: {
-          select: { id: true, code: true, name: true, parent: { select: { id: true, code: true, name: true } } },
-        },
-        prerequisites: {
-          select: { requiredPointId: true, requiredPoint: { select: { id: true, code: true, title: true } } },
-        },
+// 캐시하지 않는다: 공개 상태·개념 정리는 시드 스크립트·관리자 화면이 바꾸는데, 캐시가 남으면
+// 지도(트리 캐시)에는 공개로 보이는데 단원은 DRAFT로 읽혀 학생에게 404가 났다.
+// 호출하는 쪽은 모두 다른 쿼리와 같은 Promise.all 웨이브에서 부르므로 지연은 늘지 않는다.
+const fetchGrammarPointByCode = async (code: string): Promise<GrammarPointDetail | null> => {
+  const p = await prisma.grammarPoint.findUnique({
+    where: { code },
+    select: {
+      ...pointSelect,
+      rulesJson: true,
+      examplesJson: true,
+      commonErrorsJson: true,
+      category: {
+        select: { id: true, code: true, name: true, parent: { select: { id: true, code: true, name: true } } },
       },
-    })
-    if (!p) return null
-    return {
-      id: p.id,
-      code: p.code,
-      title: p.title,
-      academyId: p.academyId,
-      levelMin: p.levelMin,
-      levelMax: p.levelMax,
-      sortOrder: p.sortOrder,
-      summary: p.summary,
-      status: p.status,
-      prerequisiteIds: p.prerequisites.map((r) => r.requiredPointId),
-      rulesJson: p.rulesJson,
-      examplesJson: p.examplesJson,
-      commonErrorsJson: p.commonErrorsJson,
-      category: { id: p.category.id, code: p.category.code, name: p.category.name },
-      parentCategory: p.category.parent,
-      prerequisites: p.prerequisites
-        .map((r) => r.requiredPoint)
-        .sort((a, b) => a.code.localeCompare(b.code)),
-    }
-  },
-  ['grammar-point-by-code'],
-  { revalidate: CACHE_SECONDS, tags: [GRAMMAR_CURRICULUM_TAG] },
-)
+      prerequisites: {
+        select: { requiredPointId: true, requiredPoint: { select: { id: true, code: true, title: true } } },
+      },
+    },
+  })
+  if (!p) return null
+  return {
+    id: p.id,
+    code: p.code,
+    title: p.title,
+    academyId: p.academyId,
+    levelMin: p.levelMin,
+    levelMax: p.levelMax,
+    sortOrder: p.sortOrder,
+    summary: p.summary,
+    status: p.status,
+    prerequisiteIds: p.prerequisites.map((r) => r.requiredPointId),
+    rulesJson: p.rulesJson,
+    examplesJson: p.examplesJson,
+    commonErrorsJson: p.commonErrorsJson,
+    category: { id: p.category.id, code: p.category.code, name: p.category.name },
+    parentCategory: p.category.parent,
+    prerequisites: p.prerequisites
+      .map((r) => r.requiredPoint)
+      .sort((a, b) => a.code.localeCompare(b.code)),
+  }
+}
 
 /**
  * 코드로 포인트 하나 조회 (상태와 무관). 공개 여부·학원 접근 권한은 호출하는 쪽에서 확인할 것.
  */
 export function getGrammarPointByCode(code: string): Promise<GrammarPointDetail | null> {
-  return getGrammarPointByCodeCached(code)
+  return fetchGrammarPointByCode(code)
 }
 
 /** 커리큘럼(카테고리·포인트·선수 관계·코스) 변경 후 캐시 무효화 */
