@@ -52,11 +52,14 @@ export interface Timeline {
   provider?: string
 }
 
-/** 음성 없이 길이 어림 — 한국어 초당 약 6.5자, 영어 초당 약 2.6단어 */
+/**
+ * 음성 없이 길이 어림 — 실제 ElevenLabs 음성(강의 2편)에서 잰 값.
+ * 한국어 초당 약 5.3자(공백 제외), 영어는 단어가 짧게 끊겨 나와서 0.4초 + 단어당 0.34초
+ */
 export function estimateDurationMs(seg: Segment): number {
   if (seg.waitSec) return seg.waitSec * 1000
-  if (seg.lang === 'en') return Math.max(700, (seg.text.split(/\s+/).filter(Boolean).length / 2.6) * 1000)
-  return Math.max(700, (seg.text.replace(/\s/g, '').length / 6.5) * 1000)
+  if (seg.lang === 'en') return Math.max(500, 400 + seg.text.split(/\s+/).filter(Boolean).length * 340)
+  return Math.max(500, (seg.text.replace(/\s/g, '').length / 5.3) * 1000)
 }
 
 /**

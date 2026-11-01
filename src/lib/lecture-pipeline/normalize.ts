@@ -79,6 +79,9 @@ function readNumbers(text: string): string {
   let out = text.replace(/(?<!\d)(\d{1,2})\s?번째/g, (_, d: string) => (Number(d) === 1 ? '첫 번째' : `${nativeNumber(Number(d))} 번째`))
   // 1번 문제·3번 보기 → 일 번 (번호)
   out = out.replace(/(?<!\d)(\d+)\s?번(?=\s?(?:문제|문항|보기|예문|답|선택지))/g, (_, d: string) => `${sinoNumber(Number(d))} 번`)
+  // 정답은 2번 · 보기 조각 끝의 "1번"("1번 many, 2번 much"에서 영어를 떼어 낸 조각) → 일 번 (번호, 횟수 아님)
+  out = out.replace(/(정답은\s?)(\d+)\s?번/g, (_, p: string, d: string) => `${p}${sinoNumber(Number(d))} 번`)
+  out = out.replace(/(?<![\d.])(\d+)\s?번(?=\s*,?\s*$)/g, (_, d: string) => `${sinoNumber(Number(d))} 번`)
   const counter = (list: string[]) => list.map(escapeRe).join('|')
   out = out.replace(new RegExp(`(?<![\\d.])(\\d{1,2})\\s?(${counter(NATIVE_COUNTERS)})`, 'g'), (_, d: string, c: string) => `${nativeNumber(Number(d))} ${c}`)
   out = out.replace(new RegExp(`(?<![\\d.])(\\d+)\\s?(${counter(SINO_COUNTERS)})`, 'g'), (_, d: string, c: string) =>

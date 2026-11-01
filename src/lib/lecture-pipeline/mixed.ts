@@ -5,9 +5,10 @@
 import { maskDictTerms, type PronunciationDict } from './normalize'
 import type { Segment } from './types'
 
-/** 영어 단어가 이어진 구간 (단어 사이 공백·쉼표·하이픈 허용, 끝 문장부호 포함) */
-const EN_RUN = /[A-Za-z][A-Za-z0-9'’-]*(?:[ ,]+[A-Za-z0-9][A-Za-z0-9'’-]*)*(?:[.!?](?=\s|$|["”’']))?/g
-const QUOTES = /["“”‘’']/g
+/** 영어 단어가 이어진 구간 (단어 사이 공백·쉼표·하이픈 허용, 끝 문장부호 포함). 이어지는 말도 영문자로 시작해야 한다 — "1번 so, 2번"의 2를 끌어오지 않게 */
+const EN_RUN = /[A-Za-z][A-Za-z0-9'’-]*(?:[ ,]+[A-Za-z][A-Za-z0-9'’-]*)*(?:[.!?](?=\s|$|["”’']))?/g
+/** 따옴표만 지운다 — 단어 안의 아포스트로피(There's, don't)는 남긴다 */
+const QUOTES = /["“”‘]|(?<![A-Za-z])['’]|['’](?![A-Za-z])/g
 
 export interface SplitNote {
   segmentId: string

@@ -24,6 +24,10 @@ describe('발음 정규화', () => {
   it('숫자는 단위에 맞게 읽는다', () => {
     expect(norm('2가지만 기억해요.', 'ko')).toBe('두 가지만 기억해요.')
     expect(norm('1번 문제를 풀어요.', 'ko')).toBe('일 번 문제를 풀어요.')
+    expect(norm('정답은 2번, 형용사예요.', 'ko')).toBe('정답은 이 번, 형용사예요.')
+    expect(norm('보기는 1번', 'ko')).toBe('보기는 일 번')
+    expect(norm(', 2번', 'ko')).toBe('이 번')
+    expect(norm('하루에 3번 먹어요.', 'ko')).toBe('하루에 세 번 먹어요.')
     expect(norm('2번째 규칙', 'ko')).toBe('두 번째 규칙')
     expect(norm('1번째 규칙', 'ko')).toBe('첫 번째 규칙')
     expect(norm('5초 동안', 'ko')).toBe('오 초 동안')
@@ -64,6 +68,14 @@ describe('한국어 문장 속 영어 분리', () => {
     const { parts, notes } = splitMixedSegment(seg({ id: 'c', text: '"have"를 써요.' }), dict)
     expect(parts.map((p) => p.lang)).toEqual(['en', 'ko'])
     expect(notes).toHaveLength(1)
+  })
+  it('쉼표 뒤 숫자는 영어 조각에 넣지 않는다', () => {
+    const { parts } = splitMixedSegment(seg({ id: 'n', text: '1번 so, 2번 but.' }), dict)
+    expect(parts.filter((p) => p.lang === 'en').map((p) => p.text)).toEqual(['so', 'but.'])
+  })
+  it('영어 조각 안의 아포스트로피는 지우지 않는다', () => {
+    const { parts } = splitMixedSegment(seg({ id: 'q', text: "줄여서 There's. 따옴표 'so' 도" }), dict)
+    expect(parts.filter((p) => p.lang === 'en').map((p) => p.text)).toEqual(["There's.", 'so'])
   })
   it('id가 겹치지 않는다', () => {
     const r = splitMixedSegments([seg({ id: 'x', text: 'have 다음에 와요.' }), seg({ id: 'xb', text: '좋아요.' })], dict)
