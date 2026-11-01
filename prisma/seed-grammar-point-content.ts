@@ -10,6 +10,7 @@
  * - 여러 번 실행해도 안전: 원고는 같은 제목이 있으면 건너뛰고, 문항은 같은 문제 문장·보기가 있으면 건너뛴다.
  * - 개념 정리(summary/규칙/예문/흔한 오류)는 파일 내용으로 덮어쓴다.
  * - 열려 있는 '원고 없음' 보완 요청(DRAFT·ANALYZE)은 새 원고로 답한 것으로 처리(RESOLVED)한다.
+ * - lecture가 있으면 본사 기본 강의(YouTube)로 등록한다. 이미 같은 영상이면 제목·길이만 고치고, 다른 영상이면 바꾸고 이전 시청 기록을 지운다.
  * - 서버 캐시(문법 커리큘럼 1시간)는 여기서 비울 수 없다. 공개 직후 바로 보이게 하려면 관리자 화면에서 상태를 저장하거나 최대 1시간 기다린다.
  */
 
@@ -20,6 +21,7 @@ import { PrismaClient, type Prisma } from '../src/generated/prisma'
 import { parseGrammarCommonErrors, parseGrammarExamples, parseGrammarRules } from '../src/types/grammar'
 import { POINT_LIST_MAX, POINT_SUMMARY_MAX } from '../src/lib/grammar/point-editing'
 import { MIN_PUBLISH_QUESTIONS } from '../src/lib/grammar/constants'
+import { LECTURE_DURATION_MAX, LECTURE_TITLE_MAX, parseYoutubeUrl } from '../src/lib/grammar/lecture-input'
 import { LEVEL_TO_CEFR } from '../src/lib/constants/levels'
 
 dotenv.config({ path: '.env.local' })
@@ -43,6 +45,8 @@ interface ContentFile {
   examples: unknown
   commonErrors: unknown
   sourceScript?: { title: string; content: string }
+  /** 본사 기본 강의 — youtube는 영상 주소(youtu.be/ID 등), durationSec은 영상 길이(초) */
+  lecture?: { title: string; youtube: string; durationSec?: number }
   questions: { difficulty: number; content: QuestionContent }[]
 }
 
@@ -119,6 +123,18 @@ async function main() {
     if (keys.has(k)) fail(`문항 ${i + 1}: 같은 문항이 두 번 있어요`)
     keys.add(k)
   })
+  // ── 강의 검증
+  const lecture = data.lecture
+    ? (() => {
+        const videoId = parseYoutubeUrl(data.lecture.youtube)
+        const title = data.lecture.title?.trim() ?? ''
+        const durationSec = data.lecture.durationSec ?? null
+        if (!videoId) fail(`강의 YouTube 주소를 읽지 못했어요: ${data.lecture.youtube}`)
+        if (!title || title.length > LECTURE_TITLE_MAX) fail(`강의 제목은 1~${LECTURE_TITLE_MAX}자`)
+        if (durationSec !== null && (!Number.isInteger(durationSec) || durationSec <= 0 || durationSec > LECTURE_DURATION_MAX)) fail('강의 길이(초)가 올바르지 않아요')
+        return { videoId, title, durationSec }
+      })()
+    : null
   const letterCount = LETTERS.map((l) => data.questions.filter((q) => q.content.correct_answer === l).length)
 
   const prisma = new PrismaClient()
@@ -129,7 +145,7 @@ async function main() {
     })
     if (!point) fail(`본사 포인트 ${code}가 없어요. 먼저 npm run seed:grammar-curriculum`)
 
-    const [existingQuestions, existingScript, openGaps] = await Promise.all([
+    const [existingQuestions, existingScript, openGaps, existingLecture] = await Promise.all([
       prisma.question.findMany({
         where: { grammarPointId: point.id, academyId: null },
         select: { id: true, contentJson: true, isVerified: true, isActive: true },
@@ -143,6 +159,11 @@ async function main() {
       prisma.grammarContentGap.findMany({
         where: { grammarPointId: point.id, status: 'OPEN', origin: { in: ['DRAFT', 'ANALYZE'] } },
         select: { id: true, message: true },
+      }),
+      prisma.grammarLecture.findFirst({
+        where: { grammarPointId: point.id, academyId: null, isActive: true },
+        select: { id: true, videoId: true },
+        orderBy: { updatedAt: 'desc' },
       }),
     ])
 
@@ -158,6 +179,7 @@ async function main() {
     console.log(`  원고: ${data.sourceScript ? (existingScript ? '이미 있음 → 건너뜀' : `새로 추가 "${data.sourceScript.title}"`) : '없음'}`)
     console.log(`  보완 요청: 열린 것 ${openGaps.length}개${openGaps.length && data.sourceScript ? ' → 원고로 답함(RESOLVED)' : ''}`)
     console.log(`  문항: 파일 ${data.questions.length}개 (정답 위치 A${letterCount[0]} B${letterCount[1]} C${letterCount[2]} D${letterCount[3]}) · 새로 넣을 것 ${newQuestions.length}개`)
+    console.log(`  강의: ${!lecture ? '없음' : !existingLecture ? `새로 등록 ${lecture.videoId}` : existingLecture.videoId === lecture.videoId ? `같은 영상 ${lecture.videoId} → 제목·길이만 갱신` : `${existingLecture.videoId} → ${lecture.videoId}로 교체 (이전 시청 기록 삭제)`}`)
     console.log(`  검수 완료 문항: ${verifiedBefore} → ${verifiedAfter} (공개 기준 ${MIN_PUBLISH_QUESTIONS})`)
     if (publish && verifiedAfter < MIN_PUBLISH_QUESTIONS) fail('검수 완료 문항이 모자라 공개할 수 없어요.')
 
@@ -215,6 +237,19 @@ async function main() {
             createdBy: admin?.id ?? null,
           })),
         })
+      }
+
+      if (lecture) {
+        const lectureData = { title: lecture.title, provider: 'youtube', videoId: lecture.videoId, durationSec: lecture.durationSec }
+        if (!existingLecture) {
+          await tx.grammarLecture.create({ data: { ...lectureData, grammarPointId: point.id, academyId: null, createdById: admin?.id ?? null } })
+        } else if (existingLecture.videoId !== lecture.videoId) {
+          // 관리자 화면(upsertLecture)과 같게: 다른 영상이면 시청 기록을 지우고 AI 강의 스크립트 연결을 끊는다
+          await tx.grammarLectureView.deleteMany({ where: { lectureId: existingLecture.id } })
+          await tx.grammarLecture.update({ where: { id: existingLecture.id }, data: { ...lectureData, createdById: admin?.id ?? null, scriptId: null } })
+        } else {
+          await tx.grammarLecture.update({ where: { id: existingLecture.id }, data: lectureData })
+        }
       }
 
       if (publish) {

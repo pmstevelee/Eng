@@ -1,0 +1,624 @@
+{
+  "code": "G02-01-01",
+  "summary": "영어 명사는 셀 수 있는 명사와 셀 수 없는 명사로 나뉘어요. 셀 수 있는 명사는 하나일 때 a/an(또는 the, my)을 붙이고, 여럿이면 -s/-es를 붙여요. 셀 수 없는 명사(water, bread, advice, money)는 a/an과 -s를 붙이지 않고, 주어로 쓰면 동사는 단수로 받아요. 수가 많으면 many, 양이 많으면 much를 쓰고, 셀 수 없는 명사는 a glass of water처럼 단위로 세요.",
+  "rules": [
+    {
+      "text": "셀 수 있는 명사는 하나씩 따로 떨어져 있어 셀 수 있는 것이에요. 생각·문제·꿈처럼 눈에 안 보여도 셀 수 있는 것이 있어요.",
+      "formula": "apple, book, friend / idea, problem, dream"
+    },
+    {
+      "text": "셀 수 있는 명사는 하나면 a/an을 붙이고, 여럿이면 끝에 -s/-es를 붙여요.",
+      "formula": "a pen / two notebooks / many friends"
+    },
+    {
+      "text": "모음 소리로 시작하는 말 앞에서는 a 대신 an을 써요.",
+      "formula": "an apple, an egg, an idea"
+    },
+    {
+      "text": "셀 수 있는 명사가 하나일 때는 혼자 쓰지 못해요. 앞에 a/an, the, my 같은 말이 꼭 있어야 해요.",
+      "formula": "I want to buy a new phone."
+    },
+    {
+      "text": "모양이 불규칙하게 바뀌는 복수형도 있어요.",
+      "formula": "child → children / person → people"
+    },
+    {
+      "text": "셀 수 없는 명사는 크게 세 무리예요: 물질·재료, 생각·활동, 여러 가지를 묶어 부르는 말.",
+      "formula": "water, milk, rice, bread / advice, information, homework / money, furniture"
+    },
+    {
+      "text": "셀 수 없는 명사에는 a/an과 복수형 -s를 붙이지 않아요. 주어로 쓰면 동사는 단수로 받아요.",
+      "formula": "Money is important. / There is a lot of furniture."
+    },
+    {
+      "text": "수가 많으면 many, 몇 개면 a few (+ 복수 명사). 양이 많으면 much, 조금이면 a little (+ 셀 수 없는 명사).",
+      "formula": "many friends, a few cookies / much time, a little sugar"
+    },
+    {
+      "text": "much는 주로 부정문·의문문에서 써요. 긍정문에서 \"많다\"는 a lot of가 자연스럽고, a lot of는 두 종류 명사에 다 써요.",
+      "formula": "We don't have much time. / There's a lot of traffic."
+    },
+    {
+      "text": "some(조금, 몇몇)은 셀 수 없는 명사와 복수 명사 모두에 써요.",
+      "formula": "some bread / some cookies"
+    },
+    {
+      "text": "셀 수 없는 명사는 담는 그릇이나 단위로 세요. 여럿이면 단위에 -s를 붙이고 명사는 그대로 둬요.",
+      "formula": "a glass of water → two glasses of water / a piece of advice"
+    },
+    {
+      "text": "같은 단어도 뜻에 따라 셀 수 있기도, 셀 수 없기도 해요. 카페 주문에서는 coffee를 잔 단위로 세기도 해요.",
+      "formula": "chicken 닭고기 / a chicken 닭 한 마리 · time 시간 / three times 세 번 · Two coffees, please."
+    }
+  ],
+  "examples": [
+    {
+      "en": "I bought three apples and some bread.",
+      "ko": "나는 사과 세 개와 빵을 좀 샀어요. (apples는 -s, bread는 그대로)",
+      "highlight": "bread"
+    },
+    {
+      "en": "I drink eight glasses of water a day.",
+      "ko": "나는 하루에 물을 여덟 잔 마셔요. (-s는 단위 glass에)",
+      "highlight": "glasses of water"
+    },
+    {
+      "en": "My teacher gave me some good advice.",
+      "ko": "선생님이 좋은 조언을 해 주셨어요. (advice에는 a/an, -s 없음)",
+      "highlight": "some good advice"
+    },
+    {
+      "en": "How many people are coming to the party?",
+      "ko": "파티에 몇 명이 와요? (people은 person의 복수 → many, are)",
+      "highlight": "How many people"
+    },
+    {
+      "en": "How much sugar do you want in your coffee?",
+      "ko": "커피에 설탕 얼마나 넣어 줄까요? (셀 수 없는 명사의 양 → how much)",
+      "highlight": "How much sugar"
+    },
+    {
+      "en": "We don't have much time.",
+      "ko": "우리 시간이 별로 없어요. (부정문 + much)",
+      "highlight": "much time"
+    },
+    {
+      "en": "There's a lot of traffic this morning.",
+      "ko": "오늘 아침에 차가 많이 막혀요. (긍정문은 a lot of, 동사는 단수)",
+      "highlight": "a lot of traffic"
+    },
+    {
+      "en": "I need a pen and two notebooks.",
+      "ko": "나는 펜 한 자루와 공책 두 권이 필요해요.",
+      "highlight": "two notebooks"
+    },
+    {
+      "en": "Can I have a glass of water?",
+      "ko": "물 한 잔 주시겠어요? (단위로 세기)",
+      "highlight": "a glass of water"
+    },
+    {
+      "en": "Two coffees, please.",
+      "ko": "커피 두 잔 주세요. (카페 주문에서는 잔 단위로 셈)",
+      "highlight": "Two coffees"
+    },
+    {
+      "en": "Can I get some water, please?",
+      "ko": "물 좀 주시겠어요? (셀 수 없는 명사 + some)",
+      "highlight": "some water"
+    }
+  ],
+  "commonErrors": [
+    {
+      "wrong": "How many money do you have?",
+      "correct": "How much money do you have?",
+      "reason": "money는 셀 수 없는 명사라서 수(many)가 아니라 양(much)으로 물어요. 동전·달러(coins, dollars)는 셀 수 있어요."
+    },
+    {
+      "wrong": "I have a lot of homeworks.",
+      "correct": "I have a lot of homework.",
+      "reason": "homework는 셀 수 없는 명사예요. 아무리 많아도 -s를 붙이지 않아요."
+    },
+    {
+      "wrong": "Can you give me an advice?",
+      "correct": "Can you give me some advice?",
+      "reason": "advice는 셀 수 없는 명사라 an을 붙이지 않아요. 하나를 강조하려면 a piece of advice."
+    },
+    {
+      "wrong": "I want to buy new phone.",
+      "correct": "I want to buy a new phone.",
+      "reason": "셀 수 있는 명사가 하나일 때는 혼자 쓰지 못해요. a, the, my 같은 말이 앞에 와야 해요."
+    },
+    {
+      "wrong": "There are a lot of furnitures in this room.",
+      "correct": "There is a lot of furniture in this room.",
+      "reason": "furniture는 셀 수 없는 명사라 -s를 붙이지 않고, 아무리 많아도 단수(is)로 받아요."
+    },
+    {
+      "wrong": "I drink two glass of waters.",
+      "correct": "I drink two glasses of water.",
+      "reason": "셀 수 없는 명사를 셀 때는 단위(glass)에 -s를 붙이고, water는 그대로 둬요."
+    }
+  ],
+  "lecture": {
+    "title": "셀 수 있는 명사와 셀 수 없는 명사 완벽 구별법! 중학생 영어 기초",
+    "youtube": "https://youtu.be/5Iovf8jzDRU",
+    "durationSec": 731
+  },
+  "sourceScript": {
+    "title": "셀 수 있는 명사와 셀 수 없는 명사 — 강의 기준 원고",
+    "content": "[강의 범위]\n영어 명사를 셀 수 있는 명사와 셀 수 없는 명사로 구별하고, 명사에 맞는 관사(a/an)·복수형(-s)·수량 표현(many/much, a few/a little, a lot of, some)과 단위 표현(a glass of water)을 쓰게 하는 단원이다. 대상은 중학생~고등학생, 성인 초급(레벨 1~2). 강의 영상: 셀 수 있는 명사와 셀 수 없는 명사 완벽 구별법! 중학생 영어 기초 (YouTube 5Iovf8jzDRU, 12분 10초).\n\n[도입]\nHow many money do you have? 는 틀린 문장이다. money는 셀 수 없는 명사라 How much money do you have? 가 맞다.\n\n[1. 왜 구별하나]\n- 한국어는 \"사과 샀어\"처럼 개수를 밝히지 않아도 되지만, 영어는 an apple / apples처럼 하나인지 여럿인지 표시해야 한다.\n- 그래서 명사를 쓰기 전에 셀 수 있는지부터 따져야 앞(a/an)과 뒤(-s)에 붙일 말이 정해진다.\n\n[2. 셀 수 있는 명사]\n- 하나씩 따로 떨어져 셀 수 있는 것: apple, book, friend. 눈에 안 보여도 셀 수 있는 것: idea, problem, dream.\n- 하나면 a/an(모음 소리 앞은 an: an egg), 여럿이면 -s/-es. 불규칙 복수: child → children, person → people.\n- 하나일 때는 명사 혼자 쓰지 못한다. a/an, the, my 같은 말이 앞에 와야 한다. I want to buy a new phone.\n\n[3. 셀 수 없는 명사]\n- 물질·재료: water, milk, rice, bread / 생각·활동: advice, information, homework / 묶어 부르는 말: money, furniture.\n- 동전·달러는 셀 수 있다(three dollars). 빵(bread)은 한국어로는 세지만 영어에서는 셀 수 없다.\n- a/an과 복수형 -s를 붙이지 않는다. 주어로 쓰면 동사는 단수: Money is important. There is a lot of furniture.\n\n[4. 뜻에 따라 둘 다 되는 명사]\n- chicken: 닭고기(셀 수 없음) / a chicken: 닭 한 마리.\n- time: 시간(셀 수 없음) / three times: 세 번(횟수, 셀 수 있음).\n- coffee는 원래 셀 수 없지만 카페 주문에서는 Two coffees, please.(두 잔)처럼 세기도 한다.\n\n[5. 수량 표현]\n- many·a few + 복수 명사 / much·a little + 셀 수 없는 명사. How many people…? / How much sugar…?\n- much는 주로 부정문·의문문에서 쓴다(We don't have much time.). 긍정문에서 \"많다\"는 a lot of가 자연스럽고, a lot of는 두 종류 명사에 다 쓴다.\n- some은 셀 수 없는 명사와 복수 명사 모두에 쓴다(some bread, some cookies).\n- 셀 수 없는 명사는 단위로 센다: a glass of water, a cup of tea, a piece of advice. 여럿이면 단위에만 -s: two glasses of water.\n\n[한국 학생이 자주 틀리는 것]\n1) 셀 수 없는 명사에 -s: I have a lot of homeworks. → homework\n2) 셀 수 없는 명사에 a/an: Can you give me an advice? → some advice / a piece of advice\n3) 셀 수 있는 단수 명사를 혼자 쓰기: I want to buy new phone. → a new phone\n(+ How many money → How much money / There are a lot of furnitures → There is a lot of furniture)\n\n[일상회화 패턴]\nCan I get + a/an 단수 명사(a straw) / some + 셀 수 없는 명사(some water) / 단위 + of(a cup of tea), 끝에 please를 붙이면 더 공손하다.\n\n[문항 출제 기준]\n- many와 a few가 둘 다 맞는 빈칸처럼 정답이 둘인 문항은 만들지 않는다.\n- hair, paper처럼 이 단원에서 다루지 않은 이중 의미 명사, news처럼 형태가 헷갈리는 명사는 묻지 않는다.\n- 단위 복수는 규칙형(glasses, cups, bottles, slices)만 묻는다(loaves 등 불규칙은 제외).\n"
+  },
+  "questions": [
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which noun is uncountable?",
+        "question_text_ko": "다음 중 셀 수 없는 명사를 고르세요.",
+        "options": [
+          "water",
+          "apple",
+          "book",
+          "friend"
+        ],
+        "correct_answer": "A",
+        "explanation": "water(물)는 나눠도 그냥 물이라서 하나, 둘 셀 수 없어요. apple, book, friend는 셀 수 있어요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which noun is countable?",
+        "question_text_ko": "다음 중 셀 수 있는 명사를 고르세요.",
+        "options": [
+          "milk",
+          "idea",
+          "money",
+          "advice"
+        ],
+        "correct_answer": "B",
+        "explanation": "idea(생각)는 눈에 안 보여도 an idea, two ideas처럼 셀 수 있어요. milk, money, advice는 셀 수 없어요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I want to eat ____ apple.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "a",
+          "some",
+          "an",
+          "many"
+        ],
+        "correct_answer": "C",
+        "explanation": "apple은 모음 소리로 시작하는 셀 수 있는 명사라서 하나일 때 an을 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I need ____ information about the trip.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "an",
+          "many",
+          "a few",
+          "some"
+        ],
+        "correct_answer": "D",
+        "explanation": "information(정보)은 셀 수 없는 명사라 an, many, a few를 쓸 수 없어요. some을 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "How ____ money do you have?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "much",
+          "many",
+          "a few",
+          "a"
+        ],
+        "correct_answer": "A",
+        "explanation": "money는 셀 수 없는 명사라서 양을 물을 때 How much를 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "How ____ brothers do you have?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "much",
+          "many",
+          "a little",
+          "an"
+        ],
+        "correct_answer": "B",
+        "explanation": "brothers는 셀 수 있는 명사의 복수형이라 수를 물을 때 How many를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "We don't have ____ time.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "many",
+          "a few",
+          "much",
+          "an"
+        ],
+        "correct_answer": "C",
+        "explanation": "\"시간\"이라는 뜻의 time은 셀 수 없는 명사예요. 부정문에서 양이 많지 않다고 할 때 much를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "There are ____ cookies in the jar.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "a little",
+          "much",
+          "an",
+          "a few"
+        ],
+        "correct_answer": "D",
+        "explanation": "cookies는 셀 수 있는 명사의 복수형이라 a few(몇 개)를 써요. a little, much는 셀 수 없는 명사에 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Can I have ____ water?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "a little",
+          "a few",
+          "many",
+          "an"
+        ],
+        "correct_answer": "A",
+        "explanation": "water는 셀 수 없는 명사라 a little(조금)을 써요. a few, many는 복수 명사에 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct?",
+        "question_text_ko": "어법상 올바른 문장을 고르세요.",
+        "options": [
+          "I have a lot of homeworks.",
+          "I have a lot of homework.",
+          "I have many homework.",
+          "I have a homework."
+        ],
+        "correct_answer": "B",
+        "explanation": "homework는 셀 수 없는 명사라 -s, a, many를 쓰지 않아요. a lot of homework가 맞아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct?",
+        "question_text_ko": "어법상 올바른 문장을 고르세요.",
+        "options": [
+          "Can you give me an advice?",
+          "Can you give me some advices?",
+          "Can you give me some advice?",
+          "Can you give me many advice?"
+        ],
+        "correct_answer": "C",
+        "explanation": "advice는 셀 수 없는 명사라 an, -s, many를 쓰지 않아요. some advice가 맞아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct?",
+        "question_text_ko": "어법상 올바른 문장을 고르세요.",
+        "options": [
+          "I want to buy new phone.",
+          "I want to buy an new phone.",
+          "I want to buy a new phones.",
+          "I want to buy a new phone."
+        ],
+        "correct_answer": "D",
+        "explanation": "phone은 셀 수 있는 명사라 하나일 때 a가 필요해요. new는 자음 소리로 시작하니 an이 아니라 a예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "There ____ a lot of furniture in this room.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "is",
+          "are",
+          "am",
+          "be"
+        ],
+        "correct_answer": "A",
+        "explanation": "furniture는 셀 수 없는 명사라 아무리 많아도 단수(is)로 받아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Money ____ important, but it isn't everything.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "are",
+          "is",
+          "am",
+          "be"
+        ],
+        "correct_answer": "B",
+        "explanation": "money는 셀 수 없는 명사라 주어로 쓰면 동사는 단수(is)예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I drink eight ____ of water a day.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "glass",
+          "a glass",
+          "glasses",
+          "the glass"
+        ],
+        "correct_answer": "C",
+        "explanation": "여덟 잔이니까 단위 glass에 -es를 붙여 glasses예요. water에는 -s를 붙이지 않아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Two ____ of coffee, please.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "cup",
+          "a cup",
+          "the cup",
+          "cups"
+        ],
+        "correct_answer": "D",
+        "explanation": "두 잔이니까 단위 cup에 -s를 붙여 cups예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which is correct for \"빵 두 조각\"?",
+        "question_text_ko": "\"빵 두 조각\"을 영어로 바르게 나타낸 것을 고르세요.",
+        "options": [
+          "two slices of bread",
+          "two breads",
+          "two slice of bread",
+          "two slices of breads"
+        ],
+        "correct_answer": "A",
+        "explanation": "bread는 셀 수 없는 명사라 단위(slice)로 세요. 두 조각이면 slices, bread는 그대로예요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which noun is uncountable?",
+        "question_text_ko": "다음 중 셀 수 없는 명사를 고르세요.",
+        "options": [
+          "chair",
+          "furniture",
+          "desk",
+          "bed"
+        ],
+        "correct_answer": "B",
+        "explanation": "furniture(가구)는 의자·책상·침대를 묶어 부르는 말이라 셀 수 없어요. chair, desk, bed는 셀 수 있어요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "What is the plural of \"child\"?",
+        "question_text_ko": "child의 복수형을 고르세요.",
+        "options": [
+          "childs",
+          "childes",
+          "children",
+          "childrens"
+        ],
+        "correct_answer": "C",
+        "explanation": "child의 복수형은 불규칙하게 바뀌어 children이에요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "How many ____ are coming to the party?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "person",
+          "peoples",
+          "a person",
+          "people"
+        ],
+        "correct_answer": "D",
+        "explanation": "How many 뒤에는 복수 명사가 와요. person의 복수형은 people이에요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I had chicken for dinner.",
+        "question_text_ko": "이 문장에서 chicken의 뜻으로 알맞은 것을 고르세요.",
+        "options": [
+          "닭고기",
+          "닭 한 마리",
+          "병아리",
+          "닭장"
+        ],
+        "correct_answer": "A",
+        "explanation": "a 없이 쓴 chicken은 먹는 닭고기(셀 수 없음)예요. 닭 한 마리는 a chicken이에요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I've been to Jeju three times.",
+        "question_text_ko": "이 문장에서 times의 뜻으로 알맞은 것을 고르세요.",
+        "options": [
+          "시간",
+          "번 (횟수)",
+          "세 시",
+          "시계"
+        ],
+        "correct_answer": "B",
+        "explanation": "\"시간\"이라는 뜻의 time은 셀 수 없지만, 횟수를 말할 때는 셀 수 있어요. three times = 세 번."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which noun is uncountable?",
+        "question_text_ko": "다음 중 셀 수 없는 명사를 고르세요.",
+        "options": [
+          "coin",
+          "dollar",
+          "money",
+          "bill"
+        ],
+        "correct_answer": "C",
+        "explanation": "money(돈)는 동전과 지폐를 묶어 부르는 말이라 셀 수 없어요. coin, dollar, bill은 셀 수 있어요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct?",
+        "question_text_ko": "어법상 올바른 문장을 고르세요.",
+        "options": [
+          "I bought three apple and some bread.",
+          "I bought three apples and some breads.",
+          "I bought three apples and a bread.",
+          "I bought three apples and some bread."
+        ],
+        "correct_answer": "D",
+        "explanation": "apple은 셀 수 있어 three apples, bread는 셀 수 없어 -s나 a 없이 some bread예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which is correct for \"조언 한 마디\"?",
+        "question_text_ko": "\"조언 한 마디\"를 영어로 바르게 나타낸 것을 고르세요.",
+        "options": [
+          "a piece of advice",
+          "an advice",
+          "a advice",
+          "a piece of advices"
+        ],
+        "correct_answer": "A",
+        "explanation": "advice는 셀 수 없는 명사라 단위 a piece of로 세요. advice에는 -s를 붙이지 않아요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I have two ____. (sister)",
+        "question_text_ko": "괄호 안의 단어를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "sisters",
+        "explanation": "두 명이니까 셀 수 있는 명사 sister에 -s를 붙여요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I ate ____ egg this morning. (a / an)",
+        "question_text_ko": "괄호 안에서 알맞은 말을 골라 빈칸에 쓰세요.",
+        "correct_answer": "an",
+        "explanation": "egg는 모음 소리로 시작하니까 an을 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I bought three ____ of milk. (bottle)",
+        "question_text_ko": "괄호 안의 단어를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "bottles",
+        "explanation": "milk는 셀 수 없어 단위로 세요. 세 병이니까 bottle에 -s를 붙여요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "My teacher gave me some good ____. (advice)",
+        "question_text_ko": "괄호 안의 단어를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "advice",
+        "explanation": "advice는 셀 수 없는 명사라 -s를 붙이지 않아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "There are many ____ in the park. (child)",
+        "question_text_ko": "괄호 안의 단어를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "children",
+        "explanation": "many 뒤에는 복수 명사가 와요. child의 복수형은 children이에요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I have a lot of ____ today. (homework)",
+        "question_text_ko": "괄호 안의 단어를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "homework",
+        "explanation": "homework는 셀 수 없는 명사라 많아도 -s를 붙이지 않아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "She drinks two ____ of milk every day. (glass)",
+        "question_text_ko": "괄호 안의 단어를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "glasses",
+        "explanation": "두 잔이니까 단위 glass에 -es를 붙여 glasses예요."
+      }
+    }
+  ]
+}
