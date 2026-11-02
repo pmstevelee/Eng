@@ -1,0 +1,6452 @@
+{
+  "version": 1,
+  "totalMs": 609860,
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "startMs": 800,
+      "endMs": 4090,
+      "words": [
+        {
+          "text": "안녕하세요,",
+          "startMs": 800,
+          "endMs": 1750
+        },
+        {
+          "text": "위고업잉글리시에",
+          "startMs": 1910,
+          "endMs": 2830
+        },
+        {
+          "text": "오신",
+          "startMs": 2870,
+          "endMs": 3190
+        },
+        {
+          "text": "걸",
+          "startMs": 3310,
+          "endMs": 3430
+        },
+        {
+          "text": "환영해요!",
+          "startMs": 3510,
+          "endMs": 4090
+        }
+      ]
+    },
+    {
+      "id": "s1-2",
+      "slideId": "s1",
+      "lang": "ko",
+      "startMs": 4390,
+      "endMs": 9860,
+      "words": [
+        {
+          "text": "오늘은",
+          "startMs": 4390,
+          "endMs": 4950
+        },
+        {
+          "text": "영어",
+          "startMs": 5190,
+          "endMs": 5350
+        },
+        {
+          "text": "문장의",
+          "startMs": 5430,
+          "endMs": 5830
+        },
+        {
+          "text": "뼈대,",
+          "startMs": 5990,
+          "endMs": 6710
+        },
+        {
+          "text": "바로",
+          "startMs": 6790,
+          "endMs": 7270
+        },
+        {
+          "text": "주어와",
+          "startMs": 7430,
+          "endMs": 7910
+        },
+        {
+          "text": "동사에",
+          "startMs": 8150,
+          "endMs": 8470
+        },
+        {
+          "text": "대해",
+          "startMs": 8550,
+          "endMs": 8870
+        },
+        {
+          "text": "배워",
+          "startMs": 8950,
+          "endMs": 9110
+        },
+        {
+          "text": "볼",
+          "startMs": 9190,
+          "endMs": 9270
+        },
+        {
+          "text": "거예요.",
+          "startMs": 9350,
+          "endMs": 9860
+        }
+      ]
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 10660,
+      "endMs": 14310,
+      "words": [
+        {
+          "text": "영어",
+          "startMs": 10660,
+          "endMs": 10980
+        },
+        {
+          "text": "문장을",
+          "startMs": 11060,
+          "endMs": 11380
+        },
+        {
+          "text": "만들",
+          "startMs": 11500,
+          "endMs": 11780
+        },
+        {
+          "text": "때,",
+          "startMs": 11860,
+          "endMs": 12420
+        },
+        {
+          "text": "이런",
+          "startMs": 12500,
+          "endMs": 12740
+        },
+        {
+          "text": "실수를",
+          "startMs": 12860,
+          "endMs": 13380
+        },
+        {
+          "text": "해",
+          "startMs": 13460,
+          "endMs": 13540
+        },
+        {
+          "text": "본",
+          "startMs": 13580,
+          "endMs": 13620
+        },
+        {
+          "text": "적",
+          "startMs": 13700,
+          "endMs": 13780
+        },
+        {
+          "text": "있나요?",
+          "startMs": 13860,
+          "endMs": 14310
+        }
+      ]
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "startMs": 14810,
+      "endMs": 16060,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 14810,
+          "endMs": 14970
+        },
+        {
+          "text": "pizza",
+          "startMs": 15130,
+          "endMs": 15530
+        },
+        {
+          "text": "like.",
+          "startMs": 15770,
+          "endMs": 16060
+        }
+      ]
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 16560,
+      "endMs": 19710,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 16560,
+          "endMs": 16720
+        },
+        {
+          "text": "문장에서",
+          "startMs": 16800,
+          "endMs": 17600
+        },
+        {
+          "text": "무엇이",
+          "startMs": 17760,
+          "endMs": 18080
+        },
+        {
+          "text": "어색한지",
+          "startMs": 18160,
+          "endMs": 18880
+        },
+        {
+          "text": "느껴지나요?",
+          "startMs": 18960,
+          "endMs": 19710
+        }
+      ]
+    },
+    {
+      "id": "s2-4",
+      "slideId": "s2",
+      "lang": "en",
+      "startMs": 20210,
+      "endMs": 21310,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 20210,
+          "endMs": 20380
+        },
+        {
+          "text": "like",
+          "startMs": 20500,
+          "endMs": 20620
+        },
+        {
+          "text": "pizza.",
+          "startMs": 20700,
+          "endMs": 21310
+        }
+      ]
+    },
+    {
+      "id": "s2-5",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 21810,
+      "endMs": 26080,
+      "words": [
+        {
+          "text": "이렇게",
+          "startMs": 21810,
+          "endMs": 22180
+        },
+        {
+          "text": "주어",
+          "startMs": 22340,
+          "endMs": 22660
+        },
+        {
+          "text": "바로",
+          "startMs": 22820,
+          "endMs": 23060
+        },
+        {
+          "text": "뒤에",
+          "startMs": 23140,
+          "endMs": 23460
+        },
+        {
+          "text": "동사가",
+          "startMs": 23620,
+          "endMs": 23940
+        },
+        {
+          "text": "와야",
+          "startMs": 24020,
+          "endMs": 24580
+        },
+        {
+          "text": "자연스러운",
+          "startMs": 24660,
+          "endMs": 25220
+        },
+        {
+          "text": "영어가",
+          "startMs": 25380,
+          "endMs": 25620
+        },
+        {
+          "text": "돼요.",
+          "startMs": 25700,
+          "endMs": 26080
+        }
+      ]
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 26880,
+      "endMs": 30060,
+      "words": [
+        {
+          "text": "이번",
+          "startMs": 26880,
+          "endMs": 27190
+        },
+        {
+          "text": "시간에",
+          "startMs": 27270,
+          "endMs": 27750
+        },
+        {
+          "text": "우리가",
+          "startMs": 27910,
+          "endMs": 28150
+        },
+        {
+          "text": "함께",
+          "startMs": 28230,
+          "endMs": 28510
+        },
+        {
+          "text": "할",
+          "startMs": 28550,
+          "endMs": 28630
+        },
+        {
+          "text": "목표를",
+          "startMs": 28790,
+          "endMs": 29190
+        },
+        {
+          "text": "소개할게요.",
+          "startMs": 29350,
+          "endMs": 30060
+        }
+      ]
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 30360,
+      "endMs": 35300,
+      "words": [
+        {
+          "text": "첫",
+          "startMs": 30360,
+          "endMs": 30520
+        },
+        {
+          "text": "번째,",
+          "startMs": 30600,
+          "endMs": 31480
+        },
+        {
+          "text": "주어와",
+          "startMs": 31560,
+          "endMs": 32040
+        },
+        {
+          "text": "동사가",
+          "startMs": 32200,
+          "endMs": 32840
+        },
+        {
+          "text": "어떤",
+          "startMs": 32920,
+          "endMs": 33240
+        },
+        {
+          "text": "역할을",
+          "startMs": 33400,
+          "endMs": 33640
+        },
+        {
+          "text": "하는지",
+          "startMs": 33720,
+          "endMs": 34280
+        },
+        {
+          "text": "알",
+          "startMs": 34440,
+          "endMs": 34520
+        },
+        {
+          "text": "수",
+          "startMs": 34560,
+          "endMs": 34600
+        },
+        {
+          "text": "있게",
+          "startMs": 34760,
+          "endMs": 34840
+        },
+        {
+          "text": "돼요.",
+          "startMs": 35000,
+          "endMs": 35300
+        }
+      ]
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 35600,
+      "endMs": 40110,
+      "words": [
+        {
+          "text": "두",
+          "startMs": 35600,
+          "endMs": 35680
+        },
+        {
+          "text": "번째,",
+          "startMs": 35760,
+          "endMs": 36640
+        },
+        {
+          "text": "영어",
+          "startMs": 36800,
+          "endMs": 36960
+        },
+        {
+          "text": "문장",
+          "startMs": 37120,
+          "endMs": 37440
+        },
+        {
+          "text": "구조의",
+          "startMs": 37520,
+          "endMs": 37840
+        },
+        {
+          "text": "기본을",
+          "startMs": 38000,
+          "endMs": 38560
+        },
+        {
+          "text": "제대로",
+          "startMs": 38720,
+          "endMs": 39040
+        },
+        {
+          "text": "이해할",
+          "startMs": 39120,
+          "endMs": 39440
+        },
+        {
+          "text": "수",
+          "startMs": 39520,
+          "endMs": 39600
+        },
+        {
+          "text": "있어요.",
+          "startMs": 39680,
+          "endMs": 40110
+        }
+      ]
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 40410,
+      "endMs": 45290,
+      "words": [
+        {
+          "text": "마지막으로,",
+          "startMs": 40410,
+          "endMs": 41450
+        },
+        {
+          "text": "문장에",
+          "startMs": 41610,
+          "endMs": 42090
+        },
+        {
+          "text": "꼭",
+          "startMs": 42250,
+          "endMs": 42330
+        },
+        {
+          "text": "필요한",
+          "startMs": 42490,
+          "endMs": 42730
+        },
+        {
+          "text": "부분이",
+          "startMs": 42810,
+          "endMs": 43130
+        },
+        {
+          "text": "무엇인지",
+          "startMs": 43290,
+          "endMs": 44090
+        },
+        {
+          "text": "익히게",
+          "startMs": 44250,
+          "endMs": 44490
+        },
+        {
+          "text": "될",
+          "startMs": 44650,
+          "endMs": 44730
+        },
+        {
+          "text": "거예요.",
+          "startMs": 44810,
+          "endMs": 45290
+        }
+      ]
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "startMs": 46090,
+      "endMs": 49700,
+      "words": [
+        {
+          "text": "영어",
+          "startMs": 46090,
+          "endMs": 46410
+        },
+        {
+          "text": "문장에는",
+          "startMs": 46490,
+          "endMs": 47210
+        },
+        {
+          "text": "주어와",
+          "startMs": 47290,
+          "endMs": 47770
+        },
+        {
+          "text": "동사가",
+          "startMs": 47850,
+          "endMs": 48490
+        },
+        {
+          "text": "꼭",
+          "startMs": 48650,
+          "endMs": 48810
+        },
+        {
+          "text": "들어가야",
+          "startMs": 48850,
+          "endMs": 49210
+        },
+        {
+          "text": "해요.",
+          "startMs": 49290,
+          "endMs": 49700
+        }
+      ]
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "ko",
+      "startMs": 50000,
+      "endMs": 53420,
+      "words": [
+        {
+          "text": "주어는",
+          "startMs": 50000,
+          "endMs": 50800
+        },
+        {
+          "text": "누가",
+          "startMs": 50960,
+          "endMs": 51520
+        },
+        {
+          "text": "또는",
+          "startMs": 51600,
+          "endMs": 52080
+        },
+        {
+          "text": "무엇이라는",
+          "startMs": 52160,
+          "endMs": 52800
+        },
+        {
+          "text": "뜻이에요.",
+          "startMs": 52960,
+          "endMs": 53420
+        }
+      ]
+    },
+    {
+      "id": "s4-3",
+      "slideId": "s4",
+      "lang": "ko",
+      "startMs": 53720,
+      "endMs": 58110,
+      "words": [
+        {
+          "text": "동사는",
+          "startMs": 53720,
+          "endMs": 54590
+        },
+        {
+          "text": "주어가",
+          "startMs": 54750,
+          "endMs": 55110
+        },
+        {
+          "text": "하는",
+          "startMs": 55150,
+          "endMs": 55390
+        },
+        {
+          "text": "행동이나",
+          "startMs": 55550,
+          "endMs": 56190
+        },
+        {
+          "text": "상태를",
+          "startMs": 56430,
+          "endMs": 56750
+        },
+        {
+          "text": "나타내죠.",
+          "startMs": 56910,
+          "endMs": 58110
+        }
+      ]
+    },
+    {
+      "id": "s4-4",
+      "slideId": "s4",
+      "lang": "ko",
+      "startMs": 58410,
+      "endMs": 62680,
+      "words": [
+        {
+          "text": "예외가",
+          "startMs": 58410,
+          "endMs": 58890
+        },
+        {
+          "text": "하나",
+          "startMs": 58970,
+          "endMs": 59130
+        },
+        {
+          "text": "있는데,",
+          "startMs": 59210,
+          "endMs": 60090
+        },
+        {
+          "text": "명령문에서는",
+          "startMs": 60250,
+          "endMs": 61370
+        },
+        {
+          "text": "주어를",
+          "startMs": 61450,
+          "endMs": 61770
+        },
+        {
+          "text": "쓰지",
+          "startMs": 61850,
+          "endMs": 62090
+        },
+        {
+          "text": "않아요.",
+          "startMs": 62170,
+          "endMs": 62680
+        }
+      ]
+    },
+    {
+      "id": "s4-5",
+      "slideId": "s4",
+      "lang": "en",
+      "startMs": 63180,
+      "endMs": 64020,
+      "words": [
+        {
+          "text": "Sit",
+          "startMs": 63180,
+          "endMs": 63420
+        },
+        {
+          "text": "down.",
+          "startMs": 63500,
+          "endMs": 64020
+        }
+      ]
+    },
+    {
+      "id": "s4-6",
+      "slideId": "s4",
+      "lang": "ko",
+      "startMs": 64520,
+      "endMs": 67950,
+      "words": [
+        {
+          "text": "이런",
+          "startMs": 64520,
+          "endMs": 64750
+        },
+        {
+          "text": "문장에서는",
+          "startMs": 64830,
+          "endMs": 65790
+        },
+        {
+          "text": "주어",
+          "startMs": 65870,
+          "endMs": 66190
+        },
+        {
+          "text": "너가",
+          "startMs": 66270,
+          "endMs": 66910
+        },
+        {
+          "text": "생략된",
+          "startMs": 66990,
+          "endMs": 67390
+        },
+        {
+          "text": "거예요.",
+          "startMs": 67470,
+          "endMs": 67950
+        }
+      ]
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 68750,
+      "endMs": 73270,
+      "words": [
+        {
+          "text": "이번에는",
+          "startMs": 68750,
+          "endMs": 69470
+        },
+        {
+          "text": "영어에서",
+          "startMs": 69710,
+          "endMs": 70350
+        },
+        {
+          "text": "주어와",
+          "startMs": 70430,
+          "endMs": 70830
+        },
+        {
+          "text": "동사가",
+          "startMs": 70990,
+          "endMs": 71630
+        },
+        {
+          "text": "어디에",
+          "startMs": 71710,
+          "endMs": 72030
+        },
+        {
+          "text": "오는지",
+          "startMs": 72190,
+          "endMs": 72430
+        },
+        {
+          "text": "알아볼게요.",
+          "startMs": 72510,
+          "endMs": 73270
+        }
+      ]
+    },
+    {
+      "id": "s5-2",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 73570,
+      "endMs": 76770,
+      "words": [
+        {
+          "text": "먼저,",
+          "startMs": 73570,
+          "endMs": 74450
+        },
+        {
+          "text": "영어는",
+          "startMs": 74530,
+          "endMs": 75090
+        },
+        {
+          "text": "주어를",
+          "startMs": 75250,
+          "endMs": 75570
+        },
+        {
+          "text": "생략하지",
+          "startMs": 75730,
+          "endMs": 76130
+        },
+        {
+          "text": "않아요.",
+          "startMs": 76210,
+          "endMs": 76770
+        }
+      ]
+    },
+    {
+      "id": "s5-2a",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 77070,
+      "endMs": 85100,
+      "words": [
+        {
+          "text": "한국어로는",
+          "startMs": 77070,
+          "endMs": 78110
+        },
+        {
+          "text": "친구에게",
+          "startMs": 78270,
+          "endMs": 78990
+        },
+        {
+          "text": "밥",
+          "startMs": 79150,
+          "endMs": 79230
+        },
+        {
+          "text": "먹었어?",
+          "startMs": 79390,
+          "endMs": 80270
+        },
+        {
+          "text": "라고만",
+          "startMs": 80430,
+          "endMs": 80750
+        },
+        {
+          "text": "해도",
+          "startMs": 80830,
+          "endMs": 80990
+        },
+        {
+          "text": "되죠?",
+          "startMs": 81070,
+          "endMs": 82110
+        },
+        {
+          "text": "누가",
+          "startMs": 82190,
+          "endMs": 82430
+        },
+        {
+          "text": "먹었는지",
+          "startMs": 82510,
+          "endMs": 82990
+        },
+        {
+          "text": "말하지",
+          "startMs": 83150,
+          "endMs": 83390
+        },
+        {
+          "text": "않아도",
+          "startMs": 83550,
+          "endMs": 84110
+        },
+        {
+          "text": "다",
+          "startMs": 84270,
+          "endMs": 84350
+        },
+        {
+          "text": "알아들어요.",
+          "startMs": 84510,
+          "endMs": 85100
+        }
+      ]
+    },
+    {
+      "id": "s5-2b",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 85400,
+      "endMs": 89960,
+      "words": [
+        {
+          "text": "그런데",
+          "startMs": 85400,
+          "endMs": 86040
+        },
+        {
+          "text": "영어는",
+          "startMs": 86200,
+          "endMs": 87000
+        },
+        {
+          "text": "너라는",
+          "startMs": 87160,
+          "endMs": 87720
+        },
+        {
+          "text": "주어를",
+          "startMs": 87800,
+          "endMs": 88360
+        },
+        {
+          "text": "꼭",
+          "startMs": 88520,
+          "endMs": 88680
+        },
+        {
+          "text": "넣어서",
+          "startMs": 88760,
+          "endMs": 89080
+        },
+        {
+          "text": "말해야",
+          "startMs": 89240,
+          "endMs": 89480
+        },
+        {
+          "text": "해요.",
+          "startMs": 89560,
+          "endMs": 89960
+        }
+      ]
+    },
+    {
+      "id": "s5-2c",
+      "slideId": "s5",
+      "lang": "en",
+      "startMs": 90460,
+      "endMs": 91330,
+      "words": [
+        {
+          "text": "Did",
+          "startMs": 90460,
+          "endMs": 90620
+        },
+        {
+          "text": "you",
+          "startMs": 90700,
+          "endMs": 90780
+        },
+        {
+          "text": "eat?",
+          "startMs": 90860,
+          "endMs": 91330
+        }
+      ]
+    },
+    {
+      "id": "s5-3",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 91830,
+      "endMs": 95600,
+      "words": [
+        {
+          "text": "그리고",
+          "startMs": 91830,
+          "endMs": 92370
+        },
+        {
+          "text": "평서문에서는",
+          "startMs": 92530,
+          "endMs": 93490
+        },
+        {
+          "text": "주어",
+          "startMs": 93570,
+          "endMs": 93810
+        },
+        {
+          "text": "바로",
+          "startMs": 93970,
+          "endMs": 94210
+        },
+        {
+          "text": "뒤에",
+          "startMs": 94330,
+          "endMs": 94610
+        },
+        {
+          "text": "동사가",
+          "startMs": 94770,
+          "endMs": 95090
+        },
+        {
+          "text": "와요.",
+          "startMs": 95170,
+          "endMs": 95600
+        }
+      ]
+    },
+    {
+      "id": "s5-4",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 95900,
+      "endMs": 100720,
+      "words": [
+        {
+          "text": "한국어와",
+          "startMs": 95900,
+          "endMs": 96700
+        },
+        {
+          "text": "영어",
+          "startMs": 96860,
+          "endMs": 97020
+        },
+        {
+          "text": "문장",
+          "startMs": 97180,
+          "endMs": 97420
+        },
+        {
+          "text": "순서가",
+          "startMs": 97580,
+          "endMs": 97980
+        },
+        {
+          "text": "다르다는",
+          "startMs": 98140,
+          "endMs": 98620
+        },
+        {
+          "text": "점,",
+          "startMs": 98780,
+          "endMs": 99420
+        },
+        {
+          "text": "헷갈리지",
+          "startMs": 99500,
+          "endMs": 99980
+        },
+        {
+          "text": "않으셨나요?",
+          "startMs": 100060,
+          "endMs": 100720
+        }
+      ]
+    },
+    {
+      "id": "s5-5",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 101020,
+      "endMs": 109200,
+      "words": [
+        {
+          "text": "예를",
+          "startMs": 101020,
+          "endMs": 101340
+        },
+        {
+          "text": "들어,",
+          "startMs": 101420,
+          "endMs": 101900
+        },
+        {
+          "text": "한국어로는",
+          "startMs": 101980,
+          "endMs": 103020
+        },
+        {
+          "text": "나는",
+          "startMs": 103100,
+          "endMs": 103500
+        },
+        {
+          "text": "피자를",
+          "startMs": 103580,
+          "endMs": 103900
+        },
+        {
+          "text": "좋아해라고",
+          "startMs": 103980,
+          "endMs": 105020
+        },
+        {
+          "text": "하지만,",
+          "startMs": 105180,
+          "endMs": 105980
+        },
+        {
+          "text": "영어에서는",
+          "startMs": 106060,
+          "endMs": 106940
+        },
+        {
+          "text": "주어",
+          "startMs": 107020,
+          "endMs": 107260
+        },
+        {
+          "text": "다음에",
+          "startMs": 107340,
+          "endMs": 107900
+        },
+        {
+          "text": "바로",
+          "startMs": 108020,
+          "endMs": 108220
+        },
+        {
+          "text": "동사가",
+          "startMs": 108300,
+          "endMs": 108700
+        },
+        {
+          "text": "오죠.",
+          "startMs": 108780,
+          "endMs": 109200
+        }
+      ]
+    },
+    {
+      "id": "s5-6",
+      "slideId": "s5",
+      "lang": "en",
+      "startMs": 109700,
+      "endMs": 110780,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 109700,
+          "endMs": 109860
+        },
+        {
+          "text": "like",
+          "startMs": 109980,
+          "endMs": 110100
+        },
+        {
+          "text": "pizza.",
+          "startMs": 110380,
+          "endMs": 110780
+        }
+      ]
+    },
+    {
+      "id": "s5-7",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 111280,
+      "endMs": 116680,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 111280,
+          "endMs": 111440
+        },
+        {
+          "text": "문장에서",
+          "startMs": 111520,
+          "endMs": 112240
+        },
+        {
+          "text": "주어가",
+          "startMs": 112320,
+          "endMs": 112800
+        },
+        {
+          "text": "맨",
+          "startMs": 112880,
+          "endMs": 113040
+        },
+        {
+          "text": "앞,",
+          "startMs": 113120,
+          "endMs": 113840
+        },
+        {
+          "text": "동사가",
+          "startMs": 113920,
+          "endMs": 114480
+        },
+        {
+          "text": "바로",
+          "startMs": 114600,
+          "endMs": 114880
+        },
+        {
+          "text": "뒤에",
+          "startMs": 114960,
+          "endMs": 115120
+        },
+        {
+          "text": "와",
+          "startMs": 115200,
+          "endMs": 115280
+        },
+        {
+          "text": "있는",
+          "startMs": 115400,
+          "endMs": 115520
+        },
+        {
+          "text": "것을",
+          "startMs": 115640,
+          "endMs": 115840
+        },
+        {
+          "text": "볼",
+          "startMs": 115920,
+          "endMs": 116000
+        },
+        {
+          "text": "수",
+          "startMs": 116080,
+          "endMs": 116160
+        },
+        {
+          "text": "있어요.",
+          "startMs": 116240,
+          "endMs": 116680
+        }
+      ]
+    },
+    {
+      "id": "s6-1",
+      "slideId": "s6",
+      "lang": "ko",
+      "startMs": 117480,
+      "endMs": 121390,
+      "words": [
+        {
+          "text": "이번에는",
+          "startMs": 117480,
+          "endMs": 118280
+        },
+        {
+          "text": "주어가",
+          "startMs": 118360,
+          "endMs": 118840
+        },
+        {
+          "text": "꼭",
+          "startMs": 119000,
+          "endMs": 119160
+        },
+        {
+          "text": "필요한",
+          "startMs": 119240,
+          "endMs": 119640
+        },
+        {
+          "text": "이유를",
+          "startMs": 119720,
+          "endMs": 120200
+        },
+        {
+          "text": "함께",
+          "startMs": 120280,
+          "endMs": 120520
+        },
+        {
+          "text": "살펴볼게요.",
+          "startMs": 120600,
+          "endMs": 121390
+        }
+      ]
+    },
+    {
+      "id": "s6-2",
+      "slideId": "s6",
+      "lang": "ko",
+      "startMs": 121690,
+      "endMs": 126730,
+      "words": [
+        {
+          "text": "날씨,",
+          "startMs": 121690,
+          "endMs": 122650
+        },
+        {
+          "text": "시간,",
+          "startMs": 122730,
+          "endMs": 123450
+        },
+        {
+          "text": "거리처럼",
+          "startMs": 123650,
+          "endMs": 124490
+        },
+        {
+          "text": "주인공이",
+          "startMs": 124570,
+          "endMs": 125130
+        },
+        {
+          "text": "딱히",
+          "startMs": 125250,
+          "endMs": 125450
+        },
+        {
+          "text": "없는",
+          "startMs": 125570,
+          "endMs": 125770
+        },
+        {
+          "text": "문장도",
+          "startMs": 125890,
+          "endMs": 126250
+        },
+        {
+          "text": "있죠?",
+          "startMs": 126370,
+          "endMs": 126730
+        }
+      ]
+    },
+    {
+      "id": "s6-3",
+      "slideId": "s6",
+      "lang": "ko",
+      "startMs": 127030,
+      "endMs": 131040,
+      "words": [
+        {
+          "text": "이럴",
+          "startMs": 127030,
+          "endMs": 127270
+        },
+        {
+          "text": "때도",
+          "startMs": 127350,
+          "endMs": 127830
+        },
+        {
+          "text": "영어에서는",
+          "startMs": 127990,
+          "endMs": 128710
+        },
+        {
+          "text": "반드시",
+          "startMs": 128950,
+          "endMs": 129510
+        },
+        {
+          "text": "주어",
+          "startMs": 129590,
+          "endMs": 129750
+        },
+        {
+          "text": "자리를",
+          "startMs": 129830,
+          "endMs": 130230
+        },
+        {
+          "text": "채워야",
+          "startMs": 130310,
+          "endMs": 130630
+        },
+        {
+          "text": "해요.",
+          "startMs": 130710,
+          "endMs": 131040
+        }
+      ]
+    },
+    {
+      "id": "s6-4",
+      "slideId": "s6",
+      "lang": "ko",
+      "startMs": 131340,
+      "endMs": 135960,
+      "words": [
+        {
+          "text": "그래서",
+          "startMs": 131340,
+          "endMs": 131980
+        },
+        {
+          "text": "이럴",
+          "startMs": 132140,
+          "endMs": 132380
+        },
+        {
+          "text": "때는",
+          "startMs": 132460,
+          "endMs": 133020
+        },
+        {
+          "text": "잇을",
+          "startMs": 133180,
+          "endMs": 133820
+        },
+        {
+          "text": "주어로",
+          "startMs": 133900,
+          "endMs": 134220
+        },
+        {
+          "text": "세워서",
+          "startMs": 134300,
+          "endMs": 134860
+        },
+        {
+          "text": "문장을",
+          "startMs": 135020,
+          "endMs": 135340
+        },
+        {
+          "text": "만들어요.",
+          "startMs": 135420,
+          "endMs": 135960
+        }
+      ]
+    },
+    {
+      "id": "s6-5",
+      "slideId": "s6",
+      "lang": "en",
+      "startMs": 136460,
+      "endMs": 137740,
+      "words": [
+        {
+          "text": "It",
+          "startMs": 136460,
+          "endMs": 136620
+        },
+        {
+          "text": "is",
+          "startMs": 136740,
+          "endMs": 136860
+        },
+        {
+          "text": "cold.",
+          "startMs": 136940,
+          "endMs": 137740
+        }
+      ]
+    },
+    {
+      "id": "s6-6",
+      "slideId": "s6",
+      "lang": "ko",
+      "startMs": 138240,
+      "endMs": 143340,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 138240,
+          "endMs": 138400
+        },
+        {
+          "text": "문장처럼,",
+          "startMs": 138520,
+          "endMs": 139520
+        },
+        {
+          "text": "날씨를",
+          "startMs": 139600,
+          "endMs": 140000
+        },
+        {
+          "text": "말할",
+          "startMs": 140080,
+          "endMs": 140320
+        },
+        {
+          "text": "때도",
+          "startMs": 140400,
+          "endMs": 140960
+        },
+        {
+          "text": "주어",
+          "startMs": 141040,
+          "endMs": 141280
+        },
+        {
+          "text": "자리에",
+          "startMs": 141360,
+          "endMs": 141840
+        },
+        {
+          "text": "잇을",
+          "startMs": 142080,
+          "endMs": 142400
+        },
+        {
+          "text": "꼭",
+          "startMs": 142480,
+          "endMs": 142720
+        },
+        {
+          "text": "써야",
+          "startMs": 142800,
+          "endMs": 142960
+        },
+        {
+          "text": "해요.",
+          "startMs": 143040,
+          "endMs": 143340
+        }
+      ]
+    },
+    {
+      "id": "s6-7",
+      "slideId": "s6",
+      "lang": "ko",
+      "startMs": 143640,
+      "endMs": 148360,
+      "words": [
+        {
+          "text": "그리고",
+          "startMs": 143640,
+          "endMs": 144200
+        },
+        {
+          "text": "주어는",
+          "startMs": 144360,
+          "endMs": 145000
+        },
+        {
+          "text": "꼭",
+          "startMs": 145080,
+          "endMs": 145240
+        },
+        {
+          "text": "한",
+          "startMs": 145400,
+          "endMs": 145480
+        },
+        {
+          "text": "단어일",
+          "startMs": 145560,
+          "endMs": 145880
+        },
+        {
+          "text": "필요는",
+          "startMs": 145960,
+          "endMs": 146280
+        },
+        {
+          "text": "없다는",
+          "startMs": 146520,
+          "endMs": 146840
+        },
+        {
+          "text": "점도",
+          "startMs": 147000,
+          "endMs": 147400
+        },
+        {
+          "text": "기억해",
+          "startMs": 147480,
+          "endMs": 147800
+        },
+        {
+          "text": "주세요.",
+          "startMs": 147880,
+          "endMs": 148360
+        }
+      ]
+    },
+    {
+      "id": "s6-8",
+      "slideId": "s6",
+      "lang": "en",
+      "startMs": 148860,
+      "endMs": 151110,
+      "words": [
+        {
+          "text": "My",
+          "startMs": 148860,
+          "endMs": 149040
+        },
+        {
+          "text": "best",
+          "startMs": 149200,
+          "endMs": 149360
+        },
+        {
+          "text": "friend",
+          "startMs": 149440,
+          "endMs": 149760
+        },
+        {
+          "text": "lives",
+          "startMs": 149840,
+          "endMs": 150080
+        },
+        {
+          "text": "near",
+          "startMs": 150160,
+          "endMs": 150320
+        },
+        {
+          "text": "my",
+          "startMs": 150400,
+          "endMs": 150480
+        },
+        {
+          "text": "house.",
+          "startMs": 150720,
+          "endMs": 151110
+        }
+      ]
+    },
+    {
+      "id": "s6-9",
+      "slideId": "s6",
+      "lang": "ko",
+      "startMs": 151610,
+      "endMs": 157150,
+      "words": [
+        {
+          "text": "여기서",
+          "startMs": 151610,
+          "endMs": 152250
+        },
+        {
+          "text": "내",
+          "startMs": 152330,
+          "endMs": 152490
+        },
+        {
+          "text": "가장",
+          "startMs": 152570,
+          "endMs": 152970
+        },
+        {
+          "text": "친한",
+          "startMs": 153050,
+          "endMs": 153290
+        },
+        {
+          "text": "친구처럼,",
+          "startMs": 153370,
+          "endMs": 154490
+        },
+        {
+          "text": "주어가",
+          "startMs": 154570,
+          "endMs": 155130
+        },
+        {
+          "text": "여러",
+          "startMs": 155210,
+          "endMs": 155450
+        },
+        {
+          "text": "단어로",
+          "startMs": 155610,
+          "endMs": 155850
+        },
+        {
+          "text": "이루어질",
+          "startMs": 155930,
+          "endMs": 156330
+        },
+        {
+          "text": "수도",
+          "startMs": 156410,
+          "endMs": 156530
+        },
+        {
+          "text": "있어요.",
+          "startMs": 156570,
+          "endMs": 157150
+        }
+      ]
+    },
+    {
+      "id": "s7-1",
+      "slideId": "s7",
+      "lang": "ko",
+      "startMs": 157950,
+      "endMs": 162340,
+      "words": [
+        {
+          "text": "그럼",
+          "startMs": 157950,
+          "endMs": 158560
+        },
+        {
+          "text": "주어와",
+          "startMs": 158640,
+          "endMs": 159040
+        },
+        {
+          "text": "동사가",
+          "startMs": 159200,
+          "endMs": 159760
+        },
+        {
+          "text": "각각",
+          "startMs": 159920,
+          "endMs": 160240
+        },
+        {
+          "text": "어떤",
+          "startMs": 160360,
+          "endMs": 160560
+        },
+        {
+          "text": "역할을",
+          "startMs": 160720,
+          "endMs": 160960
+        },
+        {
+          "text": "하는지",
+          "startMs": 161040,
+          "endMs": 161600
+        },
+        {
+          "text": "알아볼까요?",
+          "startMs": 161680,
+          "endMs": 162340
+        }
+      ]
+    },
+    {
+      "id": "s7-2",
+      "slideId": "s7",
+      "lang": "ko",
+      "startMs": 162640,
+      "endMs": 167240,
+      "words": [
+        {
+          "text": "주어는",
+          "startMs": 162640,
+          "endMs": 163360
+        },
+        {
+          "text": "문장에서",
+          "startMs": 163520,
+          "endMs": 164320
+        },
+        {
+          "text": "누가",
+          "startMs": 164400,
+          "endMs": 165040
+        },
+        {
+          "text": "또는",
+          "startMs": 165200,
+          "endMs": 165600
+        },
+        {
+          "text": "무엇이라는",
+          "startMs": 165760,
+          "endMs": 166560
+        },
+        {
+          "text": "뜻이에요.",
+          "startMs": 166720,
+          "endMs": 167240
+        }
+      ]
+    },
+    {
+      "id": "s7-3",
+      "slideId": "s7",
+      "lang": "ko",
+      "startMs": 167540,
+      "endMs": 171290,
+      "words": [
+        {
+          "text": "동사는",
+          "startMs": 167540,
+          "endMs": 168420
+        },
+        {
+          "text": "주어가",
+          "startMs": 168580,
+          "endMs": 168900
+        },
+        {
+          "text": "하는",
+          "startMs": 168980,
+          "endMs": 169220
+        },
+        {
+          "text": "행동이나",
+          "startMs": 169380,
+          "endMs": 170020
+        },
+        {
+          "text": "상태를",
+          "startMs": 170260,
+          "endMs": 170580
+        },
+        {
+          "text": "나타내요.",
+          "startMs": 170740,
+          "endMs": 171290
+        }
+      ]
+    },
+    {
+      "id": "s7-4",
+      "slideId": "s7",
+      "lang": "ko",
+      "startMs": 171590,
+      "endMs": 172820,
+      "words": [
+        {
+          "text": "예를",
+          "startMs": 171590,
+          "endMs": 171910
+        },
+        {
+          "text": "들어",
+          "startMs": 171990,
+          "endMs": 172150
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 172270,
+          "endMs": 172820
+        }
+      ]
+    },
+    {
+      "id": "s7-5",
+      "slideId": "s7",
+      "lang": "en",
+      "startMs": 173320,
+      "endMs": 174570,
+      "words": [
+        {
+          "text": "Cats",
+          "startMs": 173320,
+          "endMs": 173790
+        },
+        {
+          "text": "sleep.",
+          "startMs": 173950,
+          "endMs": 174570
+        }
+      ]
+    },
+    {
+      "id": "s7-6",
+      "slideId": "s7",
+      "lang": "ko",
+      "startMs": 175070,
+      "endMs": 179120,
+      "words": [
+        {
+          "text": "여기서",
+          "startMs": 175070,
+          "endMs": 175710
+        },
+        {
+          "text": "고양이들이",
+          "startMs": 175870,
+          "endMs": 176590
+        },
+        {
+          "text": "주어,",
+          "startMs": 176670,
+          "endMs": 177390
+        },
+        {
+          "text": "잔다가",
+          "startMs": 177550,
+          "endMs": 178350
+        },
+        {
+          "text": "동사예요.",
+          "startMs": 178470,
+          "endMs": 179120
+        }
+      ]
+    },
+    {
+      "id": "s8-1",
+      "slideId": "s8",
+      "lang": "ko",
+      "startMs": 179920,
+      "endMs": 183620,
+      "words": [
+        {
+          "text": "이제",
+          "startMs": 179920,
+          "endMs": 180400
+        },
+        {
+          "text": "영어",
+          "startMs": 180640,
+          "endMs": 180800
+        },
+        {
+          "text": "문장의",
+          "startMs": 180880,
+          "endMs": 181360
+        },
+        {
+          "text": "기본",
+          "startMs": 181440,
+          "endMs": 181760
+        },
+        {
+          "text": "구조",
+          "startMs": 181840,
+          "endMs": 182080
+        },
+        {
+          "text": "공식을",
+          "startMs": 182160,
+          "endMs": 182720
+        },
+        {
+          "text": "확인해",
+          "startMs": 182800,
+          "endMs": 183120
+        },
+        {
+          "text": "볼까요?",
+          "startMs": 183200,
+          "endMs": 183620
+        }
+      ]
+    },
+    {
+      "id": "s8-2",
+      "slideId": "s8",
+      "lang": "ko",
+      "startMs": 183920,
+      "endMs": 188920,
+      "words": [
+        {
+          "text": "영어",
+          "startMs": 183920,
+          "endMs": 184160
+        },
+        {
+          "text": "문장은",
+          "startMs": 184240,
+          "endMs": 184880
+        },
+        {
+          "text": "보통",
+          "startMs": 184960,
+          "endMs": 185600
+        },
+        {
+          "text": "주어,",
+          "startMs": 185680,
+          "endMs": 186320
+        },
+        {
+          "text": "동사,",
+          "startMs": 186400,
+          "endMs": 187200
+        },
+        {
+          "text": "그리고",
+          "startMs": 187240,
+          "endMs": 187600
+        },
+        {
+          "text": "나머지로",
+          "startMs": 187720,
+          "endMs": 188160
+        },
+        {
+          "text": "이루어져요.",
+          "startMs": 188240,
+          "endMs": 188920
+        }
+      ]
+    },
+    {
+      "id": "s8-3",
+      "slideId": "s8",
+      "lang": "ko",
+      "startMs": 189220,
+      "endMs": 193580,
+      "words": [
+        {
+          "text": "공식으로는",
+          "startMs": 189220,
+          "endMs": 190340
+        },
+        {
+          "text": "주어,",
+          "startMs": 190420,
+          "endMs": 191060
+        },
+        {
+          "text": "동사,",
+          "startMs": 191220,
+          "endMs": 191780
+        },
+        {
+          "text": "나머지,",
+          "startMs": 191940,
+          "endMs": 192740
+        },
+        {
+          "text": "순서가",
+          "startMs": 192900,
+          "endMs": 193220
+        },
+        {
+          "text": "돼요.",
+          "startMs": 193300,
+          "endMs": 193580
+        }
+      ]
+    },
+    {
+      "id": "s8-4",
+      "slideId": "s8",
+      "lang": "ko",
+      "startMs": 193880,
+      "endMs": 195600,
+      "words": [
+        {
+          "text": "예문으로",
+          "startMs": 193880,
+          "endMs": 194520
+        },
+        {
+          "text": "확인해",
+          "startMs": 194680,
+          "endMs": 194920
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 195000,
+          "endMs": 195600
+        }
+      ]
+    },
+    {
+      "id": "s8-5",
+      "slideId": "s8",
+      "lang": "en",
+      "startMs": 196100,
+      "endMs": 197300,
+      "words": [
+        {
+          "text": "Birds",
+          "startMs": 196100,
+          "endMs": 196630
+        },
+        {
+          "text": "fly.",
+          "startMs": 196710,
+          "endMs": 197300
+        }
+      ]
+    },
+    {
+      "id": "s8-6",
+      "slideId": "s8",
+      "lang": "ko",
+      "startMs": 197800,
+      "endMs": 201400,
+      "words": [
+        {
+          "text": "여기서",
+          "startMs": 197800,
+          "endMs": 198440
+        },
+        {
+          "text": "새들이",
+          "startMs": 198520,
+          "endMs": 199000
+        },
+        {
+          "text": "주어,",
+          "startMs": 199080,
+          "endMs": 199800
+        },
+        {
+          "text": "난다가",
+          "startMs": 199880,
+          "endMs": 200680
+        },
+        {
+          "text": "동사예요.",
+          "startMs": 200800,
+          "endMs": 201400
+        }
+      ]
+    },
+    {
+      "id": "s8-7",
+      "slideId": "s8",
+      "lang": "ko",
+      "startMs": 201700,
+      "endMs": 205300,
+      "words": [
+        {
+          "text": "이렇게",
+          "startMs": 201700,
+          "endMs": 202100
+        },
+        {
+          "text": "간단한",
+          "startMs": 202340,
+          "endMs": 202660
+        },
+        {
+          "text": "구조가",
+          "startMs": 202820,
+          "endMs": 203380
+        },
+        {
+          "text": "영어",
+          "startMs": 203620,
+          "endMs": 203780
+        },
+        {
+          "text": "문장의",
+          "startMs": 203940,
+          "endMs": 204340
+        },
+        {
+          "text": "뼈대가",
+          "startMs": 204500,
+          "endMs": 204740
+        },
+        {
+          "text": "돼요.",
+          "startMs": 204820,
+          "endMs": 205300
+        }
+      ]
+    },
+    {
+      "id": "s9-1",
+      "slideId": "s9",
+      "lang": "ko",
+      "startMs": 206100,
+      "endMs": 209330,
+      "words": [
+        {
+          "text": "이번에는",
+          "startMs": 206100,
+          "endMs": 206820
+        },
+        {
+          "text": "상태를",
+          "startMs": 207060,
+          "endMs": 207380
+        },
+        {
+          "text": "나타내는",
+          "startMs": 207460,
+          "endMs": 207940
+        },
+        {
+          "text": "문장",
+          "startMs": 208100,
+          "endMs": 208340
+        },
+        {
+          "text": "구조를",
+          "startMs": 208420,
+          "endMs": 208660
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 208740,
+          "endMs": 209330
+        }
+      ]
+    },
+    {
+      "id": "s9-2",
+      "slideId": "s9",
+      "lang": "ko",
+      "startMs": 209630,
+      "endMs": 213080,
+      "words": [
+        {
+          "text": "주어",
+          "startMs": 209630,
+          "endMs": 209950
+        },
+        {
+          "text": "뒤에",
+          "startMs": 210030,
+          "endMs": 210510
+        },
+        {
+          "text": "비동사와",
+          "startMs": 210670,
+          "endMs": 211390
+        },
+        {
+          "text": "형용사가",
+          "startMs": 211550,
+          "endMs": 212070
+        },
+        {
+          "text": "오는",
+          "startMs": 212110,
+          "endMs": 212350
+        },
+        {
+          "text": "구조예요.",
+          "startMs": 212430,
+          "endMs": 213080
+        }
+      ]
+    },
+    {
+      "id": "s9-3",
+      "slideId": "s9",
+      "lang": "ko",
+      "startMs": 213380,
+      "endMs": 219280,
+      "words": [
+        {
+          "text": "비동사는",
+          "startMs": 213380,
+          "endMs": 214260
+        },
+        {
+          "text": "주어에",
+          "startMs": 214420,
+          "endMs": 214740
+        },
+        {
+          "text": "따라",
+          "startMs": 214820,
+          "endMs": 215060
+        },
+        {
+          "text": "모양이",
+          "startMs": 215140,
+          "endMs": 215460
+        },
+        {
+          "text": "바뀌는데,",
+          "startMs": 215620,
+          "endMs": 216580
+        },
+        {
+          "text": "그건",
+          "startMs": 216660,
+          "endMs": 217140
+        },
+        {
+          "text": "다음",
+          "startMs": 217220,
+          "endMs": 217460
+        },
+        {
+          "text": "강의에서",
+          "startMs": 217620,
+          "endMs": 218100
+        },
+        {
+          "text": "자세히",
+          "startMs": 218260,
+          "endMs": 218500
+        },
+        {
+          "text": "배울",
+          "startMs": 218580,
+          "endMs": 218820
+        },
+        {
+          "text": "거예요.",
+          "startMs": 218900,
+          "endMs": 219280
+        }
+      ]
+    },
+    {
+      "id": "s9-4",
+      "slideId": "s9",
+      "lang": "ko",
+      "startMs": 219580,
+      "endMs": 221020,
+      "words": [
+        {
+          "text": "예문을",
+          "startMs": 219580,
+          "endMs": 220140
+        },
+        {
+          "text": "들어",
+          "startMs": 220220,
+          "endMs": 220380
+        },
+        {
+          "text": "볼까요?",
+          "startMs": 220460,
+          "endMs": 221020
+        }
+      ]
+    },
+    {
+      "id": "s9-5",
+      "slideId": "s9",
+      "lang": "en",
+      "startMs": 221520,
+      "endMs": 222600,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 221520,
+          "endMs": 221700
+        },
+        {
+          "text": "am",
+          "startMs": 221820,
+          "endMs": 221940
+        },
+        {
+          "text": "happy.",
+          "startMs": 222220,
+          "endMs": 222600
+        }
+      ]
+    },
+    {
+      "id": "s9-6",
+      "slideId": "s9",
+      "lang": "ko",
+      "startMs": 223100,
+      "endMs": 226320,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 223100,
+          "endMs": 223260
+        },
+        {
+          "text": "문장은",
+          "startMs": 223340,
+          "endMs": 223980
+        },
+        {
+          "text": "나는",
+          "startMs": 224060,
+          "endMs": 224380
+        },
+        {
+          "text": "행복하다라는",
+          "startMs": 224460,
+          "endMs": 225660
+        },
+        {
+          "text": "뜻이에요.",
+          "startMs": 225780,
+          "endMs": 226320
+        }
+      ]
+    },
+    {
+      "id": "s9-7",
+      "slideId": "s9",
+      "lang": "ko",
+      "startMs": 226620,
+      "endMs": 233260,
+      "words": [
+        {
+          "text": "여기서",
+          "startMs": 226620,
+          "endMs": 227180
+        },
+        {
+          "text": "주어는",
+          "startMs": 227260,
+          "endMs": 227900
+        },
+        {
+          "text": "나,",
+          "startMs": 228060,
+          "endMs": 228780
+        },
+        {
+          "text": "동사는",
+          "startMs": 228940,
+          "endMs": 229580
+        },
+        {
+          "text": "앰,",
+          "startMs": 229820,
+          "endMs": 230460
+        },
+        {
+          "text": "형용사는",
+          "startMs": 230540,
+          "endMs": 231420
+        },
+        {
+          "text": "행복한이에요.",
+          "startMs": 231580,
+          "endMs": 233260
+        }
+      ]
+    },
+    {
+      "id": "s9-8",
+      "slideId": "s9",
+      "lang": "ko",
+      "startMs": 233560,
+      "endMs": 238300,
+      "words": [
+        {
+          "text": "상태를",
+          "startMs": 233560,
+          "endMs": 234120
+        },
+        {
+          "text": "말할",
+          "startMs": 234200,
+          "endMs": 234440
+        },
+        {
+          "text": "때도",
+          "startMs": 234520,
+          "endMs": 235000
+        },
+        {
+          "text": "동사가",
+          "startMs": 235240,
+          "endMs": 235720
+        },
+        {
+          "text": "꼭",
+          "startMs": 235880,
+          "endMs": 236040
+        },
+        {
+          "text": "필요하다는",
+          "startMs": 236120,
+          "endMs": 236680
+        },
+        {
+          "text": "점,",
+          "startMs": 236840,
+          "endMs": 237320
+        },
+        {
+          "text": "기억해",
+          "startMs": 237400,
+          "endMs": 237720
+        },
+        {
+          "text": "주세요.",
+          "startMs": 237800,
+          "endMs": 238300
+        }
+      ]
+    },
+    {
+      "id": "s10-1",
+      "slideId": "s10",
+      "lang": "ko",
+      "startMs": 239100,
+      "endMs": 242340,
+      "words": [
+        {
+          "text": "이번에는",
+          "startMs": 239100,
+          "endMs": 239810
+        },
+        {
+          "text": "주어가",
+          "startMs": 239970,
+          "endMs": 240370
+        },
+        {
+          "text": "조금",
+          "startMs": 240450,
+          "endMs": 240690
+        },
+        {
+          "text": "더",
+          "startMs": 240770,
+          "endMs": 240930
+        },
+        {
+          "text": "긴",
+          "startMs": 241090,
+          "endMs": 241250
+        },
+        {
+          "text": "문장을",
+          "startMs": 241370,
+          "endMs": 241730
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 241850,
+          "endMs": 242340
+        }
+      ]
+    },
+    {
+      "id": "s10-2",
+      "slideId": "s10",
+      "lang": "en",
+      "startMs": 242840,
+      "endMs": 245190,
+      "words": [
+        {
+          "text": "My",
+          "startMs": 242840,
+          "endMs": 243070
+        },
+        {
+          "text": "best",
+          "startMs": 243230,
+          "endMs": 243390
+        },
+        {
+          "text": "friend",
+          "startMs": 243470,
+          "endMs": 243870
+        },
+        {
+          "text": "lives",
+          "startMs": 243950,
+          "endMs": 244190
+        },
+        {
+          "text": "near",
+          "startMs": 244270,
+          "endMs": 244430
+        },
+        {
+          "text": "my",
+          "startMs": 244510,
+          "endMs": 244590
+        },
+        {
+          "text": "house.",
+          "startMs": 244830,
+          "endMs": 245190
+        }
+      ]
+    },
+    {
+      "id": "s10-3",
+      "slideId": "s10",
+      "lang": "ko",
+      "startMs": 245690,
+      "endMs": 250810,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 245690,
+          "endMs": 245830
+        },
+        {
+          "text": "문장은",
+          "startMs": 245950,
+          "endMs": 246630
+        },
+        {
+          "text": "내",
+          "startMs": 246710,
+          "endMs": 246870
+        },
+        {
+          "text": "가장",
+          "startMs": 246950,
+          "endMs": 247350
+        },
+        {
+          "text": "친한",
+          "startMs": 247430,
+          "endMs": 247670
+        },
+        {
+          "text": "친구는",
+          "startMs": 247750,
+          "endMs": 248310
+        },
+        {
+          "text": "우리",
+          "startMs": 248390,
+          "endMs": 248550
+        },
+        {
+          "text": "집",
+          "startMs": 248670,
+          "endMs": 248790
+        },
+        {
+          "text": "근처에",
+          "startMs": 248870,
+          "endMs": 249270
+        },
+        {
+          "text": "산다라는",
+          "startMs": 249350,
+          "endMs": 250150
+        },
+        {
+          "text": "뜻이에요.",
+          "startMs": 250270,
+          "endMs": 250810
+        }
+      ]
+    },
+    {
+      "id": "s10-4",
+      "slideId": "s10",
+      "lang": "ko",
+      "startMs": 251110,
+      "endMs": 257590,
+      "words": [
+        {
+          "text": "여기서",
+          "startMs": 251110,
+          "endMs": 251590
+        },
+        {
+          "text": "주어는",
+          "startMs": 251670,
+          "endMs": 252390
+        },
+        {
+          "text": "내",
+          "startMs": 252550,
+          "endMs": 252710
+        },
+        {
+          "text": "가장",
+          "startMs": 252870,
+          "endMs": 253270
+        },
+        {
+          "text": "친한",
+          "startMs": 253350,
+          "endMs": 253670
+        },
+        {
+          "text": "친구처럼",
+          "startMs": 253830,
+          "endMs": 255270
+        },
+        {
+          "text": "여러",
+          "startMs": 255430,
+          "endMs": 255670
+        },
+        {
+          "text": "단어로",
+          "startMs": 255830,
+          "endMs": 256070
+        },
+        {
+          "text": "이루어진",
+          "startMs": 256150,
+          "endMs": 256790
+        },
+        {
+          "text": "덩어리예요.",
+          "startMs": 256950,
+          "endMs": 257590
+        }
+      ]
+    },
+    {
+      "id": "s10-5",
+      "slideId": "s10",
+      "lang": "en",
+      "startMs": 258090,
+      "endMs": 258810,
+      "words": [
+        {
+          "text": "lives",
+          "startMs": 258090,
+          "endMs": 258810
+        }
+      ]
+    },
+    {
+      "id": "s10-6",
+      "slideId": "s10",
+      "lang": "ko",
+      "startMs": 259310,
+      "endMs": 263110,
+      "words": [
+        {
+          "text": "동사",
+          "startMs": 259310,
+          "endMs": 259630
+        },
+        {
+          "text": "자리에는",
+          "startMs": 259710,
+          "endMs": 260430
+        },
+        {
+          "text": "리브스처럼",
+          "startMs": 260590,
+          "endMs": 261470
+        },
+        {
+          "text": "에스가",
+          "startMs": 261590,
+          "endMs": 261950
+        },
+        {
+          "text": "붙은",
+          "startMs": 262070,
+          "endMs": 262230
+        },
+        {
+          "text": "모양이",
+          "startMs": 262270,
+          "endMs": 262550
+        },
+        {
+          "text": "왔죠?",
+          "startMs": 262590,
+          "endMs": 263110
+        }
+      ]
+    },
+    {
+      "id": "s10-7",
+      "slideId": "s10",
+      "lang": "ko",
+      "startMs": 263410,
+      "endMs": 268390,
+      "words": [
+        {
+          "text": "주어가",
+          "startMs": 263410,
+          "endMs": 263970
+        },
+        {
+          "text": "삼인칭",
+          "startMs": 264210,
+          "endMs": 264610
+        },
+        {
+          "text": "단수일",
+          "startMs": 264850,
+          "endMs": 265250
+        },
+        {
+          "text": "때는",
+          "startMs": 265330,
+          "endMs": 265890
+        },
+        {
+          "text": "현재시제",
+          "startMs": 266130,
+          "endMs": 266610
+        },
+        {
+          "text": "동사에",
+          "startMs": 266770,
+          "endMs": 267330
+        },
+        {
+          "text": "에스가",
+          "startMs": 267410,
+          "endMs": 267810
+        },
+        {
+          "text": "붙어요.",
+          "startMs": 267970,
+          "endMs": 268390
+        }
+      ]
+    },
+    {
+      "id": "s11-1",
+      "slideId": "s11",
+      "lang": "ko",
+      "startMs": 269190,
+      "endMs": 272390,
+      "words": [
+        {
+          "text": "이번에는",
+          "startMs": 269190,
+          "endMs": 269990
+        },
+        {
+          "text": "날씨를",
+          "startMs": 270150,
+          "endMs": 270550
+        },
+        {
+          "text": "말할",
+          "startMs": 270630,
+          "endMs": 270870
+        },
+        {
+          "text": "때",
+          "startMs": 270950,
+          "endMs": 271030
+        },
+        {
+          "text": "쓰는",
+          "startMs": 271110,
+          "endMs": 271270
+        },
+        {
+          "text": "문장을",
+          "startMs": 271350,
+          "endMs": 271750
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 271870,
+          "endMs": 272390
+        }
+      ]
+    },
+    {
+      "id": "s11-2",
+      "slideId": "s11",
+      "lang": "en",
+      "startMs": 272890,
+      "endMs": 274390,
+      "words": [
+        {
+          "text": "It",
+          "startMs": 272890,
+          "endMs": 273050
+        },
+        {
+          "text": "is",
+          "startMs": 273170,
+          "endMs": 273290
+        },
+        {
+          "text": "cold",
+          "startMs": 273370,
+          "endMs": 273770
+        },
+        {
+          "text": "today.",
+          "startMs": 274010,
+          "endMs": 274390
+        }
+      ]
+    },
+    {
+      "id": "s11-3",
+      "slideId": "s11",
+      "lang": "ko",
+      "startMs": 274890,
+      "endMs": 278040,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 274890,
+          "endMs": 275050
+        },
+        {
+          "text": "문장은",
+          "startMs": 275170,
+          "endMs": 275850
+        },
+        {
+          "text": "오늘은",
+          "startMs": 275930,
+          "endMs": 276410
+        },
+        {
+          "text": "춥다라는",
+          "startMs": 276570,
+          "endMs": 277370
+        },
+        {
+          "text": "뜻이에요.",
+          "startMs": 277450,
+          "endMs": 278040
+        }
+      ]
+    },
+    {
+      "id": "s11-4",
+      "slideId": "s11",
+      "lang": "ko",
+      "startMs": 278340,
+      "endMs": 282150,
+      "words": [
+        {
+          "text": "날씨를",
+          "startMs": 278340,
+          "endMs": 278820
+        },
+        {
+          "text": "말할",
+          "startMs": 278980,
+          "endMs": 279140
+        },
+        {
+          "text": "때는",
+          "startMs": 279220,
+          "endMs": 279700
+        },
+        {
+          "text": "주어",
+          "startMs": 279860,
+          "endMs": 280020
+        },
+        {
+          "text": "자리에",
+          "startMs": 280100,
+          "endMs": 280580
+        },
+        {
+          "text": "꼭",
+          "startMs": 280820,
+          "endMs": 280980
+        },
+        {
+          "text": "잇을",
+          "startMs": 281220,
+          "endMs": 281380
+        },
+        {
+          "text": "써야",
+          "startMs": 281540,
+          "endMs": 281700
+        },
+        {
+          "text": "해요.",
+          "startMs": 281780,
+          "endMs": 282150
+        }
+      ]
+    },
+    {
+      "id": "s11-5",
+      "slideId": "s11",
+      "lang": "ko",
+      "startMs": 282450,
+      "endMs": 287390,
+      "words": [
+        {
+          "text": "주어가",
+          "startMs": 282450,
+          "endMs": 282850
+        },
+        {
+          "text": "없을",
+          "startMs": 283010,
+          "endMs": 283250
+        },
+        {
+          "text": "것",
+          "startMs": 283330,
+          "endMs": 283410
+        },
+        {
+          "text": "같아도,",
+          "startMs": 283530,
+          "endMs": 284370
+        },
+        {
+          "text": "영어에서는",
+          "startMs": 284450,
+          "endMs": 285250
+        },
+        {
+          "text": "문장의",
+          "startMs": 285330,
+          "endMs": 285810
+        },
+        {
+          "text": "뼈대가",
+          "startMs": 285890,
+          "endMs": 286450
+        },
+        {
+          "text": "꼭",
+          "startMs": 286530,
+          "endMs": 286690
+        },
+        {
+          "text": "필요해요.",
+          "startMs": 286770,
+          "endMs": 287390
+        }
+      ]
+    },
+    {
+      "id": "s12-1",
+      "slideId": "s12",
+      "lang": "ko",
+      "startMs": 288190,
+      "endMs": 291630,
+      "words": [
+        {
+          "text": "다음은",
+          "startMs": 288190,
+          "endMs": 288890
+        },
+        {
+          "text": "삼인칭",
+          "startMs": 289050,
+          "endMs": 289530
+        },
+        {
+          "text": "단수",
+          "startMs": 289770,
+          "endMs": 290010
+        },
+        {
+          "text": "주어가",
+          "startMs": 290090,
+          "endMs": 290330
+        },
+        {
+          "text": "있는",
+          "startMs": 290450,
+          "endMs": 290570
+        },
+        {
+          "text": "문장을",
+          "startMs": 290650,
+          "endMs": 290970
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 291050,
+          "endMs": 291630
+        }
+      ]
+    },
+    {
+      "id": "s12-2",
+      "slideId": "s12",
+      "lang": "en",
+      "startMs": 292130,
+      "endMs": 293260,
+      "words": [
+        {
+          "text": "He",
+          "startMs": 292130,
+          "endMs": 292270
+        },
+        {
+          "text": "likes",
+          "startMs": 292350,
+          "endMs": 292590
+        },
+        {
+          "text": "soccer.",
+          "startMs": 292670,
+          "endMs": 293260
+        }
+      ]
+    },
+    {
+      "id": "s12-3",
+      "slideId": "s12",
+      "lang": "ko",
+      "startMs": 293760,
+      "endMs": 297630,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 293760,
+          "endMs": 293920
+        },
+        {
+          "text": "문장은",
+          "startMs": 294040,
+          "endMs": 294720
+        },
+        {
+          "text": "그는",
+          "startMs": 294800,
+          "endMs": 295200
+        },
+        {
+          "text": "축구를",
+          "startMs": 295320,
+          "endMs": 295680
+        },
+        {
+          "text": "좋아한다라는",
+          "startMs": 295800,
+          "endMs": 296960
+        },
+        {
+          "text": "뜻이에요.",
+          "startMs": 297040,
+          "endMs": 297630
+        }
+      ]
+    },
+    {
+      "id": "s12-4",
+      "slideId": "s12",
+      "lang": "ko",
+      "startMs": 297930,
+      "endMs": 303610,
+      "words": [
+        {
+          "text": "여기서",
+          "startMs": 297930,
+          "endMs": 298490
+        },
+        {
+          "text": "주어는",
+          "startMs": 298570,
+          "endMs": 299210
+        },
+        {
+          "text": "그,",
+          "startMs": 299290,
+          "endMs": 300090
+        },
+        {
+          "text": "동사에는",
+          "startMs": 300250,
+          "endMs": 300970
+        },
+        {
+          "text": "라이크스처럼",
+          "startMs": 301050,
+          "endMs": 302010
+        },
+        {
+          "text": "에스가",
+          "startMs": 302090,
+          "endMs": 302490
+        },
+        {
+          "text": "붙었어요.",
+          "startMs": 302570,
+          "endMs": 303610
+        }
+      ]
+    },
+    {
+      "id": "s12-5",
+      "slideId": "s12",
+      "lang": "ko",
+      "startMs": 303910,
+      "endMs": 310180,
+      "words": [
+        {
+          "text": "주어가",
+          "startMs": 303910,
+          "endMs": 304550
+        },
+        {
+          "text": "삼인칭",
+          "startMs": 304790,
+          "endMs": 305190
+        },
+        {
+          "text": "단수인",
+          "startMs": 305430,
+          "endMs": 305750
+        },
+        {
+          "text": "경우,",
+          "startMs": 305910,
+          "endMs": 306630
+        },
+        {
+          "text": "현재시제",
+          "startMs": 306790,
+          "endMs": 307270
+        },
+        {
+          "text": "동사에는",
+          "startMs": 307430,
+          "endMs": 308070
+        },
+        {
+          "text": "반드시",
+          "startMs": 308310,
+          "endMs": 308790
+        },
+        {
+          "text": "에스를",
+          "startMs": 308870,
+          "endMs": 309270
+        },
+        {
+          "text": "붙여야",
+          "startMs": 309430,
+          "endMs": 309750
+        },
+        {
+          "text": "해요.",
+          "startMs": 309830,
+          "endMs": 310180
+        }
+      ]
+    },
+    {
+      "id": "s13-1",
+      "slideId": "s13",
+      "lang": "ko",
+      "startMs": 310980,
+      "endMs": 315530,
+      "words": [
+        {
+          "text": "이번에는",
+          "startMs": 310980,
+          "endMs": 311700
+        },
+        {
+          "text": "일인칭",
+          "startMs": 311860,
+          "endMs": 312260
+        },
+        {
+          "text": "단수인",
+          "startMs": 312420,
+          "endMs": 312980
+        },
+        {
+          "text": "나가",
+          "startMs": 313060,
+          "endMs": 313780
+        },
+        {
+          "text": "주어인",
+          "startMs": 313860,
+          "endMs": 314260
+        },
+        {
+          "text": "문장을",
+          "startMs": 314380,
+          "endMs": 314740
+        },
+        {
+          "text": "들어",
+          "startMs": 314780,
+          "endMs": 314900
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 314980,
+          "endMs": 315530
+        }
+      ]
+    },
+    {
+      "id": "s13-2",
+      "slideId": "s13",
+      "lang": "en",
+      "startMs": 316030,
+      "endMs": 317140,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 316030,
+          "endMs": 316190
+        },
+        {
+          "text": "like",
+          "startMs": 316270,
+          "endMs": 316430
+        },
+        {
+          "text": "pizza.",
+          "startMs": 316510,
+          "endMs": 317140
+        }
+      ]
+    },
+    {
+      "id": "s13-3",
+      "slideId": "s13",
+      "lang": "ko",
+      "startMs": 317640,
+      "endMs": 321380,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 317640,
+          "endMs": 317790
+        },
+        {
+          "text": "문장은",
+          "startMs": 317910,
+          "endMs": 318590
+        },
+        {
+          "text": "나는",
+          "startMs": 318670,
+          "endMs": 319070
+        },
+        {
+          "text": "피자를",
+          "startMs": 319150,
+          "endMs": 319550
+        },
+        {
+          "text": "좋아한다라는",
+          "startMs": 319630,
+          "endMs": 320750
+        },
+        {
+          "text": "뜻이에요.",
+          "startMs": 320870,
+          "endMs": 321380
+        }
+      ]
+    },
+    {
+      "id": "s13-4",
+      "slideId": "s13",
+      "lang": "ko",
+      "startMs": 321680,
+      "endMs": 325380,
+      "words": [
+        {
+          "text": "여기서",
+          "startMs": 321680,
+          "endMs": 322320
+        },
+        {
+          "text": "주어인",
+          "startMs": 322400,
+          "endMs": 322960
+        },
+        {
+          "text": "나",
+          "startMs": 323120,
+          "endMs": 323280
+        },
+        {
+          "text": "다음에",
+          "startMs": 323360,
+          "endMs": 324000
+        },
+        {
+          "text": "동사가",
+          "startMs": 324160,
+          "endMs": 324560
+        },
+        {
+          "text": "바로",
+          "startMs": 324720,
+          "endMs": 324880
+        },
+        {
+          "text": "오죠?",
+          "startMs": 325000,
+          "endMs": 325380
+        }
+      ]
+    },
+    {
+      "id": "s13-5",
+      "slideId": "s13",
+      "lang": "ko",
+      "startMs": 325680,
+      "endMs": 330960,
+      "words": [
+        {
+          "text": "일인칭",
+          "startMs": 325680,
+          "endMs": 326240
+        },
+        {
+          "text": "단수인",
+          "startMs": 326480,
+          "endMs": 326960
+        },
+        {
+          "text": "나가",
+          "startMs": 327120,
+          "endMs": 327440
+        },
+        {
+          "text": "주어일",
+          "startMs": 327520,
+          "endMs": 327920
+        },
+        {
+          "text": "때는",
+          "startMs": 328000,
+          "endMs": 328640
+        },
+        {
+          "text": "동사에",
+          "startMs": 328880,
+          "endMs": 329440
+        },
+        {
+          "text": "에스를",
+          "startMs": 329520,
+          "endMs": 329920
+        },
+        {
+          "text": "붙이지",
+          "startMs": 330080,
+          "endMs": 330400
+        },
+        {
+          "text": "않아요.",
+          "startMs": 330560,
+          "endMs": 330960
+        }
+      ]
+    },
+    {
+      "id": "s14-1",
+      "slideId": "s14",
+      "lang": "ko",
+      "startMs": 331760,
+      "endMs": 334650,
+      "words": [
+        {
+          "text": "이번에는",
+          "startMs": 331760,
+          "endMs": 332550
+        },
+        {
+          "text": "너가",
+          "startMs": 332630,
+          "endMs": 333030
+        },
+        {
+          "text": "주어인",
+          "startMs": 333150,
+          "endMs": 333430
+        },
+        {
+          "text": "문장을",
+          "startMs": 333510,
+          "endMs": 333910
+        },
+        {
+          "text": "들어",
+          "startMs": 333950,
+          "endMs": 334070
+        },
+        {
+          "text": "볼까요?",
+          "startMs": 334150,
+          "endMs": 334650
+        }
+      ]
+    },
+    {
+      "id": "s14-2",
+      "slideId": "s14",
+      "lang": "en",
+      "startMs": 335150,
+      "endMs": 336470,
+      "words": [
+        {
+          "text": "You",
+          "startMs": 335150,
+          "endMs": 335370
+        },
+        {
+          "text": "play",
+          "startMs": 335490,
+          "endMs": 335610
+        },
+        {
+          "text": "the",
+          "startMs": 335650,
+          "endMs": 335690
+        },
+        {
+          "text": "piano.",
+          "startMs": 335770,
+          "endMs": 336470
+        }
+      ]
+    },
+    {
+      "id": "s14-3",
+      "slideId": "s14",
+      "lang": "ko",
+      "startMs": 336970,
+      "endMs": 340620,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 336970,
+          "endMs": 337130
+        },
+        {
+          "text": "문장은",
+          "startMs": 337210,
+          "endMs": 337930
+        },
+        {
+          "text": "너는",
+          "startMs": 338010,
+          "endMs": 338410
+        },
+        {
+          "text": "피아노를",
+          "startMs": 338490,
+          "endMs": 339050
+        },
+        {
+          "text": "친다라는",
+          "startMs": 339210,
+          "endMs": 339930
+        },
+        {
+          "text": "뜻이에요.",
+          "startMs": 340050,
+          "endMs": 340620
+        }
+      ]
+    },
+    {
+      "id": "s14-4",
+      "slideId": "s14",
+      "lang": "ko",
+      "startMs": 340920,
+      "endMs": 345160,
+      "words": [
+        {
+          "text": "너",
+          "startMs": 340920,
+          "endMs": 341320
+        },
+        {
+          "text": "다음에",
+          "startMs": 341800,
+          "endMs": 342200
+        },
+        {
+          "text": "동사가",
+          "startMs": 342360,
+          "endMs": 342840
+        },
+        {
+          "text": "바로",
+          "startMs": 343000,
+          "endMs": 343160
+        },
+        {
+          "text": "오는",
+          "startMs": 343240,
+          "endMs": 343400
+        },
+        {
+          "text": "구조가",
+          "startMs": 343480,
+          "endMs": 343880
+        },
+        {
+          "text": "보이나요?",
+          "startMs": 343960,
+          "endMs": 345160
+        }
+      ]
+    },
+    {
+      "id": "s14-5",
+      "slideId": "s14",
+      "lang": "ko",
+      "startMs": 345460,
+      "endMs": 350770,
+      "words": [
+        {
+          "text": "너가",
+          "startMs": 345460,
+          "endMs": 345860
+        },
+        {
+          "text": "주어여도",
+          "startMs": 345940,
+          "endMs": 346900
+        },
+        {
+          "text": "동사에",
+          "startMs": 347060,
+          "endMs": 347540
+        },
+        {
+          "text": "에스를",
+          "startMs": 347620,
+          "endMs": 348020
+        },
+        {
+          "text": "붙이지",
+          "startMs": 348180,
+          "endMs": 348500
+        },
+        {
+          "text": "않는다는",
+          "startMs": 348580,
+          "endMs": 349140
+        },
+        {
+          "text": "점",
+          "startMs": 349300,
+          "endMs": 349700
+        },
+        {
+          "text": "꼭",
+          "startMs": 349860,
+          "endMs": 349940
+        },
+        {
+          "text": "기억하세요.",
+          "startMs": 350020,
+          "endMs": 350770
+        }
+      ]
+    },
+    {
+      "id": "s15-1",
+      "slideId": "s15",
+      "lang": "ko",
+      "startMs": 351570,
+      "endMs": 354810,
+      "words": [
+        {
+          "text": "이번에는",
+          "startMs": 351570,
+          "endMs": 352370
+        },
+        {
+          "text": "복수",
+          "startMs": 352530,
+          "endMs": 352770
+        },
+        {
+          "text": "주어가",
+          "startMs": 352850,
+          "endMs": 353170
+        },
+        {
+          "text": "들어간",
+          "startMs": 353250,
+          "endMs": 353570
+        },
+        {
+          "text": "문장을",
+          "startMs": 353650,
+          "endMs": 353970
+        },
+        {
+          "text": "들어",
+          "startMs": 354050,
+          "endMs": 354170
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 354210,
+          "endMs": 354810
+        }
+      ]
+    },
+    {
+      "id": "s15-2",
+      "slideId": "s15",
+      "lang": "en",
+      "startMs": 355310,
+      "endMs": 357260,
+      "words": [
+        {
+          "text": "My",
+          "startMs": 355310,
+          "endMs": 355520
+        },
+        {
+          "text": "parents",
+          "startMs": 355720,
+          "endMs": 355920
+        },
+        {
+          "text": "work",
+          "startMs": 356000,
+          "endMs": 356240
+        },
+        {
+          "text": "at",
+          "startMs": 356320,
+          "endMs": 356400
+        },
+        {
+          "text": "a",
+          "startMs": 356440,
+          "endMs": 356480
+        },
+        {
+          "text": "hospital.",
+          "startMs": 356560,
+          "endMs": 357260
+        }
+      ]
+    },
+    {
+      "id": "s15-3",
+      "slideId": "s15",
+      "lang": "ko",
+      "startMs": 357760,
+      "endMs": 361610,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 357760,
+          "endMs": 357900
+        },
+        {
+          "text": "문장은",
+          "startMs": 357980,
+          "endMs": 358780
+        },
+        {
+          "text": "내",
+          "startMs": 358940,
+          "endMs": 359020
+        },
+        {
+          "text": "부모님은",
+          "startMs": 359100,
+          "endMs": 359820
+        },
+        {
+          "text": "병원에서",
+          "startMs": 360020,
+          "endMs": 360380
+        },
+        {
+          "text": "일한다는",
+          "startMs": 360460,
+          "endMs": 360940
+        },
+        {
+          "text": "뜻이에요.",
+          "startMs": 361060,
+          "endMs": 361610
+        }
+      ]
+    },
+    {
+      "id": "s15-4",
+      "slideId": "s15",
+      "lang": "ko",
+      "startMs": 361910,
+      "endMs": 367330,
+      "words": [
+        {
+          "text": "부모님처럼",
+          "startMs": 361910,
+          "endMs": 363030
+        },
+        {
+          "text": "두",
+          "startMs": 363190,
+          "endMs": 363270
+        },
+        {
+          "text": "사람",
+          "startMs": 363350,
+          "endMs": 363590
+        },
+        {
+          "text": "이상이",
+          "startMs": 363670,
+          "endMs": 364070
+        },
+        {
+          "text": "주어일",
+          "startMs": 364150,
+          "endMs": 364550
+        },
+        {
+          "text": "때",
+          "startMs": 364710,
+          "endMs": 365110
+        },
+        {
+          "text": "동사에",
+          "startMs": 365350,
+          "endMs": 365830
+        },
+        {
+          "text": "에스를",
+          "startMs": 365910,
+          "endMs": 366310
+        },
+        {
+          "text": "붙이지",
+          "startMs": 366470,
+          "endMs": 366790
+        },
+        {
+          "text": "않아요.",
+          "startMs": 366950,
+          "endMs": 367330
+        }
+      ]
+    },
+    {
+      "id": "s15-5",
+      "slideId": "s15",
+      "lang": "ko",
+      "startMs": 367630,
+      "endMs": 371130,
+      "words": [
+        {
+          "text": "복수",
+          "startMs": 367630,
+          "endMs": 367950
+        },
+        {
+          "text": "주어",
+          "startMs": 368030,
+          "endMs": 368190
+        },
+        {
+          "text": "뒤에는",
+          "startMs": 368270,
+          "endMs": 368910
+        },
+        {
+          "text": "동사의",
+          "startMs": 369070,
+          "endMs": 369550
+        },
+        {
+          "text": "원래",
+          "startMs": 369710,
+          "endMs": 369950
+        },
+        {
+          "text": "형태를",
+          "startMs": 370030,
+          "endMs": 370430
+        },
+        {
+          "text": "써야",
+          "startMs": 370510,
+          "endMs": 370670
+        },
+        {
+          "text": "해요.",
+          "startMs": 370750,
+          "endMs": 371130
+        }
+      ]
+    },
+    {
+      "id": "s16-1",
+      "slideId": "s16",
+      "lang": "ko",
+      "startMs": 371930,
+      "endMs": 376350,
+      "words": [
+        {
+          "text": "이번에는",
+          "startMs": 371930,
+          "endMs": 372720
+        },
+        {
+          "text": "질문하는",
+          "startMs": 372800,
+          "endMs": 373280
+        },
+        {
+          "text": "문장에서",
+          "startMs": 373360,
+          "endMs": 374160
+        },
+        {
+          "text": "주어와",
+          "startMs": 374240,
+          "endMs": 374720
+        },
+        {
+          "text": "동사의",
+          "startMs": 374880,
+          "endMs": 375280
+        },
+        {
+          "text": "순서를",
+          "startMs": 375360,
+          "endMs": 375760
+        },
+        {
+          "text": "볼까요?",
+          "startMs": 375880,
+          "endMs": 376350
+        }
+      ]
+    },
+    {
+      "id": "s16-2",
+      "slideId": "s16",
+      "lang": "en",
+      "startMs": 376850,
+      "endMs": 377830,
+      "words": [
+        {
+          "text": "Are",
+          "startMs": 376850,
+          "endMs": 377010
+        },
+        {
+          "text": "you",
+          "startMs": 377090,
+          "endMs": 377170
+        },
+        {
+          "text": "okay?",
+          "startMs": 377450,
+          "endMs": 377830
+        }
+      ]
+    },
+    {
+      "id": "s16-3",
+      "slideId": "s16",
+      "lang": "ko",
+      "startMs": 378330,
+      "endMs": 381720,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 378330,
+          "endMs": 378470
+        },
+        {
+          "text": "문장은",
+          "startMs": 378550,
+          "endMs": 379350
+        },
+        {
+          "text": "너",
+          "startMs": 379510,
+          "endMs": 379670
+        },
+        {
+          "text": "괜찮니?",
+          "startMs": 379830,
+          "endMs": 380710
+        },
+        {
+          "text": "라는",
+          "startMs": 380790,
+          "endMs": 381030
+        },
+        {
+          "text": "뜻이에요.",
+          "startMs": 381150,
+          "endMs": 381720
+        }
+      ]
+    },
+    {
+      "id": "s16-4",
+      "slideId": "s16",
+      "lang": "ko",
+      "startMs": 382020,
+      "endMs": 386700,
+      "words": [
+        {
+          "text": "비동사로",
+          "startMs": 382020,
+          "endMs": 382660
+        },
+        {
+          "text": "묻는",
+          "startMs": 382820,
+          "endMs": 383060
+        },
+        {
+          "text": "의문문에서는",
+          "startMs": 383220,
+          "endMs": 384420
+        },
+        {
+          "text": "비동사가",
+          "startMs": 384500,
+          "endMs": 385380
+        },
+        {
+          "text": "주어",
+          "startMs": 385540,
+          "endMs": 385700
+        },
+        {
+          "text": "앞으로",
+          "startMs": 385940,
+          "endMs": 386180
+        },
+        {
+          "text": "나와요.",
+          "startMs": 386260,
+          "endMs": 386700
+        }
+      ]
+    },
+    {
+      "id": "s16-5",
+      "slideId": "s16",
+      "lang": "ko",
+      "startMs": 387000,
+      "endMs": 392280,
+      "words": [
+        {
+          "text": "일반동사로",
+          "startMs": 387000,
+          "endMs": 387720
+        },
+        {
+          "text": "묻는",
+          "startMs": 387840,
+          "endMs": 388120
+        },
+        {
+          "text": "의문문은",
+          "startMs": 388200,
+          "endMs": 389000
+        },
+        {
+          "text": "만드는",
+          "startMs": 389120,
+          "endMs": 389480
+        },
+        {
+          "text": "법이",
+          "startMs": 389560,
+          "endMs": 389720
+        },
+        {
+          "text": "달라서,",
+          "startMs": 389840,
+          "endMs": 390680
+        },
+        {
+          "text": "뒤에서",
+          "startMs": 390760,
+          "endMs": 391240
+        },
+        {
+          "text": "따로",
+          "startMs": 391320,
+          "endMs": 391480
+        },
+        {
+          "text": "배울",
+          "startMs": 391560,
+          "endMs": 391800
+        },
+        {
+          "text": "거예요.",
+          "startMs": 391880,
+          "endMs": 392280
+        }
+      ]
+    },
+    {
+      "id": "s17-1",
+      "slideId": "s17",
+      "lang": "ko",
+      "startMs": 393080,
+      "endMs": 396370,
+      "words": [
+        {
+          "text": "이번에는",
+          "startMs": 393080,
+          "endMs": 393800
+        },
+        {
+          "text": "한국",
+          "startMs": 393960,
+          "endMs": 394200
+        },
+        {
+          "text": "학생이",
+          "startMs": 394280,
+          "endMs": 394680
+        },
+        {
+          "text": "자주",
+          "startMs": 394840,
+          "endMs": 395000
+        },
+        {
+          "text": "하는",
+          "startMs": 395080,
+          "endMs": 395240
+        },
+        {
+          "text": "실수를",
+          "startMs": 395400,
+          "endMs": 395720
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 395840,
+          "endMs": 396370
+        }
+      ]
+    },
+    {
+      "id": "s17-2",
+      "slideId": "s17",
+      "lang": "ko",
+      "startMs": 396670,
+      "endMs": 400780,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 396670,
+          "endMs": 396830
+        },
+        {
+          "text": "문장,",
+          "startMs": 396990,
+          "endMs": 397710
+        },
+        {
+          "text": "어디가",
+          "startMs": 397790,
+          "endMs": 398110
+        },
+        {
+          "text": "잘못됐는지",
+          "startMs": 398270,
+          "endMs": 399230
+        },
+        {
+          "text": "한",
+          "startMs": 399390,
+          "endMs": 399470
+        },
+        {
+          "text": "번",
+          "startMs": 399550,
+          "endMs": 399790
+        },
+        {
+          "text": "생각해",
+          "startMs": 399870,
+          "endMs": 400190
+        },
+        {
+          "text": "볼까요?",
+          "startMs": 400270,
+          "endMs": 400780
+        }
+      ]
+    },
+    {
+      "id": "s17-3",
+      "slideId": "s17",
+      "lang": "en",
+      "startMs": 401280,
+      "endMs": 403170,
+      "words": [
+        {
+          "text": "Is",
+          "startMs": 401280,
+          "endMs": 401520
+        },
+        {
+          "text": "very",
+          "startMs": 401760,
+          "endMs": 402080
+        },
+        {
+          "text": "cold",
+          "startMs": 402240,
+          "endMs": 402560
+        },
+        {
+          "text": "today.",
+          "startMs": 402800,
+          "endMs": 403170
+        }
+      ]
+    },
+    {
+      "id": "s17-4",
+      "slideId": "s17",
+      "lang": "ko",
+      "startMs": 403670,
+      "endMs": 405480,
+      "words": [
+        {
+          "text": "주어가",
+          "startMs": 403670,
+          "endMs": 404230
+        },
+        {
+          "text": "빠진",
+          "startMs": 404390,
+          "endMs": 404550
+        },
+        {
+          "text": "문장이에요.",
+          "startMs": 404710,
+          "endMs": 405480
+        }
+      ]
+    },
+    {
+      "id": "s17-5",
+      "slideId": "s17",
+      "lang": "ko",
+      "startMs": 405780,
+      "endMs": 408080,
+      "words": [
+        {
+          "text": "이제",
+          "startMs": 405780,
+          "endMs": 406180
+        },
+        {
+          "text": "고친",
+          "startMs": 406340,
+          "endMs": 406580
+        },
+        {
+          "text": "문장을",
+          "startMs": 406740,
+          "endMs": 407140
+        },
+        {
+          "text": "들어",
+          "startMs": 407300,
+          "endMs": 407460
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 407540,
+          "endMs": 408080
+        }
+      ]
+    },
+    {
+      "id": "s17-6",
+      "slideId": "s17",
+      "lang": "en",
+      "startMs": 408580,
+      "endMs": 410570,
+      "words": [
+        {
+          "text": "It",
+          "startMs": 408580,
+          "endMs": 408680
+        },
+        {
+          "text": "is",
+          "startMs": 408760,
+          "endMs": 408920
+        },
+        {
+          "text": "very",
+          "startMs": 409160,
+          "endMs": 409480
+        },
+        {
+          "text": "cold",
+          "startMs": 409640,
+          "endMs": 409960
+        },
+        {
+          "text": "today.",
+          "startMs": 410200,
+          "endMs": 410570
+        }
+      ]
+    },
+    {
+      "id": "s17-7",
+      "slideId": "s17",
+      "lang": "ko",
+      "startMs": 411070,
+      "endMs": 414150,
+      "words": [
+        {
+          "text": "여기서",
+          "startMs": 411070,
+          "endMs": 411690
+        },
+        {
+          "text": "주어",
+          "startMs": 411770,
+          "endMs": 412090
+        },
+        {
+          "text": "자리에",
+          "startMs": 412170,
+          "endMs": 412650
+        },
+        {
+          "text": "잇을",
+          "startMs": 412730,
+          "endMs": 413210
+        },
+        {
+          "text": "꼭",
+          "startMs": 413330,
+          "endMs": 413450
+        },
+        {
+          "text": "써야",
+          "startMs": 413530,
+          "endMs": 413690
+        },
+        {
+          "text": "해요.",
+          "startMs": 413770,
+          "endMs": 414150
+        }
+      ]
+    },
+    {
+      "id": "s17-8",
+      "slideId": "s17",
+      "lang": "ko",
+      "startMs": 414450,
+      "endMs": 419090,
+      "words": [
+        {
+          "text": "날씨,",
+          "startMs": 414450,
+          "endMs": 415490
+        },
+        {
+          "text": "시간을",
+          "startMs": 415570,
+          "endMs": 415890
+        },
+        {
+          "text": "말할",
+          "startMs": 415970,
+          "endMs": 416210
+        },
+        {
+          "text": "때도",
+          "startMs": 416290,
+          "endMs": 416850
+        },
+        {
+          "text": "주어가",
+          "startMs": 416930,
+          "endMs": 417250
+        },
+        {
+          "text": "빠지면",
+          "startMs": 417330,
+          "endMs": 417730
+        },
+        {
+          "text": "안",
+          "startMs": 417810,
+          "endMs": 417890
+        },
+        {
+          "text": "된답니다.",
+          "startMs": 418050,
+          "endMs": 419090
+        }
+      ]
+    },
+    {
+      "id": "s17-9",
+      "slideId": "s17",
+      "lang": "ko",
+      "startMs": 419390,
+      "endMs": 420550,
+      "words": [
+        {
+          "text": "잘",
+          "startMs": 419390,
+          "endMs": 419630
+        },
+        {
+          "text": "고쳤어요!",
+          "startMs": 419710,
+          "endMs": 420550
+        }
+      ]
+    },
+    {
+      "id": "s18-1",
+      "slideId": "s18",
+      "lang": "ko",
+      "startMs": 421350,
+      "endMs": 423800,
+      "words": [
+        {
+          "text": "두",
+          "startMs": 421350,
+          "endMs": 421510
+        },
+        {
+          "text": "번째",
+          "startMs": 421590,
+          "endMs": 421910
+        },
+        {
+          "text": "실수도",
+          "startMs": 421990,
+          "endMs": 422470
+        },
+        {
+          "text": "많이",
+          "startMs": 422590,
+          "endMs": 422750
+        },
+        {
+          "text": "하는",
+          "startMs": 422790,
+          "endMs": 422950
+        },
+        {
+          "text": "부분이에요.",
+          "startMs": 423030,
+          "endMs": 423800
+        }
+      ]
+    },
+    {
+      "id": "s18-2",
+      "slideId": "s18",
+      "lang": "ko",
+      "startMs": 424100,
+      "endMs": 426580,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 424100,
+          "endMs": 424260
+        },
+        {
+          "text": "문장,",
+          "startMs": 424420,
+          "endMs": 425220
+        },
+        {
+          "text": "뭐가",
+          "startMs": 425300,
+          "endMs": 425540
+        },
+        {
+          "text": "부족할까요?",
+          "startMs": 425620,
+          "endMs": 426580
+        }
+      ]
+    },
+    {
+      "id": "s18-3",
+      "slideId": "s18",
+      "lang": "en",
+      "startMs": 427080,
+      "endMs": 427960,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 427080,
+          "endMs": 427270
+        },
+        {
+          "text": "happy.",
+          "startMs": 427350,
+          "endMs": 427960
+        }
+      ]
+    },
+    {
+      "id": "s18-4",
+      "slideId": "s18",
+      "lang": "ko",
+      "startMs": 428460,
+      "endMs": 430630,
+      "words": [
+        {
+          "text": "여기서는",
+          "startMs": 428460,
+          "endMs": 429250
+        },
+        {
+          "text": "동사가",
+          "startMs": 429330,
+          "endMs": 429810
+        },
+        {
+          "text": "빠져",
+          "startMs": 429890,
+          "endMs": 430050
+        },
+        {
+          "text": "있어요.",
+          "startMs": 430170,
+          "endMs": 430630
+        }
+      ]
+    },
+    {
+      "id": "s18-5",
+      "slideId": "s18",
+      "lang": "ko",
+      "startMs": 430930,
+      "endMs": 433260,
+      "words": [
+        {
+          "text": "이제",
+          "startMs": 430930,
+          "endMs": 431410
+        },
+        {
+          "text": "올바른",
+          "startMs": 431570,
+          "endMs": 431890
+        },
+        {
+          "text": "문장을",
+          "startMs": 432050,
+          "endMs": 432370
+        },
+        {
+          "text": "들어",
+          "startMs": 432450,
+          "endMs": 432610
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 432770,
+          "endMs": 433260
+        }
+      ]
+    },
+    {
+      "id": "s18-6",
+      "slideId": "s18",
+      "lang": "en",
+      "startMs": 433760,
+      "endMs": 434820,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 433760,
+          "endMs": 433940
+        },
+        {
+          "text": "am",
+          "startMs": 434060,
+          "endMs": 434180
+        },
+        {
+          "text": "happy.",
+          "startMs": 434420,
+          "endMs": 434820
+        }
+      ]
+    },
+    {
+      "id": "s18-7",
+      "slideId": "s18",
+      "lang": "ko",
+      "startMs": 435320,
+      "endMs": 439130,
+      "words": [
+        {
+          "text": "이렇게",
+          "startMs": 435320,
+          "endMs": 436030
+        },
+        {
+          "text": "상태를",
+          "startMs": 436270,
+          "endMs": 436590
+        },
+        {
+          "text": "말할",
+          "startMs": 436670,
+          "endMs": 436910
+        },
+        {
+          "text": "때는",
+          "startMs": 436990,
+          "endMs": 437470
+        },
+        {
+          "text": "비동사가",
+          "startMs": 437550,
+          "endMs": 438190
+        },
+        {
+          "text": "꼭",
+          "startMs": 438270,
+          "endMs": 438430
+        },
+        {
+          "text": "필요해요.",
+          "startMs": 438510,
+          "endMs": 439130
+        }
+      ]
+    },
+    {
+      "id": "s18-8",
+      "slideId": "s18",
+      "lang": "ko",
+      "startMs": 439430,
+      "endMs": 444830,
+      "words": [
+        {
+          "text": "나",
+          "startMs": 439430,
+          "endMs": 439590
+        },
+        {
+          "text": "행복해처럼",
+          "startMs": 439750,
+          "endMs": 441430
+        },
+        {
+          "text": "동사",
+          "startMs": 441590,
+          "endMs": 441830
+        },
+        {
+          "text": "없이",
+          "startMs": 441910,
+          "endMs": 442150
+        },
+        {
+          "text": "쓰면",
+          "startMs": 442230,
+          "endMs": 442790
+        },
+        {
+          "text": "영어",
+          "startMs": 442950,
+          "endMs": 443110
+        },
+        {
+          "text": "문장이",
+          "startMs": 443190,
+          "endMs": 443630
+        },
+        {
+          "text": "완성되지",
+          "startMs": 443750,
+          "endMs": 444230
+        },
+        {
+          "text": "않아요.",
+          "startMs": 444390,
+          "endMs": 444830
+        }
+      ]
+    },
+    {
+      "id": "s18-9",
+      "slideId": "s18",
+      "lang": "ko",
+      "startMs": 445130,
+      "endMs": 446760,
+      "words": [
+        {
+          "text": "아주",
+          "startMs": 445130,
+          "endMs": 445530
+        },
+        {
+          "text": "잘",
+          "startMs": 445770,
+          "endMs": 445850
+        },
+        {
+          "text": "맞췄어요!",
+          "startMs": 445930,
+          "endMs": 446760
+        }
+      ]
+    },
+    {
+      "id": "s19-1",
+      "slideId": "s19",
+      "lang": "ko",
+      "startMs": 447560,
+      "endMs": 451050,
+      "words": [
+        {
+          "text": "마지막",
+          "startMs": 447560,
+          "endMs": 448040
+        },
+        {
+          "text": "실수는",
+          "startMs": 448160,
+          "endMs": 448840
+        },
+        {
+          "text": "동사",
+          "startMs": 448920,
+          "endMs": 449240
+        },
+        {
+          "text": "모양을",
+          "startMs": 449320,
+          "endMs": 449720
+        },
+        {
+          "text": "잘못",
+          "startMs": 449840,
+          "endMs": 450120
+        },
+        {
+          "text": "쓰는",
+          "startMs": 450160,
+          "endMs": 450360
+        },
+        {
+          "text": "경우예요.",
+          "startMs": 450440,
+          "endMs": 451050
+        }
+      ]
+    },
+    {
+      "id": "s19-2",
+      "slideId": "s19",
+      "lang": "ko",
+      "startMs": 451350,
+      "endMs": 454800,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 451350,
+          "endMs": 451510
+        },
+        {
+          "text": "문장,",
+          "startMs": 451670,
+          "endMs": 452470
+        },
+        {
+          "text": "무엇이",
+          "startMs": 452550,
+          "endMs": 452870
+        },
+        {
+          "text": "틀렸는지",
+          "startMs": 453030,
+          "endMs": 453750
+        },
+        {
+          "text": "생각해",
+          "startMs": 453910,
+          "endMs": 454230
+        },
+        {
+          "text": "볼까요?",
+          "startMs": 454350,
+          "endMs": 454800
+        }
+      ]
+    },
+    {
+      "id": "s19-3",
+      "slideId": "s19",
+      "lang": "en",
+      "startMs": 455300,
+      "endMs": 456970,
+      "words": [
+        {
+          "text": "My",
+          "startMs": 455300,
+          "endMs": 455530
+        },
+        {
+          "text": "brother",
+          "startMs": 455610,
+          "endMs": 455930
+        },
+        {
+          "text": "play",
+          "startMs": 456010,
+          "endMs": 456250
+        },
+        {
+          "text": "soccer.",
+          "startMs": 456330,
+          "endMs": 456970
+        }
+      ]
+    },
+    {
+      "id": "s19-4",
+      "slideId": "s19",
+      "lang": "ko",
+      "startMs": 457470,
+      "endMs": 460270,
+      "words": [
+        {
+          "text": "여기서는",
+          "startMs": 457470,
+          "endMs": 458270
+        },
+        {
+          "text": "동사에",
+          "startMs": 458350,
+          "endMs": 458990
+        },
+        {
+          "text": "에스가",
+          "startMs": 459110,
+          "endMs": 459550
+        },
+        {
+          "text": "빠졌어요.",
+          "startMs": 459630,
+          "endMs": 460270
+        }
+      ]
+    },
+    {
+      "id": "s19-5",
+      "slideId": "s19",
+      "lang": "ko",
+      "startMs": 460570,
+      "endMs": 462400,
+      "words": [
+        {
+          "text": "고친",
+          "startMs": 460570,
+          "endMs": 460970
+        },
+        {
+          "text": "문장을",
+          "startMs": 461050,
+          "endMs": 461530
+        },
+        {
+          "text": "들어",
+          "startMs": 461610,
+          "endMs": 461770
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 461890,
+          "endMs": 462400
+        }
+      ]
+    },
+    {
+      "id": "s19-6",
+      "slideId": "s19",
+      "lang": "en",
+      "startMs": 462900,
+      "endMs": 464580,
+      "words": [
+        {
+          "text": "My",
+          "startMs": 462900,
+          "endMs": 463110
+        },
+        {
+          "text": "brother",
+          "startMs": 463190,
+          "endMs": 463510
+        },
+        {
+          "text": "plays",
+          "startMs": 463590,
+          "endMs": 463910
+        },
+        {
+          "text": "soccer.",
+          "startMs": 464070,
+          "endMs": 464580
+        }
+      ]
+    },
+    {
+      "id": "s19-7",
+      "slideId": "s19",
+      "lang": "ko",
+      "startMs": 465080,
+      "endMs": 470640,
+      "words": [
+        {
+          "text": "주어가",
+          "startMs": 465080,
+          "endMs": 465720
+        },
+        {
+          "text": "삼인칭",
+          "startMs": 465880,
+          "endMs": 466280
+        },
+        {
+          "text": "단수이고",
+          "startMs": 466440,
+          "endMs": 467400
+        },
+        {
+          "text": "현재시제일",
+          "startMs": 467560,
+          "endMs": 468200
+        },
+        {
+          "text": "때는",
+          "startMs": 468280,
+          "endMs": 468760
+        },
+        {
+          "text": "동사에",
+          "startMs": 468880,
+          "endMs": 469320
+        },
+        {
+          "text": "에스를",
+          "startMs": 469440,
+          "endMs": 469800
+        },
+        {
+          "text": "붙여야",
+          "startMs": 469920,
+          "endMs": 470200
+        },
+        {
+          "text": "해요.",
+          "startMs": 470280,
+          "endMs": 470640
+        }
+      ]
+    },
+    {
+      "id": "s19-8",
+      "slideId": "s19",
+      "lang": "ko",
+      "startMs": 470940,
+      "endMs": 473130,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 470940,
+          "endMs": 471100
+        },
+        {
+          "text": "규칙,",
+          "startMs": 471180,
+          "endMs": 471980
+        },
+        {
+          "text": "꼭",
+          "startMs": 472140,
+          "endMs": 472300
+        },
+        {
+          "text": "기억하세요!",
+          "startMs": 472380,
+          "endMs": 473130
+        }
+      ]
+    },
+    {
+      "id": "s19-9",
+      "slideId": "s19",
+      "lang": "ko",
+      "startMs": 473430,
+      "endMs": 475550,
+      "words": [
+        {
+          "text": "이제",
+          "startMs": 473430,
+          "endMs": 473910
+        },
+        {
+          "text": "실수",
+          "startMs": 474070,
+          "endMs": 474270
+        },
+        {
+          "text": "없이",
+          "startMs": 474310,
+          "endMs": 474630
+        },
+        {
+          "text": "쓸",
+          "startMs": 474710,
+          "endMs": 474790
+        },
+        {
+          "text": "수",
+          "startMs": 474830,
+          "endMs": 474870
+        },
+        {
+          "text": "있겠죠?",
+          "startMs": 474950,
+          "endMs": 475550
+        }
+      ]
+    },
+    {
+      "id": "s20-1",
+      "slideId": "s20",
+      "lang": "ko",
+      "startMs": 476350,
+      "endMs": 478350,
+      "words": [
+        {
+          "text": "이제",
+          "startMs": 476350,
+          "endMs": 476830
+        },
+        {
+          "text": "퀴즈로",
+          "startMs": 476910,
+          "endMs": 477310
+        },
+        {
+          "text": "연습해",
+          "startMs": 477390,
+          "endMs": 477710
+        },
+        {
+          "text": "볼게요!",
+          "startMs": 477830,
+          "endMs": 478350
+        }
+      ]
+    },
+    {
+      "id": "s20-2",
+      "slideId": "s20",
+      "lang": "ko",
+      "startMs": 478650,
+      "endMs": 482120,
+      "words": [
+        {
+          "text": "문장을",
+          "startMs": 478650,
+          "endMs": 479130
+        },
+        {
+          "text": "듣고",
+          "startMs": 479290,
+          "endMs": 479850
+        },
+        {
+          "text": "주어가",
+          "startMs": 479930,
+          "endMs": 480330
+        },
+        {
+          "text": "무엇인지",
+          "startMs": 480490,
+          "endMs": 481210
+        },
+        {
+          "text": "골라",
+          "startMs": 481370,
+          "endMs": 481530
+        },
+        {
+          "text": "보세요.",
+          "startMs": 481610,
+          "endMs": 482120
+        }
+      ]
+    },
+    {
+      "id": "s20-3",
+      "slideId": "s20",
+      "lang": "en",
+      "startMs": 482620,
+      "endMs": 484930,
+      "words": [
+        {
+          "text": "The",
+          "startMs": 482620,
+          "endMs": 482760
+        },
+        {
+          "text": "girl",
+          "startMs": 482840,
+          "endMs": 483080
+        },
+        {
+          "text": "in",
+          "startMs": 483160,
+          "endMs": 483240
+        },
+        {
+          "text": "the",
+          "startMs": 483320,
+          "endMs": 483360
+        },
+        {
+          "text": "blue",
+          "startMs": 483400,
+          "endMs": 483640
+        },
+        {
+          "text": "dress",
+          "startMs": 483720,
+          "endMs": 484120
+        },
+        {
+          "text": "sings.",
+          "startMs": 484280,
+          "endMs": 484930
+        }
+      ]
+    },
+    {
+      "id": "s20-4",
+      "slideId": "s20",
+      "lang": "ko",
+      "startMs": 485430,
+      "endMs": 486920,
+      "words": [
+        {
+          "text": "보기는",
+          "startMs": 485430,
+          "endMs": 486070
+        },
+        {
+          "text": "세",
+          "startMs": 486150,
+          "endMs": 486310
+        },
+        {
+          "text": "개예요.",
+          "startMs": 486390,
+          "endMs": 486920
+        }
+      ]
+    },
+    {
+      "id": "s20-5",
+      "slideId": "s20",
+      "lang": "en",
+      "startMs": 487420,
+      "endMs": 488960,
+      "words": [
+        {
+          "text": "The",
+          "startMs": 487420,
+          "endMs": 487520
+        },
+        {
+          "text": "girl",
+          "startMs": 487600,
+          "endMs": 487920
+        },
+        {
+          "text": "in",
+          "startMs": 488000,
+          "endMs": 488080
+        },
+        {
+          "text": "the",
+          "startMs": 488120,
+          "endMs": 488160
+        },
+        {
+          "text": "blue",
+          "startMs": 488240,
+          "endMs": 488400
+        },
+        {
+          "text": "dress",
+          "startMs": 488480,
+          "endMs": 488960
+        }
+      ]
+    },
+    {
+      "id": "s20-6",
+      "slideId": "s20",
+      "lang": "en",
+      "startMs": 489260,
+      "endMs": 489820,
+      "words": [
+        {
+          "text": "sings",
+          "startMs": 489260,
+          "endMs": 489820
+        }
+      ]
+    },
+    {
+      "id": "s20-7",
+      "slideId": "s20",
+      "lang": "en",
+      "startMs": 490120,
+      "endMs": 491550,
+      "words": [
+        {
+          "text": "blue",
+          "startMs": 490120,
+          "endMs": 490600
+        },
+        {
+          "text": "dress",
+          "startMs": 490680,
+          "endMs": 491550
+        }
+      ]
+    },
+    {
+      "id": "s20-8",
+      "slideId": "s20",
+      "lang": "ko",
+      "startMs": 492050,
+      "endMs": 497050,
+      "wait": true
+    },
+    {
+      "id": "s20-9",
+      "slideId": "s20",
+      "lang": "en",
+      "startMs": 497550,
+      "endMs": 499400,
+      "words": [
+        {
+          "text": "The",
+          "startMs": 497550,
+          "endMs": 497690
+        },
+        {
+          "text": "girl",
+          "startMs": 497770,
+          "endMs": 498090
+        },
+        {
+          "text": "in",
+          "startMs": 498170,
+          "endMs": 498250
+        },
+        {
+          "text": "the",
+          "startMs": 498330,
+          "endMs": 498410
+        },
+        {
+          "text": "blue",
+          "startMs": 498490,
+          "endMs": 498650
+        },
+        {
+          "text": "dress",
+          "startMs": 498810,
+          "endMs": 499400
+        }
+      ]
+    },
+    {
+      "id": "s20-10",
+      "slideId": "s20",
+      "lang": "ko",
+      "startMs": 499900,
+      "endMs": 501970,
+      "words": [
+        {
+          "text": "정답은",
+          "startMs": 499900,
+          "endMs": 500760
+        },
+        {
+          "text": "첫",
+          "startMs": 500840,
+          "endMs": 501000
+        },
+        {
+          "text": "번째",
+          "startMs": 501160,
+          "endMs": 501320
+        },
+        {
+          "text": "보기예요.",
+          "startMs": 501400,
+          "endMs": 501970
+        }
+      ]
+    },
+    {
+      "id": "s20-11",
+      "slideId": "s20",
+      "lang": "ko",
+      "startMs": 502270,
+      "endMs": 505310,
+      "words": [
+        {
+          "text": "주어는",
+          "startMs": 502270,
+          "endMs": 502990
+        },
+        {
+          "text": "누가에",
+          "startMs": 503150,
+          "endMs": 503630
+        },
+        {
+          "text": "해당하는",
+          "startMs": 503710,
+          "endMs": 504110
+        },
+        {
+          "text": "부분이죠.",
+          "startMs": 504190,
+          "endMs": 505310
+        }
+      ]
+    },
+    {
+      "id": "s20-12",
+      "slideId": "s20",
+      "lang": "ko",
+      "startMs": 505610,
+      "endMs": 506780,
+      "words": [
+        {
+          "text": "잘",
+          "startMs": 505610,
+          "endMs": 505850
+        },
+        {
+          "text": "풀었어요!",
+          "startMs": 505930,
+          "endMs": 506780
+        }
+      ]
+    },
+    {
+      "id": "s21-1",
+      "slideId": "s21",
+      "lang": "ko",
+      "startMs": 507580,
+      "endMs": 510420,
+      "words": [
+        {
+          "text": "빈칸에",
+          "startMs": 507580,
+          "endMs": 508050
+        },
+        {
+          "text": "들어갈",
+          "startMs": 508130,
+          "endMs": 508610
+        },
+        {
+          "text": "알맞은",
+          "startMs": 508730,
+          "endMs": 509090
+        },
+        {
+          "text": "동사를",
+          "startMs": 509170,
+          "endMs": 509570
+        },
+        {
+          "text": "골라",
+          "startMs": 509650,
+          "endMs": 509810
+        },
+        {
+          "text": "볼까요?",
+          "startMs": 509890,
+          "endMs": 510420
+        }
+      ]
+    },
+    {
+      "id": "s21-2",
+      "slideId": "s21",
+      "lang": "en",
+      "startMs": 510920,
+      "endMs": 513510,
+      "words": [
+        {
+          "text": "My",
+          "startMs": 510920,
+          "endMs": 511150
+        },
+        {
+          "text": "cat",
+          "startMs": 511230,
+          "endMs": 511470
+        },
+        {
+          "text": "blank",
+          "startMs": 511710,
+          "endMs": 512190
+        },
+        {
+          "text": "very",
+          "startMs": 512510,
+          "endMs": 512830
+        },
+        {
+          "text": "cute.",
+          "startMs": 512990,
+          "endMs": 513510
+        }
+      ]
+    },
+    {
+      "id": "s21-3",
+      "slideId": "s21",
+      "lang": "ko",
+      "startMs": 514010,
+      "endMs": 515500,
+      "words": [
+        {
+          "text": "보기는",
+          "startMs": 514010,
+          "endMs": 514650
+        },
+        {
+          "text": "두",
+          "startMs": 514730,
+          "endMs": 514810
+        },
+        {
+          "text": "개예요.",
+          "startMs": 514890,
+          "endMs": 515500
+        }
+      ]
+    },
+    {
+      "id": "s21-4",
+      "slideId": "s21",
+      "lang": "en",
+      "startMs": 516000,
+      "endMs": 516470,
+      "words": [
+        {
+          "text": "is",
+          "startMs": 516000,
+          "endMs": 516470
+        }
+      ]
+    },
+    {
+      "id": "s21-5",
+      "slideId": "s21",
+      "lang": "en",
+      "startMs": 516770,
+      "endMs": 517350,
+      "words": [
+        {
+          "text": "are",
+          "startMs": 516770,
+          "endMs": 517350
+        }
+      ]
+    },
+    {
+      "id": "s21-6",
+      "slideId": "s21",
+      "lang": "ko",
+      "startMs": 517850,
+      "endMs": 518950,
+      "words": [
+        {
+          "text": "오",
+          "startMs": 517850,
+          "endMs": 518090
+        },
+        {
+          "text": "초",
+          "startMs": 518170,
+          "endMs": 518250
+        },
+        {
+          "text": "드릴게요.",
+          "startMs": 518290,
+          "endMs": 518950
+        }
+      ]
+    },
+    {
+      "id": "s21-7",
+      "slideId": "s21",
+      "lang": "ko",
+      "startMs": 519250,
+      "endMs": 524250,
+      "wait": true
+    },
+    {
+      "id": "s21-8",
+      "slideId": "s21",
+      "lang": "en",
+      "startMs": 524750,
+      "endMs": 525370,
+      "words": [
+        {
+          "text": "is",
+          "startMs": 524750,
+          "endMs": 525370
+        }
+      ]
+    },
+    {
+      "id": "s21-9",
+      "slideId": "s21",
+      "lang": "ko",
+      "startMs": 525870,
+      "endMs": 534800,
+      "words": [
+        {
+          "text": "고양이",
+          "startMs": 525870,
+          "endMs": 526310
+        },
+        {
+          "text": "한",
+          "startMs": 526350,
+          "endMs": 526430
+        },
+        {
+          "text": "마리처럼",
+          "startMs": 526510,
+          "endMs": 527230
+        },
+        {
+          "text": "삼인칭",
+          "startMs": 527390,
+          "endMs": 527870
+        },
+        {
+          "text": "단수",
+          "startMs": 528030,
+          "endMs": 528350
+        },
+        {
+          "text": "주어에는",
+          "startMs": 528430,
+          "endMs": 529070
+        },
+        {
+          "text": "비동사",
+          "startMs": 529150,
+          "endMs": 529710
+        },
+        {
+          "text": "이즈를",
+          "startMs": 529790,
+          "endMs": 530270
+        },
+        {
+          "text": "써요.",
+          "startMs": 530350,
+          "endMs": 531230
+        },
+        {
+          "text": "나를",
+          "startMs": 531390,
+          "endMs": 531630
+        },
+        {
+          "text": "뜻하는",
+          "startMs": 531750,
+          "endMs": 532110
+        },
+        {
+          "text": "주어에는",
+          "startMs": 532190,
+          "endMs": 532750
+        },
+        {
+          "text": "앰을",
+          "startMs": 532830,
+          "endMs": 533150
+        },
+        {
+          "text": "쓰니까",
+          "startMs": 533230,
+          "endMs": 533790
+        },
+        {
+          "text": "헷갈리지",
+          "startMs": 533910,
+          "endMs": 534270
+        },
+        {
+          "text": "마세요.",
+          "startMs": 534350,
+          "endMs": 534800
+        }
+      ]
+    },
+    {
+      "id": "s21-10",
+      "slideId": "s21",
+      "lang": "ko",
+      "startMs": 535100,
+      "endMs": 536350,
+      "words": [
+        {
+          "text": "잘",
+          "startMs": 535100,
+          "endMs": 535340
+        },
+        {
+          "text": "맞혔어요!",
+          "startMs": 535420,
+          "endMs": 536350
+        }
+      ]
+    },
+    {
+      "id": "s22-1",
+      "slideId": "s22",
+      "lang": "ko",
+      "startMs": 537150,
+      "endMs": 539770,
+      "words": [
+        {
+          "text": "이번에는",
+          "startMs": 537150,
+          "endMs": 537940
+        },
+        {
+          "text": "동사의",
+          "startMs": 538100,
+          "endMs": 538500
+        },
+        {
+          "text": "모양을",
+          "startMs": 538580,
+          "endMs": 538900
+        },
+        {
+          "text": "골라",
+          "startMs": 538980,
+          "endMs": 539140
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 539260,
+          "endMs": 539770
+        }
+      ]
+    },
+    {
+      "id": "s22-2",
+      "slideId": "s22",
+      "lang": "en",
+      "startMs": 540270,
+      "endMs": 542330,
+      "words": [
+        {
+          "text": "She",
+          "startMs": 540270,
+          "endMs": 540570
+        },
+        {
+          "text": "blank",
+          "startMs": 540730,
+          "endMs": 541210
+        },
+        {
+          "text": "to",
+          "startMs": 541290,
+          "endMs": 541450
+        },
+        {
+          "text": "school.",
+          "startMs": 541530,
+          "endMs": 542330
+        }
+      ]
+    },
+    {
+      "id": "s22-3",
+      "slideId": "s22",
+      "lang": "ko",
+      "startMs": 542830,
+      "endMs": 544830,
+      "words": [
+        {
+          "text": "보기",
+          "startMs": 542830,
+          "endMs": 543230
+        },
+        {
+          "text": "두",
+          "startMs": 543310,
+          "endMs": 543390
+        },
+        {
+          "text": "개",
+          "startMs": 543470,
+          "endMs": 543550
+        },
+        {
+          "text": "중에서",
+          "startMs": 543630,
+          "endMs": 544110
+        },
+        {
+          "text": "고르세요.",
+          "startMs": 544190,
+          "endMs": 544830
+        }
+      ]
+    },
+    {
+      "id": "s22-4",
+      "slideId": "s22",
+      "lang": "en",
+      "startMs": 545330,
+      "endMs": 545860,
+      "words": [
+        {
+          "text": "go",
+          "startMs": 545330,
+          "endMs": 545780
+        }
+      ]
+    },
+    {
+      "id": "s22-5",
+      "slideId": "s22",
+      "lang": "en",
+      "startMs": 546160,
+      "endMs": 546880,
+      "words": [
+        {
+          "text": "goes",
+          "startMs": 546160,
+          "endMs": 546880
+        }
+      ]
+    },
+    {
+      "id": "s22-6",
+      "slideId": "s22",
+      "lang": "ko",
+      "startMs": 547380,
+      "endMs": 549080,
+      "words": [
+        {
+          "text": "오",
+          "startMs": 547380,
+          "endMs": 547540
+        },
+        {
+          "text": "초",
+          "startMs": 547620,
+          "endMs": 547700
+        },
+        {
+          "text": "동안",
+          "startMs": 547780,
+          "endMs": 548180
+        },
+        {
+          "text": "생각해",
+          "startMs": 548260,
+          "endMs": 548580
+        },
+        {
+          "text": "보세요.",
+          "startMs": 548660,
+          "endMs": 549080
+        }
+      ]
+    },
+    {
+      "id": "s22-7",
+      "slideId": "s22",
+      "lang": "ko",
+      "startMs": 549380,
+      "endMs": 554380,
+      "wait": true
+    },
+    {
+      "id": "s22-8",
+      "slideId": "s22",
+      "lang": "en",
+      "startMs": 554880,
+      "endMs": 555630,
+      "words": [
+        {
+          "text": "goes",
+          "startMs": 554880,
+          "endMs": 555630
+        }
+      ]
+    },
+    {
+      "id": "s22-9",
+      "slideId": "s22",
+      "lang": "ko",
+      "startMs": 556130,
+      "endMs": 564520,
+      "words": [
+        {
+          "text": "주어가",
+          "startMs": 556130,
+          "endMs": 556770
+        },
+        {
+          "text": "삼인칭",
+          "startMs": 556930,
+          "endMs": 557330
+        },
+        {
+          "text": "단수이고",
+          "startMs": 557490,
+          "endMs": 558450
+        },
+        {
+          "text": "현재시제라서",
+          "startMs": 558610,
+          "endMs": 559650
+        },
+        {
+          "text": "고우즈가",
+          "startMs": 559730,
+          "endMs": 560290
+        },
+        {
+          "text": "맞아요.",
+          "startMs": 560370,
+          "endMs": 561330
+        },
+        {
+          "text": "고처럼",
+          "startMs": 561410,
+          "endMs": 562050
+        },
+        {
+          "text": "오로",
+          "startMs": 562130,
+          "endMs": 562370
+        },
+        {
+          "text": "끝나는",
+          "startMs": 562450,
+          "endMs": 562770
+        },
+        {
+          "text": "동사는",
+          "startMs": 562850,
+          "endMs": 563410
+        },
+        {
+          "text": "이에스를",
+          "startMs": 563490,
+          "endMs": 563970
+        },
+        {
+          "text": "붙여요.",
+          "startMs": 564090,
+          "endMs": 564520
+        }
+      ]
+    },
+    {
+      "id": "s22-10",
+      "slideId": "s22",
+      "lang": "ko",
+      "startMs": 564820,
+      "endMs": 566140,
+      "words": [
+        {
+          "text": "아주",
+          "startMs": 564820,
+          "endMs": 565140
+        },
+        {
+          "text": "잘했어요!",
+          "startMs": 565300,
+          "endMs": 566140
+        }
+      ]
+    },
+    {
+      "id": "s23-1",
+      "slideId": "s23",
+      "lang": "ko",
+      "startMs": 566940,
+      "endMs": 571320,
+      "words": [
+        {
+          "text": "이번",
+          "startMs": 566940,
+          "endMs": 567260
+        },
+        {
+          "text": "강의에서",
+          "startMs": 567380,
+          "endMs": 568060
+        },
+        {
+          "text": "꼭",
+          "startMs": 568220,
+          "endMs": 568380
+        },
+        {
+          "text": "기억해야",
+          "startMs": 568460,
+          "endMs": 568940
+        },
+        {
+          "text": "할",
+          "startMs": 569020,
+          "endMs": 569260
+        },
+        {
+          "text": "핵심",
+          "startMs": 569380,
+          "endMs": 569660
+        },
+        {
+          "text": "세",
+          "startMs": 569740,
+          "endMs": 569900
+        },
+        {
+          "text": "가지를",
+          "startMs": 570020,
+          "endMs": 570380
+        },
+        {
+          "text": "정리해",
+          "startMs": 570460,
+          "endMs": 570700
+        },
+        {
+          "text": "볼게요.",
+          "startMs": 570820,
+          "endMs": 571320
+        }
+      ]
+    },
+    {
+      "id": "s23-2",
+      "slideId": "s23",
+      "lang": "ko",
+      "startMs": 571620,
+      "endMs": 575290,
+      "words": [
+        {
+          "text": "영어",
+          "startMs": 571620,
+          "endMs": 571940
+        },
+        {
+          "text": "문장에는",
+          "startMs": 572020,
+          "endMs": 572820
+        },
+        {
+          "text": "주어와",
+          "startMs": 572980,
+          "endMs": 573460
+        },
+        {
+          "text": "동사가",
+          "startMs": 573620,
+          "endMs": 574180
+        },
+        {
+          "text": "반드시",
+          "startMs": 574420,
+          "endMs": 574740
+        },
+        {
+          "text": "있어요.",
+          "startMs": 574820,
+          "endMs": 575290
+        }
+      ]
+    },
+    {
+      "id": "s23-3",
+      "slideId": "s23",
+      "lang": "ko",
+      "startMs": 575590,
+      "endMs": 578940,
+      "words": [
+        {
+          "text": "평서문에서는",
+          "startMs": 575590,
+          "endMs": 576710
+        },
+        {
+          "text": "주어",
+          "startMs": 576870,
+          "endMs": 577110
+        },
+        {
+          "text": "바로",
+          "startMs": 577270,
+          "endMs": 577510
+        },
+        {
+          "text": "뒤에",
+          "startMs": 577670,
+          "endMs": 577990
+        },
+        {
+          "text": "동사가",
+          "startMs": 578230,
+          "endMs": 578550
+        },
+        {
+          "text": "와요.",
+          "startMs": 578630,
+          "endMs": 578940
+        }
+      ]
+    },
+    {
+      "id": "s23-3a",
+      "slideId": "s23",
+      "lang": "ko",
+      "startMs": 579240,
+      "endMs": 583350,
+      "words": [
+        {
+          "text": "날씨나",
+          "startMs": 579240,
+          "endMs": 579880
+        },
+        {
+          "text": "시간을",
+          "startMs": 579960,
+          "endMs": 580280
+        },
+        {
+          "text": "말할",
+          "startMs": 580440,
+          "endMs": 580600
+        },
+        {
+          "text": "때도",
+          "startMs": 580760,
+          "endMs": 581320
+        },
+        {
+          "text": "잇으로",
+          "startMs": 581560,
+          "endMs": 582040
+        },
+        {
+          "text": "주어",
+          "startMs": 582200,
+          "endMs": 582360
+        },
+        {
+          "text": "자리를",
+          "startMs": 582440,
+          "endMs": 582760
+        },
+        {
+          "text": "채워요.",
+          "startMs": 582920,
+          "endMs": 583350
+        }
+      ]
+    },
+    {
+      "id": "s23-4",
+      "slideId": "s23",
+      "lang": "ko",
+      "startMs": 583650,
+      "endMs": 589700,
+      "words": [
+        {
+          "text": "삼인칭",
+          "startMs": 583650,
+          "endMs": 584210
+        },
+        {
+          "text": "단수",
+          "startMs": 584450,
+          "endMs": 584770
+        },
+        {
+          "text": "현재일",
+          "startMs": 585010,
+          "endMs": 585330
+        },
+        {
+          "text": "때만",
+          "startMs": 585490,
+          "endMs": 586050
+        },
+        {
+          "text": "동사에",
+          "startMs": 586290,
+          "endMs": 586850
+        },
+        {
+          "text": "에스나",
+          "startMs": 586930,
+          "endMs": 587650
+        },
+        {
+          "text": "이에스를",
+          "startMs": 587810,
+          "endMs": 588370
+        },
+        {
+          "text": "붙여야",
+          "startMs": 588530,
+          "endMs": 588850
+        },
+        {
+          "text": "해요.",
+          "startMs": 588930,
+          "endMs": 589700
+        }
+      ]
+    },
+    {
+      "id": "s23-5",
+      "slideId": "s23",
+      "lang": "ko",
+      "startMs": 590000,
+      "endMs": 594710,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 590000,
+          "endMs": 590080
+        },
+        {
+          "text": "네",
+          "startMs": 590240,
+          "endMs": 590320
+        },
+        {
+          "text": "가지만",
+          "startMs": 590400,
+          "endMs": 590800
+        },
+        {
+          "text": "기억하면",
+          "startMs": 590880,
+          "endMs": 591680
+        },
+        {
+          "text": "영어",
+          "startMs": 591840,
+          "endMs": 592000
+        },
+        {
+          "text": "문장의",
+          "startMs": 592080,
+          "endMs": 592480
+        },
+        {
+          "text": "뼈대는",
+          "startMs": 592640,
+          "endMs": 593120
+        },
+        {
+          "text": "확실하게",
+          "startMs": 593280,
+          "endMs": 593760
+        },
+        {
+          "text": "잡을",
+          "startMs": 593920,
+          "endMs": 594040
+        },
+        {
+          "text": "수",
+          "startMs": 594080,
+          "endMs": 594160
+        },
+        {
+          "text": "있어요.",
+          "startMs": 594280,
+          "endMs": 594710
+        }
+      ]
+    },
+    {
+      "id": "s24-1",
+      "slideId": "s24",
+      "lang": "ko",
+      "startMs": 595510,
+      "endMs": 598000,
+      "words": [
+        {
+          "text": "오늘",
+          "startMs": 595510,
+          "endMs": 595750
+        },
+        {
+          "text": "강의도",
+          "startMs": 595910,
+          "endMs": 596390
+        },
+        {
+          "text": "정말",
+          "startMs": 596550,
+          "endMs": 596870
+        },
+        {
+          "text": "수고",
+          "startMs": 596950,
+          "endMs": 597110
+        },
+        {
+          "text": "많았어요!",
+          "startMs": 597190,
+          "endMs": 598000
+        }
+      ]
+    },
+    {
+      "id": "s24-2",
+      "slideId": "s24",
+      "lang": "ko",
+      "startMs": 598300,
+      "endMs": 603320,
+      "words": [
+        {
+          "text": "다음",
+          "startMs": 598300,
+          "endMs": 598620
+        },
+        {
+          "text": "시간에는",
+          "startMs": 598700,
+          "endMs": 599420
+        },
+        {
+          "text": "비동사와",
+          "startMs": 599580,
+          "endMs": 600300
+        },
+        {
+          "text": "일반동사가",
+          "startMs": 600460,
+          "endMs": 601420
+        },
+        {
+          "text": "어떻게",
+          "startMs": 601580,
+          "endMs": 601900
+        },
+        {
+          "text": "다른지",
+          "startMs": 601980,
+          "endMs": 602380
+        },
+        {
+          "text": "배울",
+          "startMs": 602540,
+          "endMs": 602700
+        },
+        {
+          "text": "거예요.",
+          "startMs": 602860,
+          "endMs": 603320
+        }
+      ]
+    },
+    {
+      "id": "s24-3",
+      "slideId": "s24",
+      "lang": "ko",
+      "startMs": 603620,
+      "endMs": 608060,
+      "words": [
+        {
+          "text": "오늘",
+          "startMs": 603620,
+          "endMs": 603940
+        },
+        {
+          "text": "배운",
+          "startMs": 604020,
+          "endMs": 604340
+        },
+        {
+          "text": "주어와",
+          "startMs": 604500,
+          "endMs": 604980
+        },
+        {
+          "text": "동사를",
+          "startMs": 605140,
+          "endMs": 605540
+        },
+        {
+          "text": "떠올리면서",
+          "startMs": 605620,
+          "endMs": 606580
+        },
+        {
+          "text": "다음",
+          "startMs": 606740,
+          "endMs": 606980
+        },
+        {
+          "text": "강의에서",
+          "startMs": 607060,
+          "endMs": 607460
+        },
+        {
+          "text": "만나요!",
+          "startMs": 607540,
+          "endMs": 608060
+        }
+      ]
+    }
+  ],
+  "slides": [
+    {
+      "id": "s1",
+      "startMs": 0,
+      "endMs": 10260
+    },
+    {
+      "id": "s2",
+      "startMs": 10260,
+      "endMs": 26480
+    },
+    {
+      "id": "s3",
+      "startMs": 26480,
+      "endMs": 45690
+    },
+    {
+      "id": "s4",
+      "startMs": 45690,
+      "endMs": 68350
+    },
+    {
+      "id": "s5",
+      "startMs": 68350,
+      "endMs": 117080
+    },
+    {
+      "id": "s6",
+      "startMs": 117080,
+      "endMs": 157550
+    },
+    {
+      "id": "s7",
+      "startMs": 157550,
+      "endMs": 179520
+    },
+    {
+      "id": "s8",
+      "startMs": 179520,
+      "endMs": 205700
+    },
+    {
+      "id": "s9",
+      "startMs": 205700,
+      "endMs": 238700
+    },
+    {
+      "id": "s10",
+      "startMs": 238700,
+      "endMs": 268790
+    },
+    {
+      "id": "s11",
+      "startMs": 268790,
+      "endMs": 287790
+    },
+    {
+      "id": "s12",
+      "startMs": 287790,
+      "endMs": 310580
+    },
+    {
+      "id": "s13",
+      "startMs": 310580,
+      "endMs": 331360
+    },
+    {
+      "id": "s14",
+      "startMs": 331360,
+      "endMs": 351170
+    },
+    {
+      "id": "s15",
+      "startMs": 351170,
+      "endMs": 371530
+    },
+    {
+      "id": "s16",
+      "startMs": 371530,
+      "endMs": 392680
+    },
+    {
+      "id": "s17",
+      "startMs": 392680,
+      "endMs": 420950
+    },
+    {
+      "id": "s18",
+      "startMs": 420950,
+      "endMs": 447160
+    },
+    {
+      "id": "s19",
+      "startMs": 447160,
+      "endMs": 475950
+    },
+    {
+      "id": "s20",
+      "startMs": 475950,
+      "endMs": 507180
+    },
+    {
+      "id": "s21",
+      "startMs": 507180,
+      "endMs": 536750
+    },
+    {
+      "id": "s22",
+      "startMs": 536750,
+      "endMs": 566540
+    },
+    {
+      "id": "s23",
+      "startMs": 566540,
+      "endMs": 595110
+    },
+    {
+      "id": "s24",
+      "startMs": 595110,
+      "endMs": 609860
+    }
+  ],
+  "measured": true,
+  "audioFile": "narration.wav",
+  "loudnessLufs": -16.17,
+  "provider": "elevenlabs/eleven_v4"
+}

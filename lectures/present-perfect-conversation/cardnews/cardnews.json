@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "slug": "present-perfect-conversation",
+  "title": "현재완료 시제",
+  "cards": [
+    {
+      "type": "cover",
+      "topic": "현재완료 시제",
+      "hook": "have/has p.p. 공식, 진짜 쓸까?",
+      "label": "중학 영문법"
+    },
+    {
+      "type": "question",
+      "sentence": "I have visit my uncle.",
+      "prompt": "이거 맞을까요?",
+      "hint": "visit에 주목해 보세요!"
+    },
+    {
+      "type": "rule",
+      "heading": "현재완료 공식",
+      "formula": [
+        "주어",
+        "have/has",
+        "과거분사"
+      ],
+      "lines": [
+        "**have/has + p.p.** 형태를 써요."
+      ],
+      "example": {
+        "en": "I have finished my homework.",
+        "ko": "나는 숙제를 다 끝냈다"
+      }
+    },
+    {
+      "type": "rule",
+      "heading": "기간 표현과 함께",
+      "formula": [
+        "for/ since + 기간"
+      ],
+      "lines": [
+        "**for/since**와 함께 계속을 나타내요."
+      ],
+      "example": {
+        "en": "She has lived here for three years.",
+        "ko": "그녀는 여기서 3년 동안 살고 있다"
+      }
+    },
+    {
+      "type": "rule",
+      "heading": "과거 시점과 구분",
+      "lines": [
+        "현재완료는 **yesterday**와 같이 못 써요.",
+        "과거 시점 땐 과거시제를 써야 해요."
+      ],
+      "example": {
+        "en": "I saw him yesterday.",
+        "ko": "나는 어제 그를 봤다"
+      }
+    },
+    {
+      "type": "mistakes",
+      "heading": "흔한 실수 TOP 3",
+      "items": [
+        {
+          "wrong": "have visit",
+          "right": "have visited"
+        },
+        {
+          "wrong": "has finish",
+          "right": "has finished"
+        },
+        {
+          "wrong": "have saw",
+          "right": "have seen"
+        }
+      ]
+    },
+    {
+      "type": "quiz",
+      "question": "빈칸에 알맞은 말은?",
+      "sentence": "He ___ finished his lunch.",
+      "choices": [
+        "have",
+        "has",
+        "had"
+      ]
+    },
+    {
+      "type": "answer",
+      "answer": "has",
+      "sentence": "He has finished his lunch.",
+      "explanation": "he는 3인칭 단수라서 has를 써요."
+    },
+    {
+      "type": "pattern",
+      "pattern": "Have you ever ~?",
+      "slot": "과거분사",
+      "ko": "~해 본 적 있어?",
+      "example": {
+        "en": "Have you ever eaten sushi?",
+        "ko": "초밥 먹어 본 적 있어?"
+      }
+    },
+    {
+      "type": "cta",
+      "lectureTitle": "현재완료 시제",
+      "message": "저장하고 복습하세요"
+    }
+  ]
+}

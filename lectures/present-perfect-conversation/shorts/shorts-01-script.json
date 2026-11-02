@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "slug": "present-perfect-conversation-shorts-01",
+  "title": "현재완료 시제 숏폼 1 — Have you ever ~?",
+  "grammarPoint": {
+    "code": "G03-03",
+    "title": "현재완료"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-11-01T18:00:04.222Z",
+  "format": "shorts",
+  "tempo": {
+    "koSpeedScale": 1.1,
+    "enSpeed": 1,
+    "gapScale": 0.6,
+    "leadInMs": 250,
+    "tailMs": 1200,
+    "repeatPause": {
+      "factor": 1.2,
+      "extraSec": 0
+    }
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "hook",
+      "data": {
+        "question": "'~해 본 적 있어?' 영어로 바로 말할 수 있나요?",
+        "sub": "3초 안에 떠올려 보세요"
+      },
+      "chapter": "훅"
+    },
+    {
+      "id": "s2",
+      "type": "pattern",
+      "data": {
+        "pattern": "Have you ever ~?",
+        "ko": "~해 본 적 있어?",
+        "slot": "과거분사"
+      },
+      "chapter": "패턴"
+    },
+    {
+      "id": "s3",
+      "type": "examples",
+      "data": {
+        "examples": [
+          {
+            "en": "Have you ever eaten sushi?",
+            "ko": "초밥 먹어 본 적 있어?"
+          },
+          {
+            "en": "Have you ever visited Busan?",
+            "ko": "부산 가 본 적 있어?"
+          },
+          {
+            "en": "Have you ever tried yoga?",
+            "ko": "요가 해 본 적 있어?"
+          }
+        ]
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "repeat",
+      "data": {
+        "sentence": "Have you ever eaten sushi?",
+        "ko": "초밥 먹어 본 적 있어?",
+        "stress": [
+          "Have",
+          "ever",
+          "eaten"
+        ],
+        "links": [
+          {
+            "text": "Have you",
+            "hint": "해뷰"
+          }
+        ]
+      },
+      "chapter": "따라하기"
+    },
+    {
+      "id": "s5",
+      "type": "cta",
+      "data": {
+        "lectureTitle": "현재완료 시제",
+        "message": "전체 강의는 채널에서"
+      },
+      "chapter": "채널 안내"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "'~해 본 적 있어?' 영어로 바로 말할 수 있나요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "오늘 배울 패턴은 해브 유 에버예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "Have you ever …?",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "이 패턴은 경험을 물어볼 때 꼭 써요. 누군가가 뭔가를 해 본 적이 있는지 자연스럽게 궁금할 때, 해브 유 에버로 시작하면 되죠. 일상에서 정말 자주 쓰여서 꼭 익혀 두면 좋아요.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "예문 세 개, 바로 갈게요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Have you ever eaten sushi?",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "초밥 먹어 본 적 있어?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Have you ever visited Busan?",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "부산 가 본 적 있어?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Have you ever tried yoga?",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "요가 해 본 적 있어?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이제 따라 해 보세요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "Have you ever eaten sushi?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "이렇게 현재완료 패턴, 해브 유 에버를 연습했어요. 전체 강의는 채널에서 '현재완료 시제'로 쉽게 이어서 배울 수 있습니다.",
+      "emotion": "칭찬"
+    }
+  ]
+}
