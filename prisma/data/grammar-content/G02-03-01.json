@@ -1,0 +1,629 @@
+{
+  "code": "G02-03-01",
+  "summary": "인칭대명사는 문장 속 자리에 따라 모양이 바뀌어요. 주어 자리에는 주격(I, he, she, we, they), 명사 앞에는 소유격(my, his, her, our, their), 동사·전치사 뒤에는 목적격(me, him, her, us, them)을 써요. '~의 것'은 소유대명사(mine, yours, hers, ours, theirs)로, 뒤에 명사 없이 혼자 써요. its(그것의)에는 아포스트로피가 없어요.",
+  "rules": [
+    {
+      "text": "한국어는 조사(는/의/를)가 바뀌지만, 영어는 대명사의 단어 모양 자체가 바뀌어요. 이 모양을 격이라고 해요.",
+      "formula": "나는 I / 나의 my / 나를 me"
+    },
+    {
+      "text": "주격은 문장의 주어 자리(동사 앞)에 써요. 한국어의 은/는, 이/가에 해당해요.",
+      "formula": "I, you, he, she, it, we, they + 동사"
+    },
+    {
+      "text": "소유격은 명사 바로 앞에 써서 누구의 것인지 나타내요. 혼자 쓰지 못하고 뒤에 꼭 명사가 와요.",
+      "formula": "my, your, his, her, its, our, their + 명사"
+    },
+    {
+      "text": "목적격은 동사 뒤 목적어 자리에 써요. 한국어의 을/를, 에게에 해당해요.",
+      "formula": "동사 + me, you, him, her, it, us, them"
+    },
+    {
+      "text": "전치사(with, for, to, of 등) 뒤에도 목적격을 써요.",
+      "formula": "with me, for her, to them, a photo of us"
+    },
+    {
+      "text": "소유대명사는 '~의 것'이라는 뜻으로 소유격 + 명사를 한 단어로 줄인 말이에요. 뒤에 명사 없이 혼자 써요.",
+      "formula": "mine = my bag / yours, his, hers, ours, theirs"
+    },
+    {
+      "text": "you는 주격과 목적격 모양이 같고, 한 명이든 여러 명이든 모양이 같아요.",
+      "formula": "you – your – you – yours"
+    },
+    {
+      "text": "her는 소유격과 목적격 모양이 같고, his는 소유격과 소유대명사 모양이 같아요. 뒤에 명사가 있는지 보고 구별해요.",
+      "formula": "her bag / I like her. · his bag / It's his."
+    },
+    {
+      "text": "its는 '그것의'라는 소유격으로 아포스트로피가 없어요. it's는 it is(또는 it has)를 줄인 말이에요.",
+      "formula": "its tail / It's cold."
+    },
+    {
+      "text": "it의 소유대명사는 실제로 거의 쓰지 않아요.",
+      "formula": "it – its – it"
+    },
+    {
+      "text": "they는 사람뿐 아니라 사물·동물이 여럿일 때도 써요.",
+      "formula": "These shoes are nice. They're comfortable."
+    },
+    {
+      "text": "다른 사람과 함께 주어가 되어도 주어 자리는 주격 I를 써요. 보통 다른 사람을 먼저 말해요.",
+      "formula": "My brother and I go to the same school."
+    }
+  ],
+  "examples": [
+    {
+      "en": "She is my English teacher. Her class is fun.",
+      "ko": "그녀는 우리 영어 선생님이에요. 그녀의 수업은 재미있어요. (명사 class 앞 → 소유격 Her)",
+      "highlight": "Her"
+    },
+    {
+      "en": "Can you call me tonight?",
+      "ko": "오늘 밤에 나한테 전화해 줄래? (동사 call 뒤 → 목적격 me)",
+      "highlight": "me"
+    },
+    {
+      "en": "This is a photo of us.",
+      "ko": "이건 우리가 나온 사진이야. (전치사 of 뒤 → 목적격 us)",
+      "highlight": "us"
+    },
+    {
+      "en": "I love their new song.",
+      "ko": "나는 그들의 신곡이 정말 좋아. (꾸미는 말이 있어도 소유격이 맨 앞)",
+      "highlight": "their"
+    },
+    {
+      "en": "The dog is wagging its tail.",
+      "ko": "강아지가 꼬리를 흔들고 있어요. (its = 그것의, 아포스트로피 없음)",
+      "highlight": "its"
+    },
+    {
+      "en": "This isn't my phone. It's hers.",
+      "ko": "이건 내 폰이 아니야. 그녀 거야. (my + 명사 / hers는 혼자)",
+      "highlight": "hers"
+    },
+    {
+      "en": "I saw him at the library, but he didn't see me.",
+      "ko": "도서관에서 그를 봤는데, 그는 나를 못 봤어. (him·he·me — 자리마다 달라요)",
+      "highlight": "him"
+    },
+    {
+      "en": "My brother and I go to the same school.",
+      "ko": "형과 나는 같은 학교에 다녀요. (주어 자리 → 주격 I)",
+      "highlight": "and I"
+    },
+    {
+      "en": "Your bag is red. Mine is blue.",
+      "ko": "네 가방은 빨간색이고, 내 거는 파란색이야. (Mine = My bag)",
+      "highlight": "Mine"
+    },
+    {
+      "en": "She gave me her phone number.",
+      "ko": "그녀는 나에게 자기 전화번호를 줬어요. (she 주격 · me 목적격 · her 소유격)",
+      "highlight": "me her"
+    },
+    {
+      "en": "I love these shoes. They're so comfortable.",
+      "ko": "이 신발 정말 좋아. 아주 편해. (사물 여럿도 they)",
+      "highlight": "They're"
+    },
+    {
+      "en": "Excuse me, is this yours?",
+      "ko": "저기요, 이거 당신 거예요? (명사 없이 혼자 → 소유대명사)",
+      "highlight": "yours"
+    }
+  ],
+  "commonErrors": [
+    {
+      "wrong": "She class is fun.",
+      "correct": "Her class is fun.",
+      "reason": "명사 class 앞에는 '그녀의'라는 소유격 her를 써요. she는 주어 자리에만 써요."
+    },
+    {
+      "wrong": "Can you help I?",
+      "correct": "Can you help me?",
+      "reason": "동사 help 뒤는 목적어 자리라서 목적격 me를 써요."
+    },
+    {
+      "wrong": "The cat is licking it's paw.",
+      "correct": "The cat is licking its paw.",
+      "reason": "'그것의'는 아포스트로피 없는 its예요. it's는 it is를 줄인 말이에요."
+    },
+    {
+      "wrong": "This bag is my.",
+      "correct": "This bag is mine.",
+      "reason": "소유격 my는 뒤에 명사가 꼭 와야 해요. 명사 없이 '내 거'라고 할 때는 소유대명사 mine을 써요."
+    },
+    {
+      "wrong": "This is mine bag.",
+      "correct": "This is my bag.",
+      "reason": "소유대명사 mine 뒤에는 명사를 붙이지 않아요. 명사 앞에는 소유격 my를 써요."
+    },
+    {
+      "wrong": "I went to the park with they.",
+      "correct": "I went to the park with them.",
+      "reason": "전치사 with 뒤에는 목적격 them을 써요."
+    }
+  ],
+  "lecture": {
+    "title": "인칭대명사의 격: I·my·me·mine 쉽게 구별하는 법",
+    "youtube": "https://youtu.be/HkQlicJDn7Y",
+    "durationSec": 742
+  },
+  "sourceScript": {
+    "title": "인칭대명사의 격 — 강의 기준 원고",
+    "content": "[강의 범위]\n인칭대명사가 문장 속 자리에 따라 주격·소유격·목적격으로 모양이 바뀌는 것과, '~의 것'을 뜻하는 소유대명사를 구별해 쓰게 하는 단원이다. 대상은 중학생~고등학생, 성인 초급(레벨 1). 강의 영상: 인칭대명사의 격: I·my·me·mine 쉽게 구별하는 법 (YouTube HkQlicJDn7Y, 12분 22초).\n\n[도입]\nShe class is fun. 은 틀린 문장이다. 수업의 주인이 그녀이므로 '그녀의'라는 소유격을 써서 Her class is fun. 이 맞다.\n\n[1. 왜 모양이 바뀌나]\n- 한국어는 '나'는 그대로 두고 조사만 바꾼다: 나는, 나의, 나를.\n- 영어에는 조사가 없고 단어 모양 자체가 바뀐다: I, my, me. 그래서 대명사가 들어갈 자리를 먼저 보고 모양을 고른다. 이 모양을 격이라고 한다.\n\n[2. 세 가지 격]\n- 주격: 주어 자리(동사 앞). 은/는, 이/가. I like music.\n- 소유격: 명사 바로 앞. ~의. my phone. 소유격은 혼자 쓰지 못한다.\n- 목적격: 동사 뒤 목적어 자리, 전치사(with, for, to, of) 뒤. 을/를, 에게. Call me. / with me.\n\n[3. 소유대명사]\n- '~의 것'을 한 단어로: my bag → mine. 뒤에 명사 없이 혼자 쓴다. It's mine.\n- 앞에 나온 명사를 반복하지 않을 때 자주 쓴다. Your bag is red. Mine is blue.\n\n[4. 인칭대명사 표 (주격 · 소유격 · 목적격 · 소유대명사)]\n- I · my · me · mine / you · your · you · yours / we · our · us · ours\n- he · his · him · his / she · her · her · hers / it · its · it · (거의 쓰지 않음) / they · their · them · theirs\n- 주의: you는 주격=목적격이고 단수·복수 모양이 같다. his는 소유격=소유대명사, her는 소유격=목적격이라 뒤에 명사가 있는지로 구별한다.\n- its(그것의)에는 아포스트로피가 없다. it's는 주로 it is의 줄임말이고(it has도 줄여 쓴다) 발음이 같으니 쓸 때 조심한다.\n- they는 사람뿐 아니라 사물·동물 여럿에도 쓴다. I love these shoes. They're so comfortable.\n\n[5. 예문]\n- My brother and I go to the same school. — 다른 사람과 함께 주어여도 주격 I. 보통 다른 사람을 먼저 말한다.\n- Can you call me tonight? — call 뒤 목적격. 해석은 '나한테'지만 전치사 없이 바로 목적격.\n- This is a photo of us. — 전치사 of 뒤 목적격.\n- I love their new song. — 꾸미는 말이 있어도 소유격이 맨 앞.\n- The dog is wagging its tail. / This isn't my phone. It's hers. / I saw him at the library, but he didn't see me.\n\n[6. 흔한 실수]\n- Can you help I? → Can you help me? (동사 뒤 목적격)\n- The cat is licking it's paw. → its paw (그것의 = its)\n- This bag is my. → This bag is mine. (명사 없이 혼자면 소유대명사) / 반대로 mine bag도 틀림 → my bag\n\n[7. 회화 패턴]\n- Is this yours? / Yes, it's mine. / No, it's not mine. / Excuse me, is this yours?\n"
+  },
+  "questions": [
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "____ am a middle school student.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "I",
+          "My",
+          "Me",
+          "Mine"
+        ],
+        "correct_answer": "A",
+        "explanation": "동사 am 앞, 주어 자리에는 주격 I를 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "This is ____ bag.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "I",
+          "my",
+          "me",
+          "mine"
+        ],
+        "correct_answer": "B",
+        "explanation": "명사 bag 바로 앞에는 소유격 my를 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Can you help ____?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "I",
+          "my",
+          "me",
+          "mine"
+        ],
+        "correct_answer": "C",
+        "explanation": "동사 help 뒤 목적어 자리에는 목적격 me를 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Is this pen ____?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "your",
+          "you",
+          "you're",
+          "yours"
+        ],
+        "correct_answer": "D",
+        "explanation": "뒤에 명사가 없으니까 '너의 것'이라는 소유대명사 yours를 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "____ plays soccer every day.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "He",
+          "Him",
+          "His",
+          "Her"
+        ],
+        "correct_answer": "A",
+        "explanation": "동사 plays 앞, 주어 자리에는 주격 He를 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "My sister is kind. I love ____.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "she",
+          "her",
+          "she's",
+          "he"
+        ],
+        "correct_answer": "B",
+        "explanation": "동사 love 뒤 목적어 자리라서 she의 목적격 her를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "We are going to the movies. Do you want to come with ____?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "we",
+          "our",
+          "us",
+          "we're"
+        ],
+        "correct_answer": "C",
+        "explanation": "전치사 with 뒤에는 목적격 us를 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "The dog is wagging ____ tail.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "it's",
+          "it",
+          "it is",
+          "its"
+        ],
+        "correct_answer": "D",
+        "explanation": "'그것의 꼬리'니까 소유격 its를 써요. its에는 아포스트로피가 없어요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "____ cold today. Wear a jacket.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "It's",
+          "Its",
+          "It",
+          "Is"
+        ],
+        "correct_answer": "A",
+        "explanation": "'날씨가 춥다'는 It is cold니까 줄임말 It's를 써요. Its는 '그것의'예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I love these shoes. ____ are so comfortable.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "It",
+          "They",
+          "Its",
+          "Them"
+        ],
+        "correct_answer": "B",
+        "explanation": "신발 여러 짝을 가리키는 주어니까 they를 써요. they는 사물 여럿에도 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "My brother and ____ go to the same school.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "me",
+          "my",
+          "I",
+          "mine"
+        ],
+        "correct_answer": "C",
+        "explanation": "다른 사람과 함께여도 주어 자리니까 주격 I를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Mina left her phone here. This phone is ____.",
+        "question_text_ko": "빈칸에 '그녀의 것'에 알맞은 말을 고르세요.",
+        "options": [
+          "her",
+          "she",
+          "she's",
+          "hers"
+        ],
+        "correct_answer": "D",
+        "explanation": "'그녀의 것'은 소유대명사 hers예요. 뒤에 명사 없이 혼자 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I saw ____ at the library yesterday.",
+        "question_text_ko": "빈칸에 '그를'에 알맞은 말을 고르세요.",
+        "options": [
+          "him",
+          "he",
+          "his",
+          "he's"
+        ],
+        "correct_answer": "A",
+        "explanation": "동사 saw 뒤 목적어 자리라서 목적격 him을 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "____ names are Tom and Jerry.",
+        "question_text_ko": "빈칸에 '그들의'에 알맞은 말을 고르세요.",
+        "options": [
+          "They",
+          "Their",
+          "Them",
+          "Theirs"
+        ],
+        "correct_answer": "B",
+        "explanation": "명사 names 앞에는 소유격 Their를 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Please give ____ some water.",
+        "question_text_ko": "빈칸에 '그들에게'에 알맞은 말을 고르세요.",
+        "options": [
+          "they",
+          "their",
+          "them",
+          "they're"
+        ],
+        "correct_answer": "C",
+        "explanation": "동사 give 뒤 '그들에게'는 목적격 them이에요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Whose umbrella is this? — This umbrella is ____.",
+        "question_text_ko": "빈칸에 '내 것'에 알맞은 말을 고르세요.",
+        "options": [
+          "my",
+          "me",
+          "I",
+          "mine"
+        ],
+        "correct_answer": "D",
+        "explanation": "뒤에 명사가 없으니까 '나의 것'이라는 소유대명사 mine을 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Your bag is red. ____ is blue.",
+        "question_text_ko": "빈칸에 '내 것'에 알맞은 말을 고르세요.",
+        "options": [
+          "Mine",
+          "My",
+          "Me",
+          "I"
+        ],
+        "correct_answer": "A",
+        "explanation": "My bag을 한 단어로 줄인 소유대명사 Mine을 써요. 가방이라는 말을 반복하지 않아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct?",
+        "question_text_ko": "바른 문장을 고르세요.",
+        "options": [
+          "This is mine bag.",
+          "This is my bag.",
+          "This bag is my.",
+          "This is me bag."
+        ],
+        "correct_answer": "B",
+        "explanation": "명사 bag 앞에는 소유격 my를 써요. mine 뒤에는 명사를 붙이지 않아요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct?",
+        "question_text_ko": "바른 문장을 고르세요.",
+        "options": [
+          "Her is my sister.",
+          "Hers is my sister.",
+          "She is my sister.",
+          "She's is my sister."
+        ],
+        "correct_answer": "C",
+        "explanation": "주어 자리에는 주격 She를 써요. She's는 She is라서 is가 두 번 들어가요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct?",
+        "question_text_ko": "바른 문장을 고르세요.",
+        "options": [
+          "The cat is licking it's paw.",
+          "The cat is licking its' paw.",
+          "The cat is licking it paw.",
+          "The cat is licking its paw."
+        ],
+        "correct_answer": "D",
+        "explanation": "'그것의'는 아포스트로피 없는 its예요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "She gave ____ her phone number.",
+        "question_text_ko": "빈칸에 '나에게'에 알맞은 말을 고르세요.",
+        "options": [
+          "me",
+          "I",
+          "my",
+          "mine"
+        ],
+        "correct_answer": "A",
+        "explanation": "동사 gave 뒤 '나에게'는 목적격 me예요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Is that ____ new car? It looks great.",
+        "question_text_ko": "빈칸에 '너의'에 알맞은 말을 고르세요.",
+        "options": [
+          "you",
+          "your",
+          "yours",
+          "you're"
+        ],
+        "correct_answer": "B",
+        "explanation": "명사 car 앞(꾸미는 말 new가 있어도)에는 소유격 your를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "These books are not ours. They're ____.",
+        "question_text_ko": "빈칸에 '그들의 것'에 알맞은 말을 고르세요.",
+        "options": [
+          "their",
+          "they",
+          "theirs",
+          "our"
+        ],
+        "correct_answer": "C",
+        "explanation": "'그들의 것'은 소유대명사 theirs예요. 뒤에 명사가 없어요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Let's ask ____ teacher. She knows the answer.",
+        "question_text_ko": "빈칸에 '우리의'에 알맞은 말을 고르세요.",
+        "options": [
+          "we",
+          "us",
+          "ours",
+          "our"
+        ],
+        "correct_answer": "D",
+        "explanation": "명사 teacher 앞에는 소유격 our를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which word is used both as a possessive adjective and as an object?",
+        "question_text_ko": "소유격과 목적격의 모양이 같은 대명사를 고르세요.",
+        "options": [
+          "her",
+          "his",
+          "him",
+          "she"
+        ],
+        "correct_answer": "A",
+        "explanation": "her는 소유격(her bag)과 목적격(I like her.) 모양이 같아요. his는 소유격과 소유대명사 모양이 같아요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "This is ____ room. (I)",
+        "question_text_ko": "괄호 안의 대명사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "my",
+        "explanation": "명사 room 앞에는 소유격 my를 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "Can you wait for ____? (I)",
+        "question_text_ko": "괄호 안의 대명사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "me",
+        "explanation": "전치사 for 뒤에는 목적격 me를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "Is this bag ____? (you)",
+        "question_text_ko": "괄호 안의 대명사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "yours",
+        "explanation": "뒤에 명사가 없으니까 소유대명사 yours를 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I met ____ at the bus stop. (he)",
+        "question_text_ko": "괄호 안의 대명사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "him",
+        "explanation": "동사 met 뒤 목적어 자리라서 목적격 him을 써요."
+      }
+    },
+    {
+      "difficulty": 1,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "____ house is near the park. (we)",
+        "question_text_ko": "괄호 안의 대명사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "Our",
+        "explanation": "명사 house 앞에는 소유격 Our를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "Those are not my shoes. They're ____. (she)",
+        "question_text_ko": "괄호 안의 대명사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "hers",
+        "explanation": "명사 없이 '그녀의 것'이니까 소유대명사 hers를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "The bird built ____ nest in the tree. (it)",
+        "question_text_ko": "괄호 안의 대명사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "its",
+        "explanation": "'그것의 둥지'니까 소유격 its를 써요. 아포스트로피가 없어요."
+      }
+    }
+  ]
+}

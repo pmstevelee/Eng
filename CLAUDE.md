@@ -181,3 +181,5 @@
 - TTS 추상화 `scripts/lecture/tts.ts` (`LECTURE_TTS_PROVIDER`, 기본 ElevenLabs `eleven_v4` + with-timestamps), 오디오 후처리 `audio.ts`(ffmpeg는 시스템 → Remotion 내장 순, 내장판엔 s16le 출력 없음 → wav 파이프)
 - 대본 AI 모델 `LECTURE_SCRIPT_MODEL`(없으면 `AI_CONTENT_MODEL`). gpt-4o-mini는 문법 오류가 잦아 gpt-4.1 사용. gpt-5 계열은 `completionParams`의 reasoning_effort와 맞지 않아 기본 모델로 떨어짐
 - Remotion 컴포지션 `src/components/lecture-video/`(슬라이드 10종, 절대 시간 기준 — Sequence 안 씀), 진입점 `remotion/lecture-pipeline.ts`, 글꼴 `public/fonts/pretendard`
+- 출력은 반드시 **1440p(2560×1440)**: 레이아웃은 1920×1080 그대로 두고 `renderMedia`의 `scale: 4/3` + `jpegQuality: 100` (`scripts/lecture/steps/render.ts`). 1080p 업로드는 YouTube 재압축으로 글자가 흐려짐
+- 1440p 캡처는 가끔 빈 화면 프레임이 1~2장 끼어듦(깜박임) → 30초 조각 렌더(음성 없이) + `scripts/lecture/frame-check.ts` 검사·재렌더 → concat(-c copy) + narration.wav → 완성본 재검사. 이 검사를 빼지 말 것

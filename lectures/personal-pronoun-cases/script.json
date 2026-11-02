@@ -1,0 +1,2379 @@
+{
+  "version": 1,
+  "slug": "personal-pronoun-cases",
+  "title": "인칭대명사의 격",
+  "grammarPoint": {
+    "code": "G02-03-01",
+    "title": "인칭대명사의 격"
+  },
+  "targetMinutes": 12,
+  "createdAt": "2026-11-01T14:27:04.000Z",
+  "slides": [
+    {
+      "id": "s1",
+      "type": "title",
+      "data": {
+        "title": "인칭대명사의 격",
+        "subtitle": "I · my · me · mine"
+      },
+      "chapter": "오프닝"
+    },
+    {
+      "id": "s2",
+      "type": "compare",
+      "data": {
+        "rows": [
+          {
+            "sentence": [
+              {
+                "text": "She",
+                "role": "error",
+                "point": true
+              },
+              {
+                "text": "class"
+              },
+              {
+                "text": "is"
+              },
+              {
+                "text": "fun."
+              }
+            ],
+            "correct": false,
+            "ko": "명사 앞에는 소유격이 와야 해요"
+          },
+          {
+            "sentence": [
+              {
+                "text": "Her",
+                "role": "correct",
+                "point": true
+              },
+              {
+                "text": "class"
+              },
+              {
+                "text": "is"
+              },
+              {
+                "text": "fun."
+              }
+            ],
+            "correct": true,
+            "ko": "그녀의 수업은 재미있어"
+          }
+        ]
+      },
+      "chapter": "오프닝"
+    },
+    {
+      "id": "s3",
+      "type": "goal",
+      "data": {
+        "goals": [
+          "주격·소유격·목적격·소유대명사 구별하기",
+          "문장 속 자리를 보고 알맞은 격 고르기",
+          "헷갈리는 its·it's, her, his 바르게 쓰기"
+        ]
+      },
+      "chapter": "학습목표"
+    },
+    {
+      "id": "s4",
+      "type": "concept",
+      "data": {
+        "heading": "왜 모양이 바뀔까요?",
+        "lines": [
+          "한국어: 나**는** · 나**의** · 나**를** — 조사가 바뀜",
+          "영어: **I · my · me** — 단어 모양이 바뀜",
+          "그래서 **자리**를 보고 모양을 골라야 해요"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s5",
+      "type": "concept",
+      "data": {
+        "heading": "인칭대명사의 세 가지 격",
+        "lines": [
+          "**주격**: 주어 자리 → 은/는, 이/가",
+          "**소유격**: 명사 앞 → ~의",
+          "**목적격**: 동사·전치사 뒤 → 을/를, 에게"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s6",
+      "type": "concept",
+      "data": {
+        "heading": "하나 더! 소유대명사",
+        "lines": [
+          "**소유대명사**: ~의 것",
+          "**mine** = my bag → 뒤에 명사 없이 혼자",
+          "It's **mine**. = 그거 내 거야."
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s7",
+      "type": "concept",
+      "data": {
+        "heading": "인칭대명사 표 ① 나 · 너 · 우리",
+        "lines": [
+          "I · my · me · mine",
+          "you · your · you · yours",
+          "we · our · us · ours"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s8",
+      "type": "concept",
+      "data": {
+        "heading": "인칭대명사 표 ② 그 · 그녀 · 그것",
+        "lines": [
+          "he · **his** · him · **his**",
+          "she · **her** · **her** · hers",
+          "it · its · it · (거의 안 씀)"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s9",
+      "type": "concept",
+      "data": {
+        "heading": "인칭대명사 표 ③ 그들",
+        "lines": [
+          "they · their · them · theirs",
+          "**its**(그것의) ≠ **it's**(it is)",
+          "사물·동물이 여럿일 때도 **they**"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s10",
+      "type": "formula",
+      "data": {
+        "heading": "자리가 격을 정해요",
+        "blocks": [
+          {
+            "text": "주격 + 동사",
+            "note": "She is kind."
+          },
+          {
+            "text": "동사 + 목적격",
+            "note": "I like her."
+          },
+          {
+            "text": "전치사 + 목적격",
+            "note": "with her"
+          },
+          {
+            "text": "소유격 + 명사",
+            "note": "her bag"
+          }
+        ],
+        "example": [
+          {
+            "text": "She",
+            "point": true
+          },
+          {
+            "text": "gave"
+          },
+          {
+            "text": "me",
+            "point": true
+          },
+          {
+            "text": "her",
+            "point": true
+          },
+          {
+            "text": "phone"
+          },
+          {
+            "text": "number."
+          }
+        ],
+        "exampleKo": "그녀는 나에게 자기 전화번호를 줬다"
+      },
+      "chapter": "문장 구조"
+    },
+    {
+      "id": "s11",
+      "type": "formula",
+      "data": {
+        "heading": "소유대명사 = 소유격 + 명사",
+        "blocks": [
+          {
+            "text": "소유격 + 명사",
+            "note": "my bag"
+          },
+          {
+            "text": "= 소유대명사 (명사 없이)",
+            "note": "mine"
+          },
+          {
+            "text": "같은 명사를 반복하지 않을 때",
+            "note": "Your bag is red. Mine is blue."
+          }
+        ],
+        "example": [
+          {
+            "text": "Is"
+          },
+          {
+            "text": "this"
+          },
+          {
+            "text": "pen"
+          },
+          {
+            "text": "yours",
+            "point": true
+          },
+          {
+            "text": "or"
+          },
+          {
+            "text": "mine?",
+            "point": true
+          }
+        ],
+        "exampleKo": "이 펜 네 거야, 내 거야?"
+      },
+      "chapter": "문장 구조"
+    },
+    {
+      "id": "s12",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "My"
+          },
+          {
+            "text": "brother"
+          },
+          {
+            "text": "and"
+          },
+          {
+            "text": "I",
+            "point": true
+          },
+          {
+            "text": "go"
+          },
+          {
+            "text": "to"
+          },
+          {
+            "text": "the"
+          },
+          {
+            "text": "same"
+          },
+          {
+            "text": "school."
+          }
+        ],
+        "ko": "형과 나는 같은 학교에 다닌다",
+        "note": "주어 자리 → 주격 I"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s13",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "Can"
+          },
+          {
+            "text": "you"
+          },
+          {
+            "text": "call"
+          },
+          {
+            "text": "me",
+            "point": true
+          },
+          {
+            "text": "tonight?"
+          }
+        ],
+        "ko": "오늘 밤에 나한테 전화해 줄래?",
+        "note": "동사 call 뒤 → 목적격 me"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s14",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "This"
+          },
+          {
+            "text": "is"
+          },
+          {
+            "text": "a"
+          },
+          {
+            "text": "photo"
+          },
+          {
+            "text": "of"
+          },
+          {
+            "text": "us.",
+            "point": true
+          }
+        ],
+        "ko": "이건 우리가 나온 사진이야",
+        "note": "전치사 of 뒤 → 목적격 us"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s15",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "I"
+          },
+          {
+            "text": "love"
+          },
+          {
+            "text": "their",
+            "point": true
+          },
+          {
+            "text": "new"
+          },
+          {
+            "text": "song."
+          }
+        ],
+        "ko": "나는 그들의 신곡이 정말 좋아",
+        "note": "명사 앞 → 소유격 their"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s16",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "The"
+          },
+          {
+            "text": "dog"
+          },
+          {
+            "text": "is"
+          },
+          {
+            "text": "wagging"
+          },
+          {
+            "text": "its",
+            "point": true
+          },
+          {
+            "text": "tail."
+          }
+        ],
+        "ko": "강아지가 꼬리를 흔들고 있다",
+        "note": "its = 그것의 (아포스트로피 없음)"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s17",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "This"
+          },
+          {
+            "text": "isn't"
+          },
+          {
+            "text": "my",
+            "point": true
+          },
+          {
+            "text": "phone."
+          },
+          {
+            "text": "It's"
+          },
+          {
+            "text": "hers.",
+            "point": true
+          }
+        ],
+        "ko": "이건 내 폰이 아니야. 그녀 거야",
+        "note": "my + 명사 / hers는 혼자"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s18",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "I"
+          },
+          {
+            "text": "saw"
+          },
+          {
+            "text": "him",
+            "point": true
+          },
+          {
+            "text": "at"
+          },
+          {
+            "text": "the"
+          },
+          {
+            "text": "library,"
+          },
+          {
+            "text": "but"
+          },
+          {
+            "text": "he",
+            "point": true
+          },
+          {
+            "text": "didn't"
+          },
+          {
+            "text": "see"
+          },
+          {
+            "text": "me.",
+            "point": true
+          }
+        ],
+        "ko": "도서관에서 그를 봤는데, 그는 나를 못 봤어",
+        "note": "him · he · me — 자리마다 달라요"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s19",
+      "type": "mistake",
+      "data": {
+        "wrong": "Can you help I?",
+        "right": [
+          {
+            "text": "Can"
+          },
+          {
+            "text": "you"
+          },
+          {
+            "text": "help"
+          },
+          {
+            "text": "me?",
+            "role": "correct",
+            "point": true
+          }
+        ],
+        "why": "동사 help 뒤 → 목적격 me"
+      },
+      "chapter": "흔한 실수"
+    },
+    {
+      "id": "s20",
+      "type": "mistake",
+      "data": {
+        "wrong": "The cat is licking it's paw.",
+        "right": [
+          {
+            "text": "The"
+          },
+          {
+            "text": "cat"
+          },
+          {
+            "text": "is"
+          },
+          {
+            "text": "licking"
+          },
+          {
+            "text": "its",
+            "role": "correct",
+            "point": true
+          },
+          {
+            "text": "paw."
+          }
+        ],
+        "why": "its = 그것의 / it's = it is"
+      },
+      "chapter": "흔한 실수"
+    },
+    {
+      "id": "s21",
+      "type": "mistake",
+      "data": {
+        "wrong": "This bag is my.",
+        "right": [
+          {
+            "text": "This"
+          },
+          {
+            "text": "bag"
+          },
+          {
+            "text": "is"
+          },
+          {
+            "text": "mine.",
+            "role": "correct",
+            "point": true
+          }
+        ],
+        "why": "뒤에 명사 없음 → 소유대명사 mine"
+      },
+      "chapter": "흔한 실수"
+    },
+    {
+      "id": "s22",
+      "type": "quiz",
+      "data": {
+        "question": "빈칸에 알맞은 말은?",
+        "sentence": "I don't know ___ name.",
+        "choices": [
+          "he",
+          "his",
+          "him"
+        ],
+        "answer": 1,
+        "explanation": "명사 name 앞 → 소유격 his"
+      },
+      "chapter": "퀴즈"
+    },
+    {
+      "id": "s23",
+      "type": "quiz",
+      "data": {
+        "question": "빈칸에 알맞은 말은?",
+        "sentence": "Please tell ___ the truth.",
+        "choices": [
+          "we",
+          "our",
+          "us"
+        ],
+        "answer": 2,
+        "explanation": "동사 tell 뒤 → 목적격 us"
+      },
+      "chapter": "퀴즈"
+    },
+    {
+      "id": "s24",
+      "type": "quiz",
+      "data": {
+        "question": "빈칸에 알맞은 말은?",
+        "sentence": "Is this umbrella ___?",
+        "choices": [
+          "your",
+          "yours"
+        ],
+        "answer": 1,
+        "explanation": "뒤에 명사 없음 → 소유대명사 yours"
+      },
+      "chapter": "퀴즈"
+    },
+    {
+      "id": "s25",
+      "type": "summary",
+      "data": {
+        "points": [
+          "주격: 주어 자리 → I, he, we",
+          "소유격: 명사 앞 → my, his, our",
+          "목적격: 동사·전치사 뒤 → me, him, us",
+          "소유대명사: 혼자 → mine, his, ours"
+        ]
+      },
+      "chapter": "핵심 정리"
+    },
+    {
+      "id": "s26",
+      "type": "formula",
+      "data": {
+        "heading": "회화 패턴: Is this yours?",
+        "blocks": [
+          {
+            "text": "Is this yours?",
+            "note": "이거 네 거야?"
+          },
+          {
+            "text": "Yes, it's mine.",
+            "note": "응, 내 거야."
+          },
+          {
+            "text": "No, it's not mine.",
+            "note": "아니, 내 거 아니야."
+          }
+        ],
+        "example": [
+          {
+            "text": "Excuse"
+          },
+          {
+            "text": "me,"
+          },
+          {
+            "text": "is"
+          },
+          {
+            "text": "this"
+          },
+          {
+            "text": "yours?",
+            "point": true
+          }
+        ],
+        "exampleKo": "저기요, 이거 당신 거예요?"
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s27",
+      "type": "outro",
+      "data": {
+        "message": "오늘도 수고했어요!"
+      },
+      "chapter": "일상회화 패턴"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "안녕하세요, 위고업잉글리시예요! 오늘은 나, 너, 그녀 같은 인칭대명사가 문장 속 자리에 따라 모양이 바뀌는 규칙, 인칭대명사의 격을 알아볼 거예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "먼저 문장 하나 볼까요? 우리 영어 선생님을 소개하면서, 그녀의 수업은 재미있다고 말하고 싶어요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "She class is fun.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "그녀라는 뜻의 단어를 그대로 썼는데, 어디가 이상할까요? 이거 은근히 헷갈리죠?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-4",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "원어민은 이렇게 말해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-5",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "Her class is fun.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s2-6",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "수업의 주인이 그녀죠. 그녀가 아니라 그녀의, 라는 말이 필요하니까 소유격을 써요.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s2-6b",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "her.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-7",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "이렇게 같은 그녀라도 문장 속 자리에 따라 단어 모양이 달라져요. 오늘 이 규칙을 확실하게 잡아 볼게요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "오늘의 학습목표예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "첫째, 인칭대명사의 네 가지 모양, 주격, 소유격, 목적격, 그리고 소유대명사를 구별해요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "둘째, 문장에서 대명사가 들어갈 자리를 보고 알맞은 모양을 골라요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "셋째, 한국 학생들이 특히 헷갈려하는 표현들을 바르게 쓰는 법을 익혀요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "자, 그럼 왜 이런 규칙이 필요한지부터 같이 볼까요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "한국어는 나라는 말은 그대로 두고, 뒤에 붙는 조사만 바꿔요. 나는, 나의, 나를. 이렇게요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s4-3",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "그런데 영어에는 조사가 없어요. 그 대신 단어 모양 자체가 바뀌어요. 나는,",
+      "emotion": "설명",
+      "reveal": 2,
+      "joinNext": true
+    },
+    {
+      "id": "s4-3b",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "I.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s4-3c",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "나의,",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s4-3d",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "my.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s4-3e",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "나를,",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s4-3f",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "me.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-4",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "한국어로는 다 같은 나인데, 영어로는 서로 다른 단어 세 개가 되는 거예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-5",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "그러니까 영어에서는 대명사가 문장의 어느 자리에 들어가는지 먼저 보고, 그 자리에 맞는 모양을 골라야 해요. 이 모양을 격이라고 불러요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "격은 크게 세 가지예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-2",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "첫째, 주격. 문장의 주어 자리에 쓰고, 한국어의 은, 는, 이, 가에 해당해요.",
+      "emotion": "설명",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s5-2b",
+      "slideId": "s5",
+      "lang": "en",
+      "text": "I like music.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-3",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "둘째, 소유격. 명사 바로 앞에 써서 누구의 것인지 나타내요. 나의, 너의처럼 의가 붙는 말이에요.",
+      "emotion": "설명",
+      "reveal": 2,
+      "joinNext": true
+    },
+    {
+      "id": "s5-3b",
+      "slideId": "s5",
+      "lang": "en",
+      "text": "my phone.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-4",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "셋째, 목적격. 동사 뒤 목적어 자리에 쓰고, 한국어의 을, 를, 또는 에게에 해당해요.",
+      "emotion": "설명",
+      "reveal": 3,
+      "joinNext": true
+    },
+    {
+      "id": "s5-4b",
+      "slideId": "s5",
+      "lang": "en",
+      "text": "Call me.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-5",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "전치사 뒤에도 목적격을 써요. 전치사는 명사나 대명사 앞에 오는 짧은 말이에요. 예를 들면",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s5-5b",
+      "slideId": "s5",
+      "lang": "en",
+      "text": "with, for, to.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s5-5c",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "그래서 나와 함께는",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s5-5d",
+      "slideId": "s5",
+      "lang": "en",
+      "text": "with me.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s6-1",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "여기에 하나 더 알아 둘 게 있어요. 바로 소유대명사예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s6-2",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "소유대명사는 나의 것, 너의 것처럼, 누구의 것인지를 한 단어로 말해요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s6-3",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "예를 들어 내 가방은",
+      "emotion": "설명",
+      "reveal": 2,
+      "joinNext": true
+    },
+    {
+      "id": "s6-3b",
+      "slideId": "s6",
+      "lang": "en",
+      "text": "my bag.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s6-3c",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "그런데 그냥 내 거라고 짧게 말하고 싶으면",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s6-3d",
+      "slideId": "s6",
+      "lang": "en",
+      "text": "mine.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s6-4",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "소유격은 뒤에 꼭 명사가 오고, 소유대명사는 명사 없이 혼자 써요. 소유대명사 안에 이미 명사가 들어 있거든요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s6-5",
+      "slideId": "s6",
+      "lang": "en",
+      "text": "It's mine.",
+      "emotion": "설명",
+      "reveal": 3,
+      "joinNext": true
+    },
+    {
+      "id": "s6-5b",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "그거 내 거야.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s7-1",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "이제 표로 정리해 볼게요. 순서는 주격, 소유격, 목적격, 소유대명사예요. 소리 내서 같이 읽어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s7-2",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "먼저 나.",
+      "emotion": "설명",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s7-2b",
+      "slideId": "s7",
+      "lang": "en",
+      "text": "I, my, me, mine.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s7-3",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "너, 또는 너희.",
+      "emotion": "설명",
+      "reveal": 2,
+      "joinNext": true
+    },
+    {
+      "id": "s7-3b",
+      "slideId": "s7",
+      "lang": "en",
+      "text": "you, your, you, yours.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s7-4",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "주격과 목적격 모양이 똑같죠? 그리고 한 명이든 여러 명이든 모양이 같아요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s7-5",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "우리.",
+      "emotion": "설명",
+      "reveal": 3,
+      "joinNext": true
+    },
+    {
+      "id": "s7-5b",
+      "slideId": "s7",
+      "lang": "en",
+      "text": "we, our, us, ours.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-1",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "다음은 그.",
+      "emotion": "설명",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s8-1b",
+      "slideId": "s8",
+      "lang": "en",
+      "text": "he, his, him, his.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-2",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "여기서는 소유격과 소유대명사 모양이 같아요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-3",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "그녀.",
+      "emotion": "설명",
+      "reveal": 2,
+      "joinNext": true
+    },
+    {
+      "id": "s8-3b",
+      "slideId": "s8",
+      "lang": "en",
+      "text": "she, her, her, hers.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-4",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "이번에는 소유격과 목적격 모양이 같아요. 그래서 이 단어는 뒤에 명사가 있는지를 보고 뜻을 구별해요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s8-5",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "그것.",
+      "emotion": "설명",
+      "reveal": 3,
+      "joinNext": true
+    },
+    {
+      "id": "s8-5b",
+      "slideId": "s8",
+      "lang": "en",
+      "text": "it, its, it.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-6",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "그것의 소유대명사는 실제로 거의 쓰지 않아서, 빼고 기억해도 괜찮아요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s9-1",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "마지막으로 그들.",
+      "emotion": "설명",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s9-1b",
+      "slideId": "s9",
+      "lang": "en",
+      "text": "they, their, them, theirs.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s9-2",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "그리고 정말 많이 틀리는 게 있어요. 그것의, 라는 소유격은 아포스트로피 없이",
+      "emotion": "강조",
+      "reveal": 2,
+      "joinNext": true
+    },
+    {
+      "id": "s9-2b",
+      "slideId": "s9",
+      "lang": "en",
+      "text": "its.",
+      "emotion": "강조",
+      "joinNext": true
+    },
+    {
+      "id": "s9-2c",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "아포스트로피가 들어간 건 주로 이 말을 줄인 거예요.",
+      "emotion": "강조",
+      "joinNext": true
+    },
+    {
+      "id": "s9-2d",
+      "slideId": "s9",
+      "lang": "en",
+      "text": "it's, it is.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s9-3",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "둘은 발음이 똑같아서 귀로는 구별이 안 돼요. 그래서 쓸 때 특히 조심해야 해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s9-4",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "그리고 그들이라는 뜻의 대명사는 사람에게만 쓰는 게 아니에요. 사물이나 동물이 여럿일 때도 써요.",
+      "emotion": "설명",
+      "reveal": 3,
+      "joinNext": true
+    },
+    {
+      "id": "s9-4b",
+      "slideId": "s9",
+      "lang": "en",
+      "text": "I love these shoes. They're so comfortable.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-1",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "이제 공식으로 정리해 볼게요. 핵심은 딱 하나, 자리가 격을 정한다는 거예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-2",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "동사 앞, 주어 자리에는 주격.",
+      "emotion": "설명",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s10-2b",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "She is kind.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-3",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "동사 뒤, 목적어 자리에는 목적격.",
+      "emotion": "설명",
+      "reveal": 2,
+      "joinNext": true
+    },
+    {
+      "id": "s10-3b",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "I like her.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-4",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "전치사 뒤에도 목적격.",
+      "emotion": "설명",
+      "reveal": 3,
+      "joinNext": true
+    },
+    {
+      "id": "s10-4b",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "with her.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-5",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "명사 앞에는 소유격.",
+      "emotion": "설명",
+      "reveal": 4,
+      "joinNext": true
+    },
+    {
+      "id": "s10-5b",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "her bag.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-6",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "같은 그녀인데, 자리마다 모양이 달라지죠?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s10-7",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "She gave me her phone number.",
+      "emotion": "설명",
+      "reveal": 5
+    },
+    {
+      "id": "s10-8",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "그녀는 나에게 자기 전화번호를 줬다. 주어 자리에는",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s10-8b",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "she,",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s10-8c",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "동사 뒤에는",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s10-8d",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "me,",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s10-8e",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "명사 앞에는",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s10-8f",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "her.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s10-8g",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "한 문장 안에 세 가지 격이 다 들어 있어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s11-1",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "두 번째 공식은 소유대명사예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s11-2",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "소유격 다음에 명사가 오면,",
+      "emotion": "설명",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s11-2b",
+      "slideId": "s11",
+      "lang": "en",
+      "text": "my bag.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s11-3",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "이 두 단어를 한 단어로 줄인 게 소유대명사예요.",
+      "emotion": "설명",
+      "reveal": 2,
+      "joinNext": true
+    },
+    {
+      "id": "s11-3b",
+      "slideId": "s11",
+      "lang": "en",
+      "text": "mine.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s11-4",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "앞에 나온 명사를 또 말하지 않으려고 자주 써요.",
+      "emotion": "설명",
+      "reveal": 3,
+      "joinNext": true
+    },
+    {
+      "id": "s11-4b",
+      "slideId": "s11",
+      "lang": "en",
+      "text": "Your bag is red. Mine is blue.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s11-5",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "네 가방은 빨간색이고, 내 거는 파란색이야. 가방이라는 말을 두 번 하지 않았죠?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s11-6",
+      "slideId": "s11",
+      "lang": "en",
+      "text": "Is this pen yours or mine?",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s11-7",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "이 펜 네 거야, 내 거야? 뒤에 명사가 없으니까 소유대명사를 썼어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s12-1",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "이제 예문을 들어 볼게요. 원어민 발음을 잘 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s12-2",
+      "slideId": "s12",
+      "lang": "en",
+      "text": "My brother and I go to the same school.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s12-3",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "형과 나는 같은 학교에 다닌다.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s12-4",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "다른 사람과 함께 주어가 되어도 주어 자리는 주격이에요. 그래서",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s12-4b",
+      "slideId": "s12",
+      "lang": "en",
+      "text": "my brother and I.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s12-5",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "그리고 영어에서는 보통 다른 사람을 먼저 말하고, 나는 뒤에 말해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s13-1",
+      "slideId": "s13",
+      "lang": "en",
+      "text": "Can you call me tonight?",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s13-2",
+      "slideId": "s13",
+      "lang": "ko",
+      "text": "오늘 밤에 나한테 전화해 줄래?.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s13-3",
+      "slideId": "s13",
+      "lang": "ko",
+      "text": "전화를 받는 사람, 나. 동사 바로 뒤니까 목적격",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s13-3b",
+      "slideId": "s13",
+      "lang": "en",
+      "text": "me.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s13-4",
+      "slideId": "s13",
+      "lang": "ko",
+      "text": "해석은 나한테, 라고 되지만 영어에서는 전치사 없이 동사 뒤에 바로 목적격을 써요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s14-1",
+      "slideId": "s14",
+      "lang": "en",
+      "text": "This is a photo of us.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s14-2",
+      "slideId": "s14",
+      "lang": "ko",
+      "text": "이건 우리가 나온 사진이야.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s14-3",
+      "slideId": "s14",
+      "lang": "ko",
+      "text": "전치사 뒤에는 목적격이에요. 그래서 우리를 뜻하는 목적격,",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s14-3b",
+      "slideId": "s14",
+      "lang": "en",
+      "text": "us.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s14-4",
+      "slideId": "s14",
+      "lang": "ko",
+      "text": "여기에 주격을 쓰면 틀린 문장이 돼요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s15-1",
+      "slideId": "s15",
+      "lang": "en",
+      "text": "I love their new song.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s15-2",
+      "slideId": "s15",
+      "lang": "ko",
+      "text": "나는 그들의 신곡이 정말 좋아.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s15-3",
+      "slideId": "s15",
+      "lang": "ko",
+      "text": "노래의 주인은 그들이죠. 명사 앞이니까 그들의, 라는 소유격",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s15-3b",
+      "slideId": "s15",
+      "lang": "en",
+      "text": "their.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s15-4",
+      "slideId": "s15",
+      "lang": "ko",
+      "text": "중간에 꾸미는 말이 끼어 있어도 소유격은 맨 앞에 와요.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s15-4b",
+      "slideId": "s15",
+      "lang": "en",
+      "text": "their new song.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s16-1",
+      "slideId": "s16",
+      "lang": "en",
+      "text": "The dog is wagging its tail.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s16-2",
+      "slideId": "s16",
+      "lang": "ko",
+      "text": "강아지가 꼬리를 흔들고 있다.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s16-3",
+      "slideId": "s16",
+      "lang": "ko",
+      "text": "강아지의 꼬리니까 그것의, 라는 소유격",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s16-3b",
+      "slideId": "s16",
+      "lang": "en",
+      "text": "its.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s16-4",
+      "slideId": "s16",
+      "lang": "ko",
+      "text": "아포스트로피가 없는 거, 꼭 확인하세요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s17-1",
+      "slideId": "s17",
+      "lang": "en",
+      "text": "This isn't my phone. It's hers.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s17-2",
+      "slideId": "s17",
+      "lang": "ko",
+      "text": "이건 내 폰이 아니야. 그녀 거야.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s17-3",
+      "slideId": "s17",
+      "lang": "ko",
+      "text": "앞 문장은 명사 앞이라 소유격",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s17-3b",
+      "slideId": "s17",
+      "lang": "en",
+      "text": "my phone.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s17-3c",
+      "slideId": "s17",
+      "lang": "ko",
+      "text": "뒤 문장은 명사 없이 혼자니까 소유대명사",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s17-3d",
+      "slideId": "s17",
+      "lang": "en",
+      "text": "hers.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s18-1",
+      "slideId": "s18",
+      "lang": "en",
+      "text": "I saw him at the library, but he didn't see me.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s18-2",
+      "slideId": "s18",
+      "lang": "ko",
+      "text": "도서관에서 그를 봤는데, 그는 나를 못 봤어.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s18-3",
+      "slideId": "s18",
+      "lang": "ko",
+      "text": "그를 봤다, 에서는 동사 뒤니까",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s18-3b",
+      "slideId": "s18",
+      "lang": "en",
+      "text": "him.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s18-3c",
+      "slideId": "s18",
+      "lang": "ko",
+      "text": "그는 못 봤다, 에서는 주어니까",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s18-3d",
+      "slideId": "s18",
+      "lang": "en",
+      "text": "he.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s18-3e",
+      "slideId": "s18",
+      "lang": "ko",
+      "text": "나를 못 봤다, 에서는 다시 동사 뒤니까",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s18-3f",
+      "slideId": "s18",
+      "lang": "en",
+      "text": "me.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s19-1",
+      "slideId": "s19",
+      "lang": "ko",
+      "text": "이제 한국 학생들이 자주 틀리는 실수 세 가지를 볼게요. 첫 번째.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s19-2",
+      "slideId": "s19",
+      "lang": "en",
+      "text": "Can you help I?",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s19-3",
+      "slideId": "s19",
+      "lang": "ko",
+      "text": "나를 도와줄래, 라는 말이에요. 나라는 단어가 나오니까 습관처럼 주격을 썼어요. 어색하죠?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s19-4",
+      "slideId": "s19",
+      "lang": "en",
+      "text": "Can you help me?",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s19-5",
+      "slideId": "s19",
+      "lang": "ko",
+      "text": "돕는 대상, 나를. 동사 뒤 목적어 자리니까 목적격을 써야 해요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s20-1",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "두 번째.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s20-2",
+      "slideId": "s20",
+      "lang": "en",
+      "text": "The cat is licking it's paw.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s20-3",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "고양이가 자기 발을 핥고 있다는 말이에요. 소리로 들으면 맞는 것 같지만, 글로 쓰면 틀렸어요. 어디일까요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s20-4",
+      "slideId": "s20",
+      "lang": "en",
+      "text": "The cat is licking its paw.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s20-5",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "그것의, 라는 소유격은 아포스트로피가 없는",
+      "emotion": "강조",
+      "reveal": 3,
+      "joinNext": true
+    },
+    {
+      "id": "s20-5b",
+      "slideId": "s20",
+      "lang": "en",
+      "text": "its.",
+      "emotion": "강조",
+      "joinNext": true
+    },
+    {
+      "id": "s20-5c",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "아포스트로피를 넣으면 줄임말이 돼서 문장 뜻이 이상해져요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s21-1",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "세 번째.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s21-2",
+      "slideId": "s21",
+      "lang": "en",
+      "text": "This bag is my.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s21-3",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "이 가방은 내 거야, 라는 말이에요. 나의, 라는 뜻이니까 소유격을 썼네요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s21-4",
+      "slideId": "s21",
+      "lang": "en",
+      "text": "This bag is mine.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s21-5",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "소유격은 혼자 쓸 수 없고 뒤에 꼭 명사가 와야 해요. 명사 없이 내 거라고 말할 때는 소유대명사,",
+      "emotion": "강조",
+      "reveal": 3,
+      "joinNext": true
+    },
+    {
+      "id": "s21-5b",
+      "slideId": "s21",
+      "lang": "en",
+      "text": "mine.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s21-6",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "반대로 소유대명사 뒤에 명사를 붙이는 것도 틀려요. 내 가방은 이렇게 말해요.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s21-6b",
+      "slideId": "s21",
+      "lang": "en",
+      "text": "my bag.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s22-1",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "자, 이제 퀴즈예요! 첫 번째 문제. 빈칸에 알맞은 말을 골라 보세요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s22-2",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "나는 그의 이름을 모른다는 문장이에요. 보기는 1번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s22-2b",
+      "slideId": "s22",
+      "lang": "en",
+      "text": "he",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s22-2c",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": ", 2번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s22-2d",
+      "slideId": "s22",
+      "lang": "en",
+      "text": "his",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s22-2e",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": ", 3번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s22-2f",
+      "slideId": "s22",
+      "lang": "en",
+      "text": "him.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s22-2g",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "5초 드릴게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s22-3",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 5
+    },
+    {
+      "id": "s22-4",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "정답은 2번,",
+      "emotion": "칭찬",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s22-4b",
+      "slideId": "s22",
+      "lang": "en",
+      "text": "his!",
+      "emotion": "칭찬",
+      "joinNext": true
+    },
+    {
+      "id": "s22-4c",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "빈칸 뒤에 명사가 있으니까 소유격이에요.",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s22-5",
+      "slideId": "s22",
+      "lang": "en",
+      "text": "I don't know his name.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s23-1",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "두 번째 문제.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s23-2",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "우리에게 사실대로 말해 달라는 문장이에요. 보기는 1번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-2b",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "we",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-2c",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": ", 2번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-2d",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "our",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-2e",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": ", 3번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-2f",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "us.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-2g",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "5초 드릴게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s23-3",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 5
+    },
+    {
+      "id": "s23-4",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "정답은 3번,",
+      "emotion": "칭찬",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s23-4b",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "us!",
+      "emotion": "칭찬",
+      "joinNext": true
+    },
+    {
+      "id": "s23-4c",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "동사 뒤 목적어 자리니까 목적격이에요.",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s23-5",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "Please tell us the truth.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s24-1",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "마지막 문제.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s24-2",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "이 우산 네 거야, 라고 묻는 문장이에요. 보기는 1번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-2b",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "your",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-2c",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": ", 2번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-2d",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "yours.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-2e",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "5초 드릴게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s24-3",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 5
+    },
+    {
+      "id": "s24-4",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "정답은 2번,",
+      "emotion": "칭찬",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s24-4b",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "yours!",
+      "emotion": "칭찬",
+      "joinNext": true
+    },
+    {
+      "id": "s24-4c",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "빈칸 뒤에 명사가 없으니까 소유대명사를 써요.",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s24-5",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "Is this umbrella yours?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s25-1",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "오늘 배운 걸 정리해 볼게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s25-2",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "주어 자리에는 주격.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s25-3",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "명사 앞에는 소유격.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s25-4",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "동사나 전치사 뒤에는 목적격.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s25-5",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "명사 없이 혼자 쓸 때는 소유대명사.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s25-6",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "그리고 그것의, 는 아포스트로피 없는",
+      "emotion": "강조",
+      "joinNext": true
+    },
+    {
+      "id": "s25-6b",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "its!",
+      "emotion": "강조",
+      "joinNext": true
+    },
+    {
+      "id": "s25-6c",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "대명사를 쓸 때는 먼저 자리를 보세요!",
+      "emotion": "강조"
+    },
+    {
+      "id": "s26-1",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "마지막으로 오늘 배운 걸 바로 써먹는 회화 패턴이에요. 떨어진 물건이 누구 건지 물어볼 때 쓰는 말이에요. 듣고 따라 해 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s26-2",
+      "slideId": "s26",
+      "lang": "en",
+      "text": "Is this yours?",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s26-3",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 2.5
+    },
+    {
+      "id": "s26-4",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "이거 네 거야? 명사 없이 혼자 쓰니까 소유대명사예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s26-5",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "내 거라면 이렇게 대답해요.",
+      "emotion": "설명",
+      "reveal": 2,
+      "joinNext": true
+    },
+    {
+      "id": "s26-5b",
+      "slideId": "s26",
+      "lang": "en",
+      "text": "Yes, it's mine.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s26-6",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 2.5
+    },
+    {
+      "id": "s26-7",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "내 거가 아니라면 이렇게요.",
+      "emotion": "설명",
+      "reveal": 3,
+      "joinNext": true
+    },
+    {
+      "id": "s26-7b",
+      "slideId": "s26",
+      "lang": "en",
+      "text": "No, it's not mine.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s26-8",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 2.5
+    },
+    {
+      "id": "s26-9",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "모르는 사람에게 물어볼 때는 앞에 이 말을 붙이면 더 공손해요.",
+      "emotion": "설명",
+      "reveal": 4,
+      "joinNext": true
+    },
+    {
+      "id": "s26-9b",
+      "slideId": "s26",
+      "lang": "en",
+      "text": "Excuse me, is this yours?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s26-10",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 2.5
+    },
+    {
+      "id": "s26-11",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "한 번 더 따라 해 보세요.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s26-11b",
+      "slideId": "s26",
+      "lang": "en",
+      "text": "Excuse me, is this yours?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s26-12",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 2.5
+    },
+    {
+      "id": "s27-1",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "교실에서, 길에서 이 표현 꼭 한번 써 보세요. 오늘도 수고했어요. 다음 시간에 만나요!",
+      "emotion": "칭찬"
+    }
+  ]
+}
