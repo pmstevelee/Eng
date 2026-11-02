@@ -183,3 +183,6 @@
 - Remotion 컴포지션 `src/components/lecture-video/`(슬라이드 10종, 절대 시간 기준 — Sequence 안 씀), 진입점 `remotion/lecture-pipeline.ts`, 글꼴 `public/fonts/pretendard`
 - 출력은 반드시 **1440p(2560×1440)**: 레이아웃은 1920×1080 그대로 두고 `renderMedia`의 `scale: 4/3` + `jpegQuality: 100` (`scripts/lecture/steps/render.ts`). 1080p 업로드는 YouTube 재압축으로 글자가 흐려짐
 - 1440p 캡처는 가끔 빈 화면 프레임이 1~2장 끼어듦(깜박임) → 30초 조각 렌더(음성 없이) + `scripts/lecture/frame-check.ts` 검사·재렌더 → concat(-c copy) + narration.wav → 완성본 재검사. 이 검사를 빼지 말 것
+- 네이버 블로그(`npm run blog`/`blog:publish`): `lectures/{slug}/blog/` (keywords.md · blog-post.md · blog-meta.json · publish-log.md · images/ · screenshots/). 원고 형식·검사 `src/lib/lecture-pipeline/blog.ts`, AI `scripts/lecture/ai-blog.ts`(유튜브 설명·카드뉴스 캡션 한국어 문장 재사용 금지)
+  - 등록은 ego lite(`ego-browser nodejs`, 작업 공간은 실행마다 "naver blog {slug} {시각}")로 **임시저장(저장 버튼)까지만**. 태그·카테고리는 상단 "발행" 버튼이 여는 설정 창에서만 입력 가능 → 창만 열고 Esc로 닫는다. 창 안 최종 발행(`confirm_btn`)은 절대 누르지 않는다(2026-11-02 사용자 승인 범위). 요소를 못 찾으면 추측 클릭 없이 멈춤
+  - 네이버 아이디·비밀번호는 코드·.env에 넣지 않는다 (사용자가 ego lite에서 직접 로그인)

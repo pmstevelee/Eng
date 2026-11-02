@@ -47,3 +47,6 @@ next-env.d.ts
 /lectures/*/*.mp4
 /lectures/*/*.wav
 /lectures/*/.preview-props.json
+lectures/.ego-check/
+/lectures/*/blog/images/
+/lectures/*/blog/screenshots/

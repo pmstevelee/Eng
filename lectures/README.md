@@ -13,6 +13,8 @@
 | 2 | `npm run voice -- present-perfect` | 음성 만들기 + 발음 검수 | 3~5분 |
 | 3 | `npm run preview -- present-perfect` | 브라우저에서 미리보기 | 바로 |
 | 4 | `npm run render -- present-perfect` | 최종 mp4·썸네일·YouTube 자료 | 10~30분 (컴퓨터 성능에 따라) |
+| 블로그 1 | `npm run blog -- present-perfect` | 네이버 블로그 키워드·원고를 쓰고 **멈춰요** (검토) | 2~3분 |
+| 블로그 2 | `npm run blog:publish -- present-perfect` | ego lite로 네이버 블로그에 **임시저장** (발행 안 함) | 3~6분 |
 | 한 번에 | `npm run all -- "현재완료 시제"` | 1~4를 멈추지 않고 전부 | 위를 합친 시간 |
 
 `present-perfect` 같은 영문 이름은 **slug(폴더 이름)** 예요. 1단계가 끝날 때 화면에 알려 줘요.
@@ -154,6 +156,85 @@ npm run render -- present-perfect
 | `script.json` / `script-review.md` | 대본 |
 | `qa-report.md` | 발음 검수 결과 |
 | `audio/`, `narration.wav`, `timeline.json` | 음성 파일·시간표 (자동 생성) |
+
+---
+
+## 네이버 블로그 글 만들기 (SEO)
+
+본 강의 대본으로 **네이버 블로그용 글을 새로** 써요. 유튜브 설명·카드뉴스 캡션 문장은 그대로 쓰지 않아요(같은 문장이 들어가면 자동으로 다시 쓰게 해요 — 네이버 유사 문서 방지).
+
+### 1. 키워드 + 원고 (여기서 멈춰요)
+
+```bash
+npm run blog -- present-perfect
+```
+
+하는 일:
+1. **키워드 제안** → `blog/keywords.md` (메인 1개 + 서브 3~5개, 후보와 고른 이유)
+2. **이미지 준비** → `blog/images/` 카드뉴스 PNG(없는 장은 자동 렌더) + 강의 슬라이드 캡처(1920×1080)
+3. **원고** → `blog/blog-post.md` + `blog/blog-meta.json` (제목·태그·카테고리·이미지 순서·유튜브 주소)
+
+원고 규칙(자동 검사): 제목은 메인 키워드로 시작 30자 안팎 · 본문 2,000~3,000자 · 소제목 6개 · 이미지 6~10장(설명 포함) · 메인 키워드 5~8번 · 태그 10~20개 · "~해요"체 짧은 문단.
+흐름: 도입(고민) → 개념 → 공식 → 예문 → 흔한 실수 → 일상회화 패턴 → 퀴즈와 정리 → 댓글 질문 + 위고업잉글리시 소개. 중간에 유튜브 본편 자리 `[YOUTUBE: …]`가 하나 들어가요.
+
+옵션:
+- 키워드만 먼저 보고 싶으면: `--keywords-only` → `keywords.md`의 **선정** 블록을 고친 뒤 `npm run blog -- present-perfect` (고친 키워드로 원고를 써요)
+- 유튜브 본편 주소 넣기: `--youtube https://youtu.be/영상id` (안 넣으면 문법학습관리에 등록된 본사 강의 주소를 찾아요. 없으면 자리만 표시)
+- 카테고리: `--category "중학 영문법"` (기본값 `중학 영문법`, `.env.local`의 `NAVER_BLOG_CATEGORY`로 바꿀 수 있어요). **내 블로그에 있는 카테고리 이름과 똑같아야** 해요.
+- 이미 있으면 덮어쓰지 않아요. 새로 쓰려면 `--force` · 슬라이드 캡처를 다시 하려면 `--recapture`
+
+### 검토·고치기
+`blog/blog-post.md`를 열어 바로 고쳐요.
+
+```
+# 제목
+도입 문단 (빈 줄로 문단 구분)
+## 소제목
+[IMG: card-03.png | 이미지 아래 설명]
+[YOUTUBE: https://youtu.be/영상id | 영상 소개]
+```
+
+- 이미지는 `blog/images/` 안의 파일 이름만 쓸 수 있어요.
+- 제목·태그·카테고리는 `blog/blog-meta.json`에서 고쳐요 (제목은 `blog-post.md` 첫 줄이 우선).
+
+### 2. 네이버 블로그에 임시저장
+
+```bash
+npm run blog:publish -- present-perfect
+```
+
+ego lite 브라우저로 내 블로그 글쓰기 화면을 열어 **제목 → 본문(소제목 서식) → 이미지 → 유튜브 → 태그·카테고리**를 차례로 넣고 **임시저장(저장)까지만** 해요. **발행은 하지 않아요** — 마지막 확인과 발행은 직접 해 주세요.
+
+- **태그·카테고리:** 네이버 에디터에서 이 칸은 상단 **발행** 버튼이 여는 "발행 설정" 창에만 있어요. 그래서 그 창을 **열기만** 해서 태그를 넣고 카테고리를 고른 뒤 **Esc로 닫아요**. 창 안의 최종 **발행** 버튼은 절대 누르지 않아요.
+- **카테고리가 블로그에 없으면** 손대지 않고(기본 카테고리 그대로) 기록에 ⚠로 남겨요. 네이버 블로그 관리 → 메뉴·글·동영상 관리 → 카테고리에서 같은 이름으로 만들거나, `--category`로 있는 이름을 넣어요.
+- **유튜브:** 본문에 주소를 넣으면 네이버가 영상 카드로 바꿔요. 주소가 없으면 그 단계는 건너뛰어요 (`npm run blog -- 폴더이름 --force --youtube 주소`로 원고를 다시 만들거나, `blog-meta.json`의 `youtubeUrl`에 넣어요).
+- **"작성 중인 글이 있습니다" 팝업**이 뜨면 멈춰요. 그 글을 버리고 새로 쓰려면 `--discard-autosave`를 붙여요 (이미 **저장**한 임시저장 글은 지워지지 않아요).
+- 끝나면 ego lite에 저장된 글 화면을 열어 둬요. 상단 **저장** 옆 숫자를 누르면 임시저장 글 목록이 나와요.
+
+- 단계마다 스크린샷을 `blog/screenshots/`에 남기고, 결과를 `blog/publish-log.md`에 적어요.
+- 에디터 화면이 예상과 다르거나 버튼을 못 찾으면 **추측해서 누르지 않고 멈춰요**. 그때 스크린샷을 보고 알려 주세요.
+- 사람처럼 단계 사이에 잠깐씩 쉬어요. 글 하나에 3~6분쯤 걸려요.
+- 연결만 확인하려면: `npm run blog:publish -- --check` (글쓰기 화면을 열고 제목 칸이 보이는지만 봐요)
+
+---
+
+## ego lite 설정 (처음 한 번만)
+
+ego lite는 사람과 AI가 같이 쓰는 크롬 기반 브라우저예요. 블로그 등록 단계가 이 브라우저를 움직여요. ([citrolabs/ego-lite](https://github.com/citrolabs/ego-lite))
+
+1. **설치:** GitHub 페이지에서 Mac용 DMG를 받아요 (Apple 칩이면 Apple Silicon, 예전 Mac이면 Intel). 열어서 `ego lite`를 응용 프로그램 폴더로 끌어 놓아요.
+2. **처음 실행:** `ego lite`를 열면 Chrome 데이터를 가져올지 물어요. 가져오면 크롬에 로그인된 사이트를 그대로 써요 (안 가져와도 돼요).
+3. **Claude Code 연결 확인:** 설치하면 `ego-browser` 명령과 스킬이 자동으로 들어가요. 터미널에서 확인해요.
+   ```bash
+   ego-browser skill | head -3
+   ```
+   `ego-browser usage guide v…`가 나오면 연결된 거예요. `command not found`면 ego lite를 한 번 실행한 뒤 터미널을 새로 열어요. 스킬이 없으면 `npx skills add citrolabs/ego-lite`.
+4. **네이버 로그인 (직접):** ego lite에서 [nid.naver.com](https://nid.naver.com)에 들어가 **직접 로그인**해요. "로그인 상태 유지"를 켜 두면 다음부터 다시 안 해도 돼요.
+   - ⚠️ 아이디·비밀번호는 코드나 `.env.local`에 **절대 넣지 않아요.** 로그인은 브라우저에만 남아요.
+   - 등록 중에 로그인 화면이 나오면 도구가 멈추고 알려 줘요. ego lite에서 로그인한 뒤 같은 명령을 다시 실행해요.
+5. **연결 테스트:** `npm run blog:publish -- --check` → "제목 입력란 확인 ✔"이 나오면 끝이에요.
+- 업데이트 알림(`[ego-browser:notice]`)이 나오면 `ego-browser upgrade`로 올려요.
+- AI가 브라우저를 쓰는 동안 ego lite에 작업 공간(Space)이 따로 생겨요. 언제든 직접 멈추거나 넘겨받을 수 있어요.
 
 ---
 

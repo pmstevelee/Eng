@@ -42,7 +42,9 @@
     "voice": "tsx scripts/lecture/run-voice.ts",
     "preview": "tsx scripts/lecture/run-preview.ts",
     "render": "tsx scripts/lecture/run-render.ts",
-    "all": "tsx scripts/lecture/run-all.ts"
+    "all": "tsx scripts/lecture/run-all.ts",
+    "blog": "tsx scripts/lecture/run-blog.ts",
+    "blog:publish": "tsx scripts/lecture/run-blog-publish.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
