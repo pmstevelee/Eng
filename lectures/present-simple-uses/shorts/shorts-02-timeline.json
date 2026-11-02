@@ -1,0 +1,694 @@
+{
+  "version": 1,
+  "totalMs": 50889,
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "startMs": 250,
+      "endMs": 3350,
+      "words": [
+        {
+          "text": "얼마나",
+          "startMs": 250,
+          "endMs": 614
+        },
+        {
+          "text": "자주",
+          "startMs": 686,
+          "endMs": 905
+        },
+        {
+          "text": "해?",
+          "startMs": 977,
+          "endMs": 1559
+        },
+        {
+          "text": "영어로",
+          "startMs": 1705,
+          "endMs": 2141
+        },
+        {
+          "text": "바로",
+          "startMs": 2214,
+          "endMs": 2432
+        },
+        {
+          "text": "말할",
+          "startMs": 2505,
+          "endMs": 2723
+        },
+        {
+          "text": "수",
+          "startMs": 2759,
+          "endMs": 2795
+        },
+        {
+          "text": "있나요?",
+          "startMs": 2868,
+          "endMs": 3350
+        }
+      ]
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 3830,
+      "endMs": 6480,
+      "words": [
+        {
+          "text": "상대방의",
+          "startMs": 3830,
+          "endMs": 4412
+        },
+        {
+          "text": "습관을",
+          "startMs": 4521,
+          "endMs": 4848
+        },
+        {
+          "text": "물어볼",
+          "startMs": 4921,
+          "endMs": 5285
+        },
+        {
+          "text": "때",
+          "startMs": 5357,
+          "endMs": 5430
+        },
+        {
+          "text": "쓰는",
+          "startMs": 5503,
+          "endMs": 5721
+        },
+        {
+          "text": "패턴이에요.",
+          "startMs": 5794,
+          "endMs": 6480
+        }
+      ]
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "startMs": 6780,
+      "endMs": 8290,
+      "words": [
+        {
+          "text": "How",
+          "startMs": 6780,
+          "endMs": 7010
+        },
+        {
+          "text": "often",
+          "startMs": 7090,
+          "endMs": 7490
+        },
+        {
+          "text": "do",
+          "startMs": 7570,
+          "endMs": 7730
+        },
+        {
+          "text": "you?",
+          "startMs": 7810,
+          "endMs": 8290
+        }
+      ],
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 8590,
+      "endMs": 15920,
+      "words": [
+        {
+          "text": "얼마나",
+          "startMs": 8590,
+          "endMs": 9099
+        },
+        {
+          "text": "자주",
+          "startMs": 9172,
+          "endMs": 9390
+        },
+        {
+          "text": "하냐는",
+          "startMs": 9463,
+          "endMs": 9754
+        },
+        {
+          "text": "뜻이에요.",
+          "startMs": 9826,
+          "endMs": 10845
+        },
+        {
+          "text": "습관을",
+          "startMs": 10954,
+          "endMs": 11281
+        },
+        {
+          "text": "묻는",
+          "startMs": 11354,
+          "endMs": 11572
+        },
+        {
+          "text": "말이라서",
+          "startMs": 11645,
+          "endMs": 12299
+        },
+        {
+          "text": "현재시제를",
+          "startMs": 12420,
+          "endMs": 12954
+        },
+        {
+          "text": "써요.",
+          "startMs": 13026,
+          "endMs": 13754
+        },
+        {
+          "text": "뒤에",
+          "startMs": 13826,
+          "endMs": 14190
+        },
+        {
+          "text": "동사원형만",
+          "startMs": 14335,
+          "endMs": 14990
+        },
+        {
+          "text": "바꿔",
+          "startMs": 15135,
+          "endMs": 15281
+        },
+        {
+          "text": "넣으면",
+          "startMs": 15317,
+          "endMs": 15572
+        },
+        {
+          "text": "돼요.",
+          "startMs": 15645,
+          "endMs": 15920
+        }
+      ]
+    },
+    {
+      "id": "s2-9",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 16100,
+      "endMs": 20390,
+      "words": [
+        {
+          "text": "운동,",
+          "startMs": 16100,
+          "endMs": 16900
+        },
+        {
+          "text": "외식,",
+          "startMs": 17045,
+          "endMs": 17627
+        },
+        {
+          "text": "게임처럼",
+          "startMs": 17700,
+          "endMs": 18500
+        },
+        {
+          "text": "습관이면",
+          "startMs": 18645,
+          "endMs": 19373
+        },
+        {
+          "text": "뭐든",
+          "startMs": 19445,
+          "endMs": 19664
+        },
+        {
+          "text": "넣어",
+          "startMs": 19736,
+          "endMs": 19882
+        },
+        {
+          "text": "보세요.",
+          "startMs": 19955,
+          "endMs": 20390
+        }
+      ]
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 20870,
+      "endMs": 22751,
+      "words": [
+        {
+          "text": "예문",
+          "startMs": 20870,
+          "endMs": 21234
+        },
+        {
+          "text": "세",
+          "startMs": 21306,
+          "endMs": 21379
+        },
+        {
+          "text": "개,",
+          "startMs": 21452,
+          "endMs": 21961
+        },
+        {
+          "text": "바로",
+          "startMs": 22034,
+          "endMs": 22179
+        },
+        {
+          "text": "갈게요!",
+          "startMs": 22252,
+          "endMs": 22751
+        }
+      ]
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 23051,
+      "endMs": 24651,
+      "words": [
+        {
+          "text": "How",
+          "startMs": 23051,
+          "endMs": 23251
+        },
+        {
+          "text": "often",
+          "startMs": 23331,
+          "endMs": 23651
+        },
+        {
+          "text": "do",
+          "startMs": 23731,
+          "endMs": 23811
+        },
+        {
+          "text": "you",
+          "startMs": 23851,
+          "endMs": 23891
+        },
+        {
+          "text": "work",
+          "startMs": 23971,
+          "endMs": 24131
+        },
+        {
+          "text": "out?",
+          "startMs": 24211,
+          "endMs": 24651
+        }
+      ]
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 24951,
+      "endMs": 26451,
+      "words": [
+        {
+          "text": "운동",
+          "startMs": 24951,
+          "endMs": 25315
+        },
+        {
+          "text": "얼마나",
+          "startMs": 25533,
+          "endMs": 25824
+        },
+        {
+          "text": "자주",
+          "startMs": 25969,
+          "endMs": 26115
+        },
+        {
+          "text": "해?",
+          "startMs": 26187,
+          "endMs": 26451
+        }
+      ]
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 26751,
+      "endMs": 28461,
+      "words": [
+        {
+          "text": "How",
+          "startMs": 26751,
+          "endMs": 26971
+        },
+        {
+          "text": "often",
+          "startMs": 27051,
+          "endMs": 27371
+        },
+        {
+          "text": "do",
+          "startMs": 27451,
+          "endMs": 27531
+        },
+        {
+          "text": "you",
+          "startMs": 27611,
+          "endMs": 27691
+        },
+        {
+          "text": "eat",
+          "startMs": 27771,
+          "endMs": 27931
+        },
+        {
+          "text": "out?",
+          "startMs": 28011,
+          "endMs": 28461
+        }
+      ]
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 28761,
+      "endMs": 30401,
+      "words": [
+        {
+          "text": "외식",
+          "startMs": 28761,
+          "endMs": 29270
+        },
+        {
+          "text": "얼마나",
+          "startMs": 29488,
+          "endMs": 29779
+        },
+        {
+          "text": "자주",
+          "startMs": 29852,
+          "endMs": 30070
+        },
+        {
+          "text": "해?",
+          "startMs": 30143,
+          "endMs": 30401
+        }
+      ]
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 30701,
+      "endMs": 32671,
+      "words": [
+        {
+          "text": "How",
+          "startMs": 30701,
+          "endMs": 30911
+        },
+        {
+          "text": "often",
+          "startMs": 30991,
+          "endMs": 31311
+        },
+        {
+          "text": "do",
+          "startMs": 31391,
+          "endMs": 31471
+        },
+        {
+          "text": "you",
+          "startMs": 31551,
+          "endMs": 31631
+        },
+        {
+          "text": "call",
+          "startMs": 31711,
+          "endMs": 31791
+        },
+        {
+          "text": "your",
+          "startMs": 31871,
+          "endMs": 32031
+        },
+        {
+          "text": "friends?",
+          "startMs": 32311,
+          "endMs": 32671
+        }
+      ]
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 32971,
+      "endMs": 35101,
+      "words": [
+        {
+          "text": "친구들한테",
+          "startMs": 32971,
+          "endMs": 33844
+        },
+        {
+          "text": "얼마나",
+          "startMs": 33916,
+          "endMs": 34280
+        },
+        {
+          "text": "자주",
+          "startMs": 34353,
+          "endMs": 34498
+        },
+        {
+          "text": "전화해?",
+          "startMs": 34571,
+          "endMs": 35101
+        }
+      ]
+    },
+    {
+      "id": "s3-8",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 35281,
+      "endMs": 36741,
+      "words": [
+        {
+          "text": "대답은",
+          "startMs": 35281,
+          "endMs": 35926
+        },
+        {
+          "text": "이렇게",
+          "startMs": 35962,
+          "endMs": 36289
+        },
+        {
+          "text": "해요.",
+          "startMs": 36362,
+          "endMs": 36741
+        }
+      ]
+    },
+    {
+      "id": "s3-9",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 37041,
+      "endMs": 38491,
+      "words": [
+        {
+          "text": "Almost",
+          "startMs": 37041,
+          "endMs": 37541
+        },
+        {
+          "text": "every",
+          "startMs": 37701,
+          "endMs": 37941
+        },
+        {
+          "text": "day.",
+          "startMs": 38021,
+          "endMs": 38491
+        }
+      ]
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "startMs": 38971,
+      "endMs": 40181,
+      "words": [
+        {
+          "text": "이제",
+          "startMs": 38971,
+          "endMs": 39335
+        },
+        {
+          "text": "따라",
+          "startMs": 39407,
+          "endMs": 39553
+        },
+        {
+          "text": "해",
+          "startMs": 39589,
+          "endMs": 39626
+        },
+        {
+          "text": "보세요!",
+          "startMs": 39698,
+          "endMs": 40181
+        }
+      ]
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "startMs": 40481,
+      "endMs": 42171,
+      "words": [
+        {
+          "text": "How",
+          "startMs": 40481,
+          "endMs": 40691
+        },
+        {
+          "text": "often",
+          "startMs": 40771,
+          "endMs": 41091
+        },
+        {
+          "text": "do",
+          "startMs": 41171,
+          "endMs": 41251
+        },
+        {
+          "text": "you",
+          "startMs": 41331,
+          "endMs": 41411
+        },
+        {
+          "text": "work",
+          "startMs": 41491,
+          "endMs": 41651
+        },
+        {
+          "text": "out?",
+          "startMs": 41731,
+          "endMs": 42171
+        }
+      ],
+      "type": "repeat",
+      "speed": 1,
+      "pauseEndMs": 44199
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 44679,
+      "endMs": 49689,
+      "words": [
+        {
+          "text": "오늘",
+          "startMs": 44679,
+          "endMs": 45043
+        },
+        {
+          "text": "친구에게",
+          "startMs": 45188,
+          "endMs": 45697
+        },
+        {
+          "text": "꼭",
+          "startMs": 45806,
+          "endMs": 45915
+        },
+        {
+          "text": "한번",
+          "startMs": 45988,
+          "endMs": 46206
+        },
+        {
+          "text": "물어보세요!",
+          "startMs": 46279,
+          "endMs": 47224
+        },
+        {
+          "text": "더",
+          "startMs": 47297,
+          "endMs": 47443
+        },
+        {
+          "text": "자세한",
+          "startMs": 47515,
+          "endMs": 47734
+        },
+        {
+          "text": "설명은",
+          "startMs": 47806,
+          "endMs": 48388
+        },
+        {
+          "text": "위고업잉글리시에서!",
+          "startMs": 48461,
+          "endMs": 49689
+        }
+      ]
+    }
+  ],
+  "slides": [
+    {
+      "id": "s1",
+      "startMs": 0,
+      "endMs": 3590
+    },
+    {
+      "id": "s2",
+      "startMs": 3590,
+      "endMs": 20630
+    },
+    {
+      "id": "s3",
+      "startMs": 20630,
+      "endMs": 38731
+    },
+    {
+      "id": "s4",
+      "startMs": 38731,
+      "endMs": 44439
+    },
+    {
+      "id": "s5",
+      "startMs": 44439,
+      "endMs": 50889
+    }
+  ],
+  "measured": true,
+  "audioFile": "narration.wav",
+  "loudnessLufs": -16.13,
+  "provider": "elevenlabs/eleven_v4"
+}

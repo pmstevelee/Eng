@@ -39,6 +39,39 @@ export const paths = (slug: string) => {
   }
 }
 
+/** 숏폼 n번 (1부터) 파일들 — lectures/{slug}/shorts/ */
+export const shortsPaths = (slug: string, n: number) => {
+  const dir = path.join(lectureDir(slug), 'shorts')
+  const name = `shorts-${String(n).padStart(2, '0')}`
+  return {
+    dir,
+    name,
+    script: path.join(dir, `${name}-script.json`),
+    review: path.join(dir, `${name}-review.md`),
+    youtube: path.join(dir, `${name}-youtube.md`),
+    mp4: path.join(dir, `${name}.mp4`),
+    audioDir: path.join(dir, 'audio', name),
+    cleanDir: path.join(dir, 'audio', name, 'clean'),
+    narration: path.join(dir, `${name}-narration.wav`),
+    timeline: path.join(dir, `${name}-timeline.json`),
+    srt: path.join(dir, `${name}.srt`),
+    qa: path.join(dir, `${name}-qa-report.md`),
+  }
+}
+
+/** 카드뉴스 파일들 — lectures/{slug}/cardnews/ */
+export const cardnewsPaths = (slug: string) => {
+  const dir = path.join(lectureDir(slug), 'cardnews')
+  return {
+    dir,
+    data: path.join(dir, 'cardnews.json'),
+    script: path.join(dir, 'cardnews-script.md'),
+    instagram: path.join(dir, 'instagram-caption.md'),
+    threads: path.join(dir, 'threads-post.md'),
+    card: (n: number) => path.join(dir, `card-${String(n).padStart(2, '0')}.png`),
+  }
+}
+
 // ── 인자 ──────────────────────────────────────────────────
 
 export function parseArgs(argv: string[], valueFlags: string[] = []) {
@@ -208,6 +241,36 @@ export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, in
 
 export function rel(p: string): string {
   return path.relative(process.cwd(), p)
+}
+
+/** "1,3" 또는 "1-3" → [1, 2, 3] */
+export function parseNumberList(v: string | null): number[] | null {
+  if (!v) return null
+  const out = new Set<number>()
+  for (const part of v.split(',')) {
+    const [a, b] = part.split('-').map((x) => Number(x.trim()))
+    if (!Number.isInteger(a)) continue
+    for (let i = a; i <= (Number.isInteger(b) ? b : a); i++) out.add(i)
+  }
+  return out.size ? Array.from(out).sort((x, y) => x - y) : null
+}
+
+/**
+ * 검토 지점 — 터미널이면 Enter를 기다리고(q면 중단), --yes면 그냥 지나간다.
+ * 터미널이 아니면(자동 실행) 멈추고 이어서 할 명령을 알려 준다.
+ */
+export async function reviewPoint(message: string, opts: { yes?: boolean; resume: string }): Promise<void> {
+  console.log(`\n⏸ 검토 지점: ${message}`)
+  if (opts.yes) {
+    console.log('  (--yes: 멈추지 않고 계속)')
+    return
+  }
+  if (!process.stdin.isTTY) throw new Error(`검토 지점에서 멈췄어요. 검토 후 이어서: ${opts.resume}`)
+  const { createInterface } = await import('node:readline/promises')
+  const rl = createInterface({ input: process.stdin, output: process.stdout })
+  const answer = (await rl.question('  검토가 끝나면 Enter (그만하려면 q + Enter) › ')).trim().toLowerCase()
+  rl.close()
+  if (answer === 'q') throw new Error(`여기서 멈췄어요. 이어서: ${opts.resume}`)
 }
 
 /** CLI 진입점 공통 — 오류는 한국어 한 줄로 */

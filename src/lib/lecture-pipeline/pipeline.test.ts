@@ -43,6 +43,11 @@ describe('발음 정규화', () => {
     expect(norm('I ___ finished it.', 'en')).toBe('I blank finished it.')
     expect(norm('He has (already) left.', 'en')).toBe('He has, already, left.')
   })
+  it('영어 시각은 끊지 않고 읽는다', () => {
+    expect(norm('It starts at 7:30.', 'en')).toBe('It starts at 7 30.')
+    expect(norm('The train leaves at 10:05.', 'en')).toBe('The train leaves at 10 oh 5.')
+    expect(norm('See you at 9:00.', 'en')).toBe("See you at 9 o'clock.")
+  })
 })
 
 const seg = (o: Partial<Segment> & { id: string; text: string }): Segment => ({ slideId: 's1', lang: 'ko', emotion: '설명', ...o })

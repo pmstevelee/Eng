@@ -10,7 +10,8 @@ import { prisma } from '@/lib/prisma/client'
 import { parseGrammarCommonErrors, parseGrammarExamples, parseGrammarRules } from '@/types/grammar'
 import { mapLimit } from './common'
 import type { PronunciationDict } from '../../src/lib/lecture-pipeline/normalize'
-import { formatIssues, parseLectureScript, SLIDE_TYPES, type LectureScript, type ScriptIssue, type SlideType } from '../../src/lib/lecture-pipeline/types'
+import { formatIssues, LECTURE_SLIDE_TYPES, parseLectureScript, WEBSITE, type LectureScript, type ScriptIssue, type SlideType } from '../../src/lib/lecture-pipeline/types'
+import { repairPatternSegments } from '../../src/lib/lecture-pipeline/patterns'
 import type { Chapter } from '../../src/lib/lecture-pipeline/timing'
 import { formatClock } from '../../src/lib/lecture-pipeline/timing'
 
@@ -104,13 +105,29 @@ const SLIDE_SCHEMA = `슬라이드 type과 data 형식 (화면에 보이는 글�
 - quiz: { "question": 한국어 질문, "sentence": 빈칸(___)이 있는 영어 문장(선택), "choices": [보기 2~4개], "answer": 정답 번호(0부터), "explanation": 해설 한 줄 }
 - summary: { "points": ["핵심 정리", …] }  // 2~4개, 각 30자 이내
 - outro: { "message": 마무리 인사(짧게, 16자 이내), "next": 다음 강의 제목(반드시 — 같은 단원의 다음 포인트나 이어서 배울 문법) }
+- pattern: { "pattern": 일상회화 패턴 공식(영어, 빈칸은 ~, 30자 이내. 예: "Have you ever ~?"), "slot": 빈칸에 들어갈 것(한국어, 예: "과거분사"), "ko": 패턴 의미(빈칸은 ~, 예: "~해 본 적 있어?"), "examples": [{"en":예문,"ko":해석}] (2~3개, 각 44자 이내), "tip": 쓰는 상황 한 줄(선택) }
+- dialogue: { "situation": 상황 한 줄(한국어, 선택), "lines": [{"speaker":"A","en":영어 대사,"ko":해석},{"speaker":"B",…}] }  // 2~4턴, A·B 번갈아, 대사 하나 48자 이내, 패턴을 실제로 쓴 대사가 1개 이상
+- repeat: { "sentence": 따라 말할 영어 문장(패턴을 쓴 짧은 문장, 48자 이내), "ko": 해석, "stress": [강세 단어…](1~3개, 문장에 있는 단어 그대로), "links": [{"text":"Have you","hint":"해뷰"}](연음 0~2개, 문장에 있는 그대로, hint는 한글 발음) }
 토큰 = {"text": 단어 또는 덩어리, "role": "subject"|"verb"|"object"|"error"|"correct"(선택), "point": true(이번 문법 포인트 부분만)}
   예: [{"text":"She","role":"subject"},{"text":"has visited","role":"verb","point":true},{"text":"Jeju"},{"text":"twice."}]
 모든 슬라이드에 "chapter"(YouTube 챕터 이름, 예: "개념", "만드는 법", "예문", "퀴즈", "정리")를 넣는다. 이어진 슬라이드는 같은 chapter를 써도 된다.`
 
-function structureGuide(minutes: number): string {
+/** 일상영어회화 패턴 파트 안내 — 패턴 1개 = pattern → dialogue → repeat 3장 (숏폼 1편의 소재) */
+function patternGuide(patterns: number): string {
+  if (patterns <= 0) return '일상회화 패턴(pattern·dialogue·repeat) 슬라이드는 쓰지 않는다.'
+  return `일상영어회화 패턴 파트: 정확히 ${patterns}개 패턴. 패턴마다 pattern → dialogue → repeat 3장을 이어서 둔다 (chapter "일상회화 패턴").
+- 이번 문법을 실제 대화에서 쓰는 자주 쓰는 회화 패턴을 고른다 (예: 현재완료 → "Have you ever ~?", "I've just ~.", "I've never ~ before.").
+- 패턴끼리 겹치지 않게, 중학생이 바로 써먹을 수 있는 일상 상황으로.
+- 위치: summary 바로 앞 (문법 설명·퀴즈가 끝난 뒤).`
+}
+
+function structureGuide(minutes: number, patterns: number): string {
+  return `${structureBase(minutes)}\n${patternGuide(patterns)}`
+}
+
+function structureBase(minutes: number): string {
   if (minutes <= 1.5) {
-    return '약 1분 맛보기 강의: title → formula → example → compare → quiz → outro 순서로 정확히 6장.'
+    return '약 1분 맛보기 강의: title → formula → example → compare → quiz → (패턴 파트) → outro 순서. 패턴 파트 외에는 정확히 6장.'
   }
   const slides = Math.round(minutes * 1.7) + 1
   return `약 ${minutes}분 강의, 슬라이드 ${slides}장 안팎.
@@ -153,6 +170,8 @@ ${scope.sourceText || '(원고 없음 — 위 개념 정리와 교과서 기준�
 
 const SLIDE_WEIGHT: Record<SlideType, number> = {
   title: 0.45, goal: 0.8, concept: 1.3, formula: 1.2, example: 1.1, compare: 1.1, mistake: 1.1, quiz: 1.0, summary: 1.0, outro: 0.5,
+  // 대화·따라하기는 원어민 음성이 대부분이라 한국어는 짧게
+  pattern: 1.1, dialogue: 0.5, repeat: 0.2, hook: 0, examples: 0, cta: 0,
 }
 
 const REVEAL_RULES = `reveal 규칙 (화면 요소가 말하는 순간에 나타나게):
@@ -164,7 +183,11 @@ const REVEAL_RULES = `reveal 규칙 (화면 요소가 말하는 순간에 나타
 - mistake: 틀린 문장 1, 고친 문장 2, 이유 3
 - quiz: 문제를 읽고 → "5초 드릴게요." 같은 안내 → { "lang":"ko", "text":"", "waitSec": 5, "emotion":"설명" } → 정답을 말하는 세그먼트에 "reveal": 1 → 해설 → 칭찬
 - summary: i번째 정리를 말하는 세그먼트에 "reveal": i
-- outro: 다음 강의를 소개하는 세그먼트에 "reveal": 1`
+- outro: 다음 강의를 소개하는 세그먼트에 "reveal": 1
+일상회화 패턴 슬라이드 (원어민 음성은 코드가 자동으로 넣는다):
+- pattern: 한국어로 "이럴 때 쓰는 패턴이 있어요"처럼 소개 1문장 → (자동: 원어민이 패턴을 읽음) → 의미 설명(ko, "reveal": 2) → 예문마다 en 세그먼트(화면 examples의 en과 글자까지 같게) + 해석 ko. 패턴 공식 자체("~"·"...")는 en 세그먼트로 쓰지 않는다.
+- dialogue: 상황 소개 ko 1~2문장만 쓴다 (대사는 자동으로 A 남자·B 여자 원어민이 읽음). 필요하면 대화 뒤 ko 정리 1문장.
+- repeat: 따라하기 안내 ko 1문장만 쓴다 (예: "이제 따라 해 볼까요? 먼저 천천히 들어 보세요."). 나머지(천천히 → 자연스럽게 → 대기)는 자동.`
 
 function narrationSystemPrompt(dict: PronunciationDict): string {
   const terms = Object.keys(dict.ko).filter((k) => /[A-Za-z]/.test(k)).join(', ')
@@ -208,9 +231,10 @@ async function requestNarration(
   budgets: Map<string, number>,
   scope: GrammarScope | null,
   feedback?: string[],
+  brief?: string | null,
 ): Promise<unknown[]> {
   const user = `${scopeText(scope)}
-
+${brief ? `\n${briefText(brief)}\n` : ''}
 [강의 전체 슬라이드]
 ${JSON.stringify(outline)}
 
@@ -231,7 +255,23 @@ export interface GenerateOptions {
   minutes: number
   scope: GrammarScope | null
   dict: PronunciationDict
+  /** 사람이 쓴 구성·대본 기준 (--brief 파일). 있으면 기본 구성 안내 대신 이것을 따른다 */
+  brief?: string | null
+  /** 일상회화 패턴 수 (0이면 패턴 파트 없음) */
+  patterns?: number
   log: (m: string) => void
+}
+
+/** 강의 길이별 기본 패턴 수 — 3분 이하 1개, 그 외 2개 */
+export function defaultPatternCount(minutes: number): number {
+  return minutes <= 3 ? 1 : 2
+}
+
+const BRIEF_TIMING = `각 슬라이드에 "targetSec"(숫자)를 넣는다: 이 슬라이드에서 한국어 나레이션이 차지할 초. 영어 예문을 읽는 시간과 퀴즈 대기 5초는 빼고 센다.
+구간별 시간 배분이 있으면 그 구간 슬라이드들의 targetSec 합이 배분 시간에 맞게(영어·대기 시간을 뺀 만큼) 나눈다.`
+
+function briefText(brief: string): string {
+  return `[제작 요청서 — 구성·시간 배분·말투는 이것을 그대로 따른다]\n${brief.trim()}`
 }
 
 /** 강의 타이틀 → 검증된 대본 (+ 검토 메모) */
@@ -240,7 +280,12 @@ export async function generateLectureScript(o: GenerateOptions): Promise<{ scrip
   const outlineRes = await requestJson(
     [
       { role: 'system', content: outlineSystemPrompt() },
-      { role: 'user', content: `강의 타이틀: ${o.title}\n\n${structureGuide(o.minutes)}\n\n${scopeText(o.scope)}` },
+      {
+        role: 'user',
+        content: o.brief
+          ? `강의 타이틀: ${o.title}\n\n${briefText(o.brief)}\n\n화면 슬라이드 type은 위 13종만 쓴다. 처음은 title, 마지막은 summary → outro.\n${patternGuide(o.patterns ?? 0)}\n${BRIEF_TIMING}\n\n${scopeText(o.scope)}`
+          : `강의 타이틀: ${o.title}\n\n${structureGuide(o.minutes, o.patterns ?? defaultPatternCount(o.minutes))}\n\n${scopeText(o.scope)}`,
+      },
     ],
     7000,
     { model: SCRIPT_MODEL, temperature: 0.5 },
@@ -248,7 +293,7 @@ export async function generateLectureScript(o: GenerateOptions): Promise<{ scrip
   if (!outlineRes.ok) throw new Error(outlineRes.error)
   const outline = outlineRes.json as { slug?: string; title?: string; slides?: unknown[] }
   const slides = (Array.isArray(outline.slides) ? outline.slides : []).filter(
-    (s): s is RawSlide & { data: unknown } => !!s && typeof s === 'object' && SLIDE_TYPES.includes((s as RawSlide).type),
+    (s): s is RawSlide & { data: unknown } => !!s && typeof s === 'object' && LECTURE_SLIDE_TYPES.includes((s as RawSlide).type),
   )
   slides.forEach((s, i) => (s.id = `s${i + 1}`))
   if (slides.length < 3) throw new Error('AI가 슬라이드를 충분히 만들지 못했어요. 다시 실행해 주세요.')
@@ -256,20 +301,27 @@ export async function generateLectureScript(o: GenerateOptions): Promise<{ scrip
 
   // 한국어 글자 목표 — 1분에 약 300자 (쉼·영어·대기 포함한 말하기 속도 기준)
   const totalChars = Math.round(o.minutes * 300)
-  const weightSum = slides.reduce((a, s) => a + SLIDE_WEIGHT[s.type], 0)
-  const budgets = new Map(slides.map((s) => [s.id, Math.max(25, Math.round((totalChars * SLIDE_WEIGHT[s.type]) / weightSum))]))
+  // 요청서의 시간 배분(targetSec)이 있으면 그 비율로, 없으면 슬라이드 종류별 기본 비율로
+  const weightOf = (s: RawSlide) => {
+    const sec = (s as { targetSec?: unknown }).targetSec
+    return o.brief && typeof sec === 'number' && sec > 0 ? sec : SLIDE_WEIGHT[s.type]
+  }
+  const weightSum = slides.reduce((a, s) => a + weightOf(s), 0)
+  const budgets = new Map(slides.map((s) => [s.id, Math.max(25, Math.round((totalChars * weightOf(s)) / weightSum))]))
+  slides.forEach((s) => delete (s as { targetSec?: unknown }).targetSec)
 
   o.log(`  2/2 나레이션 쓰는 중… (슬라이드 ${slides.length}장)`)
   const system = narrationSystemPrompt(o.dict)
   const batchSize = 4
   const batches: RawSlide[][] = []
   for (let i = 0; i < slides.length; i += batchSize) batches.push(slides.slice(i, i + batchSize))
-  const results = await mapLimit(batches, 3, (b) => requestNarration(system, compact, b, budgets, o.scope))
+  const results = await mapLimit(batches, 3, (b) => requestNarration(system, compact, b, budgets, o.scope, undefined, o.brief))
 
   const assemble = (parts: unknown[][]) => {
     const counter = new Map<string, number>()
     const quizIds = new Set(slides.filter((s) => s.type === 'quiz').map((s) => s.id))
-    const segments = repairQuizzes(parts.flat() as Record<string, unknown>[], quizIds).map((g) => {
+    const repaired = repairPatternSegments(repairQuizzes(parts.flat() as Record<string, unknown>[], quizIds), slides as unknown as { id: string; type: string; data?: unknown }[])
+    const segments = repaired.map((g) => {
       const seg = g as Record<string, unknown>
       const sid = String(seg.slideId)
       const n = (counter.get(sid) ?? 0) + 1
@@ -301,7 +353,7 @@ export async function generateLectureScript(o: GenerateOptions): Promise<{ scrip
     const retry = bad.filter((x) => x.msgs.length)
     o.log(`  고칠 점 ${state.errors.length}개 → 슬라이드 묶음 ${retry.length}개 다시 요청`)
     await mapLimit(retry, 3, async (x) => {
-      results[x.i] = await requestNarration(system, compact, x.b, budgets, o.scope, x.msgs)
+      results[x.i] = await requestNarration(system, compact, x.b, budgets, o.scope, x.msgs, o.brief)
     })
     state = allErrors()
   }
@@ -440,6 +492,7 @@ export function buildYoutubeMd(script: LectureScript, meta: YoutubeMeta, chapter
     ...chapters.map((c) => `${formatClock(c.startMs)} ${c.title}`),
     '',
     '위고업잉글리시(WeGoUp English) — 중학 영문법을 쉽고 정확하게',
+    `🌐 ${WEBSITE.cta} ${WEBSITE.url}`,
     meta.tags.slice(0, 3).map((t) => `#${t.replace(/\s+/g, '')}`).join(' '),
     '```',
     '',

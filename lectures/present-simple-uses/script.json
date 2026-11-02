@@ -1,0 +1,2748 @@
+{
+  "version": 1,
+  "slug": "present-simple-uses",
+  "title": "현재시제의 쓰임",
+  "grammarPoint": {
+    "code": "G03-01-01",
+    "title": "현재시제의 쓰임"
+  },
+  "targetMinutes": 15,
+  "createdAt": "2026-11-01T18:37:49.830Z",
+  "slides": [
+    {
+      "id": "s1",
+      "type": "title",
+      "data": {
+        "title": "현재시제의 쓰임",
+        "subtitle": "Simple Present"
+      },
+      "chapter": "오프닝"
+    },
+    {
+      "id": "s2",
+      "type": "compare",
+      "data": {
+        "heading": "친구: 지금 뭐 해?",
+        "rows": [
+          {
+            "sentence": [
+              {
+                "text": "I",
+                "role": "subject"
+              },
+              {
+                "text": "do",
+                "role": "error",
+                "point": true
+              },
+              {
+                "text": "my homework."
+              }
+            ],
+            "correct": false,
+            "ko": "지금 하는 중인 일에는 어색해요"
+          },
+          {
+            "sentence": [
+              {
+                "text": "I'm doing",
+                "role": "subject",
+                "point": true
+              },
+              {
+                "text": "my homework."
+              }
+            ],
+            "correct": true,
+            "ko": "나 지금 숙제하고 있어"
+          }
+        ]
+      },
+      "chapter": "오프닝"
+    },
+    {
+      "id": "s3",
+      "type": "goal",
+      "data": {
+        "goals": [
+          "현재시제를 쓰는 4가지 경우 알기",
+          "주어에 맞게 동사 모양 바꾸기",
+          "현재시제 부정문·의문문 만들기",
+          "현재시제 회화 패턴 3개 말하기"
+        ]
+      },
+      "chapter": "학습목표"
+    },
+    {
+      "id": "s4",
+      "type": "concept",
+      "data": {
+        "heading": "현재시제는 '지금'일까요?",
+        "lines": [
+          "현재시제: **늘, 원래** 그런 일",
+          "지금 하는 중인 일: **현재진행형**",
+          "I **play** the piano. = 평소에 친다"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s5",
+      "type": "concept",
+      "data": {
+        "heading": "쓰임 ① 습관·반복",
+        "lines": [
+          "매일, 자주 **반복하는 일**",
+          "**always, usually, often, sometimes, never**",
+          "**every day, on Sundays**와 자주 함께 써요"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s6",
+      "type": "concept",
+      "data": {
+        "heading": "쓰임 ② 변하지 않는 사실",
+        "lines": [
+          "언제 말해도 맞는 **일반적인 사실**",
+          "과학적 사실, 자연 현상",
+          "The sun **rises** in the east."
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s7",
+      "type": "concept",
+      "data": {
+        "heading": "쓰임 ③ 지금의 상태",
+        "lines": [
+          "지금 그런 **상태**: 살다, 좋아하다, 알다",
+          "**live, like, know, want, have**",
+          "**like, know, want**는 보통 -ing로 안 써요"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s8",
+      "type": "concept",
+      "data": {
+        "heading": "쓰임 ④ 정해진 일정",
+        "lines": [
+          "시간표처럼 **이미 정해진 일정**",
+          "미래의 일이어도 **현재시제**",
+          "버스·기차, 영화, 수업 시간"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s9",
+      "type": "formula",
+      "data": {
+        "heading": "긍정문 ①",
+        "blocks": [
+          {
+            "text": "I / You / We / They",
+            "role": "subject",
+            "note": "복수 주어도 여기"
+          },
+          {
+            "text": "동사원형",
+            "role": "verb",
+            "note": "play, like, live"
+          }
+        ],
+        "example": [
+          {
+            "text": "They",
+            "role": "subject"
+          },
+          {
+            "text": "play",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "soccer"
+          },
+          {
+            "text": "on Sundays."
+          }
+        ],
+        "exampleKo": "그들은 일요일마다 축구를 한다"
+      },
+      "chapter": "문장 구조"
+    },
+    {
+      "id": "s10",
+      "type": "formula",
+      "data": {
+        "heading": "긍정문 ② 3인칭 단수 주어",
+        "blocks": [
+          {
+            "text": "He / She / It",
+            "role": "subject",
+            "note": "my mom, Tom"
+          },
+          {
+            "text": "동사 + -s",
+            "role": "verb",
+            "note": "plays, likes"
+          },
+          {
+            "text": "동사 + -es",
+            "role": "verb",
+            "note": "goes, watches"
+          },
+          {
+            "text": "자음 + y → -ies",
+            "role": "verb",
+            "note": "studies"
+          },
+          {
+            "text": "have → has",
+            "role": "verb"
+          }
+        ],
+        "example": [
+          {
+            "text": "She",
+            "role": "subject"
+          },
+          {
+            "text": "studies",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "English"
+          },
+          {
+            "text": "every day."
+          }
+        ],
+        "exampleKo": "그녀는 매일 영어를 공부한다"
+      },
+      "chapter": "문장 구조"
+    },
+    {
+      "id": "s11",
+      "type": "formula",
+      "data": {
+        "heading": "부정문",
+        "blocks": [
+          {
+            "text": "주어",
+            "role": "subject"
+          },
+          {
+            "text": "don't / doesn't",
+            "role": "verb",
+            "note": "3인칭 단수 → doesn't"
+          },
+          {
+            "text": "동사원형",
+            "role": "verb",
+            "note": "-s 붙이지 않기!"
+          }
+        ],
+        "example": [
+          {
+            "text": "He",
+            "role": "subject"
+          },
+          {
+            "text": "doesn't like",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "math."
+          }
+        ],
+        "exampleKo": "그는 수학을 좋아하지 않는다"
+      },
+      "chapter": "문장 구조"
+    },
+    {
+      "id": "s12",
+      "type": "formula",
+      "data": {
+        "heading": "의문문",
+        "blocks": [
+          {
+            "text": "Do / Does",
+            "role": "verb",
+            "note": "3인칭 단수 → Does"
+          },
+          {
+            "text": "주어",
+            "role": "subject"
+          },
+          {
+            "text": "동사원형 ~?",
+            "role": "verb",
+            "note": "-s 붙이지 않기!"
+          }
+        ],
+        "example": [
+          {
+            "text": "Does",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "she",
+            "role": "subject"
+          },
+          {
+            "text": "live",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "near here?"
+          }
+        ],
+        "exampleKo": "그녀는 이 근처에 사니?"
+      },
+      "chapter": "문장 구조"
+    },
+    {
+      "id": "s13",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "usually",
+            "point": true
+          },
+          {
+            "text": "get up",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "at seven."
+          }
+        ],
+        "ko": "나는 보통 7시에 일어난다",
+        "note": "습관 · 빈도부사는 일반동사 앞"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s14",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "My dad",
+            "role": "subject"
+          },
+          {
+            "text": "drinks",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "coffee"
+          },
+          {
+            "text": "every morning."
+          }
+        ],
+        "ko": "우리 아빠는 매일 아침 커피를 마신다",
+        "note": "습관 · 3인칭 단수 → drinks"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s15",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "Water",
+            "role": "subject"
+          },
+          {
+            "text": "boils",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "at 100 degrees Celsius."
+          }
+        ],
+        "ko": "물은 섭씨 100도에서 끓는다",
+        "note": "과학적 사실"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s16",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "A week",
+            "role": "subject"
+          },
+          {
+            "text": "has",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "seven days."
+          }
+        ],
+        "ko": "일주일은 7일이다",
+        "note": "변하지 않는 사실 · have → has"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s17",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "My aunt",
+            "role": "subject"
+          },
+          {
+            "text": "lives",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "in Busan."
+          }
+        ],
+        "ko": "우리 이모는 부산에 산다",
+        "note": "지금의 상태"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s18",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "don't know",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "his phone number."
+          }
+        ],
+        "ko": "나는 그의 전화번호를 모른다",
+        "note": "상태 · 부정문 don't + 동사원형"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s19",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "Does",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "your brother",
+            "role": "subject"
+          },
+          {
+            "text": "play",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "any sports?"
+          }
+        ],
+        "ko": "너희 형은 운동을 하니?",
+        "note": "Does + 주어 + 동사원형"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s20",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "The movie",
+            "role": "subject"
+          },
+          {
+            "text": "starts",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "at seven tonight."
+          }
+        ],
+        "ko": "영화는 오늘 밤 7시에 시작한다",
+        "note": "정해진 일정 → 미래도 현재시제"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s21",
+      "type": "mistake",
+      "data": {
+        "heading": "흔한 실수 ①",
+        "wrong": "I am go to school by bus.",
+        "right": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "go",
+            "role": "correct",
+            "point": true
+          },
+          {
+            "text": "to school"
+          },
+          {
+            "text": "by bus."
+          }
+        ],
+        "why": "현재시제 일반동사 문장엔 be동사 없이"
+      },
+      "chapter": "흔한 실수"
+    },
+    {
+      "id": "s22",
+      "type": "mistake",
+      "data": {
+        "heading": "흔한 실수 ②",
+        "wrong": "She watch TV every night.",
+        "right": [
+          {
+            "text": "She",
+            "role": "subject"
+          },
+          {
+            "text": "watches",
+            "role": "correct",
+            "point": true
+          },
+          {
+            "text": "TV"
+          },
+          {
+            "text": "every night."
+          }
+        ],
+        "why": "3인칭 단수 주어 → 동사에 -s / -es"
+      },
+      "chapter": "흔한 실수"
+    },
+    {
+      "id": "s23",
+      "type": "mistake",
+      "data": {
+        "heading": "흔한 실수 ③",
+        "wrong": "He doesn't likes spicy food.",
+        "right": [
+          {
+            "text": "He",
+            "role": "subject"
+          },
+          {
+            "text": "doesn't",
+            "role": "verb"
+          },
+          {
+            "text": "like",
+            "role": "correct",
+            "point": true
+          },
+          {
+            "text": "spicy food."
+          }
+        ],
+        "why": "doesn't / does 뒤에는 동사원형"
+      },
+      "chapter": "흔한 실수"
+    },
+    {
+      "id": "s24",
+      "type": "quiz",
+      "data": {
+        "question": "빈칸에 알맞은 말은?",
+        "sentence": "My mom ___ at a hospital.",
+        "choices": [
+          "work",
+          "works",
+          "is work"
+        ],
+        "answer": 1,
+        "explanation": "my mom = 3인칭 단수 → works"
+      },
+      "chapter": "퀴즈"
+    },
+    {
+      "id": "s25",
+      "type": "quiz",
+      "data": {
+        "question": "빈칸에 알맞은 말은?",
+        "sentence": "Does he ___ coffee?",
+        "choices": [
+          "drink",
+          "drinks",
+          "drinking"
+        ],
+        "answer": 0,
+        "explanation": "Does 뒤에는 동사원형"
+      },
+      "chapter": "퀴즈"
+    },
+    {
+      "id": "s26",
+      "type": "quiz",
+      "data": {
+        "question": "내일 아침 기차 시간표예요. 빈칸에 알맞은 말은?",
+        "sentence": "The train ___ at 10:30 tomorrow morning.",
+        "choices": [
+          "leave",
+          "leaves",
+          "left"
+        ],
+        "answer": 1,
+        "explanation": "정해진 일정 → 미래도 현재시제, 3인칭 단수 → leaves"
+      },
+      "chapter": "퀴즈"
+    },
+    {
+      "id": "s27",
+      "type": "summary",
+      "data": {
+        "points": [
+          "현재시제: 습관·사실·지금의 상태",
+          "정해진 일정은 미래여도 현재시제",
+          "3인칭 단수 주어 → 동사 + -s / -es",
+          "don't·doesn't·Do·Does + 동사원형"
+        ]
+      },
+      "chapter": "핵심 정리"
+    },
+    {
+      "id": "s28",
+      "type": "pattern",
+      "data": {
+        "pattern": "Do you want to ~?",
+        "ko": "~할래?",
+        "slot": "동사원형",
+        "examples": [
+          {
+            "en": "Do you want to grab lunch?",
+            "ko": "점심 먹으러 갈래?"
+          },
+          {
+            "en": "Do you want to come with us?",
+            "ko": "우리랑 같이 갈래?"
+          }
+        ],
+        "tip": "친구에게 같이 뭔가 하자고 할 때"
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s29",
+      "type": "dialogue",
+      "data": {
+        "situation": "학교 · 수업 끝나고 친구에게",
+        "lines": [
+          {
+            "speaker": "A",
+            "en": "Do you want to grab a snack after school?",
+            "ko": "끝나고 간식 먹으러 갈래?"
+          },
+          {
+            "speaker": "B",
+            "en": "Sure! Where do you want to go?",
+            "ko": "좋아! 어디 가고 싶어?"
+          },
+          {
+            "speaker": "A",
+            "en": "How about the new café near the station?",
+            "ko": "역 근처에 새로 생긴 카페 어때?"
+          },
+          {
+            "speaker": "B",
+            "en": "Sounds good. See you at the gate!",
+            "ko": "좋아. 교문에서 보자!"
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s30",
+      "type": "repeat",
+      "data": {
+        "sentence": "Do you want to grab lunch?",
+        "ko": "점심 먹으러 갈래?",
+        "stress": [
+          "want",
+          "grab",
+          "lunch"
+        ],
+        "links": [
+          {
+            "text": "Do you",
+            "hint": "두유"
+          },
+          {
+            "text": "want to",
+            "hint": "워너"
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s31",
+      "type": "pattern",
+      "data": {
+        "pattern": "How often do you ~?",
+        "ko": "얼마나 자주 ~해?",
+        "slot": "동사원형",
+        "examples": [
+          {
+            "en": "How often do you work out?",
+            "ko": "운동 얼마나 자주 해?"
+          },
+          {
+            "en": "How often do you eat out?",
+            "ko": "외식 얼마나 자주 해?"
+          }
+        ],
+        "tip": "상대방의 습관을 물어볼 때"
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s32",
+      "type": "dialogue",
+      "data": {
+        "situation": "회사 앞 카페 · 직장 동료와",
+        "lines": [
+          {
+            "speaker": "A",
+            "en": "How often do you come here?",
+            "ko": "여기 얼마나 자주 와?"
+          },
+          {
+            "speaker": "B",
+            "en": "Almost every day. I love their lattes.",
+            "ko": "거의 매일. 여기 라테 진짜 좋아해."
+          },
+          {
+            "speaker": "A",
+            "en": "Me too. I usually get one before work.",
+            "ko": "나도. 보통 출근 전에 한 잔 사."
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s33",
+      "type": "repeat",
+      "data": {
+        "sentence": "How often do you work out?",
+        "ko": "운동 얼마나 자주 해?",
+        "stress": [
+          "often",
+          "work out"
+        ],
+        "links": [
+          {
+            "text": "do you",
+            "hint": "두유"
+          },
+          {
+            "text": "work out",
+            "hint": "워카웃"
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s34",
+      "type": "pattern",
+      "data": {
+        "pattern": "What time does ~ start?",
+        "ko": "~ 몇 시에 시작해?",
+        "slot": "영화·수업 등",
+        "examples": [
+          {
+            "en": "What time does the movie start?",
+            "ko": "영화 몇 시에 시작해?"
+          },
+          {
+            "en": "What time does your class start?",
+            "ko": "너 수업 몇 시에 시작해?"
+          }
+        ],
+        "tip": "정해진 일정을 물어볼 때"
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s35",
+      "type": "dialogue",
+      "data": {
+        "situation": "주말 · 친구와 영화 약속",
+        "lines": [
+          {
+            "speaker": "A",
+            "en": "What time does the movie start?",
+            "ko": "영화 몇 시에 시작해?"
+          },
+          {
+            "speaker": "B",
+            "en": "It starts at 7:30.",
+            "ko": "7시 30분에 시작해."
+          },
+          {
+            "speaker": "A",
+            "en": "Then let's meet at seven.",
+            "ko": "그럼 7시에 만나자."
+          },
+          {
+            "speaker": "B",
+            "en": "Okay. See you at the theater!",
+            "ko": "좋아. 영화관에서 봐!"
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s36",
+      "type": "repeat",
+      "data": {
+        "sentence": "What time does the movie start?",
+        "ko": "영화 몇 시에 시작해?",
+        "stress": [
+          "time",
+          "movie",
+          "start"
+        ],
+        "links": [
+          {
+            "text": "What time",
+            "hint": "와타임"
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s37",
+      "type": "outro",
+      "data": {
+        "message": "오늘도 수고했어요!",
+        "next": "과거시제 규칙 변화"
+      },
+      "chapter": "다음 강의"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "안녕하세요, 위고업잉글리시예요! 오늘은 영어의 기본 중의 기본, 현재시제를 언제 쓰는지 알아볼 거예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "먼저 상황 하나 볼게요. 친구가 전화로 지금 뭐 하냐고 물어봐요. 그래서 이렇게 대답했어요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "I do my homework.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "나는 숙제를 한다. 지금 일이니까 현재시제, 맞는 것 같죠? 그런데 원어민에게는 좀 이상하게 들려요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-4",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "지금 이 순간 하고 있는 일은 이렇게 말해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-5",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "I'm doing my homework.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s2-6",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "그럼 현재시제는 도대체 언제 쓰는 걸까요? 오늘 이 궁금증을 확실하게 풀어 드릴게요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "오늘의 학습목표예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "첫째, 현재시제를 쓰는 네 가지 경우를 알아봐요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "둘째, 주어에 따라 동사 모양을 바르게 바꿔요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "셋째, 현재시제로 부정문과 의문문을 만들어요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "넷째, 현재시제로 바로 써먹는 일상회화 패턴 세 개를 말해 봐요.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "그럼 이 문법이 왜 필요한지부터 볼까요? 이름이 현재시제니까, 지금 일어나는 일을 말할 것 같죠?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "사실 현재시제는 지금 이 순간보다, 늘 그렇거나 원래 그런 일을 말할 때 써요.",
+      "emotion": "강조",
+      "reveal": 1
+    },
+    {
+      "id": "s4-3",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "지금 하고 있는 중인 일은 현재진행형, 그러니까 be동사 다음에 동사-ing를 쓴 모양으로 말해요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s4-4",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "예를 들어 이 문장을 들어 볼게요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s4-5",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "I play the piano.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-6",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이건 지금 치고 있다는 말이 아니에요. 평소에 피아노를 친다, 피아노를 칠 줄 안다는 뜻이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "첫 번째, 습관이나 반복하는 일이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-2",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "매일 하는 일, 자주 하는 일처럼 되풀이되는 일은 현재시제로 말해요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s5-3",
+      "slideId": "s5",
+      "lang": "en",
+      "text": "I walk to school every day.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-4",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "나는 매일 학교에 걸어간다.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-5",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "얼마나 자주 하는지 알려 주는 빈도부사와 잘 어울려요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s5-6",
+      "slideId": "s5",
+      "lang": "en",
+      "text": "always, usually, often, sometimes, never",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-7",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "순서대로 항상, 보통, 자주, 가끔, 전혀 안 해요. 뒤로 갈수록 횟수가 줄어들어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-8",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "매일, 일요일마다처럼 반복을 나타내는 말과도 자주 함께 와요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s6-1",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "두 번째, 언제 말해도 맞는 사실이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s6-2",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "어제도, 오늘도, 내일도 변하지 않는 일반적인 사실은 현재시제로 말해요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s6-3",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "과학적인 사실이나 자연 현상도 마찬가지예요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s6-4",
+      "slideId": "s6",
+      "lang": "en",
+      "text": "The sun rises in the east.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s6-5",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "해는 동쪽에서 뜬다. 오늘만 그런 게 아니라 늘 그렇죠? 그래서 현재시제예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s7-1",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "세 번째, 지금의 상태예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s7-2",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "어디에 사는지, 무엇을 좋아하는지, 무엇을 아는지 같은 상태는 현재시제로 말해요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s7-3",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "대표적인 동사는 이런 것들이에요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s7-4",
+      "slideId": "s7",
+      "lang": "en",
+      "text": "live, like, know, want, have",
+      "emotion": "설명"
+    },
+    {
+      "id": "s7-5",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "특히 좋아하다, 알다, 원하다처럼 마음이나 생각을 나타내는 동사는 지금 그렇더라도 보통 진행형으로 쓰지 않아요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s7-6",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "그래서 답을 안다고 할 때는 -ing를 붙이지 않고 이렇게 말해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s7-7",
+      "slideId": "s7",
+      "lang": "en",
+      "text": "I know the answer.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-1",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "마지막 네 번째, 이건 조금 신기해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-2",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "버스 시간표, 영화 시작 시간, 수업 시간처럼 이미 정해진 일정이 있죠?",
+      "emotion": "질문",
+      "reveal": 1
+    },
+    {
+      "id": "s8-3",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "이런 일정은 내일 일이라도 현재시제로 말할 수 있어요.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s8-4",
+      "slideId": "s8",
+      "lang": "en",
+      "text": "The bus leaves at 7:30 tomorrow.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s8-5",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "버스는 내일 7시 30분에 출발한다. 내일 일인데도 동사가 현재형이죠?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-6",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "다만 내가 마음먹은 계획은 보통 다른 표현으로 말해요. 이건 미래시제 강의에서 자세히 배울 거예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s9-1",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "이제 현재시제 문장을 만드는 공식을 볼게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s9-2",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "먼저 주어가 나, 너, 우리, 그들, 또는 여러 사람이나 여러 개일 때예요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s9-3",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "이때 동사는 원래 모양 그대로, 동사원형을 써요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s9-4",
+      "slideId": "s9",
+      "lang": "en",
+      "text": "They play soccer on Sundays.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s9-5",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "그들은 일요일마다 축구를 한다. 동사에 아무것도 붙지 않았죠?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-1",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "그런데 주어가 3인칭 단수일 때는 달라요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-2",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "그, 그녀, 그것, 또는 우리 엄마, 내 친구 톰처럼 나와 너를 뺀 한 사람이나 한 개가 주어일 때예요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s10-3",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "이때는 동사 끝에 -s를 붙여요. 예를 들면,",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s10-4",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "plays, likes.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-5",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "끝 글자가 오, 에스, 엑스, 에스에이치, 씨에이치인 동사는 -es를 붙여요. 예를 들면,",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s10-6",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "goes, watches.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-7",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "자음 다음에 와이로 끝나면, 와이를 아이로 바꾸고 -es를 붙여요.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s10-8",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "study, studies.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-9",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "하지만 모음 다음의 와이는 그냥 -s만 붙여요. 예를 들면,",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-10",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "play, plays.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-11",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "그리고 가지다는 모양이 완전히 바뀌어요.",
+      "emotion": "설명",
+      "reveal": 5
+    },
+    {
+      "id": "s10-12",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "have, has.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-13",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "She studies English every day.",
+      "emotion": "설명",
+      "reveal": 6
+    },
+    {
+      "id": "s11-1",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "이번엔 하지 않는다고 말하는 부정문이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s11-2",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "주어 다음에 이렇게 써요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s11-3",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "평소에는",
+      "emotion": "설명",
+      "reveal": 2,
+      "joinNext": true
+    },
+    {
+      "id": "s11-3b",
+      "slideId": "s11",
+      "lang": "en",
+      "text": "don't.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s11-3c",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "3인칭 단수 주어라면",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s11-3d",
+      "slideId": "s11",
+      "lang": "en",
+      "text": "doesn't.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s11-4",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "그리고 꼭 기억하세요. 그 뒤의 동사는 동사원형이에요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s11-5",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "-s 표시는 이미",
+      "emotion": "강조",
+      "joinNext": true
+    },
+    {
+      "id": "s11-5b",
+      "slideId": "s11",
+      "lang": "en",
+      "text": "does",
+      "emotion": "강조",
+      "joinNext": true
+    },
+    {
+      "id": "s11-5c",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "안에 들어 있으니까, 동사에는 또 붙이지 않아요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s11-6",
+      "slideId": "s11",
+      "lang": "en",
+      "text": "He doesn't like math.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s11-7",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "그는 수학을 좋아하지 않는다.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s12-1",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "의문문은 문장 맨 앞에 이걸 써요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s12-2",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "평소에는",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s12-2b",
+      "slideId": "s12",
+      "lang": "en",
+      "text": "Do.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s12-2c",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "3인칭 단수 주어라면",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s12-2d",
+      "slideId": "s12",
+      "lang": "en",
+      "text": "Does.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s12-3",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "그다음에 주어,",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s12-4",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "그리고 동사원형이에요. 여기서도 동사에 -s를 붙이지 않아요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s12-5",
+      "slideId": "s12",
+      "lang": "en",
+      "text": "Does she live near here?",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s12-6",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "그녀는 이 근처에 사니? 대답은 이렇게 짧게 해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s12-7",
+      "slideId": "s12",
+      "lang": "en",
+      "text": "Yes, she does. No, she doesn't.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s13-1",
+      "slideId": "s13",
+      "lang": "ko",
+      "text": "이제 예문으로 연습해 볼게요. 원어민 발음을 잘 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s13-2",
+      "slideId": "s13",
+      "lang": "en",
+      "text": "I usually get up at seven.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s13-3",
+      "slideId": "s13",
+      "lang": "ko",
+      "text": "나는 보통 7시에 일어난다.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s13-4",
+      "slideId": "s13",
+      "lang": "ko",
+      "text": "매일 반복하는 습관이죠. 그리고 보통이라는 빈도부사는 일반동사 바로 앞에 와요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s13-5",
+      "slideId": "s13",
+      "lang": "ko",
+      "text": "be동사가 있는 문장이라면 be동사 뒤에 와요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s14-1",
+      "slideId": "s14",
+      "lang": "en",
+      "text": "My dad drinks coffee every morning.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s14-2",
+      "slideId": "s14",
+      "lang": "ko",
+      "text": "우리 아빠는 매일 아침 커피를 마신다.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s14-3",
+      "slideId": "s14",
+      "lang": "ko",
+      "text": "아빠 한 명이 주어니까 3인칭 단수, 그래서 동사 끝에 -s가 붙었어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s15-1",
+      "slideId": "s15",
+      "lang": "en",
+      "text": "Water boils at 100 degrees Celsius.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s15-2",
+      "slideId": "s15",
+      "lang": "ko",
+      "text": "물은 섭씨 100도에서 끓는다.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s15-3",
+      "slideId": "s15",
+      "lang": "ko",
+      "text": "언제 실험해도 똑같은 과학적 사실이라 현재시제예요. 물은 셀 수 없는 명사라 3인칭 단수로 받아요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s16-1",
+      "slideId": "s16",
+      "lang": "en",
+      "text": "A week has seven days.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s16-2",
+      "slideId": "s16",
+      "lang": "ko",
+      "text": "일주일은 7일이다.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s16-3",
+      "slideId": "s16",
+      "lang": "ko",
+      "text": "변하지 않는 사실이죠. 주어가 일주일 하나라서 동사 모양이 바뀌었어요. 가지다는 이렇게,",
+      "emotion": "설명"
+    },
+    {
+      "id": "s16-4",
+      "slideId": "s16",
+      "lang": "en",
+      "text": "has.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s17-1",
+      "slideId": "s17",
+      "lang": "en",
+      "text": "My aunt lives in Busan.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s17-2",
+      "slideId": "s17",
+      "lang": "ko",
+      "text": "우리 이모는 부산에 산다.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s17-3",
+      "slideId": "s17",
+      "lang": "ko",
+      "text": "어디에 사는지는 지금의 상태예요. 이모도 3인칭 단수라서 동사 끝에 -s가 붙었어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s18-1",
+      "slideId": "s18",
+      "lang": "en",
+      "text": "I don't know his phone number.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s18-2",
+      "slideId": "s18",
+      "lang": "ko",
+      "text": "나는 그의 전화번호를 모른다.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s18-3",
+      "slideId": "s18",
+      "lang": "ko",
+      "text": "모른다는 것도 지금의 상태죠. 주어가 나라서 부정문은 이렇게 만들어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s18-4",
+      "slideId": "s18",
+      "lang": "en",
+      "text": "don't know.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s19-1",
+      "slideId": "s19",
+      "lang": "en",
+      "text": "Does your brother play any sports?",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s19-2",
+      "slideId": "s19",
+      "lang": "ko",
+      "text": "너희 형은 운동을 하니?.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s19-3",
+      "slideId": "s19",
+      "lang": "ko",
+      "text": "형 한 명이 주어니까 3인칭 단수라서 맨 앞에,",
+      "emotion": "설명"
+    },
+    {
+      "id": "s19-4",
+      "slideId": "s19",
+      "lang": "en",
+      "text": "Does.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s19-5",
+      "slideId": "s19",
+      "lang": "ko",
+      "text": "그리고 동사는 -s 없이 동사원형,",
+      "emotion": "설명"
+    },
+    {
+      "id": "s19-6",
+      "slideId": "s19",
+      "lang": "en",
+      "text": "play.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s20-1",
+      "slideId": "s20",
+      "lang": "en",
+      "text": "The movie starts at seven tonight.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s20-2",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "영화는 오늘 밤 7시에 시작한다.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s20-3",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "오늘 밤, 아직 일어나지 않은 일이죠? 하지만 영화 시작 시간은 정해진 일정이라 현재시제를 썼어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s21-1",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "이제 한국 학생들이 자주 하는 실수 세 가지를 볼게요. 첫 번째.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s21-2",
+      "slideId": "s21",
+      "lang": "en",
+      "text": "I am go to school by bus.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s21-3",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "나는 버스로 학교에 간다. 어디가 틀렸을까요? 우리말로 나는, 이 부분을 옮기다가 습관처럼 be동사를 넣은 거예요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s21-4",
+      "slideId": "s21",
+      "lang": "en",
+      "text": "I go to school by bus.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s21-5",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "현재시제 문장에서는 be동사와 일반동사를 같이 쓰지 않아요. 동사는 하나면 충분해요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s22-1",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "두 번째.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s22-2",
+      "slideId": "s22",
+      "lang": "en",
+      "text": "She watch TV every night.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s22-3",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "그녀는 매일 밤 텔레비전을 본다. 뭐가 빠졌을까요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s22-4",
+      "slideId": "s22",
+      "lang": "en",
+      "text": "She watches TV every night.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s22-5",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "주어가 3인칭 단수니까 동사에 -es를 붙여야 해요. 끝 글자가 씨에이치라서 -s가 아니라 -es예요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s23-1",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "세 번째. 이건 열심히 공부한 학생이 오히려 많이 틀려요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s23-2",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "He doesn't likes spicy food.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s23-3",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "3인칭 단수니까 -s를 붙였는데, 왜 틀렸을까요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s23-4",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "He doesn't like spicy food.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s23-5",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "-s 표시는 이미",
+      "emotion": "강조",
+      "reveal": 3,
+      "joinNext": true
+    },
+    {
+      "id": "s23-5b",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "does",
+      "emotion": "강조",
+      "joinNext": true
+    },
+    {
+      "id": "s23-5c",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "안에 들어 있어요. 그래서 그 뒤의 동사에는 -s를 또 붙이지 않아요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s24-1",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "자, 이제 퀴즈예요! 첫 번째 문제. 빈칸에 알맞은 말을 골라 보세요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s24-2",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "My mom ___ at a hospital.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s24-3",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "우리 엄마는 병원에서 일한다는 문장이에요. 보기는 1번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-3b",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "work",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-3c",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": ", 2번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-3d",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "works",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-3e",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": ", 3번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-3f",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "is work.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-3g",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "5초 드릴게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s24-4",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 5
+    },
+    {
+      "id": "s24-5",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "정답은 2번,",
+      "emotion": "칭찬",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s24-5b",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "works!",
+      "emotion": "칭찬",
+      "joinNext": true
+    },
+    {
+      "id": "s24-5c",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "엄마 한 명이 주어니까 3인칭 단수예요.",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s25-1",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "두 번째 문제예요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s25-2",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "Does he ___ coffee?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s25-3",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "그는 커피를 마시니? 라고 묻는 문장이에요. 보기는 1번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-3b",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "drink",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-3c",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": ", 2번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-3d",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "drinks",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-3e",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": ", 3번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-3f",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "drinking.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-3g",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "5초 드릴게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s25-4",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 5
+    },
+    {
+      "id": "s25-5",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "정답은 1번,",
+      "emotion": "칭찬",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s25-5b",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "drink!",
+      "emotion": "칭찬",
+      "joinNext": true
+    },
+    {
+      "id": "s25-5c",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "맨 앞에",
+      "emotion": "칭찬",
+      "joinNext": true
+    },
+    {
+      "id": "s25-5d",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "does",
+      "emotion": "칭찬",
+      "joinNext": true
+    },
+    {
+      "id": "s25-5e",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": ", 그러니까 뒤의 동사는 동사원형이에요.",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s25-6",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "주어가 3인칭 단수라서 -s가 붙은 보기를 고르기 쉬운데, 그게 바로 함정이었어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s26-1",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "마지막 문제예요. 내일 아침 기차 시간표를 보고 하는 말이에요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s26-2",
+      "slideId": "s26",
+      "lang": "en",
+      "text": "The train ___ at 10:30 tomorrow morning.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s26-3",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "보기는 1번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s26-3b",
+      "slideId": "s26",
+      "lang": "en",
+      "text": "leave",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s26-3c",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": ", 2번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s26-3d",
+      "slideId": "s26",
+      "lang": "en",
+      "text": "leaves",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s26-3e",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": ", 3번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s26-3f",
+      "slideId": "s26",
+      "lang": "en",
+      "text": "left.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s26-3g",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "5초 드릴게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s26-4",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 5
+    },
+    {
+      "id": "s26-5",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "정답은 2번,",
+      "emotion": "칭찬",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s26-5b",
+      "slideId": "s26",
+      "lang": "en",
+      "text": "leaves!",
+      "emotion": "칭찬",
+      "joinNext": true
+    },
+    {
+      "id": "s26-5c",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "기차 시간표는 정해진 일정이라 내일 일이어도 현재시제를 쓸 수 있어요.",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s26-6",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "기차는 3인칭 단수라서 -s가 붙었고요. 참고로",
+      "emotion": "칭찬",
+      "joinNext": true
+    },
+    {
+      "id": "s26-6b",
+      "slideId": "s26",
+      "lang": "en",
+      "text": "will leave",
+      "emotion": "칭찬",
+      "joinNext": true
+    },
+    {
+      "id": "s26-6c",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "라고 해도 맞아요. 세 문제 다 맞혔다면 정말 잘했어요!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s27-1",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "오늘 배운 걸 정리해 볼게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s27-2",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "현재시제는 습관, 변하지 않는 사실, 지금의 상태를 말할 때 써요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s27-3",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "시간표처럼 정해진 일정은 미래의 일이어도 현재시제로 말할 수 있어요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s27-4",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "주어가 3인칭 단수면 동사에 -s나 -es를 붙여요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s27-5",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "부정문과 의문문에서는 이 둘이 도와줘요.",
+      "emotion": "강조",
+      "reveal": 4,
+      "joinNext": true
+    },
+    {
+      "id": "s27-5b",
+      "slideId": "s27",
+      "lang": "en",
+      "text": "do, does.",
+      "emotion": "강조",
+      "joinNext": true
+    },
+    {
+      "id": "s27-5c",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "그리고 그 뒤의 동사는 동사원형이에요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s28-1",
+      "slideId": "s28",
+      "lang": "ko",
+      "text": "이제 현재시제를 실제 회화에서 써 볼 시간이에요. 첫 번째 패턴은 친구에게 같이 뭔가 하자고 할 때 써요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s28-2",
+      "slideId": "s28",
+      "lang": "en",
+      "text": "Do you want to …?",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s28-3",
+      "slideId": "s28",
+      "lang": "ko",
+      "text": "'할래?'라는 뜻이에요. 원하다는 지금의 상태라서 현재시제로 물어봐요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s28-4",
+      "slideId": "s28",
+      "lang": "en",
+      "text": "Do you want to grab lunch?",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s28-5",
+      "slideId": "s28",
+      "lang": "ko",
+      "text": "점심 먹으러 갈래?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s28-6",
+      "slideId": "s28",
+      "lang": "en",
+      "text": "Do you want to come with us?",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s28-7",
+      "slideId": "s28",
+      "lang": "ko",
+      "text": "우리랑 같이 갈래?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s29-1",
+      "slideId": "s29",
+      "lang": "ko",
+      "text": "수업이 끝나고 친구에게 간식 먹으러 가자고 하는 상황이에요. 잘 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s29-2",
+      "slideId": "s29",
+      "lang": "en",
+      "text": "Do you want to grab a snack after school?",
+      "emotion": "설명",
+      "reveal": 1,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s29-3",
+      "slideId": "s29",
+      "lang": "en",
+      "text": "Sure! Where do you want to go?",
+      "emotion": "설명",
+      "reveal": 2,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s29-4",
+      "slideId": "s29",
+      "lang": "en",
+      "text": "How about the new café near the station?",
+      "emotion": "설명",
+      "reveal": 3,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s29-5",
+      "slideId": "s29",
+      "lang": "en",
+      "text": "Sounds good. See you at the gate!",
+      "emotion": "설명",
+      "reveal": 4,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s30-1",
+      "slideId": "s30",
+      "lang": "ko",
+      "text": "이제 따라 해 볼까요? 먼저 천천히 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s30-2",
+      "slideId": "s30",
+      "lang": "en",
+      "text": "Do you want to grab lunch?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 0.85
+    },
+    {
+      "id": "s30-3",
+      "slideId": "s30",
+      "lang": "ko",
+      "text": "이번엔 자연스러운 속도예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s30-4",
+      "slideId": "s30",
+      "lang": "en",
+      "text": "Do you want to grab lunch?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s30-5",
+      "slideId": "s30",
+      "lang": "ko",
+      "text": "잘했어요!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s31-1",
+      "slideId": "s31",
+      "lang": "ko",
+      "text": "두 번째 패턴은 상대방의 습관을 물어볼 때 써요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s31-2",
+      "slideId": "s31",
+      "lang": "en",
+      "text": "How often do you …?",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s31-3",
+      "slideId": "s31",
+      "lang": "ko",
+      "text": "얼마나 자주 하냐는 뜻이에요. 습관을 묻는 말이라서 현재시제를 써요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s31-4",
+      "slideId": "s31",
+      "lang": "en",
+      "text": "How often do you work out?",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s31-5",
+      "slideId": "s31",
+      "lang": "ko",
+      "text": "운동 얼마나 자주 해?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s31-6",
+      "slideId": "s31",
+      "lang": "en",
+      "text": "How often do you eat out?",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s31-7",
+      "slideId": "s31",
+      "lang": "ko",
+      "text": "외식 얼마나 자주 해?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s32-1",
+      "slideId": "s32",
+      "lang": "ko",
+      "text": "직장 동료 두 사람이 회사 앞 카페에서 이야기하는 상황이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s32-2",
+      "slideId": "s32",
+      "lang": "en",
+      "text": "How often do you come here?",
+      "emotion": "설명",
+      "reveal": 1,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s32-3",
+      "slideId": "s32",
+      "lang": "en",
+      "text": "Almost every day. I love their lattes.",
+      "emotion": "설명",
+      "reveal": 2,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s32-4",
+      "slideId": "s32",
+      "lang": "en",
+      "text": "Me too. I usually get one before work.",
+      "emotion": "설명",
+      "reveal": 3,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s33-1",
+      "slideId": "s33",
+      "lang": "ko",
+      "text": "따라 해 볼까요? 먼저 천천히 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s33-2",
+      "slideId": "s33",
+      "lang": "en",
+      "text": "How often do you work out?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 0.85
+    },
+    {
+      "id": "s33-3",
+      "slideId": "s33",
+      "lang": "ko",
+      "text": "이번엔 자연스러운 속도예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s33-4",
+      "slideId": "s33",
+      "lang": "en",
+      "text": "How often do you work out?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s33-5",
+      "slideId": "s33",
+      "lang": "ko",
+      "text": "잘했어요!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s34-1",
+      "slideId": "s34",
+      "lang": "ko",
+      "text": "세 번째 패턴은 정해진 일정을 물어볼 때 써요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s34-2",
+      "slideId": "s34",
+      "lang": "en",
+      "text": "What time does it start?",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s34-3",
+      "slideId": "s34",
+      "lang": "ko",
+      "text": "몇 시에 시작하냐는 뜻이에요. 영화나 수업 시간은 정해진 일정이라 현재시제를 쓰고, 주어가 3인칭 단수라서 의문사 바로 뒤에 이렇게,",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s34-4",
+      "slideId": "s34",
+      "lang": "en",
+      "text": "does.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s34-5",
+      "slideId": "s34",
+      "lang": "en",
+      "text": "What time does the movie start?",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s34-6",
+      "slideId": "s34",
+      "lang": "ko",
+      "text": "영화 몇 시에 시작해?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s34-7",
+      "slideId": "s34",
+      "lang": "en",
+      "text": "What time does your class start?",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s34-8",
+      "slideId": "s34",
+      "lang": "ko",
+      "text": "너 수업 몇 시에 시작해?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s35-1",
+      "slideId": "s35",
+      "lang": "ko",
+      "text": "친구와 주말에 영화를 보기로 약속하는 상황이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s35-2",
+      "slideId": "s35",
+      "lang": "en",
+      "text": "What time does the movie start?",
+      "emotion": "설명",
+      "reveal": 1,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s35-3",
+      "slideId": "s35",
+      "lang": "en",
+      "text": "It starts at 7:30.",
+      "emotion": "설명",
+      "reveal": 2,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s35-4",
+      "slideId": "s35",
+      "lang": "en",
+      "text": "Then let's meet at seven.",
+      "emotion": "설명",
+      "reveal": 3,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s35-5",
+      "slideId": "s35",
+      "lang": "en",
+      "text": "Okay. See you at the theater!",
+      "emotion": "설명",
+      "reveal": 4,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s36-1",
+      "slideId": "s36",
+      "lang": "ko",
+      "text": "마지막으로 따라 해 볼까요? 먼저 천천히 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-2",
+      "slideId": "s36",
+      "lang": "en",
+      "text": "What time does the movie start?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 0.85
+    },
+    {
+      "id": "s36-3",
+      "slideId": "s36",
+      "lang": "ko",
+      "text": "이번엔 자연스러운 속도예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-4",
+      "slideId": "s36",
+      "lang": "en",
+      "text": "What time does the movie start?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s36-5",
+      "slideId": "s36",
+      "lang": "ko",
+      "text": "잘했어요!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s37-1",
+      "slideId": "s37",
+      "lang": "ko",
+      "text": "오늘 배운 회화 패턴 세 개, 다시 한번 떠올려 볼까요?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s37-2",
+      "slideId": "s37",
+      "lang": "en",
+      "text": "Do you want to grab lunch?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s37-3",
+      "slideId": "s37",
+      "lang": "en",
+      "text": "How often do you work out?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s37-4",
+      "slideId": "s37",
+      "lang": "en",
+      "text": "What time does the movie start?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s37-5",
+      "slideId": "s37",
+      "lang": "ko",
+      "text": "모두 현재시제 문장이에요. 꼭 한번 써 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s37-6",
+      "slideId": "s37",
+      "lang": "ko",
+      "text": "다음 강의에서는 이미 지나간 일을 말하는 과거시제, 그중에서도 동사 끝에 -ed를 붙이는 규칙 변화를 배워요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s37-7",
+      "slideId": "s37",
+      "lang": "ko",
+      "text": "오늘도 정말 수고했어요. 구독과 좋아요 부탁드리고, 다음 강의에서 만나요!",
+      "emotion": "칭찬"
+    }
+  ]
+}

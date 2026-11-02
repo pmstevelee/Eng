@@ -110,6 +110,9 @@ function readSymbols(text: string, lang: Lang): string {
     out = out.replace(/\s*\/\s*/g, ' or ')
     out = out.replace(/&/g, ' and ')
     out = out.replace(/[~∼]/g, ' ')
+    // 시각 7:30 → "7 30" (아래 콜론 규칙이 "7, 30"으로 끊어 읽게 만들지 않게)
+    out = out.replace(/\b(\d{1,2}):(\d{2})\b/g, (_, h: string, m: string) =>
+      m === '00' ? `${h} o'clock` : m.startsWith('0') ? `${h} oh ${Number(m)}` : `${h} ${m}`)
   }
   // 괄호: 안의 말은 살리고 쉼표로 감싼다
   out = out.replace(/\s*[([{【「『]\s*/g, ', ').replace(/\s*[)\]}】」』]\s*/g, ', ')

@@ -5,7 +5,8 @@ import { splitMixedSegments } from '../../../src/lib/lecture-pipeline/mixed'
 import { parseLectureScript } from '../../../src/lib/lecture-pipeline/types'
 import { layoutTimeline, formatClock, sentenceKey } from '../../../src/lib/lecture-pipeline/timing'
 import { joinTokens } from '../../../src/lib/lecture-pipeline/types'
-import { findGrammarScope, generateLectureScript, sanitizeSlug, type GrammarScope } from '../ai'
+import { defaultPatternCount, findGrammarScope, generateLectureScript, sanitizeSlug, type GrammarScope } from '../ai'
+import { findPatternGroups } from '../../../src/lib/lecture-pipeline/patterns'
 import { lectureDir, loadDict, paths, rel, writeScript } from '../common'
 
 export interface ScriptOptions {
@@ -14,12 +15,17 @@ export interface ScriptOptions {
   slug?: string | null
   force?: boolean
   noDb?: boolean
+  /** 구성·말투 요청서 내용 (--brief 파일) */
+  brief?: string | null
+  /** 일상회화 패턴 수 (없으면 길이별 기본: 3분 이하 1개, 그 외 2개) */
+  patterns?: number | null
 }
 
 export async function runScript(title: string, opts: ScriptOptions = {}): Promise<string> {
   const minutes = opts.minutes && opts.minutes > 0 ? opts.minutes : 10
   const dict = loadDict()
-  console.log(`▶ 대본 만들기: "${title}" (약 ${minutes}분)`)
+  const patterns = opts.patterns ?? defaultPatternCount(minutes)
+  console.log(`▶ 대본 만들기: "${title}" (약 ${minutes}분${opts.brief ? ', 요청서 적용' : ''}, 일상회화 패턴 ${patterns}개)`)
 
   let scope: GrammarScope | null = null
   if (!opts.noDb) {
@@ -31,7 +37,7 @@ export async function runScript(title: string, opts: ScriptOptions = {}): Promis
     }
   }
 
-  const { script: generated, notes } = await generateLectureScript({ title, minutes, scope, dict, log: (m) => console.log(m) })
+  const { script: generated, notes } = await generateLectureScript({ title, minutes, scope, dict, brief: opts.brief, patterns, log: (m) => console.log(m) })
 
   // 폴더 이름(slug) — 이미 있으면 덮어쓰지 않고 -2, -3…
   let slug = sanitizeSlug(opts.slug ?? '') || generated.slug
@@ -53,6 +59,13 @@ export async function runScript(title: string, opts: ScriptOptions = {}): Promis
     const read = script.segments.some((g) => g.slideId === s.id && g.lang === 'en' && sentenceKey(g.text) === key)
     if (!read) extra.push(`${s.id}(예문): 화면 문장을 영어 세그먼트가 그대로 읽지 않아 단어 하이라이트가 안 돼요`)
   }
+
+  const groups = findPatternGroups(script)
+  if (groups.length !== patterns) extra.push(`일상회화 패턴을 ${patterns}개 요청했는데 ${groups.length}개가 만들어졌어요 (숏폼은 패턴 수만큼 만들어져요)`)
+  groups.forEach((g) => {
+    if (!g.dialogue) extra.push(`${g.pattern.id}(패턴): 뒤에 대화(dialogue) 슬라이드가 없어요`)
+    if (!g.repeats.length) extra.push(`${g.pattern.id}(패턴): 뒤에 따라하기(repeat) 슬라이드가 없어요`)
+  })
 
   writeScript(script, extra)
   const p = paths(slug)

@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "slug": "present-simple-uses",
+  "title": "현재시제의 쓰임",
+  "cards": [
+    {
+      "type": "cover",
+      "topic": "현재시제의 쓰임",
+      "hook": "현재시제, 지금 하는 일일까?",
+      "label": "중학 영문법"
+    },
+    {
+      "type": "question",
+      "sentence": "I do my homework.",
+      "prompt": "이거 맞을까요?",
+      "hint": "친구가 '지금 뭐 해?' 하고 물었을 때"
+    },
+    {
+      "type": "rule",
+      "heading": "현재시제란?",
+      "lines": [
+        "늘, 원래 그런 일 → 현재시제",
+        "**지금** 하는 중 → 현재진행형"
+      ],
+      "example": {
+        "en": "I'm doing my homework.",
+        "ko": "나 지금 숙제하고 있어"
+      }
+    },
+    {
+      "type": "rule",
+      "heading": "4가지 쓰임",
+      "lines": [
+        "① 습관·반복",
+        "② 변하지 않는 사실",
+        "③ 지금의 상태 (like, know)",
+        "④ 정해진 일정 (미래도 OK)"
+      ]
+    },
+    {
+      "type": "rule",
+      "heading": "3인칭 단수엔 -s/-es",
+      "formula": [
+        "He/She/It + 동사-s/-es"
+      ],
+      "example": {
+        "en": "She studies English every day.",
+        "ko": "그녀는 매일 영어를 공부한다"
+      },
+      "lines": [
+        "I/You/We/They는 동사원형 그대로"
+      ]
+    },
+    {
+      "type": "mistakes",
+      "heading": "흔한 실수 TOP 3",
+      "items": [
+        {
+          "wrong": "am go",
+          "right": "go"
+        },
+        {
+          "wrong": "watch",
+          "right": "watches"
+        },
+        {
+          "wrong": "doesn't likes",
+          "right": "doesn't like"
+        }
+      ]
+    },
+    {
+      "type": "quiz",
+      "question": "빈칸에 알맞은 말은?",
+      "sentence": "My mom ___ at a hospital.",
+      "choices": [
+        "work",
+        "works",
+        "is work"
+      ]
+    },
+    {
+      "type": "answer",
+      "answer": "works",
+      "sentence": "My mom works at a hospital.",
+      "explanation": "3인칭 단수 주어에는 동사+s/es를 써요."
+    },
+    {
+      "type": "pattern",
+      "pattern": "Do you want to ~?",
+      "slot": "동사원형",
+      "ko": "~할래?",
+      "example": {
+        "en": "Do you want to grab lunch?",
+        "ko": "점심 먹으러 갈래?"
+      }
+    },
+    {
+      "type": "cta",
+      "lectureTitle": "현재시제의 쓰임",
+      "message": "저장하고 복습하세요"
+    }
+  ]
+}

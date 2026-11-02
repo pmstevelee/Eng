@@ -5,6 +5,13 @@ import type { Role } from '../../lib/lecture-pipeline/types'
 
 export const VIDEO = { width: 1920, height: 1080, fps: 30 } as const
 export const THUMB = { width: 1280, height: 720 } as const
+/** 유튜브 숏폼 9:16 */
+export const SHORTS = { width: 1080, height: 1920, fps: 30 } as const
+/**
+ * 숏폼 안전영역 — 아래 약 20%(제목·채널·음악)와 오른쪽 버튼 줄(좋아요·댓글·공유)에는 글을 두지 않는다.
+ * 위쪽 검색·메뉴 아이콘 줄도 피한다.
+ */
+export const SHORTS_SAFE = { top: 150, bottom: Math.round(1920 * 0.2), left: 72, right: 168 } as const
 
 export const COLOR = {
   indigo: '#4458F6',

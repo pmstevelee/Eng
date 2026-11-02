@@ -1,10 +1,10 @@
-// npm run voice -- {slug} [--regen-failed] [--regen id1,id2] [--auto-retry 1] [--force] [--skip-qa]
+// npm run voice -- {slug} [--regen-failed] [--regen id1,id2] [--auto-retry 1] [--force] [--skip-qa] [--repeat-bed off|pad|noise] [--bed-db -34]
 // 음성 생성 + 발음 검수 → narration.wav, timeline.json, subtitles.srt, qa-report.md
 import { parseArgs, runCli } from './common'
-import { runVoice } from './steps/voice'
+import { resolveBed, runVoice } from './steps/voice'
 
 runCli(async () => {
-  const a = parseArgs(process.argv.slice(2), ['regen', 'auto-retry'])
+  const a = parseArgs(process.argv.slice(2), ['regen', 'auto-retry', 'repeat-bed', 'bed-db'])
   const slug = a.positional[0]
   if (!slug) throw new Error('강의 폴더 이름(slug)을 넣어 주세요. 예) npm run voice -- present-perfect')
   const { failed } = await runVoice(slug, {
@@ -13,6 +13,8 @@ runCli(async () => {
     autoRetry: a.get('auto-retry') ? Number(a.get('auto-retry')) : 0,
     force: a.has('force'),
     skipQa: a.has('skip-qa'),
+    repeatBed: resolveBed(a.get('repeat-bed')),
+    bedDb: a.get('bed-db') ? Number(a.get('bed-db')) : undefined,
   })
   console.log(`\n다음 단계: qa-report.md 확인${failed ? '(❌ 세그먼트는 직접 들어 보기)' : ''} → npm run preview -- ${slug} 또는 npm run render -- ${slug}`)
 })

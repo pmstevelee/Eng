@@ -1,6 +1,7 @@
 # 위고업잉글리시 문법 강의 영상 만들기
 
 강의 제목만 넣으면 **대본 → 음성 → 영상(mp4) → 썸네일·자막·YouTube 자료**가 나오는 도구예요.
+본 강의에는 **일상영어회화 패턴 + 따라하기** 파트가 들어가고, 그 패턴으로 **유튜브 숏폼**과 **인스타그램·쓰레드 카드뉴스**까지 만들어요.
 만든 영상은 YouTube에 올린 뒤 문법학습관리(`/admin/grammar`)의 강의로 등록해요.
 
 ---
@@ -13,9 +14,13 @@
 | 2 | `npm run voice -- present-perfect` | 음성 만들기 + 발음 검수 | 3~5분 |
 | 3 | `npm run preview -- present-perfect` | 브라우저에서 미리보기 | 바로 |
 | 4 | `npm run render -- present-perfect` | 최종 mp4·썸네일·YouTube 자료 | 10~30분 (컴퓨터 성능에 따라) |
+| 숏폼 1 | `npm run shorts -- present-perfect` | 패턴마다 숏폼 대본을 쓰고 **멈춰요** (검토) | 1분 |
+| 숏폼 2 | `npm run shorts:render -- present-perfect` | 숏폼 음성 + 1080×1920 mp4 | 한 편에 2~4분 |
+| 카드뉴스 1 | `npm run cardnews -- present-perfect` | 카드 문구·인스타·쓰레드 글을 쓰고 **멈춰요** (검토) | 1분 |
+| 카드뉴스 2 | `npm run cardnews:render -- present-perfect` | 카드 이미지 8~10장 (1080×1350 PNG) | 1분 |
 | 블로그 1 | `npm run blog -- present-perfect` | 네이버 블로그 키워드·원고를 쓰고 **멈춰요** (검토) | 2~3분 |
 | 블로그 2 | `npm run blog:publish -- present-perfect` | ego lite로 네이버 블로그에 **임시저장** (발행 안 함) | 3~6분 |
-| 한 번에 | `npm run all -- "현재완료 시제"` | 1~4를 멈추지 않고 전부 | 위를 합친 시간 |
+| 한 번에 | `npm run all -- "현재완료 시제"` | 본 강의 → 숏폼 → 카드뉴스 전부 (**검토 지점마다 멈춤**) | 위를 합친 시간 |
 
 `present-perfect` 같은 영문 이름은 **slug(폴더 이름)** 예요. 1단계가 끝날 때 화면에 알려 줘요.
 
@@ -60,6 +65,7 @@ npm run script -- "현재완료 시제"
 - 강의 제목으로 문법학습관리의 포인트(또는 단원)를 찾아, 그곳의 **관리자 원고와 개념 정리**를 기준으로 대본을 써요.
 - 다른 포인트를 쓰고 싶으면 코드로 지정해요: `npm run script -- "현재완료 시제" --point G03-03-01`
 - 길이를 바꾸려면: `--minutes 5` (기본 10분)
+- 일상회화 패턴 수를 바꾸려면: `--patterns 3` (기본: 3분 이하 강의는 1개, 그 외 2개 · `0`이면 패턴 파트 없음). **패턴 수 = 숏폼 편수**예요.
 - 끝나면 `lectures/present-perfect/` 폴더가 생겨요.
 
 ### 검토하기
@@ -149,13 +155,139 @@ npm run render -- present-perfect
 
 | 파일 | 내용 |
 |---|---|
-| `output.mp4` | 완성 영상 (**2560×1440**, 30fps) |
+| `output.mp4` | 완성 영상 (**2560×1440**, 30fps) — YouTube는 1440p 이상 업로드에 더 좋은 압축을 써서 글자가 선명해요. 1080p로 낮추지 마세요 |
 | `thumbnail.png` | YouTube 썸네일 (1280×720) |
 | `subtitles.srt` | 자막 파일 (YouTube에 따로 올릴 수 있어요) |
 | `youtube.md` | 제목 후보 3개, 설명란(챕터 시간 포함), 태그 15개 |
 | `script.json` / `script-review.md` | 대본 |
 | `qa-report.md` | 발음 검수 결과 |
 | `audio/`, `narration.wav`, `timeline.json` | 음성 파일·시간표 (자동 생성) |
+
+---
+
+## 일상영어회화 패턴 + 따라하기 (본 강의 안)
+
+대본을 만들면 문법 설명·퀴즈 뒤, 정리 앞에 패턴마다 슬라이드 3장이 들어가요.
+
+| 슬라이드 | 화면 | 음성 |
+|---|---|---|
+| **회화 패턴** (`pattern`) | 패턴 공식을 크게 (빈칸 `~`은 인디고 박스) + 한국어 의미 + 예문 | 선생님 소개 → 원어민이 패턴 읽기 → 의미 설명 → 예문 |
+| **대화** (`dialogue`) | A/B 말풍선 2~4턴. 말하는 쪽 말풍선이 그 순간 나타나고 테두리가 켜져요 | **A = 남자 원어민, B = 여자 원어민** |
+| **따라하기** (`repeat`) | 문장 + 해석. 강세 단어는 **굵게**, 연음은 밑줄 + 작은 발음 힌트(예: want to → 워너) | 1회차 **0.85배** → 따라 할 시간 → 2회차 **1.0배** → 따라 할 시간 |
+
+- 따라 할 시간은 **"그 문장 음성 길이 × 1.5 + 1초"** 로 자동 계산돼요. 기다리는 동안 화면에 "따라 해보세요 🎤", 원형 카운트다운, 마이크 펄스가 나와요.
+- 원어민 부분(패턴 읽기·대화·따라하기)은 AI가 아니라 **화면 내용 그대로 자동으로** 만들어져요. 화면 문장을 고치면 읽는 문장도 같이 바뀌어요.
+
+### script.json에서 고치기
+
+```json
+{ "id": "s9", "type": "repeat", "data": {
+  "sentence": "Have you ever eaten sushi?", "ko": "초밥 먹어 본 적 있어?",
+  "stress": ["ever", "eaten"],
+  "links": [{ "text": "Have you", "hint": "해뷰" }]
+} }
+```
+
+세그먼트에는 `type`이 붙어 있어요: `"pattern"`(패턴 읽기), `"dialogue"`(대화, `speaker` "A"/"B"), `"repeat"`(따라하기).
+따라하기 세그먼트는 `speed`(읽기 속도)와 `pauseSec`(따라 할 시간, 초)를 바꿀 수 있어요. `pauseSec`를 지우면 자동 계산으로 돌아가요.
+
+```json
+{ "id": "s9-2", "slideId": "s9", "lang": "en", "type": "repeat", "speed": 0.85, "text": "Have you ever eaten sushi?", "emotion": "설명" }
+{ "id": "s9-4", "slideId": "s9", "lang": "en", "type": "repeat", "speed": 1.0, "pauseSec": 4, "text": "Have you ever eaten sushi?", "emotion": "설명" }
+```
+
+### 따라 할 시간에 작은 배경음 깔기 (선택)
+
+무음 대신 아주 작은 소리(-30dB 이하, 기본 -34dB)를 깔 수 있어요.
+
+```bash
+npm run voice -- present-perfect --repeat-bed pad
+```
+
+- `pad`: 잔잔한 화음 · `noise`: 잔잔한 잡음 · `off`: 무음(기본)
+- 크기 조절: `--bed-db -36` (숫자가 작을수록 작게, -30보다 크게는 안 돼요)
+- 늘 켜 두려면 `.env.local`에 `LECTURE_REPEAT_BED=pad`
+
+### 구간만 빨리 렌더해 보기
+
+전체를 렌더하지 않고 몇 장만 확인할 수 있어요. `section-s9.mp4`가 생겨요.
+
+```bash
+npm run render -- present-perfect --section s9
+```
+
+---
+
+## 유튜브 숏폼 만들기
+
+본 강의의 **일상회화 패턴 1개 = 숏폼 1편** (1080×1920, 30fps, 45~60초)이에요. 본 강의 대본·음성이 먼저 있어야 해요.
+
+### 1. 숏폼 대본 (여기서 멈춰요)
+
+```bash
+npm run shorts -- present-perfect
+```
+
+- 구성: **훅**(첫 2초 질문) → **패턴** → **예문 3개** → **따라하기 1회**(자연 속도, 따라 할 시간 = 음성 길이 × 1.2) → **채널 안내**
+- 내레이션은 본 강의보다 빠르게(**한국어 1.1배**) 따로 만들어요.
+- `shorts/shorts-01-review.md`를 읽고, 고칠 곳은 `shorts/shorts-01-script.json`에서 고쳐요.
+- 이미 있는 숏폼 대본은 덮어쓰지 않아요 (고친 내용 보호). 새로 쓰려면 `--force`, 하나만: `--only 2`
+
+### 2. 음성 + 렌더
+
+```bash
+npm run shorts:render -- present-perfect
+```
+
+- 하나만: `--only 1` · 발음 검수 불합격 다시 만들기: `--only 1 --regen-failed` · 음성만: `--voice-only`
+- 길이가 45~60초를 벗어나면 알려 줘요. 숏폼 대본의 한국어 문장을 늘리거나 줄여요.
+- 화면: 자막은 **화면 중앙 위**에 큰 글씨로, 읽는 단어가 금색으로 바뀌어요. 아래 20%·오른쪽 버튼 자리에는 글을 두지 않아요 (YouTube 화면에 가려지는 곳).
+
+### 결과물 (`lectures/present-perfect/shorts/`)
+
+| 파일 | 내용 |
+|---|---|
+| `shorts-01.mp4` | 숏폼 영상 |
+| `shorts-01-script.json` / `shorts-01-review.md` | 숏폼 대본 |
+| `shorts-01-youtube.md` | 제목 후보 3개(#Shorts), 설명, 해시태그 |
+| `shorts-01-qa-report.md`, `shorts-01.srt`, `shorts-01-narration.wav`, `shorts-01-timeline.json` | 발음 검수·자막·음성 (자동 생성) |
+
+---
+
+## 인스타그램·쓰레드 카드뉴스 만들기
+
+본 강의 대본으로 **1080×1350(4:5) PNG 8~10장**을 만들어요. 인스타그램과 쓰레드에 같이 써요.
+
+### 1. 카드 문구 (여기서 멈춰요)
+
+```bash
+npm run cardnews -- present-perfect
+```
+
+| 장 | 내용 |
+|---|---|
+| 1 | 표지: 강의 주제 + 훅 문구 |
+| 2 | "이거 맞을까요?" 흔한 실수 문장 |
+| 3~5 | 핵심 문법 정리 (공식, 예문) |
+| 6 | 흔한 실수 TOP 3 |
+| 7 | 퀴즈 1문제 (정답은 다음 장) |
+| 8 | 정답과 해설 |
+| 9 | 오늘의 일상회화 패턴 + 예문 (패턴이 없는 강의면 빠져요) |
+| 10 | 저장·팔로우 + "전체 강의는 유튜브에서" |
+
+- 한 장 최대 **5줄**, 글자 최소 **40px**, 오른쪽 아래 페이지 번호(1/10).
+- `cardnews/cardnews-script.md`를 읽고, 고칠 곳은 `cardnews/cardnews.json`에서 고쳐요. 5줄을 넘는 카드는 맨 위 **확인할 점**에 나와요.
+- 캡션도 같이 만들어요: `instagram-caption.md`(본문 2,000자 이내 + 해시태그 20~25개), `threads-post.md`(500자 이내 대화체 + 해시태그 3~5개, 질문으로 끝남). 이 두 파일은 바로 고쳐 쓰면 돼요.
+- 이미 있으면 덮어쓰지 않아요. 새로 쓰려면 `--force`
+
+### 2. 이미지 만들기
+
+```bash
+npm run cardnews:render -- present-perfect
+```
+
+- 몇 장만: `--only 1,3,9`
+- 결과: `cardnews/card-01.png` ~ `card-10.png`
 
 ---
 
@@ -254,8 +386,15 @@ ego lite는 사람과 AI가 같이 쓰는 크롬 기반 브라우저예요. 블�
 npm run all -- "현재완료 시제"
 ```
 
-1~4단계를 멈추지 않고 실행해요. 검수에 떨어진 문장은 **한 번 자동으로 다시 만들어요**.
-대본을 검토하지 않고 바로 만들기 때문에, 처음 몇 편은 단계별로 실행하는 것을 추천해요.
+**본 강의 → 숏폼 → 카드뉴스**를 차례로 실행하고, 검토 지점 3곳에서 멈춰요.
+
+1. 본 강의 대본 → ⏸ `script-review.md` 검토 → 음성 → 렌더
+2. 숏폼 대본 → ⏸ `shorts-NN-review.md` 검토 → 숏폼 음성·렌더
+3. 카드뉴스 문구 → ⏸ `cardnews-script.md` 검토 → 카드 이미지
+
+- 멈추면 파일을 고친 뒤 터미널에서 **Enter**를 눌러 이어 가요. 그만하려면 `q` + Enter (이어서 할 명령을 알려 줘요).
+- 검수에 떨어진 문장은 **한 번 자동으로 다시 만들어요**.
+- 멈추지 않고 끝까지: `--yes` · 패턴 수: `--patterns 2` · 배경음: `--repeat-bed pad`
 
 ---
 
@@ -266,6 +405,8 @@ npm run all -- "현재완료 시제"
 | ElevenLabs 음성 (Eleven v4, 1천 자당 약 $0.08) | 약 4,000~5,000자 → 약 $0.4 |
 | OpenAI 대본 (gpt-4.1) | 약 $0.1 |
 | Whisper 발음 검수 | 약 $0.06 |
+| 숏폼 1편 (음성 약 400자 + 대본) | 약 $0.05 |
+| 카드뉴스 (문구·캡션) | 약 $0.05 |
 
 지금 쓰는 ElevenLabs **Starter** 요금제는 한 달에 약 38,000자예요. 다시 만들기까지 포함하면 **한 달에 강의 7~8편** 정도 만들 수 있어요.
 더 만들려면 Creator 요금제(월 $22, 약 275,000자)로 올리세요.
@@ -282,6 +423,10 @@ npm run all -- "현재완료 시제"
 | `script.json이 음성을 만든 뒤 바뀌었어요` | `npm run voice -- 폴더이름`을 다시 실행해요 (바뀐 문장만 새로 만듦) |
 | `맞는 문법 포인트를 찾지 못했어요` | `--point 포인트코드`로 지정해요 (관리자 화면에서 코드 확인) |
 | 렌더가 시작하자마자 꺼짐 | Google Chrome이 설치되어 있는지 확인해요 |
+| `본 강의에 일상회화 패턴(pattern 슬라이드)이 없어요` | 대본을 `--patterns 1` 이상으로 다시 만들어요 |
+| `이미 …cardnews.json이 있어요` | 고친 내용 보호예요. 새로 만들려면 `--force` |
+| 숏폼 길이가 45~60초를 벗어남 | `shorts-NN-script.json`의 한국어 문장을 늘리거나 줄인 뒤 `npm run shorts:render -- 폴더이름 --only N` |
+| 대화 남자 목소리를 바꾸고 싶어요 | `.env.local`에 `LECTURE_EN_MALE_VOICE_ID=보이스id` (여자는 `LECTURE_EN_FEMALE_VOICE_ID`) |
 
 ---
 
@@ -293,7 +438,10 @@ npm run all -- "현재완료 시제"
 - **코드 위치**
   - CLI: `scripts/lecture/`
   - 대본 형식·정규화·타이밍·검수: `src/lib/lecture-pipeline/`
-  - 영상 컴포넌트(슬라이드 10종): `src/components/lecture-video/`
-  - Remotion 진입점: `remotion/lecture-pipeline.ts`
+  - 영상 컴포넌트(슬라이드 13종): `src/components/lecture-video/` — 패턴·대화·따라하기 `pattern-slides.tsx`, 공용 부품(마이크·카운트다운·강세/연음 문장) `practice.tsx`, 숏폼 `shorts-video.tsx`, 카드뉴스 `card-still.tsx`
+  - 패턴 묶음·원어민 세그먼트 자동 구성: `src/lib/lecture-pipeline/patterns.ts` · 숏폼 대본·자막: `shorts.ts` · 카드뉴스 형식·줄 수 검사: `cardnews.ts`
+  - 숏폼·카드뉴스 AI: `scripts/lecture/ai-social.ts`
+  - **속도:** ElevenLabs `eleven_v4`는 `voice_settings.speed`를 무시해요(2026-11 확인). 그래서 속도를 정한 문장(따라하기 0.85배, 숏폼 한국어 1.1배)은 음성 단계에서 ffmpeg `atempo`로 빠르기만 바꿔요(음 높이 그대로). `LECTURE_TTS_SPEED=native|stretch`로 바꿀 수 있어요.
+  - Remotion 진입점: `remotion/lecture-pipeline.ts` (컴포지션: WeGoUpLecture, WeGoUpThumbnail, WeGoUpShorts 1080×1920, WeGoUpCard 1080×1350)
 - **Remotion 라이선스:** 직원 4명 이상 회사는 회사 라이선스가 필요해요. `REMOTION_LICENSE_KEY`에 넣어요.
 - **글꼴:** Pretendard(OFL)를 `public/fonts/pretendard/`에 넣어 두었어요.

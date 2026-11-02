@@ -10,9 +10,15 @@
 //   2027-01-06 종료 예정 공지가 있어 예비용으로만 둔다.
 
 import { createHash } from 'node:crypto'
-import type { Emotion, Lang } from '../../src/lib/lecture-pipeline/types'
+import { SPEED_RANGE, type Emotion, type Lang, type Speaker } from '../../src/lib/lecture-pipeline/types'
 
-export interface TtsRequest {
+/** 세그먼트별 음성 변형 — speed는 절대 속도(1.0 = 자연스러움), speaker는 대화 화자(A 남자 / B 여자 원어민) */
+export interface VoiceVariant {
+  speed?: number
+  speaker?: Speaker
+}
+
+export interface TtsRequest extends VoiceVariant {
   text: string
   lang: Lang
   emotion: Emotion
@@ -37,9 +43,17 @@ export interface TtsResult {
 export interface TtsProvider {
   id: 'elevenlabs' | 'google' | 'openai'
   model: string
-  voice(lang: Lang): string
+  /** speaker가 있으면 대화 화자 보이스 (A 남자, B 여자) */
+  voice(lang: Lang, speaker?: Speaker): string
+  /** 언어별 기본 속도 */
+  baseSpeed(lang: Lang): number
+  /**
+   * 속도 설정을 실제로 반영하는지. false면 음성 단계가 ffmpeg(atempo)로 빠르기를 바꾼다.
+   * ElevenLabs eleven_v4는 voice_settings.speed를 무시한다 (2026-11-02 확인: 0.7·1.2 모두 같은 길이).
+   */
+  appliesSpeed: boolean
   /** 음성이 같으면 다시 만들지 않기 위한 설정 서명 (문장 제외) */
-  settingsKey(lang: Lang, emotion: Emotion): string
+  settingsKey(lang: Lang, emotion: Emotion, variant?: VoiceVariant): string
   synthesize(req: TtsRequest): Promise<TtsResult>
 }
 
@@ -51,6 +65,18 @@ const num = (k: string, fallback: number) => {
 
 /** 언어별 속도 — 한국어는 또렷하게 조금 천천히, 영어 예문은 학습용으로 조금 더 천천히 */
 const speedFor = (lang: Lang) => (lang === 'ko' ? num('LECTURE_KO_SPEED', 0.95) : num('LECTURE_EN_SPEED', 0.9))
+/** 변형 속도(있으면) — 공급자 범위 안으로, 소수 둘째 자리까지 */
+const pickSpeed = (lang: Lang, v?: VoiceVariant, range = SPEED_RANGE) =>
+  v?.speed ? Math.round(Math.min(range.max, Math.max(range.min, v.speed)) * 100) / 100 : speedFor(lang)
+
+/** LECTURE_TTS_SPEED=native(공급자 속도 설정) | stretch(ffmpeg로 빠르기 조절). 없으면 모델별 기본 */
+function speedMode(nativeByDefault: boolean): boolean {
+  const v = env('LECTURE_TTS_SPEED').toLowerCase()
+  return v === 'native' ? true : v === 'stretch' ? false : nativeByDefault
+}
+
+/** 대화 화자 보이스 — A는 남자, B는 여자 원어민 (영어) */
+const SPEAKER_GENDER: Record<Speaker, 'male' | 'female'> = { A: 'male', B: 'female' }
 
 class TtsError extends Error {}
 
@@ -95,25 +121,33 @@ function elevenLabs(): TtsProvider {
     en: env('LECTURE_EN_VOICE_ID') || env('ELEVENLABS_EN_VOICE_ID'),
   }
   if (!voices.ko || !voices.en) throw new TtsError('LECTURE_KO_VOICE_ID·LECTURE_EN_VOICE_ID(ElevenLabs 보이스 id)를 .env.local에 넣어 주세요.')
+  // 대화 화자 — 기본: 남자 Brian(ElevenLabs 기본 보이스), 여자 = 영어 예문 보이스
+  const speakerVoices = {
+    male: env('LECTURE_EN_MALE_VOICE_ID') || 'nPczCjzI2devNBz1zQrb',
+    female: env('LECTURE_EN_FEMALE_VOICE_ID') || voices.en,
+  }
+  const voiceOf = (lang: Lang, speaker?: Speaker) => (speaker && lang === 'en' ? speakerVoices[SPEAKER_GENDER[speaker]] : voices[lang])
   const supportsLanguageCode = !model.startsWith('eleven_multilingual')
-  const settings = (lang: Lang, emotion: Emotion) => ({ ...ELEVEN_EMOTION[emotion], similarity_boost: 0.75, use_speaker_boost: true, speed: speedFor(lang) })
+  const settings = (lang: Lang, emotion: Emotion, v?: VoiceVariant) => ({ ...ELEVEN_EMOTION[emotion], similarity_boost: 0.75, use_speaker_boost: true, speed: pickSpeed(lang, v) })
   return {
     id: 'elevenlabs',
     model,
-    voice: (lang) => voices[lang],
-    settingsKey: (lang, emotion) => JSON.stringify(['elevenlabs', model, voices[lang], settings(lang, emotion)]),
+    voice: voiceOf,
+    baseSpeed: speedFor,
+    appliesSpeed: speedMode(!/^eleven_v\d/.test(model)),
+    settingsKey: (lang, emotion, v) => JSON.stringify(['elevenlabs', model, voiceOf(lang, v?.speaker), settings(lang, emotion, v)]),
     async synthesize(req) {
       const body = {
         text: req.text,
         model_id: model,
         ...(supportsLanguageCode ? { language_code: req.lang } : {}),
-        voice_settings: settings(req.lang, req.emotion),
+        voice_settings: settings(req.lang, req.emotion, req),
         ...(req.previousText ? { previous_text: req.previousText } : {}),
         ...(req.nextText ? { next_text: req.nextText } : {}),
         ...(req.seed !== undefined ? { seed: req.seed } : {}),
       }
       const res = await postJson(
-        `https://api.elevenlabs.io/v1/text-to-speech/${voices[req.lang]}/with-timestamps?output_format=mp3_44100_128`,
+        `https://api.elevenlabs.io/v1/text-to-speech/${voiceOf(req.lang, req.speaker)}/with-timestamps?output_format=mp3_44100_128`,
         { 'xi-api-key': key },
         body,
         'ElevenLabs',
@@ -142,19 +176,23 @@ function google(): TtsProvider {
     ko: env('GOOGLE_TTS_KO_VOICE') || 'ko-KR-Chirp3-HD-Charon',
     en: env('GOOGLE_TTS_EN_VOICE') || 'en-US-Chirp3-HD-Kore',
   }
+  const speakerVoices = { male: env('GOOGLE_TTS_EN_MALE_VOICE') || 'en-US-Chirp3-HD-Charon', female: env('GOOGLE_TTS_EN_FEMALE_VOICE') || voices.en }
+  const voiceOf = (lang: Lang, speaker?: Speaker) => (speaker && lang === 'en' ? speakerVoices[SPEAKER_GENDER[speaker]] : voices[lang])
   return {
     id: 'google',
     model: 'chirp3-hd',
-    voice: (lang) => voices[lang],
-    settingsKey: (lang) => JSON.stringify(['google', voices[lang], speedFor(lang)]),
+    voice: voiceOf,
+    baseSpeed: speedFor,
+    appliesSpeed: speedMode(true),
+    settingsKey: (lang, _emotion, v) => JSON.stringify(['google', voiceOf(lang, v?.speaker), pickSpeed(lang, v)]),
     async synthesize(req) {
       const res = await postJson(
         `https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(key)}`,
         {},
         {
           input: { text: req.text },
-          voice: { languageCode: req.lang === 'ko' ? 'ko-KR' : 'en-US', name: voices[req.lang] },
-          audioConfig: { audioEncoding: 'MP3', sampleRateHertz: 44100, speakingRate: speedFor(req.lang) },
+          voice: { languageCode: req.lang === 'ko' ? 'ko-KR' : 'en-US', name: voiceOf(req.lang, req.speaker) },
+          audioConfig: { audioEncoding: 'MP3', sampleRateHertz: 44100, speakingRate: pickSpeed(req.lang, req) },
         },
         'Google TTS',
       )
@@ -178,16 +216,20 @@ function openai(): TtsProvider {
   if (!key) throw new TtsError('OPENAI_API_KEY가 없어요.')
   const model = env('LECTURE_OPENAI_TTS_MODEL') || 'gpt-4o-mini-tts'
   const voices = { ko: env('LECTURE_OPENAI_KO_VOICE') || 'marin', en: env('LECTURE_OPENAI_EN_VOICE') || 'cedar' }
+  const speakerVoices = { male: 'cedar', female: 'marin' }
+  const voiceOf = (lang: Lang, speaker?: Speaker) => (speaker && lang === 'en' ? speakerVoices[SPEAKER_GENDER[speaker]] : voices[lang])
   return {
     id: 'openai',
     model,
-    voice: (lang) => voices[lang],
-    settingsKey: (lang, emotion) => JSON.stringify(['openai', model, voices[lang], OPENAI_STYLE[lang], OPENAI_EMOTION[emotion], speedFor(lang)]),
+    voice: voiceOf,
+    baseSpeed: speedFor,
+    appliesSpeed: speedMode(true),
+    settingsKey: (lang, emotion, v) => JSON.stringify(['openai', model, voiceOf(lang, v?.speaker), OPENAI_STYLE[lang], OPENAI_EMOTION[emotion], pickSpeed(lang, v)]),
     async synthesize(req) {
       const res = await postJson(
         'https://api.openai.com/v1/audio/speech',
         { authorization: `Bearer ${key}` },
-        { model, voice: voices[req.lang], input: req.text, instructions: `${OPENAI_STYLE[req.lang]} 말투: ${OPENAI_EMOTION[req.emotion]}.`, response_format: 'mp3', speed: speedFor(req.lang) },
+        { model, voice: voiceOf(req.lang, req.speaker), input: req.text, instructions: `${OPENAI_STYLE[req.lang]} 말투: ${OPENAI_EMOTION[req.emotion]}.`, response_format: 'mp3', speed: pickSpeed(req.lang, req) },
         'OpenAI TTS',
       )
       return { audio: Buffer.from(await res.arrayBuffer()), ext: 'mp3' }
@@ -204,6 +246,6 @@ export function createTtsProvider(): TtsProvider {
 }
 
 /** 음성 캐시 키 — 공급자·보이스·설정·읽을 문장이 같으면 다시 만들지 않는다 */
-export function audioHash(provider: TtsProvider, lang: Lang, emotion: Emotion, spokenText: string): string {
-  return createHash('sha1').update(provider.settingsKey(lang, emotion)).update('\n').update(spokenText).digest('hex').slice(0, 16)
+export function audioHash(provider: TtsProvider, lang: Lang, emotion: Emotion, spokenText: string, variant?: VoiceVariant): string {
+  return createHash('sha1').update(provider.settingsKey(lang, emotion, variant)).update('\n').update(spokenText).digest('hex').slice(0, 16)
 }

@@ -7,6 +7,7 @@ import type {
 import { joinTokens } from '../../lib/lecture-pipeline/types'
 import { BrandMark, CheckIcon, Chip, Header, MarkedText, Mark, Sentence, rise, useAppear, useNowMs, useSlide, useStep } from './parts'
 import { COLOR, FONT, ROLE_COLOR, fitSize } from './theme'
+import { DialogueSlide, PatternSlide, RepeatSlide } from './pattern-slides'
 
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const
 
@@ -361,5 +362,13 @@ export function SlideView({ slide }: { slide: Slide }) {
     case 'quiz': return <QuizSlide data={slide.data} />
     case 'summary': return <SummarySlide data={slide.data} />
     case 'outro': return <OutroSlide data={slide.data} />
+    case 'pattern': return <PatternSlide data={slide.data} />
+    case 'dialogue': return <DialogueSlide data={slide.data} />
+    case 'repeat': return <RepeatSlide data={slide.data} />
+    // 숏폼 전용 슬라이드는 숏폼 컴포지션이 그린다
+    case 'hook':
+    case 'examples':
+    case 'cta':
+      return null
   }
 }

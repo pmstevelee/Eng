@@ -1,0 +1,239 @@
+{
+  "version": 1,
+  "slug": "present-simple-uses-shorts-03",
+  "title": "현재시제의 쓰임 숏폼 3 — What time does ~ start?",
+  "grammarPoint": {
+    "code": "G03-01-01",
+    "title": "현재시제의 쓰임"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-11-01T19:46:01.563Z",
+  "format": "shorts",
+  "tempo": {
+    "koSpeedScale": 1.1,
+    "enSpeed": 1,
+    "gapScale": 0.6,
+    "leadInMs": 250,
+    "tailMs": 1200,
+    "repeatPause": {
+      "factor": 1.2,
+      "extraSec": 0
+    }
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "hook",
+      "data": {
+        "question": "'~몇 시에 시작해?' 영어로 바로 말할 수 있나요?",
+        "sub": "지금 바로 확인해 보세요"
+      },
+      "chapter": "훅"
+    },
+    {
+      "id": "s2",
+      "type": "pattern",
+      "data": {
+        "pattern": "What time does ~ start?",
+        "ko": "~ 몇 시에 시작해?",
+        "slot": "영화·수업 등"
+      },
+      "chapter": "패턴"
+    },
+    {
+      "id": "s3",
+      "type": "examples",
+      "data": {
+        "examples": [
+          {
+            "en": "What time does the movie start?",
+            "ko": "영화 몇 시에 시작해?"
+          },
+          {
+            "en": "What time does your class start?",
+            "ko": "너 수업 몇 시에 시작해?"
+          },
+          {
+            "en": "What time does the meeting start?",
+            "ko": "회의 몇 시에 시작해?"
+          }
+        ]
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "repeat",
+      "data": {
+        "sentence": "What time does the movie start?",
+        "ko": "영화 몇 시에 시작해?",
+        "stress": [
+          "time",
+          "movie",
+          "start"
+        ],
+        "links": [
+          {
+            "text": "What time",
+            "hint": "와타임"
+          }
+        ]
+      },
+      "chapter": "따라하기"
+    },
+    {
+      "id": "s5",
+      "type": "cta",
+      "data": {
+        "lectureTitle": "현재시제의 쓰임",
+        "message": "더 자세한 설명은 위고업잉글리시에서!"
+      },
+      "chapter": "위고업잉글리시 안내"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "'~몇 시에 시작해?' 영어로 바로 말할 수 있나요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "오늘은 무엇이 몇 시에 시작하는지 물어볼 때 쓰는 패턴이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "What time does it start?",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "영화, 수업, 회의처럼 정해진 일정은 현재시제로 물어요. 주어가 3인칭 단수라서 이렇게,",
+      "emotion": "강조",
+      "reveal": 2,
+      "joinNext": true
+    },
+    {
+      "id": "s2-3b",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "does.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s2-9",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "끝나는 시간이 궁금하면 마지막 단어만 바꿔요. 이렇게,",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s2-9b",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "end.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "예문 세 개 들어볼게요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "What time does the movie start?",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "영화 몇 시에 시작해?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "What time does your class start?",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "너 수업 몇 시에 시작해?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "What time does the meeting start?",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "회의 몇 시에 시작해?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-8",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "대답도 현재시제로 이렇게 해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-9",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "It starts at seven.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이번엔 직접 따라 해 보세요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "What time does the movie start?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "약속 잡을 때 꼭 써 보세요! 더 자세한 설명은 위고업잉글리시에서!",
+      "emotion": "칭찬"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 // 음성 단계(voice)가 timeline.json으로 저장하고, Remotion·자막·YouTube 챕터가 같은 값을 쓴다.
 // 음성이 아직 없으면 글자 수로 길이를 어림해 미리보기를 만든다.
 
-import { SLIDE_TYPE_LABELS, slideStepCount, joinTokens, type Lang, type LectureScript, type Segment, type Slide } from './types'
+import { SLIDE_TYPE_LABELS, slideStepCount, joinTokens, type Lang, type LectureScript, type Segment, type SegmentKind, type Slide, type Speaker, type Tempo } from './types'
 
 /** 세그먼트 사이 쉼(ms) — 같은 언어 0.3초, 언어 전환 0.5초, 슬라이드 전환 0.8초, 한 문장을 나눈 조각 0.15초 */
 export const GAP_MS = { sameLang: 300, langChange: 500, slideChange: 800, joined: 150 } as const
@@ -10,11 +10,20 @@ export const GAP_MS = { sameLang: 300, langChange: 500, slideChange: 800, joined
 export const LEAD_IN_MS = 800
 export const TAIL_MS = 1800
 
-export function gapBetween(prev: Segment, next: Segment): number {
-  if (prev.slideId !== next.slideId) return GAP_MS.slideChange
-  if (prev.joinNext) return GAP_MS.joined
-  if (prev.lang !== next.lang) return GAP_MS.langChange
-  return GAP_MS.sameLang
+export function gapBetween(prev: Segment, next: Segment, gapScale = 1): number {
+  const base = prev.slideId !== next.slideId ? GAP_MS.slideChange : prev.joinNext ? GAP_MS.joined : prev.lang !== next.lang ? GAP_MS.langChange : GAP_MS.sameLang
+  return Math.round(base * gapScale)
+}
+
+/** 따라 할 시간 기본값 — 음성 길이 × 1.5 + 1초 (본 강의) */
+export const REPEAT_PAUSE = { factor: 1.5, extraSec: 1 } as const
+
+/** repeat 세그먼트 뒤 따라 할 시간(ms) — pauseSec가 있으면 그 값, 없으면 음성 길이 × factor + extraSec */
+export function repeatPauseMs(seg: Segment, durationMs: number, tempo?: Tempo): number {
+  if (seg.type !== 'repeat') return 0
+  if (typeof seg.pauseSec === 'number') return Math.round(seg.pauseSec * 1000)
+  const rule = tempo?.repeatPause ?? REPEAT_PAUSE
+  return Math.round(durationMs * rule.factor + rule.extraSec * 1000)
 }
 
 export interface TimedWord {
@@ -32,6 +41,11 @@ export interface TimelineSegment {
   wait?: boolean
   /** 단어별 시간 (절대 ms) — 영어 예문 하이라이트용 */
   words?: TimedWord[]
+  type?: SegmentKind
+  speaker?: Speaker
+  speed?: number
+  /** repeat — 따라 할 시간 (음성 끝 ~ pauseEndMs) */
+  pauseEndMs?: number
 }
 
 export interface TimelineSlide {
@@ -56,10 +70,14 @@ export interface Timeline {
  * 음성 없이 길이 어림 — 실제 ElevenLabs 음성(강의 2편)에서 잰 값.
  * 한국어 초당 약 5.3자(공백 제외), 영어는 단어가 짧게 끊겨 나와서 0.4초 + 단어당 0.34초
  */
-export function estimateDurationMs(seg: Segment): number {
+export function estimateDurationMs(seg: Segment, tempo?: Tempo): number {
   if (seg.waitSec) return seg.waitSec * 1000
-  if (seg.lang === 'en') return Math.max(500, 400 + seg.text.split(/\s+/).filter(Boolean).length * 340)
-  return Math.max(500, (seg.text.replace(/\s/g, '').length / 5.3) * 1000)
+  if (seg.lang === 'en') {
+    // 기준 어림은 기본 영어 속도(0.9)에서 잰 값
+    const speed = seg.speed ?? tempo?.enSpeed ?? 0.9
+    return Math.max(500, (400 + seg.text.split(/\s+/).filter(Boolean).length * 340) * (0.9 / speed))
+  }
+  return Math.max(500, (seg.text.replace(/\s/g, '').length / 5.3) * 1000 / (tempo?.koSpeedScale ?? 1))
 }
 
 /**
@@ -72,11 +90,13 @@ export function layoutTimeline(
   words: Map<string, TimedWord[]> = new Map(),
 ): Timeline {
   const segments: TimelineSegment[] = []
-  let t = LEAD_IN_MS
+  const tempo = script.tempo
+  let t = tempo?.leadInMs ?? LEAD_IN_MS
   script.segments.forEach((seg, i) => {
-    if (i > 0) t += gapBetween(script.segments[i - 1], seg)
-    const dur = durations.get(seg.id) ?? estimateDurationMs(seg)
+    if (i > 0) t += gapBetween(script.segments[i - 1], seg, tempo?.gapScale ?? 1)
+    const dur = durations.get(seg.id) ?? estimateDurationMs(seg, tempo)
     const rel = words.get(seg.id)
+    const pause = repeatPauseMs(seg, dur, tempo)
     segments.push({
       id: seg.id,
       slideId: seg.slideId,
@@ -85,10 +105,14 @@ export function layoutTimeline(
       endMs: Math.round(t + dur),
       ...(seg.waitSec ? { wait: true } : {}),
       ...(rel?.length ? { words: rel.map((w) => ({ text: w.text, startMs: Math.round(t + w.startMs), endMs: Math.round(t + w.endMs) })) } : {}),
+      ...(seg.type ? { type: seg.type } : {}),
+      ...(seg.speaker ? { speaker: seg.speaker } : {}),
+      ...(seg.speed ? { speed: seg.speed } : {}),
+      ...(pause ? { pauseEndMs: Math.round(t + dur + pause) } : {}),
     })
-    t += dur
+    t += dur + pause
   })
-  const totalMs = Math.round(t + TAIL_MS)
+  const totalMs = Math.round(t + (tempo?.tailMs ?? TAIL_MS))
   return { version: 1, totalMs, segments, slides: slideRanges(script, segments, totalMs), measured: durations.size > 0 }
 }
 
@@ -98,7 +122,7 @@ function slideRanges(script: LectureScript, segments: TimelineSegment[], totalMs
   const lastEnd = new Map<string, number>()
   for (const s of segments) {
     if (!firstStart.has(s.slideId)) firstStart.set(s.slideId, s.startMs)
-    lastEnd.set(s.slideId, s.endMs)
+    lastEnd.set(s.slideId, s.pauseEndMs ?? s.endMs)
   }
   const used = script.slides.filter((s) => firstStart.has(s.id))
   return used.map((slide, i) => {
@@ -128,6 +152,30 @@ export function slideStepTimes(slide: Slide, script: LectureScript, timeline: Ti
   for (let k = 1; k <= n; k++) {
     const hit = own.find((s) => (segById.get(s.id)?.reveal ?? 0) >= k)
     times.push(hit ? hit.startMs : NaN)
+  }
+  // 대화: n번째 줄 = n번째 dialogue 세그먼트가 말하기 시작할 때
+  if (slide.type === 'dialogue') {
+    own.filter((s) => s.type === 'dialogue').forEach((s, i) => {
+      if (i < n) times[i] = s.startMs
+    })
+  }
+  // 예문 3개(숏폼): i번째 예문 = 그 예문을 읽는 영어 세그먼트
+  if (slide.type === 'examples') {
+    slide.data.examples.forEach((e, i) => {
+      const hit = own.find((s) => s.lang === 'en' && sentenceKey(segById.get(s.id)?.text ?? '') === sentenceKey(e.en))
+      if (hit) times[i] = hit.startMs
+    })
+  }
+  // 패턴: 1 = 패턴 읽기, 2 = 그 다음 문장(의미), 3~ = 예문을 읽는 영어 세그먼트
+  if (slide.type === 'pattern') {
+    const pIdx = own.findIndex((s) => s.type === 'pattern')
+    // 패턴 세그먼트가 정한 단계가 우선 (reveal보다)
+    if (pIdx >= 0) times[0] = own[pIdx].startMs
+    if (pIdx >= 0 && own[pIdx + 1] && !own.some((s) => segById.get(s.id)?.reveal === 2)) times[1] = own[pIdx + 1].startMs
+    ;(slide.data.examples ?? []).forEach((e, i) => {
+      const hit = own.find((s) => s.lang === 'en' && s.type !== 'pattern' && sentenceKey(segById.get(s.id)?.text ?? '') === sentenceKey(e.en))
+      if (hit) times[2 + i] = hit.startMs
+    })
   }
   if (slide.type === 'example' && times.every((v) => Number.isNaN(v))) {
     const key = sentenceKey(joinTokens(slide.data.sentence))
@@ -255,6 +303,7 @@ export function buildChapters(script: LectureScript, timeline: Timeline): Chapte
 function defaultChapterName(slide: Slide): string {
   if (slide.type === 'title') return '인트로'
   if (slide.type === 'concept') return slide.data.heading
+  if (slide.type === 'pattern' || slide.type === 'dialogue' || slide.type === 'repeat') return '일상회화 패턴'
   return SLIDE_TYPE_LABELS[slide.type]
 }
 

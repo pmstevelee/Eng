@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "slug": "present-simple-uses-shorts-01",
+  "title": "현재시제의 쓰임 숏폼 1 — Do you want to ~?",
+  "grammarPoint": {
+    "code": "G03-01-01",
+    "title": "현재시제의 쓰임"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-11-01T19:45:47.212Z",
+  "format": "shorts",
+  "tempo": {
+    "koSpeedScale": 1.1,
+    "enSpeed": 1,
+    "gapScale": 0.6,
+    "leadInMs": 250,
+    "tailMs": 1200,
+    "repeatPause": {
+      "factor": 1.2,
+      "extraSec": 0
+    }
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "hook",
+      "data": {
+        "question": "'~할래?' 영어로 바로 말할 수 있나요?",
+        "sub": "3초 만에 떠올려 보세요"
+      },
+      "chapter": "훅"
+    },
+    {
+      "id": "s2",
+      "type": "pattern",
+      "data": {
+        "pattern": "Do you want to ~?",
+        "ko": "~할래?",
+        "slot": "동사원형"
+      },
+      "chapter": "패턴"
+    },
+    {
+      "id": "s3",
+      "type": "examples",
+      "data": {
+        "examples": [
+          {
+            "en": "Do you want to grab lunch?",
+            "ko": "점심 먹으러 갈래?"
+          },
+          {
+            "en": "Do you want to come with us?",
+            "ko": "우리랑 같이 갈래?"
+          },
+          {
+            "en": "Do you want to watch a movie?",
+            "ko": "영화 보러 갈래?"
+          }
+        ]
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "repeat",
+      "data": {
+        "sentence": "Do you want to grab lunch?",
+        "ko": "점심 먹으러 갈래?",
+        "stress": [
+          "want",
+          "grab",
+          "lunch"
+        ],
+        "links": [
+          {
+            "text": "Do you",
+            "hint": "두유"
+          },
+          {
+            "text": "want to",
+            "hint": "워너"
+          }
+        ]
+      },
+      "chapter": "따라하기"
+    },
+    {
+      "id": "s5",
+      "type": "cta",
+      "data": {
+        "lectureTitle": "현재시제의 쓰임",
+        "message": "더 자세한 설명은 위고업잉글리시에서!"
+      },
+      "chapter": "위고업잉글리시 안내"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "'~할래?' 영어로 바로 말할 수 있나요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "친구에게 같이 뭔가 하자고 할 때, 이렇게 말해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "Do you want to …?",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "'할래?'라는 뜻이에요. 원하다는 지금의 상태라서 현재시제로 물어봐요. 뒤에는 동사원형만 넣으면 돼요. 점심, 영화, 공부처럼 같이 하고 싶은 건 뭐든 넣을 수 있어요.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "예문 세 개, 바로 들어갈게요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Do you want to grab lunch?",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "점심 먹으러 갈래?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Do you want to come with us?",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "우리랑 같이 갈래?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Do you want to watch a movie?",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "영화 보러 갈래?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-8",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "대답은 짧게, 이렇게 하면 돼요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-9",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Sure, sounds good!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이제 따라 해 보세요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "Do you want to grab lunch?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "오늘 친구에게 꼭 한번 써 보세요! 더 자세한 설명은 위고업잉글리시에서!",
+      "emotion": "칭찬"
+    }
+  ]
+}

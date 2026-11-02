@@ -1,8 +1,8 @@
 // 사람이 읽기 좋은 대본 (script-review.md) — 슬라이드별 화면 내용과 읽을 문장을 순서대로 보여 준다.
 
 import { compileNormalizer, type PronunciationDict } from './normalize'
-import { layoutTimeline, formatClock } from './timing'
-import { SLIDE_TYPE_LABELS, type LectureScript, type Slide, type Token } from './types'
+import { layoutTimeline, formatClock, REPEAT_PAUSE } from './timing'
+import { SLIDE_TYPE_LABELS, WEBSITE, type LectureScript, type Slide, type Token } from './types'
 
 const EMOJI = { ko: '🇰🇷', en: '🇺🇸' } as const
 
@@ -30,7 +30,35 @@ function screenLines(slide: Slide): string[] {
     ]
     case 'summary': return slide.data.points.map((p, i) => `${i + 1}. ${p}`)
     case 'outro': return [slide.data.message ? slide.data.message : '구독·좋아요 안내', ...(slide.data.next ? [`1. 다음 강의: ${slide.data.next}`] : [])]
+    case 'pattern': return [
+      `1. 패턴: **${slide.data.pattern.replace(/~+/g, `[${slide.data.slot ?? '~'}]`)}**`,
+      `2. 의미: ${slide.data.ko}${slide.data.tip ? ` / ${slide.data.tip}` : ''}`,
+      ...(slide.data.examples ?? []).map((e, i) => `${i + 3}. ${e.en} — ${e.ko}`),
+    ]
+    case 'dialogue': return [
+      ...(slide.data.situation ? [`상황: ${slide.data.situation}`] : []),
+      ...slide.data.lines.map((l, i) => `${i + 1}. ${l.speaker === 'A' ? '🧑 A' : '👩 B'}: ${l.en}${l.ko ? ` — ${l.ko}` : ''}`),
+    ]
+    case 'repeat': return [
+      `문장: **${slide.data.sentence}** — ${slide.data.ko}`,
+      ...(slide.data.stress?.length ? [`강세(굵게): ${slide.data.stress.join(', ')}`] : []),
+      ...(slide.data.links?.length ? [`연음(밑줄): ${slide.data.links.map((l) => `${l.text} → ${l.hint}`).join(', ')}`] : []),
+    ]
+    case 'hook': return [`훅: **${slide.data.question}**`, ...(slide.data.sub ? [slide.data.sub] : [])]
+    case 'examples': return slide.data.examples.map((e, i) => `${i + 1}. ${e.en} — ${e.ko}`)
+    case 'cta': return [slide.data.message || WEBSITE.cta, `본 강의: ${slide.data.lectureTitle}`]
   }
+}
+
+function segmentBadge(seg: LectureScript['segments'][number], tempo: LectureScript['tempo']): string {
+  if (seg.type === 'pattern') return '🔤패턴 '
+  if (seg.type === 'dialogue') return seg.speaker === 'A' ? '🧑A(남) ' : '👩B(여) '
+  if (seg.type === 'repeat') {
+    const rule = tempo?.repeatPause ?? REPEAT_PAUSE
+    const auto = `길이×${rule.factor}${rule.extraSec ? `+${rule.extraSec}초` : ''}`
+    return `🎤따라하기 ${seg.speed ?? 1}배${seg.pauseSec !== undefined ? ` · 대기 ${seg.pauseSec}초` : ` · 대기 자동(${auto})`} `
+  }
+  return seg.speed ? `${seg.speed}배 ` : ''
 }
 
 export function buildScriptReview(script: LectureScript, dict: PronunciationDict, notes: string[] = []): string {
@@ -74,7 +102,7 @@ export function buildScriptReview(script: LectureScript, dict: PronunciationDict
       const reveal = seg.reveal ? `▶${seg.reveal} ` : ''
       const spoken = normalize(seg.text, seg.lang)
       const reading = spoken !== seg.text.trim() ? `  \n  (읽기: ${spoken})` : ''
-      out.push(`- ${reveal}${EMOJI[seg.lang]} [${seg.emotion}] ${seg.text}${seg.joinNext ? ' ↩' : ''} \`${seg.id}\`${reading}`)
+      out.push(`- ${reveal}${EMOJI[seg.lang]} ${segmentBadge(seg, script.tempo)}[${seg.emotion}] ${seg.text}${seg.joinNext ? ' ↩' : ''} \`${seg.id}\`${reading}`)
     }
     out.push('')
   })

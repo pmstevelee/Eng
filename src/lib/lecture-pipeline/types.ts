@@ -2,6 +2,9 @@
 // lectures/{slug}/script.json 하나가 슬라이드(화면)와 세그먼트(음성 1개 = 자막 조각 1개)를 모두 담는다.
 // Remotion 번들러도 이 파일을 읽으므로 '@/' 별칭 없이 상대 경로만 쓴다.
 
+/** 위고업잉글리시 웹사이트 — 숏폼·카드뉴스·캡션·설명란의 마무리 안내 문구(cta)와 링크 */
+export const WEBSITE = { host: 'wegoupenglish.com', url: 'https://wegoupenglish.com', name: '위고업잉글리시 웹사이트', cta: '더 자세한 설명은 위고업잉글리시에서!' } as const
+
 export type Lang = 'ko' | 'en'
 export type Emotion = '설명' | '강조' | '질문' | '칭찬'
 export const EMOTIONS: readonly Emotion[] = ['설명', '강조', '질문', '칭찬'] as const
@@ -17,6 +20,16 @@ export interface Token {
   point?: boolean
 }
 
+/** 특수 세그먼트 — pattern: 패턴 공식 원어민 읽기, dialogue: A/B 대화(남/여 원어민), repeat: 따라하기(읽은 뒤 따라 할 시간) */
+export type SegmentKind = 'pattern' | 'dialogue' | 'repeat'
+export const SEGMENT_KINDS: readonly SegmentKind[] = ['pattern', 'dialogue', 'repeat'] as const
+export type Speaker = 'A' | 'B'
+
+/** 따라하기 기본 속도 — 1회차 천천히, 2회차 자연스럽게 */
+export const REPEAT_SPEEDS = { slow: 0.85, natural: 1.0 } as const
+/** TTS 속도 범위 (ElevenLabs 0.7~1.2) */
+export const SPEED_RANGE = { min: 0.7, max: 1.2 } as const
+
 export interface Segment {
   /** 대본 안에서 유일 (음성 파일 이름) */
   id: string
@@ -31,6 +44,14 @@ export interface Segment {
   waitSec?: number
   /** 한 문장을 언어별로 나눈 조각 — 다음 조각과 짧게 이어 읽고, 자막도 하나로 합친다 */
   joinNext?: boolean
+  /** 특수 세그먼트 종류 (없으면 일반 나레이션) */
+  type?: SegmentKind
+  /** dialogue — A(남자 원어민) / B(여자 원어민) */
+  speaker?: Speaker
+  /** 읽기 속도 (1.0 = 자연스러운 원어민 속도). repeat는 1회차 0.85, 2회차 1.0 */
+  speed?: number
+  /** repeat — 읽은 뒤 따라 할 시간(초). 없으면 "음성 길이 × 1.5 + 1초"로 자동 계산 */
+  pauseSec?: number
 }
 
 export interface TitleData { title: string; subtitle?: string; series?: string }
@@ -46,6 +67,22 @@ export interface MistakeData { heading?: string; wrong: string; right: Token[]; 
 export interface QuizData { question: string; sentence?: string; choices: string[]; answer: number; explanation?: string }
 export interface SummaryData { heading?: string; points: string[] }
 export interface OutroData { message?: string; next?: string }
+
+// ── 일상영어회화 패턴 파트 (pattern → dialogue → repeat) ──
+export interface PatternExample { en: string; ko: string }
+/** pattern의 "~"가 빈칸(인디고 박스). slot은 빈칸 안 이름(예: "과거분사"), ko는 의미 (예: "~해 본 적 있어?") */
+export interface PatternData { pattern: string; ko: string; slot?: string; examples?: PatternExample[]; tip?: string }
+export interface DialogueLine { speaker: Speaker; en: string; ko?: string }
+export interface DialogueData { situation?: string; lines: DialogueLine[] }
+/** 연음 — text(예: "want to")에 밑줄, hint(예: "워너")를 작게 */
+export interface LinkingHint { text: string; hint: string }
+/** stress는 굵게 보일 강세 단어 */
+export interface RepeatData { sentence: string; ko: string; stress?: string[]; links?: LinkingHint[] }
+
+// ── 숏폼 전용 ─────────────────────────────────────────────
+export interface HookData { question: string; sub?: string }
+export interface ExamplesData { heading?: string; examples: PatternExample[] }
+export interface CtaData { lectureTitle: string; message?: string }
 
 interface SlideBase {
   id: string
@@ -64,15 +101,41 @@ export type Slide =
   | (SlideBase & { type: 'quiz'; data: QuizData })
   | (SlideBase & { type: 'summary'; data: SummaryData })
   | (SlideBase & { type: 'outro'; data: OutroData })
+  | (SlideBase & { type: 'pattern'; data: PatternData })
+  | (SlideBase & { type: 'dialogue'; data: DialogueData })
+  | (SlideBase & { type: 'repeat'; data: RepeatData })
+  | (SlideBase & { type: 'hook'; data: HookData })
+  | (SlideBase & { type: 'examples'; data: ExamplesData })
+  | (SlideBase & { type: 'cta'; data: CtaData })
 
 export type SlideType = Slide['type']
 export const SLIDE_TYPES: readonly SlideType[] = [
   'title', 'goal', 'concept', 'formula', 'example', 'compare', 'mistake', 'quiz', 'summary', 'outro',
+  'pattern', 'dialogue', 'repeat', 'hook', 'examples', 'cta',
 ] as const
+/** 본 강의 슬라이드 (hook·examples·cta는 숏폼 전용) */
+export const LECTURE_SLIDE_TYPES: readonly SlideType[] = SLIDE_TYPES.filter((t) => t !== 'hook' && t !== 'examples' && t !== 'cta')
 
 export const SLIDE_TYPE_LABELS: Record<SlideType, string> = {
   title: '제목', goal: '학습목표', concept: '핵심 개념', formula: '문장 공식', example: '예문',
   compare: '맞는 문장 vs 틀린 문장', mistake: '자주 하는 실수', quiz: '퀴즈', summary: '핵심 정리', outro: '마무리',
+  pattern: '회화 패턴', dialogue: '대화', repeat: '따라하기', hook: '훅', examples: '예문 3개', cta: '채널 안내',
+}
+
+/** 영상 박자 — 숏폼은 한국어를 1.1배로, 쉼을 짧게 */
+export interface Tempo {
+  /** 한국어 속도 배수 (기본 속도 × 이 값) */
+  koSpeedScale?: number
+  /** 영어 일반 세그먼트 속도 (1.0 = 자연스러움). 없으면 기본(학습용 조금 느리게) */
+  enSpeed?: number
+  /** 세그먼트 사이 쉼 배수 */
+  gapScale?: number
+  /** 첫 문장 전 여유(ms) */
+  leadInMs?: number
+  /** 마지막 문장 뒤 여유(ms) */
+  tailMs?: number
+  /** 따라 할 시간 = 음성 길이 × factor + extraSec */
+  repeatPause?: { factor: number; extraSec: number }
 }
 
 export interface LectureScript {
@@ -83,6 +146,9 @@ export interface LectureScript {
   grammarPoint?: { code: string; title: string } | null
   targetMinutes: number
   createdAt: string
+  /** lecture(기본, 1920×1080) | shorts(1080×1920) */
+  format?: 'lecture' | 'shorts'
+  tempo?: Tempo
   slides: Slide[]
   segments: Segment[]
 }
@@ -112,7 +178,23 @@ export function slideStepCount(slide: Slide): number {
     case 'quiz': return 1
     case 'summary': return slide.data.points.length
     case 'outro': return slide.data.next ? 1 : 0
+    case 'pattern': return 2 + (slide.data.examples?.length ?? 0)
+    case 'dialogue': return slide.data.lines.length
+    case 'repeat': return 0
+    case 'hook': return 0
+    case 'examples': return slide.data.examples.length
+    case 'cta': return 0
   }
+}
+
+/** "I've just ~." → ["I've just ", "."] (빈칸 앞뒤 고정 부분) */
+export function splitPattern(pattern: string): string[] {
+  return pattern.split(/~+/)
+}
+
+/** 패턴을 원어민이 읽을 문장 — 빈칸은 말줄임표로 ("Have you ever …?") */
+export function patternReading(pattern: string): string {
+  return pattern.replace(/\s*~+\s*/g, ' … ').replace(/\s+([?.!,])/g, '$1').replace(/\s+/g, ' ').trim()
 }
 
 // ── 검증 ───────────────────────────────────────────────────
@@ -182,7 +264,38 @@ function cleanSlideData(type: SlideType, d: Record<string, unknown>): Slide['dat
     }
     case 'summary': return { heading: str(d.heading) || undefined, points: strList(d.points) }
     case 'outro': return { message: str(d.message) || undefined, next: str(d.next) || undefined }
+    case 'pattern': {
+      const examples = exampleList(d.examples)
+      return {
+        pattern: str(d.pattern), ko: str(d.ko), slot: str(d.slot) || undefined,
+        ...(examples.length ? { examples } : {}), tip: str(d.tip) || undefined,
+      }
+    }
+    case 'dialogue': {
+      const lines = Array.isArray(d.lines)
+        ? d.lines.flatMap((l, i): DialogueLine[] => {
+            if (!isObj(l) || !str(l.en)) return []
+            const speaker: Speaker = l.speaker === 'A' || l.speaker === 'B' ? l.speaker : i % 2 === 0 ? 'A' : 'B'
+            return [{ speaker, en: str(l.en), ...(str(l.ko) ? { ko: str(l.ko) } : {}) }]
+          })
+        : []
+      return { situation: str(d.situation) || undefined, lines }
+    }
+    case 'repeat': {
+      const links = Array.isArray(d.links)
+        ? d.links.flatMap((l): LinkingHint[] => (isObj(l) && str(l.text) && str(l.hint) ? [{ text: str(l.text), hint: str(l.hint) }] : []))
+        : []
+      const stress = strList(d.stress)
+      return { sentence: str(d.sentence), ko: str(d.ko), ...(stress.length ? { stress } : {}), ...(links.length ? { links } : {}) }
+    }
+    case 'hook': return { question: str(d.question), sub: str(d.sub) || undefined }
+    case 'examples': return { heading: str(d.heading) || undefined, examples: exampleList(d.examples) }
+    case 'cta': return { lectureTitle: str(d.lectureTitle), message: str(d.message) || undefined }
   }
+}
+
+function exampleList(v: unknown): PatternExample[] {
+  return Array.isArray(v) ? v.flatMap((e): PatternExample[] => (isObj(e) && str(e.en) ? [{ en: str(e.en), ko: str(e.ko) }] : [])) : []
 }
 
 /** 화면 글자 길이 상한 — 48px 이상·4줄 이내를 지키기 위한 기준 (넘으면 경고) */
@@ -202,6 +315,10 @@ function lengthWarnings(slide: Slide): string[] {
     case 'compare': slide.data.rows.forEach((r, i) => check(`문장 ${i + 1}`, joinTokens(r.sentence), MAX_LEN.sentence)); break
     case 'mistake': check('틀린 문장', slide.data.wrong, MAX_LEN.sentence); check('이유', slide.data.why, MAX_LEN.line); break
     case 'summary': slide.data.points.forEach((p, i) => check(`정리 ${i + 1}`, p, MAX_LEN.card)); break
+    case 'pattern': check('패턴', slide.data.pattern, 30); (slide.data.examples ?? []).forEach((e, i) => check(`예문 ${i + 1}`, e.en, 44)); break
+    case 'dialogue': slide.data.lines.forEach((l, i) => check(`대화 ${i + 1}`, l.en, 48)); break
+    case 'repeat': check('따라 할 문장', slide.data.sentence, 48); check('해석', slide.data.ko, MAX_LEN.ko); break
+    case 'hook': check('훅 질문', slide.data.question, 40); break
     default: break
   }
   return w
@@ -213,6 +330,8 @@ const LIST_LIMITS: Partial<Record<SlideType, { key: string; min: number; max: nu
   formula: { key: 'blocks', min: 2, max: 5 },
   compare: { key: 'rows', min: 2, max: 2 },
   summary: { key: 'points', min: 2, max: 4 },
+  dialogue: { key: 'lines', min: 2, max: 4 },
+  examples: { key: 'examples', min: 3, max: 3 },
 }
 
 export interface ParseResult {
@@ -258,6 +377,19 @@ export function parseLectureScript(input: unknown): ParseResult {
       if (slide.data.choices.length < 2 || slide.data.choices.length > 4) err(where, '보기(choices)는 2~4개예요')
       if (slide.data.answer < 0 || slide.data.answer >= slide.data.choices.length) err(where, 'answer는 보기 번호(0부터)여야 해요')
     }
+    if (slide.type === 'pattern') {
+      if (!slide.data.pattern.includes('~')) err(where, 'pattern에 빈칸(~)이 있어야 해요 (예: "Have you ever ~?")')
+      if (!slide.data.ko) err(where, '패턴 의미(ko)가 필요해요')
+      if ((slide.data.examples?.length ?? 0) > 3) err(where, 'examples는 최대 3개예요')
+    }
+    if (slide.type === 'repeat' && (!slide.data.sentence || !slide.data.ko)) err(where, '따라 할 문장(sentence)과 해석(ko)이 필요해요')
+    if (slide.type === 'repeat' && /[가-힣]/.test(slide.data.sentence)) err(where, '따라 할 문장(sentence)은 영어만 써요')
+    if (slide.type === 'repeat') {
+      for (const l of slide.data.links ?? []) if (!slide.data.sentence.toLowerCase().includes(l.text.toLowerCase())) warn(where, `연음 "${l.text}"이(가) 문장에 없어요`)
+      for (const w of slide.data.stress ?? []) if (!slide.data.sentence.toLowerCase().includes(w.toLowerCase())) warn(where, `강세 단어 "${w}"이(가) 문장에 없어요`)
+    }
+    if (slide.type === 'hook' && !slide.data.question) err(where, 'question이 비어 있어요')
+    if (slide.type === 'cta' && !slide.data.lectureTitle) err(where, 'lectureTitle이 비어 있어요')
     lengthWarnings(slide).forEach((m) => warn(where, m))
     slides.push(slide)
   })
@@ -290,9 +422,37 @@ export function parseLectureScript(input: unknown): ParseResult {
     if (reveal && reveal > steps) reveal = steps > 0 ? steps : undefined
     if (lang === 'ko' && /[가-힣]/.test(text) === false && text) warn(where, '한국어 세그먼트에 한글이 없어요 (lang 확인)')
     if (lang === 'en' && /[가-힣]/.test(text)) err(where, '영어 세그먼트에 한글이 섞여 있어요')
+
+    // 특수 세그먼트 (pattern·dialogue·repeat)
+    const kind = g.type === undefined || g.type === null || g.type === '' ? undefined : (g.type as SegmentKind)
+    if (kind !== undefined && !SEGMENT_KINDS.includes(kind)) err(where, `알 수 없는 세그먼트 type "${String(g.type)}" (pattern | dialogue | repeat)`)
+    const validKind = kind && SEGMENT_KINDS.includes(kind) ? kind : undefined
+    if (validKind && lang !== 'en') err(where, `${validKind} 세그먼트는 lang "en"이어야 해요 (원어민이 읽어요)`)
+    if (validKind && waitSec) err(where, `${validKind} 세그먼트에는 waitSec를 쓰지 않아요`)
+    const slideType = slides[slideIndex].type
+    if (validKind === 'repeat' && slideType !== 'repeat') err(where, 'repeat 세그먼트는 따라하기(repeat) 슬라이드에만 써요')
+    if (validKind === 'dialogue' && slideType !== 'dialogue') err(where, 'dialogue 세그먼트는 대화(dialogue) 슬라이드에만 써요')
+    const speaker: Speaker | undefined = g.speaker === 'A' || g.speaker === 'B' ? g.speaker : undefined
+    if (validKind === 'dialogue' && !speaker) err(where, 'dialogue 세그먼트에는 speaker("A" 또는 "B")가 필요해요')
+    let speed: number | undefined
+    if (g.speed !== undefined) {
+      if (typeof g.speed !== 'number' || !Number.isFinite(g.speed)) err(where, 'speed는 숫자예요 (예: 0.85)')
+      else {
+        speed = Math.round(Math.min(SPEED_RANGE.max, Math.max(SPEED_RANGE.min, g.speed)) * 100) / 100
+        if (speed !== g.speed) warn(where, `speed ${g.speed}는 ${SPEED_RANGE.min}~${SPEED_RANGE.max} 범위로 맞췄어요 (${speed})`)
+      }
+    }
+    let pauseSec: number | undefined
+    if (g.pauseSec !== undefined) {
+      if (validKind !== 'repeat') warn(where, 'pauseSec는 repeat 세그먼트에만 써요 (무시)')
+      else if (typeof g.pauseSec !== 'number' || g.pauseSec < 0) err(where, 'pauseSec는 0 이상 숫자(초)예요')
+      else pauseSec = Math.min(g.pauseSec, 20)
+    }
     segments.push({
       id, slideId, lang, text: waitSec ? '' : text, emotion,
       ...(reveal ? { reveal } : {}), ...(waitSec ? { waitSec } : {}), ...(g.joinNext === true ? { joinNext: true } : {}),
+      ...(validKind ? { type: validKind } : {}), ...(validKind === 'dialogue' && speaker ? { speaker } : {}),
+      ...(speed !== undefined ? { speed } : {}), ...(pauseSec !== undefined ? { pauseSec } : {}),
     })
   })
 
@@ -306,6 +466,8 @@ export function parseLectureScript(input: unknown): ParseResult {
       if (answerIdx < 0) err(`슬라이드 ${s.id}(퀴즈)`, '정답을 공개하는 세그먼트(reveal: 1)가 없어요')
       else if (waitIdx >= 0 && answerIdx < waitIdx) err(`슬라이드 ${s.id}(퀴즈)`, '정답 공개는 카운트다운 뒤에 와야 해요')
     }
+    if (s.type === 'repeat' && !own.some((g) => g.type === 'repeat')) err(`슬라이드 ${s.id}(따라하기)`, 'type "repeat" 세그먼트가 없어요')
+    if (s.type === 'dialogue' && !own.some((g) => g.type === 'dialogue')) err(`슬라이드 ${s.id}(대화)`, 'type "dialogue" 세그먼트가 없어요')
   }
 
   const title = str(input.title)
@@ -316,6 +478,8 @@ export function parseLectureScript(input: unknown): ParseResult {
     ? { code: str(input.grammarPoint.code), title: str(input.grammarPoint.title) }
     : null
 
+  const format = input.format === 'shorts' ? 'shorts' : undefined
+  const tempo = cleanTempo(input.tempo)
   const script: LectureScript = {
     version: 1,
     slug,
@@ -323,10 +487,27 @@ export function parseLectureScript(input: unknown): ParseResult {
     grammarPoint: gp,
     targetMinutes: typeof input.targetMinutes === 'number' ? input.targetMinutes : 10,
     createdAt: str(input.createdAt) || new Date().toISOString(),
+    ...(format ? { format } : {}),
+    ...(tempo ? { tempo } : {}),
     slides,
     segments,
   }
   return { script: issues.some((i) => i.level === 'error') ? null : script, issues }
+}
+
+function cleanTempo(v: unknown): Tempo | undefined {
+  if (!isObj(v)) return undefined
+  const n = (x: unknown) => (typeof x === 'number' && Number.isFinite(x) && x >= 0 ? x : undefined)
+  const t: Tempo = {}
+  if (n(v.koSpeedScale)) t.koSpeedScale = Math.min(1.3, Math.max(0.8, n(v.koSpeedScale) as number))
+  if (n(v.enSpeed)) t.enSpeed = Math.min(SPEED_RANGE.max, Math.max(SPEED_RANGE.min, n(v.enSpeed) as number))
+  if (n(v.gapScale) !== undefined) t.gapScale = Math.min(2, n(v.gapScale) as number)
+  if (n(v.leadInMs) !== undefined) t.leadInMs = n(v.leadInMs)
+  if (n(v.tailMs) !== undefined) t.tailMs = n(v.tailMs)
+  if (isObj(v.repeatPause) && n(v.repeatPause.factor) !== undefined) {
+    t.repeatPause = { factor: n(v.repeatPause.factor) as number, extraSec: n(v.repeatPause.extraSec) ?? 0 }
+  }
+  return Object.keys(t).length ? t : undefined
 }
 
 export function formatIssues(issues: ScriptIssue[]): string[] {
