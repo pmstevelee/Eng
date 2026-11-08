@@ -5,13 +5,19 @@ import { prisma } from '@/lib/prisma/client'
 import { getCurrentUser } from '@/lib/auth'
 import { updateStreak } from '@/lib/missions/streak-manager'
 import { awardXP, BADGE_XP } from '@/lib/missions/xp-manager'
-import { BadgeType, QuestionDomain } from '@/generated/prisma'
+import { BadgeType, Prisma, QuestionDomain } from '@/generated/prisma'
 import { checkPromotionStatus } from '@/lib/assessment/promotion-engine'
 import { isAnswerMatch } from '@/lib/assessment/answer-checker'
 import { logActivity } from '@/lib/activity-log'
 import { ACTIVITY_ACTIONS } from '@/lib/constants/activity-actions'
 import { recordQuestionAnswers } from '@/lib/missions/question-review'
 import { refreshTodayPlanCompletion } from '@/lib/words/daily-plan'
+import {
+  findCorrectOptionIndex,
+  generateQuestionExplanation,
+  readStoredExplanation,
+  type ExplainableContent,
+} from '@/lib/openai/question-explanation'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -497,4 +503,64 @@ export async function completeMission(
     newBadges,
     isAllComplete,
   }
+}
+
+// ── getAnswerExplanation ──────────────────────────────────────────────────────
+//
+// 정답 확인 후 "문제 해설 + 보기별 맞고 틀린 이유"를 반환한다.
+// 문제에 저장된 해설(contentJson.ai_explanation)이 있으면 그대로, 없으면 AI로 한 번 만들어 저장한다.
+// 답을 낸 문제만 볼 수 있다 (풀기 전에 정답을 보는 것 방지).
+
+export type AnswerExplanationResult = {
+  error?: string
+  summary?: string
+  /** 보기 순서대로 이유. 보기가 없는 문제는 빈 배열 */
+  options?: string[]
+  /** 정답 보기 위치 (보기가 없거나 찾지 못하면 null) */
+  correctIndex?: number | null
+}
+
+export async function getAnswerExplanation(
+  dailyMissionId: string,
+  missionIndex: number,
+  questionId: string,
+): Promise<AnswerExplanationResult> {
+  const auth = await getAuthedStudent()
+  if (!auth) return { error: '권한이 없습니다.' }
+
+  const [mission, question] = await Promise.all([
+    prisma.dailyMission.findUnique({
+      where: { id: dailyMissionId },
+      select: { studentId: true, missionsJson: true },
+    }),
+    prisma.question.findUnique({ where: { id: questionId }, select: { contentJson: true } }),
+  ])
+  if (!mission || mission.studentId !== auth.studentId) return { error: '미션을 찾을 수 없습니다.' }
+  if (!question) return { error: '문제를 찾을 수 없습니다.' }
+
+  const missionItem = ((mission.missionsJson ?? []) as MissionItemRaw[])[missionIndex]
+  const answered = missionItem?.answeredQuestions?.some((a) => a.questionId === questionId)
+  if (!answered) return { error: '문제를 푼 뒤에 해설을 볼 수 있어요.' }
+
+  const content = (question.contentJson ?? {}) as ExplainableContent & Record<string, unknown>
+  if (content.type === 'essay') return { error: '서술형 문제는 해설을 지원하지 않아요.' }
+  const correctIndex = findCorrectOptionIndex(content)
+
+  const stored = readStoredExplanation(content)
+  if (stored) return { summary: stored.summary, options: stored.options, correctIndex }
+
+  const generated = await generateQuestionExplanation(content)
+  if (!generated.ok) return { error: '해설을 만들지 못했어요. 잠시 후 다시 시도해 주세요.' }
+
+  // 저장 (실패해도 이번 해설은 보여 준다)
+  await prisma.question
+    .update({
+      where: { id: questionId },
+      data: {
+        contentJson: { ...content, ai_explanation: { ...generated.data } } as Prisma.InputJsonObject,
+      },
+    })
+    .catch((e) => console.error('[mission] AI 해설 저장 실패:', e))
+
+  return { summary: generated.data.summary, options: generated.data.options, correctIndex }
 }

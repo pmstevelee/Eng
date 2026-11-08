@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronRight, Home, Zap, Trophy, Target } from 'lucide-react'
+import { ChevronRight, Home, Zap, Trophy, Target, Loader2, Check, X, RotateCw } from 'lucide-react'
 import {
   submitMissionAnswer,
   completeMission,
+  getAnswerExplanation,
 } from '@/app/(dashboard)/student/missions/[id]/actions'
 import type { QuestionContentJson } from '@/components/shared/question-bank-client'
 
@@ -103,6 +104,12 @@ type FeedbackState = {
   isChallenge: boolean
 }
 
+/** 보기별 해설 불러오기 상태 */
+type DetailState =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | { status: 'ready'; summary: string; options: string[]; correctIndex: number | null }
+
 type MissionResult = {
   correctCount: number
   totalCount: number
@@ -145,6 +152,9 @@ export function MissionPlayer({
   const [answer, setAnswer] = useState<string>('')
   const [feedback, setFeedback] = useState<FeedbackState | null>(null)
   const [missionResult, setMissionResult] = useState<MissionResult | null>(null)
+  const [detail, setDetail] = useState<DetailState | null>(null)
+  // 다음 문제로 넘어간 뒤 늦게 온 해설 응답은 버린다
+  const detailForRef = useRef<string | null>(null)
 
   // 누적 XP (기존 응답에서 계산 + 새로 획득한 XP)
   const [accumulatedXP, setAccumulatedXP] = useState<number>(() => {
@@ -199,13 +209,47 @@ export function MissionPlayer({
         domainLabel: result.domainLabel,
         isChallenge: mission.type === 'CHALLENGE',
       })
+
+      // 보기가 있는 문제는 보기별 이유를, 해설이 없는 문제는 해설을 불러온다 (서술형 제외)
+      const c = currentQuestion.contentJson
+      const hasOptions = (c.options ?? []).length > 0
+      if (c.type !== 'essay' && (hasOptions || (result.explanation ?? '').trim().length < 60)) {
+        loadDetail(currentQuestion.id)
+      }
     })
+  }
+
+  // ── 보기별 해설 불러오기 (정답 확인 직후, 화면 전환을 막지 않게 별도로) ──────
+
+  function loadDetail(questionId: string) {
+    detailForRef.current = questionId
+    setDetail({ status: 'loading' })
+    getAnswerExplanation(dailyMissionId, missionIndex, questionId)
+      .then((res) => {
+        if (detailForRef.current !== questionId) return
+        if (res.error || res.summary === undefined) {
+          setDetail({ status: 'error', message: res.error ?? '해설을 불러오지 못했어요.' })
+          return
+        }
+        setDetail({
+          status: 'ready',
+          summary: res.summary,
+          options: res.options ?? [],
+          correctIndex: res.correctIndex ?? null,
+        })
+      })
+      .catch(() => {
+        if (detailForRef.current !== questionId) return
+        setDetail({ status: 'error', message: '해설을 불러오지 못했어요.' })
+      })
   }
 
   // ── 다음 문제 ─────────────────────────────────────────────────────────────
 
   function handleNext() {
     setFeedback(null)
+    setDetail(null)
+    detailForRef.current = null
     setAnswer('')
     setReadingTab('passage')
 
@@ -327,7 +371,18 @@ export function MissionPlayer({
 
           {/* 피드백 영역 or 문제 렌더링 */}
           {feedback ? (
-            <FeedbackPanel feedback={feedback} />
+            <div className="space-y-4">
+              <FeedbackPanel feedback={feedback} />
+              {detail && (
+                <AnswerDetailCard
+                  detail={detail}
+                  options={content.options ?? []}
+                  selectedIndex={LETTERS.indexOf(answer)}
+                  hasOriginalExplanation={(feedback.explanation ?? '').trim().length >= 60}
+                  onRetry={() => loadDetail(currentQuestion.id)}
+                />
+              )}
+            </div>
           ) : (
             <QuestionRenderer
               question={currentQuestion}
@@ -688,6 +743,120 @@ function EssayQuestion({
           {isOverLimit && <span className="ml-1 font-medium">최대 글자수 초과</span>}
         </div>
       </div>
+    </div>
+  )
+}
+
+// ── 자세한 해설 (문제 해설 + 보기별 맞고 틀린 이유) ─────────────────────────────
+
+function AnswerDetailCard({
+  detail,
+  options,
+  selectedIndex,
+  hasOriginalExplanation,
+  onRetry,
+}: {
+  detail: DetailState
+  options: string[]
+  selectedIndex: number
+  hasOriginalExplanation: boolean
+  onRetry: () => void
+}) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
+      <p className="text-sm font-bold text-gray-900">
+        {options.length > 0 ? '보기별 해설' : '자세한 해설'}
+      </p>
+
+      {detail.status === 'loading' && (
+        <div className="flex items-center gap-2 py-2 text-sm text-gray-500">
+          <Loader2 className="h-4 w-4 animate-spin text-[#7854F7]" />
+          해설을 준비하고 있어요...
+        </div>
+      )}
+
+      {detail.status === 'error' && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-gray-500">{detail.message}</p>
+          <button
+            onClick={onRetry}
+            className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-gray-200 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <RotateCw className="h-4 w-4" />
+            다시 불러오기
+          </button>
+        </div>
+      )}
+
+      {detail.status === 'ready' && (
+        <>
+          {/* 원래 해설이 없거나 아주 짧은 문제는 문제 해설을 함께 보여 준다 */}
+          {!hasOriginalExplanation && (
+            <div className="rounded-lg bg-[#F4F1FF] p-4 space-y-1">
+              <p className="text-xs font-semibold text-[#7854F7]">문제 해설</p>
+              <p className="text-sm leading-relaxed text-gray-700">{detail.summary}</p>
+            </div>
+          )}
+
+          {options.length > 0 && detail.options.length === options.length && (
+            <ul className="space-y-2">
+              {options.map((opt, i) => {
+                const isCorrect = i === detail.correctIndex
+                const isMine = i === selectedIndex
+                return (
+                  <li
+                    key={i}
+                    className={`rounded-xl border p-4 ${
+                      isCorrect
+                        ? 'border-[#1FAF54]/40 bg-[#F0FBF4]'
+                        : isMine
+                        ? 'border-[#D92916]/30 bg-red-50'
+                        : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                          isCorrect
+                            ? 'bg-[#1FAF54] text-white'
+                            : isMine
+                            ? 'bg-[#D92916] text-white'
+                            : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        {LETTERS[i] ?? i + 1}
+                      </span>
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-sm font-medium text-gray-900">{opt}</span>
+                          {isCorrect && (
+                            <span className="inline-flex items-center gap-0.5 rounded-full bg-[#1FAF54]/10 px-2 py-0.5 text-xs font-semibold text-[#1FAF54]">
+                              <Check className="h-3 w-3" />
+                              정답
+                            </span>
+                          )}
+                          {!isCorrect && (
+                            <span className="inline-flex items-center gap-0.5 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-500">
+                              <X className="h-3 w-3" />
+                              오답
+                            </span>
+                          )}
+                          {isMine && (
+                            <span className="rounded-full bg-[#1865F2]/10 px-2 py-0.5 text-xs font-semibold text-[#1865F2]">
+                              내가 고른 답
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm leading-relaxed text-gray-700">{detail.options[i]}</p>
+                      </div>
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </>
+      )}
     </div>
   )
 }
