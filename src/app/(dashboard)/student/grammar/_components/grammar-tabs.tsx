@@ -9,7 +9,6 @@ const TABS = [
   { label: '커리큘럼 지도', href: '/student/grammar/map', exact: false },
   { label: '복습', href: '/student/grammar/review', exact: false },
   { label: '오답노트', href: '/student/grammar/wrong-notes', exact: false },
-  { label: '자유 연습', href: '/student/learn/domain/grammar', exact: false },
 ] as const
 
 export function GrammarTabs() {

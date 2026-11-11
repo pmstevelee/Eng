@@ -84,22 +84,28 @@ export function GrammarUnitClient({ data, studentId }: Props) {
   return (
     <div className="space-y-5">
       {/* 단계 표시줄 */}
-      <nav aria-label="학습 단계" className="-mx-4 overflow-x-auto px-4">
-        <ol className="flex min-w-max items-center gap-1">
+      <nav aria-label="학습 단계">
+        {/* 모바일: 단계를 같은 너비로 나눠 한 줄에 모두 보이게 / sm 이상: 가로 알약형 */}
+        <ol className="flex items-stretch gap-1 sm:items-center">
           {steps.map((s, i) => {
             const done = i < currentIdx
             const active = s === step
             const disabled = s === 'RESULT' && !result
             return (
-              <li key={s} className="flex items-center gap-1">
-                {i > 0 && <span className={cn('h-px w-4 sm:w-8', done || active ? 'bg-[#1865F2]' : 'bg-gray-200')} aria-hidden />}
+              <li key={s} className="flex min-w-0 flex-1 items-center gap-1 sm:flex-none">
+                {i > 0 && (
+                  <span
+                    className={cn('hidden h-px w-8 sm:block', done || active ? 'bg-[#1865F2]' : 'bg-gray-200')}
+                    aria-hidden
+                  />
+                )}
                 <button
                   type="button"
                   onClick={() => !active && !disabled && moveTo(s)}
                   disabled={disabled}
                   aria-current={active ? 'step' : undefined}
                   className={cn(
-                    'flex min-h-[44px] items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors',
+                    'flex min-h-[44px] w-full flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-xs font-semibold transition-colors sm:w-auto sm:flex-row sm:gap-1.5 sm:rounded-full sm:px-3 sm:py-0 sm:text-sm',
                     active
                       ? 'bg-[#1865F2] text-white'
                       : done
@@ -115,7 +121,7 @@ export function GrammarUnitClient({ data, studentId }: Props) {
                   >
                     {done ? <Check className="h-3 w-3" /> : i + 1}
                   </span>
-                  {GRAMMAR_STEP_LABEL[s]}
+                  <span className="whitespace-nowrap">{GRAMMAR_STEP_LABEL[s]}</span>
                 </button>
               </li>
             )
