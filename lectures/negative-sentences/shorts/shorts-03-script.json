@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "slug": "negative-sentences-shorts-03",
+  "title": "부정문 만들기 숏폼 3 — I can't wait to ~!",
+  "grammarPoint": {
+    "code": "G05-01-01",
+    "title": "부정문 만들기"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-11-11T02:13:30.147Z",
+  "format": "shorts",
+  "tempo": {
+    "koSpeedScale": 1.1,
+    "enSpeed": 1,
+    "gapScale": 0.6,
+    "leadInMs": 250,
+    "tailMs": 1200,
+    "repeatPause": {
+      "factor": 1.2,
+      "extraSec": 0
+    }
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "hook",
+      "data": {
+        "question": "'빨리 ~하고 싶어!' 영어로 바로 말할 수 있나요?",
+        "sub": "3초 안에 떠올려 보세요"
+      },
+      "chapter": "훅"
+    },
+    {
+      "id": "s2",
+      "type": "pattern",
+      "data": {
+        "pattern": "I can't wait to ~!",
+        "ko": "빨리 ~하고 싶어 / 너무 기대돼",
+        "slot": "동사원형 (for + 명사)"
+      },
+      "chapter": "패턴"
+    },
+    {
+      "id": "s3",
+      "type": "examples",
+      "data": {
+        "examples": [
+          {
+            "en": "I can't wait to see you!",
+            "ko": "너 빨리 보고 싶어!"
+          },
+          {
+            "en": "I can't wait to go home!",
+            "ko": "빨리 집에 가고 싶어!"
+          },
+          {
+            "en": "I can't wait for summer!",
+            "ko": "여름이 너무 기대돼!"
+          }
+        ]
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "repeat",
+      "data": {
+        "sentence": "I can't wait to see you!",
+        "ko": "너 빨리 보고 싶어!",
+        "stress": [
+          "can't",
+          "wait",
+          "see"
+        ],
+        "links": [
+          {
+            "text": "can't wait",
+            "hint": "캔웨잇"
+          }
+        ]
+      },
+      "chapter": "따라하기"
+    },
+    {
+      "id": "s5",
+      "type": "cta",
+      "data": {
+        "lectureTitle": "부정문 만들기",
+        "message": "더 자세한 설명은 위고업잉글리시에서!"
+      },
+      "chapter": "위고업잉글리시 안내"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "'빨리 ~하고 싶어!' 영어로 바로 말할 수 있나요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "오늘은 아이 캔트 웨잇 투 동사원형 패턴이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "I can't wait to …!",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "이 표현은 뭔가가 너무 기대될 때 써요. 설레고 기다려지는 일, 만나고 싶은 사람 모두 쓸 수 있어요. 뜻은 긍정이니 오해하지 마세요.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "예문 세 개, 바로 갈게요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I can't wait to see you!",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "너 빨리 보고 싶어!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I can't wait to go home!",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "빨리 집에 가고 싶어!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I can't wait for summer!",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "여름이 너무 기대돼!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이제 따라 해 보세요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "I can't wait to see you!",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "설레는 마음, 이 패턴 하나로 바로 말해 보세요. 더 자세한 설명은 위고업잉글리시에서!",
+      "emotion": "칭찬"
+    }
+  ]
+}

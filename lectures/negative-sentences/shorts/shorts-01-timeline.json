@@ -1,0 +1,717 @@
+{
+  "version": 1,
+  "totalMs": 50608,
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "startMs": 250,
+      "endMs": 3340,
+      "words": [
+        {
+          "text": "할",
+          "startMs": 250,
+          "endMs": 468
+        },
+        {
+          "text": "기분이",
+          "startMs": 541,
+          "endMs": 759
+        },
+        {
+          "text": "아니야",
+          "startMs": 832,
+          "endMs": 1559
+        },
+        {
+          "text": "영어로",
+          "startMs": 1705,
+          "endMs": 2214
+        },
+        {
+          "text": "바로",
+          "startMs": 2286,
+          "endMs": 2505
+        },
+        {
+          "text": "말할",
+          "startMs": 2577,
+          "endMs": 2723
+        },
+        {
+          "text": "수",
+          "startMs": 2795,
+          "endMs": 2868
+        },
+        {
+          "text": "있나요?",
+          "startMs": 2941,
+          "endMs": 3340
+        }
+      ]
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 3820,
+      "endMs": 6640,
+      "words": [
+        {
+          "text": "오늘은",
+          "startMs": 3820,
+          "endMs": 4402
+        },
+        {
+          "text": "아이",
+          "startMs": 4475,
+          "endMs": 4693
+        },
+        {
+          "text": "돈트",
+          "startMs": 4802,
+          "endMs": 4984
+        },
+        {
+          "text": "필",
+          "startMs": 5093,
+          "endMs": 5202
+        },
+        {
+          "text": "라이크",
+          "startMs": 5311,
+          "endMs": 5565
+        },
+        {
+          "text": "패턴을",
+          "startMs": 5711,
+          "endMs": 6075
+        },
+        {
+          "text": "배워요.",
+          "startMs": 6147,
+          "endMs": 6640
+        }
+      ]
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "startMs": 6940,
+      "endMs": 8560,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 6940,
+          "endMs": 7100
+        },
+        {
+          "text": "don't",
+          "startMs": 7260,
+          "endMs": 7580
+        },
+        {
+          "text": "feel",
+          "startMs": 7740,
+          "endMs": 7980
+        },
+        {
+          "text": "like.",
+          "startMs": 8060,
+          "endMs": 8560
+        }
+      ],
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 8860,
+      "endMs": 20000,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 8860,
+          "endMs": 9005
+        },
+        {
+          "text": "표현은",
+          "startMs": 9078,
+          "endMs": 9733
+        },
+        {
+          "text": "어떤",
+          "startMs": 9805,
+          "endMs": 10096
+        },
+        {
+          "text": "행동을",
+          "startMs": 10169,
+          "endMs": 10460
+        },
+        {
+          "text": "하고",
+          "startMs": 10533,
+          "endMs": 10678
+        },
+        {
+          "text": "싶지",
+          "startMs": 10787,
+          "endMs": 10969
+        },
+        {
+          "text": "않을",
+          "startMs": 11042,
+          "endMs": 11333
+        },
+        {
+          "text": "때,",
+          "startMs": 11405,
+          "endMs": 11915
+        },
+        {
+          "text": "부드럽게",
+          "startMs": 11987,
+          "endMs": 12496
+        },
+        {
+          "text": "거절하거나",
+          "startMs": 12569,
+          "endMs": 13369
+        },
+        {
+          "text": "기분을",
+          "startMs": 13442,
+          "endMs": 13733
+        },
+        {
+          "text": "말할",
+          "startMs": 13805,
+          "endMs": 14096
+        },
+        {
+          "text": "때",
+          "startMs": 14169,
+          "endMs": 14242
+        },
+        {
+          "text": "자주",
+          "startMs": 14315,
+          "endMs": 14533
+        },
+        {
+          "text": "써요.",
+          "startMs": 14605,
+          "endMs": 15551
+        },
+        {
+          "text": "꼭",
+          "startMs": 15660,
+          "endMs": 15769
+        },
+        {
+          "text": "기분이",
+          "startMs": 15842,
+          "endMs": 16060
+        },
+        {
+          "text": "안",
+          "startMs": 16133,
+          "endMs": 16278
+        },
+        {
+          "text": "좋을",
+          "startMs": 16315,
+          "endMs": 16496
+        },
+        {
+          "text": "때뿐",
+          "startMs": 16569,
+          "endMs": 16715
+        },
+        {
+          "text": "아니라,",
+          "startMs": 16787,
+          "endMs": 17369
+        },
+        {
+          "text": "그냥",
+          "startMs": 17442,
+          "endMs": 17660
+        },
+        {
+          "text": "하기",
+          "startMs": 17733,
+          "endMs": 17951
+        },
+        {
+          "text": "싫을",
+          "startMs": 18024,
+          "endMs": 18242
+        },
+        {
+          "text": "때도",
+          "startMs": 18351,
+          "endMs": 18678
+        },
+        {
+          "text": "자연스럽게",
+          "startMs": 18751,
+          "endMs": 19260
+        },
+        {
+          "text": "쓸",
+          "startMs": 19333,
+          "endMs": 19405
+        },
+        {
+          "text": "수",
+          "startMs": 19478,
+          "endMs": 19551
+        },
+        {
+          "text": "있어요.",
+          "startMs": 19624,
+          "endMs": 20000
+        }
+      ]
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 20480,
+      "endMs": 22360,
+      "words": [
+        {
+          "text": "예문",
+          "startMs": 20480,
+          "endMs": 20844
+        },
+        {
+          "text": "세",
+          "startMs": 20916,
+          "endMs": 20989
+        },
+        {
+          "text": "개,",
+          "startMs": 21062,
+          "endMs": 21571
+        },
+        {
+          "text": "바로",
+          "startMs": 21644,
+          "endMs": 21789
+        },
+        {
+          "text": "갈게요!",
+          "startMs": 21862,
+          "endMs": 22360
+        }
+      ]
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 22660,
+      "endMs": 24710,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 22660,
+          "endMs": 22820
+        },
+        {
+          "text": "don't",
+          "startMs": 22860,
+          "endMs": 23060
+        },
+        {
+          "text": "feel",
+          "startMs": 23220,
+          "endMs": 23380
+        },
+        {
+          "text": "like",
+          "startMs": 23460,
+          "endMs": 23620
+        },
+        {
+          "text": "going",
+          "startMs": 23740,
+          "endMs": 23860
+        },
+        {
+          "text": "out",
+          "startMs": 23940,
+          "endMs": 24100
+        },
+        {
+          "text": "tonight.",
+          "startMs": 24220,
+          "endMs": 24710
+        }
+      ]
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 25010,
+      "endMs": 26800,
+      "words": [
+        {
+          "text": "오늘",
+          "startMs": 25010,
+          "endMs": 25271
+        },
+        {
+          "text": "밤엔",
+          "startMs": 25344,
+          "endMs": 25853
+        },
+        {
+          "text": "나가기",
+          "startMs": 25925,
+          "endMs": 26289
+        },
+        {
+          "text": "싫어",
+          "startMs": 26398,
+          "endMs": 26800
+        }
+      ]
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 27100,
+      "endMs": 28970,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 27100,
+          "endMs": 27260
+        },
+        {
+          "text": "don't",
+          "startMs": 27300,
+          "endMs": 27500
+        },
+        {
+          "text": "feel",
+          "startMs": 27580,
+          "endMs": 27740
+        },
+        {
+          "text": "like",
+          "startMs": 27860,
+          "endMs": 27980
+        },
+        {
+          "text": "cooking",
+          "startMs": 28020,
+          "endMs": 28380
+        },
+        {
+          "text": "today.",
+          "startMs": 28620,
+          "endMs": 28970
+        }
+      ]
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 29270,
+      "endMs": 30870,
+      "words": [
+        {
+          "text": "오늘은",
+          "startMs": 29270,
+          "endMs": 29852
+        },
+        {
+          "text": "요리하기",
+          "startMs": 29997,
+          "endMs": 30434
+        },
+        {
+          "text": "싫어",
+          "startMs": 30506,
+          "endMs": 30870
+        }
+      ]
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 31170,
+      "endMs": 33430,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 31170,
+          "endMs": 31330
+        },
+        {
+          "text": "don't",
+          "startMs": 31370,
+          "endMs": 31650
+        },
+        {
+          "text": "feel",
+          "startMs": 31770,
+          "endMs": 31890
+        },
+        {
+          "text": "like",
+          "startMs": 31970,
+          "endMs": 32050
+        },
+        {
+          "text": "studying",
+          "startMs": 32210,
+          "endMs": 32690
+        },
+        {
+          "text": "right",
+          "startMs": 32810,
+          "endMs": 32930
+        },
+        {
+          "text": "now.",
+          "startMs": 33130,
+          "endMs": 33430
+        }
+      ]
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 33730,
+      "endMs": 35560,
+      "words": [
+        {
+          "text": "지금은",
+          "startMs": 33730,
+          "endMs": 34312
+        },
+        {
+          "text": "공부할",
+          "startMs": 34385,
+          "endMs": 34748
+        },
+        {
+          "text": "기분",
+          "startMs": 34821,
+          "endMs": 34966
+        },
+        {
+          "text": "아니야",
+          "startMs": 35039,
+          "endMs": 35560
+        }
+      ]
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "startMs": 36040,
+      "endMs": 37310,
+      "words": [
+        {
+          "text": "이제",
+          "startMs": 36040,
+          "endMs": 36404
+        },
+        {
+          "text": "따라",
+          "startMs": 36476,
+          "endMs": 36658
+        },
+        {
+          "text": "해",
+          "startMs": 36695,
+          "endMs": 36767
+        },
+        {
+          "text": "보세요!",
+          "startMs": 36840,
+          "endMs": 37310
+        }
+      ]
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "startMs": 37610,
+      "endMs": 39700,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 37610,
+          "endMs": 37760
+        },
+        {
+          "text": "don't",
+          "startMs": 37800,
+          "endMs": 38000
+        },
+        {
+          "text": "feel",
+          "startMs": 38160,
+          "endMs": 38320
+        },
+        {
+          "text": "like",
+          "startMs": 38400,
+          "endMs": 38560
+        },
+        {
+          "text": "going",
+          "startMs": 38680,
+          "endMs": 38800
+        },
+        {
+          "text": "out",
+          "startMs": 38880,
+          "endMs": 39040
+        },
+        {
+          "text": "tonight.",
+          "startMs": 39160,
+          "endMs": 39700
+        }
+      ],
+      "type": "repeat",
+      "speed": 1,
+      "pauseEndMs": 42208
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 42688,
+      "endMs": 49408,
+      "words": [
+        {
+          "text": "하기",
+          "startMs": 42688,
+          "endMs": 42979
+        },
+        {
+          "text": "싫은",
+          "startMs": 43052,
+          "endMs": 43197
+        },
+        {
+          "text": "일을",
+          "startMs": 43270,
+          "endMs": 43561
+        },
+        {
+          "text": "부드럽게",
+          "startMs": 43633,
+          "endMs": 44070
+        },
+        {
+          "text": "거절할",
+          "startMs": 44143,
+          "endMs": 44579
+        },
+        {
+          "text": "때",
+          "startMs": 44797,
+          "endMs": 45015
+        },
+        {
+          "text": "이",
+          "startMs": 45088,
+          "endMs": 45161
+        },
+        {
+          "text": "패턴",
+          "startMs": 45233,
+          "endMs": 45670
+        },
+        {
+          "text": "꼭",
+          "startMs": 45779,
+          "endMs": 45888
+        },
+        {
+          "text": "떠올려",
+          "startMs": 45961,
+          "endMs": 46179
+        },
+        {
+          "text": "보세요.",
+          "startMs": 46252,
+          "endMs": 46979
+        },
+        {
+          "text": "더",
+          "startMs": 47052,
+          "endMs": 47124
+        },
+        {
+          "text": "자세한",
+          "startMs": 47270,
+          "endMs": 47488
+        },
+        {
+          "text": "설명은",
+          "startMs": 47561,
+          "endMs": 48143
+        },
+        {
+          "text": "위고업잉글리시에서!",
+          "startMs": 48215,
+          "endMs": 49408
+        }
+      ]
+    }
+  ],
+  "slides": [
+    {
+      "id": "s1",
+      "startMs": 0,
+      "endMs": 3580
+    },
+    {
+      "id": "s2",
+      "startMs": 3580,
+      "endMs": 20240
+    },
+    {
+      "id": "s3",
+      "startMs": 20240,
+      "endMs": 35800
+    },
+    {
+      "id": "s4",
+      "startMs": 35800,
+      "endMs": 42448
+    },
+    {
+      "id": "s5",
+      "startMs": 42448,
+      "endMs": 50608
+    }
+  ],
+  "measured": true,
+  "audioFile": "narration.wav",
+  "loudnessLufs": -16.15,
+  "provider": "elevenlabs/eleven_v4"
+}

@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "slug": "negative-sentences",
+  "title": "부정문 만들기",
+  "cards": [
+    {
+      "type": "cover",
+      "topic": "부정문 만들기",
+      "hook": "not은 어디에 붙일까요? 헷갈리죠!",
+      "label": "중학 영문법"
+    },
+    {
+      "type": "question",
+      "sentence": "I'm not agree.",
+      "prompt": "이거 맞을까요?",
+      "hint": "agree는 '동의하다'라는 일반동사예요"
+    },
+    {
+      "type": "rule",
+      "heading": "핵심 규칙 하나",
+      "formula": [
+        "도우미 동사 + not"
+      ],
+      "lines": [
+        "be동사·조동사·do가 도우미예요"
+      ],
+      "example": {
+        "en": "I don't agree.",
+        "ko": "나는 동의 안 해"
+      }
+    },
+    {
+      "type": "rule",
+      "heading": "be동사 부정문",
+      "formula": [
+        "주어 + be동사 + not"
+      ],
+      "lines": [
+        "am not → **I'm not** (amn't ✕)"
+      ],
+      "example": {
+        "en": "I'm not ready.",
+        "ko": "나 준비 안 됐어"
+      }
+    },
+    {
+      "type": "rule",
+      "heading": "일반동사 부정문",
+      "formula": [
+        "주어 + don't + 동사원형"
+      ],
+      "lines": [
+        "3인칭 단수 현재 doesn't · 과거 didn't"
+      ],
+      "example": {
+        "en": "She doesn't eat meat.",
+        "ko": "그녀는 고기를 안 먹어"
+      }
+    },
+    {
+      "type": "mistakes",
+      "heading": "흔한 실수 TOP 3",
+      "items": [
+        {
+          "wrong": "He don't like",
+          "right": "He doesn't like"
+        },
+        {
+          "wrong": "I didn't went",
+          "right": "I didn't go"
+        },
+        {
+          "wrong": "I don't can swim",
+          "right": "I can't swim"
+        }
+      ]
+    },
+    {
+      "type": "quiz",
+      "question": "빈칸에 알맞은 말은?",
+      "sentence": "She ___ like spicy food.",
+      "choices": [
+        "don't",
+        "doesn't",
+        "isn't"
+      ]
+    },
+    {
+      "type": "answer",
+      "answer": "doesn't",
+      "sentence": "She doesn't like spicy food.",
+      "explanation": "3인칭 단수 + 일반동사니까 doesn't를 써요."
+    },
+    {
+      "type": "pattern",
+      "pattern": "I don't feel like ~.",
+      "slot": "동사-ing/명사",
+      "ko": "~할 기분이 아니야",
+      "example": {
+        "en": "I don't feel like going out tonight.",
+        "ko": "오늘 밤엔 나가기 싫어"
+      }
+    },
+    {
+      "type": "cta",
+      "lectureTitle": "부정문 만들기",
+      "message": "저장하고 복습하세요"
+    }
+  ]
+}

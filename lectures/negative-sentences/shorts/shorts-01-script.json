@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "slug": "negative-sentences-shorts-01",
+  "title": "부정문 만들기 숏폼 1 — I don't feel like ~.",
+  "grammarPoint": {
+    "code": "G05-01-01",
+    "title": "부정문 만들기"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-11-11T02:13:18.956Z",
+  "format": "shorts",
+  "tempo": {
+    "koSpeedScale": 1.1,
+    "enSpeed": 1,
+    "gapScale": 0.6,
+    "leadInMs": 250,
+    "tailMs": 1200,
+    "repeatPause": {
+      "factor": 1.2,
+      "extraSec": 0
+    }
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "hook",
+      "data": {
+        "question": "'~할 기분이 아니야' 영어로 바로 말할 수 있나요?",
+        "sub": "3초 안에 떠올려 보세요"
+      },
+      "chapter": "훅"
+    },
+    {
+      "id": "s2",
+      "type": "pattern",
+      "data": {
+        "pattern": "I don't feel like ~.",
+        "ko": "~할 기분이 아니야 / ~하기 싫어",
+        "slot": "동사-ing / 명사"
+      },
+      "chapter": "패턴"
+    },
+    {
+      "id": "s3",
+      "type": "examples",
+      "data": {
+        "examples": [
+          {
+            "en": "I don't feel like going out tonight.",
+            "ko": "오늘 밤엔 나가기 싫어"
+          },
+          {
+            "en": "I don't feel like cooking today.",
+            "ko": "오늘은 요리하기 싫어"
+          },
+          {
+            "en": "I don't feel like studying right now.",
+            "ko": "지금은 공부할 기분 아니야"
+          }
+        ]
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "repeat",
+      "data": {
+        "sentence": "I don't feel like going out tonight.",
+        "ko": "오늘 밤엔 나가기 싫어",
+        "stress": [
+          "don't",
+          "feel",
+          "out"
+        ],
+        "links": [
+          {
+            "text": "going out",
+            "hint": "고잉아웃"
+          }
+        ]
+      },
+      "chapter": "따라하기"
+    },
+    {
+      "id": "s5",
+      "type": "cta",
+      "data": {
+        "lectureTitle": "부정문 만들기",
+        "message": "더 자세한 설명은 위고업잉글리시에서!"
+      },
+      "chapter": "위고업잉글리시 안내"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "'~할 기분이 아니야' 영어로 바로 말할 수 있나요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "오늘은 '아이 돈트 필 라이크' 패턴을 배워요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "I don't feel like ….",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "이 표현은 어떤 행동을 하고 싶지 않을 때, 부드럽게 거절하거나 기분을 말할 때 자주 써요. 꼭 기분이 안 좋을 때뿐 아니라, 그냥 하기 싫을 때도 자연스럽게 쓸 수 있어요.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "예문 세 개, 바로 갈게요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I don't feel like going out tonight.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "오늘 밤엔 나가기 싫어",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I don't feel like cooking today.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "오늘은 요리하기 싫어",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I don't feel like studying right now.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "지금은 공부할 기분 아니야",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이제 따라 해 보세요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "I don't feel like going out tonight.",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "하기 싫은 일을 부드럽게 거절할 때 이 패턴 꼭 떠올려 보세요. 더 자세한 설명은 위고업잉글리시에서!",
+      "emotion": "칭찬"
+    }
+  ]
+}

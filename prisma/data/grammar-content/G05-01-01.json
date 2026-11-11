@@ -1,0 +1,614 @@
+{
+  "code": "G05-01-01",
+  "summary": "부정문은 '~가 아니다', '~하지 않는다'를 말하는 문장이에요. not은 도우미 동사(be동사, 조동사, do/does/did) 바로 뒤에 붙어요. be동사 문장은 be동사 + not, 조동사 문장은 조동사 + not + 동사원형, 일반동사 문장은 don't/doesn't/didn't + 동사원형으로 만들어요. am not은 I'm not으로, will not은 won't로 줄여요.",
+  "rules": [
+    {
+      "text": "부정문은 '~가 아니다', '~하지 않는다'를 말할 때 써요. 한국어는 동사 앞에 '안'만 붙이면 되지만, 영어는 not이 들어가는 자리가 정해져 있어요.",
+      "formula": "I eat meat. → I don't eat meat."
+    },
+    {
+      "text": "not은 도우미 동사 바로 뒤에 붙어요. 도우미 동사는 be동사(am/is/are/was/were), 조동사(can, will, should 등), do/does/did예요. 도우미가 없는 일반동사 문장은 do를 불러와요.",
+      "formula": "주어 + 도우미 동사 + not + ~"
+    },
+    {
+      "text": "be동사 문장은 be동사 뒤에 not을 붙여요. 과거여도 do를 부르지 않아요.",
+      "formula": "주어 + am/is/are(was/were) + not + ~"
+    },
+    {
+      "text": "be동사 + not은 isn't, aren't, wasn't, weren't로 줄여 써요. He's not, They're not처럼 앞쪽을 줄여도 맞아요.",
+      "formula": "She isn't here. = She's not here."
+    },
+    {
+      "text": "am not은 amn't로 줄이지 않아요. I와 am을 붙여 I'm not으로 줄여요.",
+      "formula": "I'm not hungry."
+    },
+    {
+      "text": "일반동사 문장은 do/does/did + not + 동사원형이에요. 줄이면 don't, doesn't, didn't예요.",
+      "formula": "주어 + don't/doesn't/didn't + 동사원형"
+    },
+    {
+      "text": "주어가 3인칭 단수(he, she, it, 사람·사물 하나)이고 현재면 doesn't, 과거면 주어와 상관없이 didn't를 써요.",
+      "formula": "He doesn't like cats. / They didn't come."
+    },
+    {
+      "text": "동사에 붙어 있던 -s, -ed는 does, did가 가져가요. 그래서 not 뒤 동사는 꼭 동사원형이에요.",
+      "formula": "likes → doesn't like / went → didn't go"
+    },
+    {
+      "text": "have(가지다)도 일반동사라 don't have, doesn't have로 부정해요.",
+      "formula": "I don't have time."
+    },
+    {
+      "text": "조동사 문장은 조동사 뒤에 not을 붙이고 동사원형을 써요. 조동사가 있으면 do를 부르지 않아요.",
+      "formula": "주어 + 조동사 + not + 동사원형"
+    },
+    {
+      "text": "can not은 보통 cannot으로 붙여 쓰고, 줄이면 can't예요. will not은 willn't가 아니라 won't로 줄여요. should not은 shouldn't예요.",
+      "formula": "I can't swim. / I won't be late."
+    }
+  ],
+  "examples": [
+    {
+      "en": "I'm not hungry right now.",
+      "ko": "나 지금은 배 안 고파. (am not → I'm not)",
+      "highlight": "I'm not"
+    },
+    {
+      "en": "The store isn't open yet.",
+      "ko": "가게가 아직 안 열었어. (is not → isn't)",
+      "highlight": "isn't"
+    },
+    {
+      "en": "We weren't at home last night.",
+      "ko": "우리 어젯밤에 집에 없었어. (be동사 과거 → weren't)",
+      "highlight": "weren't"
+    },
+    {
+      "en": "I don't drink coffee.",
+      "ko": "나 커피 안 마셔. (일반동사 → don't + 동사원형)",
+      "highlight": "don't drink"
+    },
+    {
+      "en": "My brother doesn't eat vegetables.",
+      "ko": "우리 형은 채소를 안 먹어. (3인칭 단수 현재 → doesn't + eat)",
+      "highlight": "doesn't eat"
+    },
+    {
+      "en": "I didn't sleep well last night.",
+      "ko": "어젯밤에 잠을 잘 못 잤어. (과거 → didn't + 동사원형)",
+      "highlight": "didn't sleep"
+    },
+    {
+      "en": "I don't have time today.",
+      "ko": "나 오늘 시간이 없어. (have도 일반동사)",
+      "highlight": "don't have"
+    },
+    {
+      "en": "I can't find my phone.",
+      "ko": "내 휴대폰을 못 찾겠어. (조동사 → can't + 동사원형)",
+      "highlight": "can't find"
+    },
+    {
+      "en": "I won't tell anyone.",
+      "ko": "아무한테도 말 안 할게. (will not → won't)",
+      "highlight": "won't tell"
+    },
+    {
+      "en": "You shouldn't skip breakfast.",
+      "ko": "아침은 거르지 않는 게 좋아. (should not → shouldn't)",
+      "highlight": "shouldn't skip"
+    }
+  ],
+  "commonErrors": [
+    {
+      "wrong": "I'm not agree.",
+      "correct": "I don't agree.",
+      "reason": "agree는 '동의하다'라는 일반동사라 be동사 + not이 아니라 don't를 써요."
+    },
+    {
+      "wrong": "He don't like math.",
+      "correct": "He doesn't like math.",
+      "reason": "주어가 3인칭 단수이고 현재면 doesn't를 써요."
+    },
+    {
+      "wrong": "I didn't went there.",
+      "correct": "I didn't go there.",
+      "reason": "didn't 뒤에는 동사원형을 써요. 과거 표시는 did가 이미 했어요."
+    },
+    {
+      "wrong": "She doesn't likes cats.",
+      "correct": "She doesn't like cats.",
+      "reason": "-s는 does가 가져가서 doesn't 뒤에는 동사원형을 써요."
+    },
+    {
+      "wrong": "I don't can swim.",
+      "correct": "I can't swim.",
+      "reason": "조동사가 있으면 do를 부르지 않고 조동사 뒤에 not을 붙여요."
+    },
+    {
+      "wrong": "I amn't tired.",
+      "correct": "I'm not tired.",
+      "reason": "am not은 amn't로 줄이지 않고 I'm not으로 줄여요."
+    },
+    {
+      "wrong": "I willn't be late.",
+      "correct": "I won't be late.",
+      "reason": "will not의 줄임말은 won't예요."
+    }
+  ],
+  "lecture": {
+    "title": "영어 부정문 쉽게 만들기: be동사, 일반동사, 조동사 완전 정복",
+    "youtube": "https://youtu.be/-rcT8RkBR9Q",
+    "durationSec": 914
+  },
+  "sourceScript": {
+    "title": "부정문 만들기 — 강의 기준 원고",
+    "content": "[강의 범위]\n평서문을 부정문으로 바꾸는 기본 규칙 3가지(be동사 / 일반동사 / 조동사)를 익히는 단원이다. 대상은 중학생~고등학생, 성인 초급. 부정 명령문(Don't ~), 부정의문문, never·no·nothing 같은 부정어, 부분부정·이중부정, 현재완료 부정(haven't p.p.)은 다루지 않는다. 강의 영상: 영어 부정문 쉽게 만들기: be동사, 일반동사, 조동사 완전 정복 (YouTube -rcT8RkBR9Q, 15분 14초).\n\n[도입]\nI'm not agree. 는 틀린 문장이다. agree는 '동의하다'라는 일반동사라서 be동사 + not이 아니라 don't를 쓴다: I don't agree.\n\n[1. 왜 필요할까]\n- '~가 아니다', '~하지 않는다'를 말하려면 부정문이 필요하다. 한국어는 동사 앞에 '안'만 붙이면 되지만, 영어는 not이 들어가는 자리가 정해져 있다.\n\n[2. 핵심 규칙 하나]\n- not은 문장 앞쪽의 '도우미 동사' 바로 뒤에 붙는다. 도우미 = be동사(am/is/are/was/were), 조동사(can, will, should 등), do/does/did.\n- 도우미가 이미 있으면 그 뒤에 not, 없으면(일반동사 문장) do를 불러와서 그 뒤에 not.\n\n[3. be동사 문장]\n- am/is/are/was/were + not. 줄임말 isn't, aren't, wasn't, weren't.\n- 예외: am not은 amn't로 줄이지 않는다 → I'm not.\n- is not / are not은 He's not / They're not처럼 앞쪽을 줄여도 된다(둘 다 맞음).\n- be동사 문장은 과거여도 do를 부르지 않는다. We weren't at home.\n\n[4. 일반동사 문장]\n- do/does/did + not + 동사원형. 줄임말 don't, doesn't, didn't.\n- 3인칭 단수(he, she, it, 사람·사물 하나) 현재면 doesn't, 과거는 주어와 상관없이 didn't.\n- 동사에 붙어 있던 -s, -ed는 does, did가 가져가므로 not 뒤 동사는 반드시 원형. likes → doesn't like, went → didn't go.\n- have(가지다)도 일반동사라 I don't have time.처럼 쓴다.\n\n[5. 조동사 문장]\n- 조동사 + not + 동사원형. do는 부르지 않는다.\n- can not → 보통 cannot 한 단어로 붙여 쓰고, 줄이면 can't.\n- 예외: will not의 줄임말은 willn't가 아니라 won't.\n- should not → shouldn't.\n\n[6. 흔한 실수]\n- He don't like math. → He doesn't like math. (3인칭 단수 현재는 doesn't)\n- I didn't went there. → I didn't go there. (didn't 뒤에는 동사원형. doesn't likes도 같은 실수)\n- I don't can swim. → I can't swim. (조동사가 있으면 do를 부르지 않는다)\n\n[7. 일상회화 패턴]\n- I don't feel like ~ing. ~할 기분이 아니야 / ~하기 싫어. feel like 뒤에는 -ing(또는 명사). I don't feel like going out tonight.\n- I'm not sure ~. 잘 모르겠어. 뒤에 if, what, where 등을 붙인다. I'm not sure if I can make it. (make it = 약속·모임에 갈 수 있다)\n- I can't wait to ~! 글자 그대로는 '기다릴 수 없다'지만 실제로는 '너무 기대된다'는 긍정적인 뜻. to 뒤에는 동사원형, for 뒤에는 명사. I can't wait to see you! / I can't wait for the weekend!\n\n[다음 단원]\n- Yes/No 의문문: 오늘 쓴 도우미 동사를 문장 맨 앞으로 보내면 의문문이 된다."
+  },
+  "questions": [
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "She ____ like spicy food.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "don't",
+          "doesn't",
+          "isn't",
+          "aren't"
+        ],
+        "correct_answer": "B",
+        "explanation": "주어 she는 3인칭 단수이고 like는 일반동사라서 doesn't를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I ____ at school yesterday.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "didn't",
+          "don't",
+          "wasn't",
+          "weren't"
+        ],
+        "correct_answer": "C",
+        "explanation": "일반동사가 없는 be동사 문장이고 yesterday라 과거예요. 주어 I의 과거 be동사는 was라서 wasn't예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "We didn't ____ the movie.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "watch",
+          "watched",
+          "watching",
+          "watches"
+        ],
+        "correct_answer": "A",
+        "explanation": "didn't 뒤에는 동사원형을 써요. 과거 표시는 did가 이미 했어요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "____ hungry right now.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "I'm not",
+          "I don't",
+          "I amn't",
+          "I isn't"
+        ],
+        "correct_answer": "A",
+        "explanation": "hungry는 형용사라 be동사 문장이에요. am not은 amn't로 줄이지 않고 I'm not으로 줄여요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "My dad ____ drink coffee.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "don't",
+          "isn't",
+          "doesn't",
+          "aren't"
+        ],
+        "correct_answer": "C",
+        "explanation": "주어 my dad는 3인칭 단수이고 drink는 일반동사라서 doesn't를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "They ____ my classmates.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "don't",
+          "aren't",
+          "doesn't",
+          "isn't"
+        ],
+        "correct_answer": "B",
+        "explanation": "일반동사가 없는 be동사 문장이에요. 주어 they의 be동사는 are라서 aren't예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I can't ____ my phone.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "find",
+          "finds",
+          "found",
+          "to find"
+        ],
+        "correct_answer": "A",
+        "explanation": "조동사 can't 뒤에는 동사원형을 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Tom ____ come to the party last night.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "doesn't",
+          "didn't",
+          "wasn't",
+          "don't"
+        ],
+        "correct_answer": "B",
+        "explanation": "last night은 과거예요. 일반동사 과거 부정은 주어와 상관없이 didn't를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "will not을 줄인 말은?",
+        "question_text_ko": "will not을 줄인 말을 고르세요.",
+        "options": [
+          "willn't",
+          "won't",
+          "will'nt",
+          "wo'nt"
+        ],
+        "correct_answer": "B",
+        "explanation": "will not의 줄임말은 모양이 바뀌어 won't예요. willn't라고 하지 않아요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct?",
+        "question_text_ko": "문법적으로 바른 문장을 고르세요.",
+        "options": [
+          "I don't can swim.",
+          "I can't swim.",
+          "I can't to swim.",
+          "I not can swim."
+        ],
+        "correct_answer": "B",
+        "explanation": "조동사 can이 있으면 do를 부르지 않아요. can 뒤에 not을 붙여 can't + 동사원형으로 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct?",
+        "question_text_ko": "문법적으로 바른 문장을 고르세요.",
+        "options": [
+          "He don't like math.",
+          "He doesn't likes math.",
+          "He doesn't like math.",
+          "He not likes math."
+        ],
+        "correct_answer": "C",
+        "explanation": "주어 he는 3인칭 단수라 doesn't를 쓰고, doesn't 뒤에는 동사원형 like를 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct?",
+        "question_text_ko": "문법적으로 바른 문장을 고르세요.",
+        "options": [
+          "I didn't go there.",
+          "I didn't went there.",
+          "I don't went there.",
+          "I wasn't go there."
+        ],
+        "correct_answer": "A",
+        "explanation": "didn't 뒤에는 동사원형을 써요. went가 아니라 go예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "The store ____ open yet.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "doesn't",
+          "don't",
+          "aren't",
+          "isn't"
+        ],
+        "correct_answer": "D",
+        "explanation": "open은 '열려 있는'이라는 형용사라 be동사 문장이에요. 주어가 가게 하나라서 isn't예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "You ____ eat too much sugar.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "don't should",
+          "doesn't should",
+          "not should",
+          "shouldn't"
+        ],
+        "correct_answer": "D",
+        "explanation": "조동사 should 뒤에 not을 붙여 shouldn't로 써요. 조동사가 있으면 do를 부르지 않아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "We ____ at home last night.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "didn't",
+          "weren't",
+          "wasn't",
+          "don't"
+        ],
+        "correct_answer": "B",
+        "explanation": "be동사 과거 문장이에요. 주어 we의 과거 be동사는 were라서 weren't예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I ____ have time today.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "am not",
+          "isn't",
+          "doesn't",
+          "don't"
+        ],
+        "correct_answer": "D",
+        "explanation": "have(가지다)는 일반동사라서 don't have로 부정해요. 주어가 I라서 don't예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "She doesn't ____ TV in the morning.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "watch",
+          "watches",
+          "watched",
+          "watching"
+        ],
+        "correct_answer": "A",
+        "explanation": "-s는 does가 이미 가져갔어요. doesn't 뒤에는 동사원형 watch를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "My sister ____ busy now.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "doesn't",
+          "don't",
+          "isn't",
+          "aren't"
+        ],
+        "correct_answer": "C",
+        "explanation": "busy는 형용사라 be동사 문장이에요. 주어가 3인칭 단수라 is not → isn't예요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "He plays soccer. → 부정문",
+        "question_text_ko": "다음 문장을 부정문으로 바르게 바꾼 것을 고르세요.",
+        "options": [
+          "He doesn't plays soccer.",
+          "He don't play soccer.",
+          "He isn't play soccer.",
+          "He doesn't play soccer."
+        ],
+        "correct_answer": "D",
+        "explanation": "3인칭 단수 현재 → doesn't, 그리고 -s는 does가 가져가니 동사원형 play를 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I went to the gym. → 부정문",
+        "question_text_ko": "다음 문장을 부정문으로 바르게 바꾼 것을 고르세요.",
+        "options": [
+          "I didn't went to the gym.",
+          "I don't go to the gym.",
+          "I wasn't go to the gym.",
+          "I didn't go to the gym."
+        ],
+        "correct_answer": "D",
+        "explanation": "went는 과거라 didn't를 쓰고, 뒤에는 동사원형 go를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "They are tired. → 부정문",
+        "question_text_ko": "다음 문장을 부정문으로 바르게 바꾼 것을 고르세요.",
+        "options": [
+          "They aren't tired.",
+          "They don't tired.",
+          "They doesn't tired.",
+          "They not are tired."
+        ],
+        "correct_answer": "A",
+        "explanation": "be동사 문장은 be동사 뒤에 not을 붙여요. are not → aren't예요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I will be late. → 부정문",
+        "question_text_ko": "다음 문장을 부정문으로 바르게 바꾼 것을 고르세요.",
+        "options": [
+          "I willn't be late.",
+          "I don't will be late.",
+          "I won't be late.",
+          "I will be not late."
+        ],
+        "correct_answer": "C",
+        "explanation": "조동사 will 뒤에 not을 붙이고, will not은 won't로 줄여요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is wrong?",
+        "question_text_ko": "틀린 문장을 고르세요.",
+        "options": [
+          "I'm not ready.",
+          "She isn't here.",
+          "I amn't tired.",
+          "We aren't late."
+        ],
+        "correct_answer": "C",
+        "explanation": "am not은 amn't로 줄이지 않아요. I'm not tired.가 맞아요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is wrong?",
+        "question_text_ko": "틀린 문장을 고르세요.",
+        "options": [
+          "He doesn't eat meat.",
+          "They don't have a car.",
+          "She can't swim.",
+          "I don't can drive."
+        ],
+        "correct_answer": "D",
+        "explanation": "조동사 can이 있으면 do를 쓰지 않아요. I can't drive.가 맞아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "She doesn't ____ meat. (eat)",
+        "question_text_ko": "괄호 안 동사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "eat",
+        "explanation": "doesn't 뒤에는 동사원형을 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I didn't ____ to school yesterday. (go)",
+        "question_text_ko": "괄호 안 동사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "go",
+        "explanation": "didn't 뒤에는 동사원형을 써요. 과거 표시는 did가 했어요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "He doesn't ____ his homework on Sundays. (do)",
+        "question_text_ko": "괄호 안 동사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "do",
+        "explanation": "doesn't 뒤에는 동사원형 do를 써요. does가 -s를 가져가요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "They didn't ____ the bus this morning. (take)",
+        "question_text_ko": "괄호 안 동사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "take",
+        "explanation": "didn't 뒤에는 동사원형 take를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I can't ____ the answer. (find)",
+        "question_text_ko": "괄호 안 동사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "find",
+        "explanation": "조동사 can't 뒤에는 동사원형을 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "We didn't ____ him at the party. (see)",
+        "question_text_ko": "괄호 안 동사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "see",
+        "explanation": "didn't 뒤에는 과거형 saw가 아니라 동사원형 see를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "My mom doesn't ____ coffee. (drink)",
+        "question_text_ko": "괄호 안 동사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "drink",
+        "explanation": "doesn't 뒤에는 drinks가 아니라 동사원형 drink를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I won't ____ anyone. (tell)",
+        "question_text_ko": "괄호 안 동사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "tell",
+        "explanation": "won't(will not) 뒤에는 동사원형을 써요."
+      }
+    }
+  ]
+}

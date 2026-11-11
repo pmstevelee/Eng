@@ -1,0 +1,2510 @@
+{
+  "version": 1,
+  "slug": "negative-sentences",
+  "title": "부정문 만들기",
+  "grammarPoint": {
+    "code": "G05-01-01",
+    "title": "부정문 만들기"
+  },
+  "targetMinutes": 15,
+  "createdAt": "2026-11-10T19:08:33.372Z",
+  "slides": [
+    {
+      "id": "s1",
+      "type": "title",
+      "data": {
+        "title": "부정문 만들기",
+        "subtitle": "not은 어디에 붙을까?"
+      },
+      "chapter": "오프닝"
+    },
+    {
+      "id": "s2",
+      "type": "compare",
+      "data": {
+        "heading": "나는 동의 안 해",
+        "rows": [
+          {
+            "sentence": [
+              {
+                "text": "I'm",
+                "role": "subject"
+              },
+              {
+                "text": "not",
+                "role": "error",
+                "point": true
+              },
+              {
+                "text": "agree.",
+                "role": "verb"
+              }
+            ],
+            "correct": false,
+            "ko": "agree는 일반동사예요"
+          },
+          {
+            "sentence": [
+              {
+                "text": "I",
+                "role": "subject"
+              },
+              {
+                "text": "don't",
+                "role": "verb",
+                "point": true
+              },
+              {
+                "text": "agree.",
+                "role": "verb"
+              }
+            ],
+            "correct": true,
+            "ko": "나는 동의 안 해"
+          }
+        ]
+      },
+      "chapter": "오프닝"
+    },
+    {
+      "id": "s3",
+      "type": "goal",
+      "data": {
+        "goals": [
+          "not이 들어가는 자리 알기",
+          "be동사·일반동사·조동사 부정문 만들기",
+          "don't·doesn't·didn't 구분하기",
+          "부정문 회화 패턴 3개 말하기"
+        ]
+      },
+      "chapter": "학습목표"
+    },
+    {
+      "id": "s4",
+      "type": "concept",
+      "data": {
+        "heading": "왜 필요할까요?",
+        "lines": [
+          "**~가 아니다**, **~하지 않는다**를 말할 때",
+          "한국어는 동사 앞에 **안**만 붙이면 끝",
+          "영어는 **not**의 **자리**가 정해져 있어요"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s5",
+      "type": "concept",
+      "data": {
+        "heading": "핵심 규칙 하나",
+        "lines": [
+          "not은 **도우미 동사** 바로 뒤에!",
+          "도우미 = be동사 · 조동사 · do/does/did",
+          "도우미가 없으면 → **do**를 불러와요"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s6",
+      "type": "concept",
+      "data": {
+        "heading": "① be동사 문장",
+        "lines": [
+          "am/is/are · was/were + **not**",
+          "isn't · aren't · wasn't · weren't",
+          "am not → **I'm not** (amn't ✕)"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s7",
+      "type": "concept",
+      "data": {
+        "heading": "② 일반동사 문장",
+        "lines": [
+          "**do/does/did** + not + **동사원형**",
+          "3인칭 단수 현재 → doesn't · 과거 → didn't",
+          "likes → doesn't **like** · went → didn't **go**"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s8",
+      "type": "concept",
+      "data": {
+        "heading": "③ 조동사 문장",
+        "lines": [
+          "조동사 + **not** + 동사원형 (do ✕)",
+          "can not → **cannot** → **can't**",
+          "will not → **won't** (willn't ✕)"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s9",
+      "type": "formula",
+      "data": {
+        "heading": "be동사 부정문",
+        "blocks": [
+          {
+            "text": "주어",
+            "role": "subject",
+            "note": "I, you, the store"
+          },
+          {
+            "text": "am/is/are · was/were",
+            "role": "verb",
+            "note": "주어·시제에 맞게"
+          },
+          {
+            "text": "not",
+            "role": "verb",
+            "note": "isn't처럼 줄여요"
+          },
+          {
+            "text": "~",
+            "note": "형용사·명사·장소"
+          }
+        ],
+        "example": [
+          {
+            "text": "I'm",
+            "role": "subject"
+          },
+          {
+            "text": "not",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "ready"
+          },
+          {
+            "text": "yet."
+          }
+        ],
+        "exampleKo": "나 아직 준비 안 됐어"
+      },
+      "chapter": "문장 구조"
+    },
+    {
+      "id": "s10",
+      "type": "formula",
+      "data": {
+        "heading": "일반동사 부정문",
+        "blocks": [
+          {
+            "text": "주어",
+            "role": "subject",
+            "note": "I, she, my brother"
+          },
+          {
+            "text": "don't · doesn't · didn't",
+            "role": "verb",
+            "note": "현재 · 3인칭 단수 현재 · 과거"
+          },
+          {
+            "text": "동사원형",
+            "role": "verb",
+            "note": "-s·-ed 없이"
+          },
+          {
+            "text": "~",
+            "note": "목적어 등"
+          }
+        ],
+        "example": [
+          {
+            "text": "She",
+            "role": "subject"
+          },
+          {
+            "text": "doesn't",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "eat",
+            "role": "verb"
+          },
+          {
+            "text": "meat.",
+            "role": "object"
+          }
+        ],
+        "exampleKo": "그녀는 고기를 안 먹어"
+      },
+      "chapter": "문장 구조"
+    },
+    {
+      "id": "s11",
+      "type": "formula",
+      "data": {
+        "heading": "조동사 부정문",
+        "blocks": [
+          {
+            "text": "주어",
+            "role": "subject",
+            "note": "I, we, he"
+          },
+          {
+            "text": "조동사 + not",
+            "role": "verb",
+            "note": "can't · won't · shouldn't"
+          },
+          {
+            "text": "동사원형",
+            "role": "verb",
+            "note": "-s·-ed 없이"
+          },
+          {
+            "text": "~",
+            "note": "목적어 등"
+          }
+        ],
+        "example": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "can't",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "swim.",
+            "role": "verb"
+          }
+        ],
+        "exampleKo": "나는 수영을 못 해"
+      },
+      "chapter": "문장 구조"
+    },
+    {
+      "id": "s12",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "I'm",
+            "role": "subject"
+          },
+          {
+            "text": "not",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "hungry"
+          },
+          {
+            "text": "right now."
+          }
+        ],
+        "ko": "나 지금은 배 안 고파",
+        "note": "be동사 현재 · am not → I'm not"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s13",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "The store",
+            "role": "subject"
+          },
+          {
+            "text": "isn't",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "open"
+          },
+          {
+            "text": "yet."
+          }
+        ],
+        "ko": "가게가 아직 안 열었어",
+        "note": "be동사 현재 · is not → isn't"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s14",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "We",
+            "role": "subject"
+          },
+          {
+            "text": "weren't",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "at home"
+          },
+          {
+            "text": "last night."
+          }
+        ],
+        "ko": "우리 어젯밤에 집에 없었어",
+        "note": "be동사 과거 · were not → weren't"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s15",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "don't",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "drink",
+            "role": "verb"
+          },
+          {
+            "text": "coffee.",
+            "role": "object"
+          }
+        ],
+        "ko": "나 커피 안 마셔",
+        "note": "일반동사 현재 · don't + 동사원형"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s16",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "My brother",
+            "role": "subject"
+          },
+          {
+            "text": "doesn't",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "eat",
+            "role": "verb"
+          },
+          {
+            "text": "vegetables.",
+            "role": "object"
+          }
+        ],
+        "ko": "우리 형은 채소를 안 먹어",
+        "note": "3인칭 단수 현재 · doesn't + eat"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s17",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "didn't",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "sleep",
+            "role": "verb"
+          },
+          {
+            "text": "well"
+          },
+          {
+            "text": "last night."
+          }
+        ],
+        "ko": "어젯밤에 잠을 잘 못 잤어",
+        "note": "과거 · didn't + 동사원형"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s18",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "can't",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "find",
+            "role": "verb"
+          },
+          {
+            "text": "my phone.",
+            "role": "object"
+          }
+        ],
+        "ko": "내 휴대폰을 못 찾겠어",
+        "note": "조동사 · can not → can't"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s19",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "won't",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "tell",
+            "role": "verb"
+          },
+          {
+            "text": "anyone.",
+            "role": "object"
+          }
+        ],
+        "ko": "아무한테도 말 안 할게",
+        "note": "will not → won't"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s20",
+      "type": "mistake",
+      "data": {
+        "heading": "흔한 실수 ①",
+        "wrong": "He don't like math.",
+        "right": [
+          {
+            "text": "He",
+            "role": "subject"
+          },
+          {
+            "text": "doesn't",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "like",
+            "role": "verb"
+          },
+          {
+            "text": "math.",
+            "role": "object"
+          }
+        ],
+        "why": "3인칭 단수 현재 → doesn't"
+      },
+      "chapter": "흔한 실수"
+    },
+    {
+      "id": "s21",
+      "type": "mistake",
+      "data": {
+        "heading": "흔한 실수 ②",
+        "wrong": "I didn't went there.",
+        "right": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "didn't",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "go",
+            "role": "verb"
+          },
+          {
+            "text": "there."
+          }
+        ],
+        "why": "didn't 뒤에는 동사원형"
+      },
+      "chapter": "흔한 실수"
+    },
+    {
+      "id": "s22",
+      "type": "mistake",
+      "data": {
+        "heading": "흔한 실수 ③",
+        "wrong": "I don't can swim.",
+        "right": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "can't",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "swim.",
+            "role": "verb"
+          }
+        ],
+        "why": "조동사가 있으면 do ✕"
+      },
+      "chapter": "흔한 실수"
+    },
+    {
+      "id": "s23",
+      "type": "quiz",
+      "data": {
+        "question": "빈칸에 알맞은 말을 고르세요.",
+        "sentence": "She ___ like spicy food.",
+        "choices": [
+          "don't",
+          "doesn't",
+          "isn't"
+        ],
+        "answer": 1,
+        "explanation": "3인칭 단수 + 일반동사 → doesn't"
+      },
+      "chapter": "퀴즈"
+    },
+    {
+      "id": "s24",
+      "type": "quiz",
+      "data": {
+        "question": "빈칸에 알맞은 말을 고르세요.",
+        "sentence": "I ___ at school yesterday.",
+        "choices": [
+          "didn't",
+          "wasn't",
+          "don't"
+        ],
+        "answer": 1,
+        "explanation": "일반동사 없는 be동사 과거 → wasn't"
+      },
+      "chapter": "퀴즈"
+    },
+    {
+      "id": "s25",
+      "type": "quiz",
+      "data": {
+        "question": "빈칸에 알맞은 말을 고르세요.",
+        "sentence": "We didn't ___ the movie.",
+        "choices": [
+          "watched",
+          "watch",
+          "watching"
+        ],
+        "answer": 1,
+        "explanation": "didn't + 동사원형"
+      },
+      "chapter": "퀴즈"
+    },
+    {
+      "id": "s26",
+      "type": "summary",
+      "data": {
+        "points": [
+          "not은 도우미 동사 바로 뒤에",
+          "be동사 + not · am not → I'm not",
+          "일반동사: don't·doesn't·didn't + 동사원형",
+          "조동사 + not · will not → won't"
+        ]
+      },
+      "chapter": "핵심 정리"
+    },
+    {
+      "id": "s27",
+      "type": "pattern",
+      "data": {
+        "pattern": "I don't feel like ~.",
+        "ko": "~할 기분이 아니야 / ~하기 싫어",
+        "slot": "동사-ing / 명사",
+        "examples": [
+          {
+            "en": "I don't feel like going out tonight.",
+            "ko": "오늘 밤엔 나가기 싫어"
+          },
+          {
+            "en": "I don't feel like cooking today.",
+            "ko": "오늘은 요리하기 싫어"
+          }
+        ],
+        "tip": "하기 싫은 걸 부드럽게 말할 때"
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s28",
+      "type": "dialogue",
+      "data": {
+        "situation": "금요일 저녁 · 친구가 놀자고 할 때",
+        "lines": [
+          {
+            "speaker": "A",
+            "en": "Do you want to go out tonight?",
+            "ko": "오늘 밤에 나갈래?"
+          },
+          {
+            "speaker": "B",
+            "en": "I don't feel like going out tonight. I'm tired.",
+            "ko": "오늘 밤엔 나가기 싫어. 피곤해."
+          },
+          {
+            "speaker": "A",
+            "en": "No worries. How about tomorrow?",
+            "ko": "괜찮아. 내일은 어때?"
+          },
+          {
+            "speaker": "B",
+            "en": "Sounds good!",
+            "ko": "좋아!"
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s29",
+      "type": "repeat",
+      "data": {
+        "sentence": "I don't feel like going out tonight.",
+        "ko": "오늘 밤엔 나가기 싫어",
+        "stress": [
+          "don't",
+          "feel",
+          "out"
+        ],
+        "links": [
+          {
+            "text": "going out",
+            "hint": "고잉아웃"
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s30",
+      "type": "pattern",
+      "data": {
+        "pattern": "I'm not sure ~.",
+        "ko": "~인지 잘 모르겠어",
+        "slot": "if ~ / what ~ / 문장",
+        "examples": [
+          {
+            "en": "I'm not sure if I can make it.",
+            "ko": "갈 수 있을지 잘 모르겠어"
+          },
+          {
+            "en": "I'm not sure what time it starts.",
+            "ko": "몇 시에 시작하는지 잘 모르겠어"
+          }
+        ],
+        "tip": "확실하지 않을 때 · 대답을 미룰 때"
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s31",
+      "type": "dialogue",
+      "data": {
+        "situation": "학교 · 친구가 주말 생일 파티에 오냐고 물을 때",
+        "lines": [
+          {
+            "speaker": "A",
+            "en": "Are you coming to Minji's party on Saturday?",
+            "ko": "토요일에 민지 파티 올 거야?"
+          },
+          {
+            "speaker": "B",
+            "en": "I'm not sure if I can make it.",
+            "ko": "갈 수 있을지 잘 모르겠어."
+          },
+          {
+            "speaker": "A",
+            "en": "Why? What's up?",
+            "ko": "왜? 무슨 일 있어?"
+          },
+          {
+            "speaker": "B",
+            "en": "I have a lesson. I'm not sure when it ends.",
+            "ko": "레슨이 있거든. 언제 끝나는지 잘 모르겠어."
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s32",
+      "type": "repeat",
+      "data": {
+        "sentence": "I'm not sure if I can make it.",
+        "ko": "갈 수 있을지 잘 모르겠어",
+        "stress": [
+          "sure",
+          "make"
+        ],
+        "links": [
+          {
+            "text": "make it",
+            "hint": "메이킷"
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s33",
+      "type": "pattern",
+      "data": {
+        "pattern": "I can't wait to ~!",
+        "ko": "빨리 ~하고 싶어 / 너무 기대돼",
+        "slot": "동사원형 (for + 명사)",
+        "examples": [
+          {
+            "en": "I can't wait to see you!",
+            "ko": "너 빨리 보고 싶어!"
+          },
+          {
+            "en": "I can't wait for the weekend!",
+            "ko": "주말이 너무 기대돼!"
+          }
+        ],
+        "tip": "설레고 기대될 때 · 뜻은 긍정이에요"
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s34",
+      "type": "dialogue",
+      "data": {
+        "situation": "카페 · 다음 주 제주도 여행 이야기",
+        "lines": [
+          {
+            "speaker": "A",
+            "en": "We're going to Jeju next week!",
+            "ko": "우리 다음 주에 제주도 간다!"
+          },
+          {
+            "speaker": "B",
+            "en": "I know! I can't wait!",
+            "ko": "그러니까! 너무 기대돼!"
+          },
+          {
+            "speaker": "A",
+            "en": "Yeah! I can't wait to try the black pork.",
+            "ko": "응! 흑돼지 빨리 먹어 보고 싶어."
+          },
+          {
+            "speaker": "B",
+            "en": "And I can't wait to see the ocean!",
+            "ko": "난 바다 빨리 보고 싶어!"
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s35",
+      "type": "repeat",
+      "data": {
+        "sentence": "I can't wait to see you!",
+        "ko": "너 빨리 보고 싶어!",
+        "stress": [
+          "can't",
+          "wait",
+          "see"
+        ],
+        "links": [
+          {
+            "text": "can't wait",
+            "hint": "캔웨잇"
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s36",
+      "type": "outro",
+      "data": {
+        "message": "오늘도 수고했어요!",
+        "next": "Yes/No 의문문"
+      },
+      "chapter": "다음 강의"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "안녕하세요, 위고업잉글리시예요! 오늘은 영어로 아니다, 안 한다를 말하는 법, 부정문 만들기를 배워 볼 거예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "먼저 문장 하나 볼게요. 친구 말에 나는 동의 안 해, 라고 할 때 이렇게 말하는 학생이 정말 많아요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "I'm not agree.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "어디가 틀렸을까요? 아니라고 하니까 아임 낫을 쓰면 될 것 같죠?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-4",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "그런데 원어민은 이렇게 말해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-5",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "I don't agree.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s2-6",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "어그리는 동의하다라는 일반동사예요. 그래서 아임 낫이 아니라 돈트를 써요. 언제 낫을 쓰고 언제 돈트를 쓰는지, 오늘 한 번에 정리해 드릴게요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "오늘의 학습목표예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "첫째, 낫이 문장 어디에 들어가는지 알아봐요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "둘째, be동사, 일반동사, 조동사 문장을 부정문으로 바꿔 봐요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "셋째, 돈트, 더즌트, 디든트를 헷갈리지 않고 골라 쓰는 법을 배워요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "그리고 마지막엔 부정문으로 만든 회화 패턴 세 개를 직접 말해 볼 거예요.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "그럼 부정문이 왜 필요한지부터 볼까요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "우리는 하루에도 몇 번씩 아니라고 말해요. 배 안 고파, 커피 안 마셔. 이게 다 부정문이에요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s4-3",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "한국어는 정말 쉬워요. 먹어, 앞에 안만 붙이면 안 먹어가 되죠.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s4-4",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "그런데 영어는 낫을 아무 데나 넣을 수 없어요. 들어가는 자리가 딱 정해져 있거든요. 이 자리만 알면 부정문은 끝이에요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "오늘 강의에서 제일 중요한 규칙이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-2",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "낫은 항상 도우미 동사 바로 뒤에 붙어요.",
+      "emotion": "강조",
+      "reveal": 1
+    },
+    {
+      "id": "s5-3",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "도우미 동사는 세 종류예요. be동사, 캔이나 윌 같은 조동사, 그리고 두, 더즈, 디드예요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s5-4",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "문장에 도우미가 이미 있으면 그 뒤에 낫을 붙이면 되고요. 도우미가 없으면 두를 불러와서 그 뒤에 낫을 붙여요. 이제 하나씩 볼게요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s6-1",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "첫 번째는 be동사 문장이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s6-2",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "be동사가 바로 도우미예요. 그래서 앰, 이즈, 아, 워즈, 워 바로 뒤에 낫을 붙이면 끝이에요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s6-3",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "말할 때는 보통 줄여서 써요. 이즌트, 안트, 워즌트, 워른트.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s6-4",
+      "slideId": "s6",
+      "lang": "en",
+      "text": "She isn't here right now.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s6-5",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "그녀는 지금 여기 없어. 이렇게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s6-6",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "그런데 예외가 하나 있어요. 앰 낫은 한 단어로 줄인 말이 없어요. 그래서 아이와 앰을 붙여서 아임 낫이라고 해요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s6-7",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "참고로 이즈 낫은 히즈 낫처럼 앞쪽을 줄여도 돼요. 둘 다 맞는 말이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s7-1",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "두 번째는 일반동사 문장이에요. 먹다, 좋아하다처럼 be동사와 조동사가 아닌 동사죠.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s7-2",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "일반동사 문장에는 도우미가 없어요. 그래서 두를 불러와요. 두 낫, 줄여서 돈트. 그리고 뒤에는 동사원형이 와요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s7-3",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "주어가 3인칭 단수이고 현재면 더즌트, 과거면 주어가 누구든 디든트예요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s7-4",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "여기서 정말 중요한 게 있어요. 동사에 붙어 있던 에스나 이디는 더즈와 디드가 가져가요. 그래서 라이크스는 더즌트 라이크, 웬트는 디든트 고가 돼요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s7-5",
+      "slideId": "s7",
+      "lang": "en",
+      "text": "He likes cats.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s7-6",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "이 문장을 부정문으로 바꾸면,",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s7-7",
+      "slideId": "s7",
+      "lang": "en",
+      "text": "He doesn't like cats.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s7-8",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "참고로 가지다라는 뜻의 해브도 일반동사라서 돈트를 써요.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s7-9",
+      "slideId": "s7",
+      "lang": "en",
+      "text": "I don't have time.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-1",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "세 번째는 조동사 문장이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-2",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "조동사도 도우미 동사예요. 그래서 두를 부르지 않고 조동사 바로 뒤에 낫을 붙여요. 슈드 낫은 줄여서 슈든트가 되죠.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s8-3",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "캔 낫은 보통 한 단어로 붙여서 캐낫이라고 쓰고, 줄이면 캔트예요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s8-4",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "그리고 꼭 기억할 예외! 윌 낫을 줄이면 모양이 확 바뀌어서 원트가 돼요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s8-5",
+      "slideId": "s8",
+      "lang": "en",
+      "text": "I won't be late.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-6",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "늦지 않을게. 이렇게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s9-1",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "이제 문장 구조를 공식으로 정리해 볼게요. 먼저 be동사 부정문이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s9-2",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "맨 앞에 주어.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s9-3",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "그다음 주어와 시제에 맞는 be동사.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s9-4",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "그 바로 뒤에 낫.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s9-5",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "마지막으로 상태나 장소를 나타내는 말이 와요.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s9-6",
+      "slideId": "s9",
+      "lang": "en",
+      "text": "I'm not ready yet.",
+      "emotion": "설명",
+      "reveal": 5
+    },
+    {
+      "id": "s9-7",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "나 아직 준비 안 됐어. 아임 안에 앰이 들어 있고, 그 뒤에 낫이 붙었어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-1",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "다음은 일반동사 부정문이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-2",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "주어.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s10-3",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "그다음 돈트, 더즌트, 디든트 중 하나를 골라요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s10-4",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "그리고 반드시 동사원형.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s10-5",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "그 뒤에 나머지 말이 와요.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s10-6",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "She doesn't eat meat.",
+      "emotion": "설명",
+      "reveal": 5
+    },
+    {
+      "id": "s10-7",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "그녀는 고기를 안 먹어. 주어가 쉬라서 더즌트, 그 뒤엔 잇츠가 아니라 잇이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s11-1",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "마지막은 조동사 부정문이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s11-2",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "주어.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s11-3",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "조동사 바로 뒤에 낫. 캔트, 원트, 슈든트처럼요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s11-4",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "그다음 동사원형.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s11-5",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "나머지 말이 와요.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s11-6",
+      "slideId": "s11",
+      "lang": "en",
+      "text": "I can't swim.",
+      "emotion": "설명",
+      "reveal": 5
+    },
+    {
+      "id": "s11-7",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "나는 수영을 못 해. 여기엔 두가 하나도 안 보이죠? 캔이 이미 도우미니까요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s12-1",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "이제 예문으로 연습해 볼게요. 원어민 발음을 잘 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s12-2",
+      "slideId": "s12",
+      "lang": "en",
+      "text": "I'm not hungry right now.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s12-3",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "나 지금은 배 안 고파.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s12-4",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "아임 낫. 앰 낫을 줄일 땐 이렇게 아이와 앰을 붙여요. 뭐 먹을래, 하고 물을 때 딱 쓰는 말이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s13-1",
+      "slideId": "s13",
+      "lang": "en",
+      "text": "The store isn't open yet.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s13-2",
+      "slideId": "s13",
+      "lang": "ko",
+      "text": "가게가 아직 안 열었어.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s13-3",
+      "slideId": "s13",
+      "lang": "ko",
+      "text": "주어가 가게 한 곳이니까 이즈, 이즈 낫을 줄여서 이즌트예요. 여기서 오픈은 열려 있는이라는 뜻이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s14-1",
+      "slideId": "s14",
+      "lang": "en",
+      "text": "We weren't at home last night.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s14-2",
+      "slideId": "s14",
+      "lang": "ko",
+      "text": "우리 어젯밤에 집에 없었어.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s14-3",
+      "slideId": "s14",
+      "lang": "ko",
+      "text": "어젯밤, 과거죠? 그래서 워 낫, 줄여서 워른트예요. be동사 문장은 과거여도 두를 부르지 않아요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s15-1",
+      "slideId": "s15",
+      "lang": "en",
+      "text": "I don't drink coffee.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s15-2",
+      "slideId": "s15",
+      "lang": "ko",
+      "text": "나 커피 안 마셔.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s15-3",
+      "slideId": "s15",
+      "lang": "ko",
+      "text": "드링크는 일반동사라서 두를 불러왔어요. 평소 습관을 말할 때 이렇게 현재형 부정문을 써요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s16-1",
+      "slideId": "s16",
+      "lang": "en",
+      "text": "My brother doesn't eat vegetables.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s16-2",
+      "slideId": "s16",
+      "lang": "ko",
+      "text": "우리 형은 채소를 안 먹어.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s16-3",
+      "slideId": "s16",
+      "lang": "ko",
+      "text": "마이 브라더, 3인칭 단수죠? 그래서 더즌트. 그리고 잇츠가 아니라 잇이에요. 에스는 더즈가 이미 가져갔으니까요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s17-1",
+      "slideId": "s17",
+      "lang": "en",
+      "text": "I didn't sleep well last night.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s17-2",
+      "slideId": "s17",
+      "lang": "ko",
+      "text": "어젯밤에 잠을 잘 못 잤어.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s17-3",
+      "slideId": "s17",
+      "lang": "ko",
+      "text": "과거라서 디든트. 그 뒤엔 슬렙트가 아니라 동사원형 슬립이에요. 피곤해 보인다는 말에 이렇게 대답하면 딱이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s18-1",
+      "slideId": "s18",
+      "lang": "en",
+      "text": "I can't find my phone.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s18-2",
+      "slideId": "s18",
+      "lang": "ko",
+      "text": "내 휴대폰을 못 찾겠어.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s18-3",
+      "slideId": "s18",
+      "lang": "ko",
+      "text": "캔이 도우미니까 두 없이 바로 캔트. 정말 자주 쓰는 문장이죠?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s19-1",
+      "slideId": "s19",
+      "lang": "en",
+      "text": "I won't tell anyone.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s19-2",
+      "slideId": "s19",
+      "lang": "ko",
+      "text": "아무한테도 말 안 할게.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s19-3",
+      "slideId": "s19",
+      "lang": "ko",
+      "text": "윌 낫을 줄인 원트예요. 비밀을 지켜 주겠다고 약속할 때 써요. 아무한테도, 라는 뜻일 때는 이렇게 애니원을 써요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s20-1",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "이제 한국 학생들이 자주 하는 실수 세 가지를 볼게요. 첫 번째.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s20-2",
+      "slideId": "s20",
+      "lang": "en",
+      "text": "He don't like math.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s20-3",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "그는 수학을 안 좋아해. 어디가 틀렸을까요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s20-4",
+      "slideId": "s20",
+      "lang": "en",
+      "text": "He doesn't like math.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s20-5",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "주어가 히, 3인칭 단수이고 현재니까 더즌트를 써야 해요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s20-6",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "노래 가사에서 가끔 들리기도 하지만, 표준 영어에서는 틀린 문장이에요. 주어부터 확인하는 습관을 들이세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s21-1",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "두 번째.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s21-2",
+      "slideId": "s21",
+      "lang": "en",
+      "text": "I didn't went there.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s21-3",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "나 거기 안 갔어. 과거니까 웬트를 쓰고 싶죠?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s21-4",
+      "slideId": "s21",
+      "lang": "en",
+      "text": "I didn't go there.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s21-5",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "디든트가 이미 과거라는 걸 알려 주고 있어요. 그래서 뒤에는 동사원형 고만 써요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s21-6",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "더즌트 라이크스도 똑같은 실수예요. 에스와 이디는 도우미가 가져간다, 꼭 기억하세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s22-1",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "세 번째.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s22-2",
+      "slideId": "s22",
+      "lang": "en",
+      "text": "I don't can swim.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s22-3",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "나 수영 못 해. 일반동사처럼 돈트를 붙였네요. 뭐가 문제일까요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s22-4",
+      "slideId": "s22",
+      "lang": "en",
+      "text": "I can't swim.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s22-5",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "캔이 이미 도우미 동사니까 두를 부를 필요가 없어요. 조동사 바로 뒤에 낫, 캔트.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s22-6",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "두와 조동사는 한 문장에 같이 쓰지 않아요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s23-1",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "자, 이제 퀴즈예요! 첫 번째 문제. 빈칸에 알맞은 말을 골라 보세요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s23-2",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "She ___ like spicy food.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s23-3",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "보기는 1번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-4",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "don't",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-5",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": ", 2번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-6",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "doesn't",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-7",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": ", 3번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-8",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "isn't.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-9",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "5초 드릴게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s23-10",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 5
+    },
+    {
+      "id": "s23-11",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "정답은 2번",
+      "emotion": "칭찬",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s23-12",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "doesn't!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s23-13",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "주어 쉬는 3인칭 단수죠? 그리고 라이크는 일반동사니까 이즌트는 안 돼요. 그래서 더즌트예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s24-1",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "두 번째 문제예요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s24-2",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "I ___ at school yesterday.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s24-3",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "보기는 1번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-4",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "didn't",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-5",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": ", 2번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-6",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "wasn't",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-7",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": ", 3번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-8",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "don't.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-9",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "5초 드릴게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s24-10",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 5
+    },
+    {
+      "id": "s24-11",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "정답은 2번",
+      "emotion": "칭찬",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s24-12",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "wasn't!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s24-13",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "이 문장엔 일반동사가 없어요. 학교에 있었다는 be동사 문장이고, 어제니까 과거, 워즌트예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s25-1",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "마지막 문제예요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s25-2",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "We didn't ___ the movie.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s25-3",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "보기는 1번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-4",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "watched",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-5",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": ", 2번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-6",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "watch",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-7",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": ", 3번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-8",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "watching.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-9",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "5초 드릴게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s25-10",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 5
+    },
+    {
+      "id": "s25-11",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "정답은 2번",
+      "emotion": "칭찬",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s25-12",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "watch!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s25-13",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "디든트 뒤에는 무조건 동사원형! 과거 표시는 디든트가 이미 했어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s26-1",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "오늘 배운 내용을 정리해 볼게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s26-2",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "낫은 도우미 동사 바로 뒤에.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s26-3",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "be동사 문장은 be동사 뒤에 낫. 앰 낫은 아임 낫으로 줄여요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s26-4",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "일반동사 문장은 돈트, 더즌트, 디든트를 불러오고, 뒤에는 동사원형.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s26-5",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "조동사 문장은 조동사 뒤에 바로 낫. 윌 낫은 원트예요.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s27-1",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "이제 오늘 배운 부정문을 실제 회화에서 써 볼 시간이에요. 첫 번째 패턴은 뭔가 하기 싫을 때 써요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s27-2",
+      "slideId": "s27",
+      "lang": "en",
+      "text": "I don't feel like ….",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s27-3",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "뜻은 뭔가 할 기분이 아니야. 필 라이크 뒤에는 동사에 아이엔지를 붙이거나 명사를 써요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s27-4",
+      "slideId": "s27",
+      "lang": "en",
+      "text": "I don't feel like going out tonight.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s27-5",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "오늘 밤엔 나가기 싫어.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s27-6",
+      "slideId": "s27",
+      "lang": "en",
+      "text": "I don't feel like cooking today.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s27-7",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "오늘은 요리하기 싫어. 싫다고 딱 잘라 말하는 것보다 훨씬 부드럽게 들려요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s28-1",
+      "slideId": "s28",
+      "lang": "ko",
+      "text": "금요일 저녁, 친구가 나가서 놀자고 하는 상황이에요. 잘 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s28-2",
+      "slideId": "s28",
+      "lang": "en",
+      "text": "Do you want to go out tonight?",
+      "emotion": "설명",
+      "reveal": 1,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s28-3",
+      "slideId": "s28",
+      "lang": "en",
+      "text": "I don't feel like going out tonight. I'm tired.",
+      "emotion": "설명",
+      "reveal": 2,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s28-4",
+      "slideId": "s28",
+      "lang": "en",
+      "text": "No worries. How about tomorrow?",
+      "emotion": "설명",
+      "reveal": 3,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s28-5",
+      "slideId": "s28",
+      "lang": "en",
+      "text": "Sounds good!",
+      "emotion": "설명",
+      "reveal": 4,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s28-6",
+      "slideId": "s28",
+      "lang": "ko",
+      "text": "필 라이크 뒤에 고잉 아웃, 아이엔지가 왔죠? 피곤하다는 이유까지 붙이니까 훨씬 자연스러워요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s29-1",
+      "slideId": "s29",
+      "lang": "ko",
+      "text": "이제 따라 해 볼까요? 먼저 천천히 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s29-2",
+      "slideId": "s29",
+      "lang": "en",
+      "text": "I don't feel like going out tonight.",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 0.85
+    },
+    {
+      "id": "s29-3",
+      "slideId": "s29",
+      "lang": "ko",
+      "text": "이번엔 자연스러운 속도예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s29-4",
+      "slideId": "s29",
+      "lang": "en",
+      "text": "I don't feel like going out tonight.",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s29-5",
+      "slideId": "s29",
+      "lang": "ko",
+      "text": "잘했어요!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s30-1",
+      "slideId": "s30",
+      "lang": "ko",
+      "text": "두 번째 패턴은 확실하지 않을 때 써요. be동사 부정문으로 만든 표현이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s30-2",
+      "slideId": "s30",
+      "lang": "en",
+      "text": "I'm not sure ….",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s30-3",
+      "slideId": "s30",
+      "lang": "ko",
+      "text": "뜻은 잘 모르겠어. 슈어는 확실한이라는 뜻인데, 앞에 아임 낫이 붙어서 확실하지 않다가 됐어요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s30-4",
+      "slideId": "s30",
+      "lang": "en",
+      "text": "I'm not sure if I can make it.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s30-5",
+      "slideId": "s30",
+      "lang": "ko",
+      "text": "갈 수 있을지 잘 모르겠어. 메이킷은 약속이나 모임에 갈 수 있다는 뜻이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s30-6",
+      "slideId": "s30",
+      "lang": "en",
+      "text": "I'm not sure what time it starts.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s30-7",
+      "slideId": "s30",
+      "lang": "ko",
+      "text": "몇 시에 시작하는지 잘 모르겠어. 이렇게 뒤에 이프나 왓을 붙여서 길게 말할 수 있어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s31-1",
+      "slideId": "s31",
+      "lang": "ko",
+      "text": "학교에서 친구가 주말 생일 파티에 오냐고 묻는 상황이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s31-2",
+      "slideId": "s31",
+      "lang": "en",
+      "text": "Are you coming to Minji's party on Saturday?",
+      "emotion": "설명",
+      "reveal": 1,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s31-3",
+      "slideId": "s31",
+      "lang": "en",
+      "text": "I'm not sure if I can make it.",
+      "emotion": "설명",
+      "reveal": 2,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s31-4",
+      "slideId": "s31",
+      "lang": "en",
+      "text": "Why? What's up?",
+      "emotion": "설명",
+      "reveal": 3,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s31-5",
+      "slideId": "s31",
+      "lang": "en",
+      "text": "I have a lesson. I'm not sure when it ends.",
+      "emotion": "설명",
+      "reveal": 4,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s31-6",
+      "slideId": "s31",
+      "lang": "ko",
+      "text": "바로 된다, 안 된다로 대답하기 어려울 때 아임 낫 슈어, 정말 편하죠?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s32-1",
+      "slideId": "s32",
+      "lang": "ko",
+      "text": "따라 해 볼까요? 먼저 천천히 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s32-2",
+      "slideId": "s32",
+      "lang": "en",
+      "text": "I'm not sure if I can make it.",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 0.85
+    },
+    {
+      "id": "s32-3",
+      "slideId": "s32",
+      "lang": "ko",
+      "text": "이번엔 자연스러운 속도예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s32-4",
+      "slideId": "s32",
+      "lang": "en",
+      "text": "I'm not sure if I can make it.",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s32-5",
+      "slideId": "s32",
+      "lang": "ko",
+      "text": "잘했어요!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s33-1",
+      "slideId": "s33",
+      "lang": "ko",
+      "text": "세 번째 패턴은 조동사 부정문, 캔트로 만든 표현이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s33-2",
+      "slideId": "s33",
+      "lang": "en",
+      "text": "I can't wait to …!",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s33-3",
+      "slideId": "s33",
+      "lang": "ko",
+      "text": "글자 그대로는 기다릴 수 없다지만, 실제 뜻은 빨리 하고 싶어, 너무 기대돼예요. 부정문인데 아주 신나는 표현이죠.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s33-4",
+      "slideId": "s33",
+      "lang": "en",
+      "text": "I can't wait to see you!",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s33-5",
+      "slideId": "s33",
+      "lang": "ko",
+      "text": "너 빨리 보고 싶어!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s33-6",
+      "slideId": "s33",
+      "lang": "en",
+      "text": "I can't wait for the weekend!",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s33-7",
+      "slideId": "s33",
+      "lang": "ko",
+      "text": "주말이 너무 기대돼! 투 뒤에는 동사원형, 포 뒤에는 명사를 써요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s34-1",
+      "slideId": "s34",
+      "lang": "ko",
+      "text": "카페에서 친구와 다음 주 제주도 여행 이야기를 하고 있어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s34-2",
+      "slideId": "s34",
+      "lang": "en",
+      "text": "We're going to Jeju next week!",
+      "emotion": "설명",
+      "reveal": 1,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s34-3",
+      "slideId": "s34",
+      "lang": "en",
+      "text": "I know! I can't wait!",
+      "emotion": "설명",
+      "reveal": 2,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s34-4",
+      "slideId": "s34",
+      "lang": "en",
+      "text": "Yeah! I can't wait to try the black pork.",
+      "emotion": "설명",
+      "reveal": 3,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s34-5",
+      "slideId": "s34",
+      "lang": "en",
+      "text": "And I can't wait to see the ocean!",
+      "emotion": "설명",
+      "reveal": 4,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s34-6",
+      "slideId": "s34",
+      "lang": "ko",
+      "text": "아이 캔트 웨잇이 세 번이나 나왔죠? 설레는 마음이 그대로 느껴져요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s35-1",
+      "slideId": "s35",
+      "lang": "ko",
+      "text": "마지막 따라하기예요. 먼저 천천히 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s35-2",
+      "slideId": "s35",
+      "lang": "en",
+      "text": "I can't wait to see you!",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 0.85
+    },
+    {
+      "id": "s35-3",
+      "slideId": "s35",
+      "lang": "ko",
+      "text": "이번엔 자연스러운 속도예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s35-4",
+      "slideId": "s35",
+      "lang": "en",
+      "text": "I can't wait to see you!",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s35-5",
+      "slideId": "s35",
+      "lang": "ko",
+      "text": "잘했어요!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s36-1",
+      "slideId": "s36",
+      "lang": "ko",
+      "text": "오늘 배운 회화 패턴 세 개, 다시 한번 떠올려 볼까요?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-2",
+      "slideId": "s36",
+      "lang": "en",
+      "text": "I don't feel like going out tonight.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-3",
+      "slideId": "s36",
+      "lang": "en",
+      "text": "I'm not sure if I can make it.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-4",
+      "slideId": "s36",
+      "lang": "en",
+      "text": "I can't wait to see you!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-5",
+      "slideId": "s36",
+      "lang": "ko",
+      "text": "세 문장 모두 오늘 배운 부정문 규칙으로 만든 거예요. 꼭 소리 내서 써 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-6",
+      "slideId": "s36",
+      "lang": "ko",
+      "text": "다음 강의는 Yes/No 의문문이에요. 오늘 배운 도우미 동사를 문장 맨 앞으로 보내면 질문이 돼요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s36-7",
+      "slideId": "s36",
+      "lang": "ko",
+      "text": "오늘도 정말 수고했어요. 구독과 좋아요 부탁드리고, 다음 강의에서 만나요!",
+      "emotion": "칭찬"
+    }
+  ]
+}

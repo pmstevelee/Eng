@@ -1,0 +1,201 @@
+{
+  "version": 1,
+  "slug": "negative-sentences-shorts-02",
+  "title": "부정문 만들기 숏폼 2 — I'm not sure ~.",
+  "grammarPoint": {
+    "code": "G05-01-01",
+    "title": "부정문 만들기"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-11-11T02:13:23.764Z",
+  "format": "shorts",
+  "tempo": {
+    "koSpeedScale": 1.1,
+    "enSpeed": 1,
+    "gapScale": 0.6,
+    "leadInMs": 250,
+    "tailMs": 1200,
+    "repeatPause": {
+      "factor": 1.2,
+      "extraSec": 0
+    }
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "hook",
+      "data": {
+        "question": "'~인지 잘 모르겠어' 영어로 바로 말할 수 있나요?",
+        "sub": "3초 안에 떠올려 보세요"
+      },
+      "chapter": "훅"
+    },
+    {
+      "id": "s2",
+      "type": "pattern",
+      "data": {
+        "pattern": "I'm not sure ~.",
+        "ko": "~인지 잘 모르겠어",
+        "slot": "if ~ / what ~ / 문장"
+      },
+      "chapter": "패턴"
+    },
+    {
+      "id": "s3",
+      "type": "examples",
+      "data": {
+        "examples": [
+          {
+            "en": "I'm not sure if I can make it.",
+            "ko": "갈 수 있을지 잘 모르겠어"
+          },
+          {
+            "en": "I'm not sure what time it starts.",
+            "ko": "몇 시에 시작하는지 잘 모르겠어"
+          },
+          {
+            "en": "I'm not sure where I put my keys.",
+            "ko": "열쇠를 어디 뒀는지 잘 모르겠어"
+          }
+        ]
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "repeat",
+      "data": {
+        "sentence": "I'm not sure if I can make it.",
+        "ko": "갈 수 있을지 잘 모르겠어",
+        "stress": [
+          "sure",
+          "make"
+        ],
+        "links": [
+          {
+            "text": "make it",
+            "hint": "메이킷"
+          }
+        ]
+      },
+      "chapter": "따라하기"
+    },
+    {
+      "id": "s5",
+      "type": "cta",
+      "data": {
+        "lectureTitle": "부정문 만들기",
+        "message": "더 자세한 설명은 위고업잉글리시에서!"
+      },
+      "chapter": "위고업잉글리시 안내"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "'~인지 잘 모르겠어' 영어로 바로 말할 수 있나요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "오늘은 잘 모르겠다고 할 때 쓰는 패턴이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "I'm not sure ….",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "확실하지 않을 때나 대답을 미룰 때 써요. 뒤에 이프, 왓, 웨어 같은 말을 붙이면 돼요.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "예문 세 개, 바로 갈게요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I'm not sure if I can make it.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "갈 수 있을지 잘 모르겠어",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I'm not sure what time it starts.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "몇 시에 시작하는지 잘 모르겠어",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I'm not sure where I put my keys.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "열쇠를 어디 뒀는지 잘 모르겠어",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이제 따라 해 보세요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "I'm not sure if I can make it.",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "이 패턴만 기억해도 대답이 쉬워져요. 더 자세한 설명은 위고업잉글리시에서!",
+      "emotion": "칭찬"
+    }
+  ]
+}
