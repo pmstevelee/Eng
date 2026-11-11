@@ -312,7 +312,7 @@ npm run blog -- present-perfect
 옵션:
 - 키워드만 먼저 보고 싶으면: `--keywords-only` → `keywords.md`의 **선정** 블록을 고친 뒤 `npm run blog -- present-perfect` (고친 키워드로 원고를 써요)
 - 유튜브 본편 주소 넣기: `--youtube https://youtu.be/영상id` (안 넣으면 문법학습관리에 등록된 본사 강의 주소를 찾아요. 없으면 자리만 표시)
-- 카테고리: `--category "중학 영문법"` (기본값 `중학 영문법`, `.env.local`의 `NAVER_BLOG_CATEGORY`로 바꿀 수 있어요). **내 블로그에 있는 카테고리 이름과 똑같아야** 해요.
+- 카테고리: `--category "영어문법"` (기본값 `영어문법`, `.env.local`의 `NAVER_BLOG_CATEGORY`로 바꿀 수 있어요). **내 블로그에 있는 카테고리 이름과 똑같아야** 해요.
 - 이미 있으면 덮어쓰지 않아요. 새로 쓰려면 `--force` · 슬라이드 캡처를 다시 하려면 `--recapture`
 
 ### 검토·고치기

@@ -1,0 +1,237 @@
+{
+  "version": 1,
+  "slug": "can-could-shorts-03",
+  "title": "can·could 숏폼 3 — I can't wait to ~!",
+  "grammarPoint": {
+    "code": "G04-01-01",
+    "title": "can·could"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-11-06T21:08:41.271Z",
+  "format": "shorts",
+  "tempo": {
+    "koSpeedScale": 1.1,
+    "enSpeed": 1,
+    "gapScale": 0.6,
+    "leadInMs": 250,
+    "tailMs": 1200,
+    "repeatPause": {
+      "factor": 1.2,
+      "extraSec": 0
+    }
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "hook",
+      "data": {
+        "question": "'빨리 ~하고 싶어!', 영어로 바로 나오나요?"
+      },
+      "chapter": "훅"
+    },
+    {
+      "id": "s2",
+      "type": "pattern",
+      "data": {
+        "pattern": "I can't wait to ~!",
+        "ko": "빨리 ~하고 싶어! / ~하는 게 너무 기대돼!",
+        "slot": "동사원형"
+      },
+      "chapter": "패턴"
+    },
+    {
+      "id": "s3",
+      "type": "examples",
+      "data": {
+        "examples": [
+          {
+            "en": "I can't wait to see you!",
+            "ko": "빨리 보고 싶어!"
+          },
+          {
+            "en": "I can't wait to go on vacation!",
+            "ko": "휴가 가는 게 너무 기다려져!"
+          },
+          {
+            "en": "I can't wait to try that new restaurant!",
+            "ko": "그 새 식당 빨리 가 보고 싶어!"
+          }
+        ]
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "repeat",
+      "data": {
+        "sentence": "I can't wait to see you!",
+        "ko": "빨리 보고 싶어!",
+        "stress": [
+          "can't",
+          "wait",
+          "see"
+        ],
+        "links": [
+          {
+            "text": "can't wait",
+            "hint": "캔웨잇"
+          },
+          {
+            "text": "wait to",
+            "hint": "웨잇투"
+          }
+        ]
+      },
+      "chapter": "따라하기"
+    },
+    {
+      "id": "s5",
+      "type": "cta",
+      "data": {
+        "lectureTitle": "can·could",
+        "message": "더 자세한 설명은 위고업잉글리시에서!"
+      },
+      "chapter": "위고업잉글리시 안내"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "'빨리 ~하고 싶어!', 영어로 바로 나오나요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "오늘 배울 패턴은 이거예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "I can't wait to …!",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "너무 기대돼서 기다릴 수가 없을 때 쓰는 말이에요. 친구와의 약속, 여행, 콘서트 얘기할 때 딱이에요.",
+      "emotion": "강조",
+      "reveal": 2,
+      "joinNext": true
+    },
+    {
+      "id": "s2-3b",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "to",
+      "emotion": "강조",
+      "joinNext": true
+    },
+    {
+      "id": "s2-3c",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "뒤에는 동사원형을 써요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "예문 세 개, 바로 갈게요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I can't wait to see you!",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "빨리 보고 싶어!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I can't wait to go on vacation!",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "휴가 가는 게 너무 기다려져!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I can't wait to try that new restaurant!",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "그 새 식당 빨리 가 보고 싶어!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이제 따라 해 보세요! 먼저 천천히.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "I can't wait to see you!",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 0.85
+    },
+    {
+      "id": "s4-3",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이번엔 자연스럽게!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-4",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "I can't wait to see you!",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "기대되는 일, 오늘 패턴으로 바로 말해 보세요. 더 자세한 설명은 위고업잉글리시에서!",
+      "emotion": "칭찬"
+    }
+  ]
+}

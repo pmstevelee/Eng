@@ -1,0 +1,205 @@
+{
+  "version": 1,
+  "slug": "must-have-to-shorts-02",
+  "title": "must·have to 숏폼 2 — Do I have to ~?",
+  "grammarPoint": {
+    "code": "G04-02-01",
+    "title": "must·have to"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-11-09T02:14:28.079Z",
+  "format": "shorts",
+  "tempo": {
+    "koSpeedScale": 1.1,
+    "enSpeed": 1,
+    "gapScale": 0.6,
+    "leadInMs": 250,
+    "tailMs": 1200,
+    "repeatPause": {
+      "factor": 1.2,
+      "extraSec": 0
+    }
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "hook",
+      "data": {
+        "question": "'~해야 하나요?' 영어로 바로 말할 수 있나요?",
+        "sub": "규칙 물을 때 꼭 써요"
+      },
+      "chapter": "훅"
+    },
+    {
+      "id": "s2",
+      "type": "pattern",
+      "data": {
+        "pattern": "Do I have to ~?",
+        "ko": "~해야 하나요?",
+        "slot": "동사원형"
+      },
+      "chapter": "패턴"
+    },
+    {
+      "id": "s3",
+      "type": "examples",
+      "data": {
+        "examples": [
+          {
+            "en": "Do I have to pay now?",
+            "ko": "지금 결제해야 하나요?"
+          },
+          {
+            "en": "Do I have to bring anything?",
+            "ko": "뭐 가져와야 하나요?"
+          },
+          {
+            "en": "Do I have to wear a uniform?",
+            "ko": "교복 입어야 하나요?"
+          }
+        ]
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "repeat",
+      "data": {
+        "sentence": "Do I have to bring anything?",
+        "ko": "뭐 가져와야 하나요?",
+        "stress": [
+          "bring",
+          "anything"
+        ],
+        "links": [
+          {
+            "text": "Do I",
+            "hint": "두아이"
+          },
+          {
+            "text": "have to",
+            "hint": "해프터"
+          }
+        ]
+      },
+      "chapter": "따라하기"
+    },
+    {
+      "id": "s5",
+      "type": "cta",
+      "data": {
+        "lectureTitle": "must·have to",
+        "message": "더 자세한 설명은 위고업잉글리시에서!"
+      },
+      "chapter": "위고업잉글리시 안내"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "'~해야 하나요?' 영어로 바로 말할 수 있나요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "오늘 배울 패턴은 바로 이거예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "Do I have to …?",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "처음 가는 곳에서 규칙이나 준비물을 물어볼 때 자주 써요. 상대에게 뭔가 꼭 해야 하는지, 필요 없는지 확인할 때 쓰는 표현이에요.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "예문 세 개, 바로 갈게요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Do I have to pay now?",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "지금 결제해야 하나요?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Do I have to bring anything?",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "뭐 가져와야 하나요?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Do I have to wear a uniform?",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "교복 입어야 하나요?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이제 따라 해 보세요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "Do I have to bring anything?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "이 표현은 상황마다 정말 자주 써요. 규칙이나 준비물이 궁금할 때 꼭 기억하세요. 더 자세한 설명은 위고업잉글리시에서!",
+      "emotion": "칭찬"
+    }
+  ]
+}

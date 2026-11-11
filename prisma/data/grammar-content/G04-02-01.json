@@ -1,0 +1,643 @@
+{
+  "code": "G04-02-01",
+  "summary": "must와 have to는 '~해야 한다'(의무·필요)를 말할 때 써요. must는 조동사라 must + 동사원형, have to는 have/has to + 동사원형이에요. 긍정문에서는 대부분 바꿔 쓸 수 있지만 일상 대화에서는 have to를 더 많이 써요. must는 과거·미래형이 없어서 과거는 had to, 미래는 will have to를 써요. 부정문은 뜻이 달라져요: must not은 금지, don't have to는 필요 없음이에요.",
+  "rules": [
+    {
+      "text": "must와 have to는 '~해야 한다'는 의무·필요를 나타내요. 동사만으로는 이 뜻을 말할 수 없어서 동사 앞에 붙여요.",
+      "formula": "I study. → I must study. / I have to study."
+    },
+    {
+      "text": "must는 조동사예요. 뒤에 동사원형이 오고, 주어가 바뀌어도 모양이 그대로예요. musts, must to는 없어요.",
+      "formula": "주어 + must + 동사원형"
+    },
+    {
+      "text": "have to는 have/has to + 동사원형이에요. 주어가 3인칭 단수(he, she, it, 사람·사물 하나)이고 현재면 has to를 써요.",
+      "formula": "I have to go. / She has to go."
+    },
+    {
+      "text": "must는 말하는 사람이 스스로 '꼭 해야 한다'고 강하게 느낄 때, 그리고 규칙·안내문·표지판에 자주 써요.",
+      "formula": "I must finish this today. / You must wear a seat belt."
+    },
+    {
+      "text": "have to는 규칙·일정·상황 때문에 해야 하는 일에 자주 써요. 일상 대화에서는 must보다 have to를 훨씬 많이 써요. 긍정문에서는 뜻 차이가 크지 않아 대부분 바꿔 써도 돼요.",
+      "formula": "I have to get up at six tomorrow."
+    },
+    {
+      "text": "must는 과거형·미래형이 없어요. 과거는 had to, 미래는 will have to를 써요. will must처럼 조동사 두 개를 이어 쓰면 틀려요.",
+      "formula": "I had to wait. / You'll have to show your ticket."
+    },
+    {
+      "text": "의문문은 Do/Does + 주어 + have to + 동사원형? 으로 만들고, do/does로 대답해요. Must I ~?도 맞지만 딱딱해서 일상에서는 잘 안 써요.",
+      "formula": "Do I have to bring my ID? — Yes, you do. / No, you don't."
+    },
+    {
+      "text": "Does 뒤에는 has가 아니라 have를 써요. does가 이미 3인칭 단수 -s를 가져갔기 때문이에요.",
+      "formula": "Does he have to work today? (O) / Does he has to ~? (X)"
+    },
+    {
+      "text": "must not(mustn't)은 '~하면 안 된다'는 금지예요.",
+      "formula": "You mustn't run in the hallway."
+    },
+    {
+      "text": "don't/doesn't have to는 '~할 필요 없다, 안 해도 된다'예요. must not과 뜻이 완전히 달라요.",
+      "formula": "You don't have to bring anything."
+    },
+    {
+      "text": "have to는 '해프터', has to는 '해스터'처럼 붙여서 읽어요.",
+      "formula": "have to [해프터] / has to [해스터]"
+    }
+  ],
+  "examples": [
+    {
+      "en": "I must finish this report today.",
+      "ko": "나는 오늘 이 보고서를 꼭 끝내야 해. (스스로 느끼는 강한 의무)",
+      "highlight": "must finish"
+    },
+    {
+      "en": "You must wear a seat belt.",
+      "ko": "안전벨트를 꼭 매야 합니다. (규칙·안내)",
+      "highlight": "must wear"
+    },
+    {
+      "en": "I have to get up at six tomorrow.",
+      "ko": "나 내일 6시에 일어나야 해. (일정 때문에)",
+      "highlight": "have to get up"
+    },
+    {
+      "en": "My sister has to take care of our dog after school.",
+      "ko": "내 여동생은 방과 후에 우리 개를 돌봐야 해. (3인칭 단수 → has to)",
+      "highlight": "has to take"
+    },
+    {
+      "en": "Do we have to bring our own lunch?",
+      "ko": "우리 점심 각자 싸 와야 해? (의문문)",
+      "highlight": "Do we have to bring"
+    },
+    {
+      "en": "I had to wait for an hour.",
+      "ko": "나 한 시간이나 기다려야 했어. (과거 → had to)",
+      "highlight": "had to wait"
+    },
+    {
+      "en": "You'll have to show your ticket at the gate.",
+      "ko": "입구에서 표를 보여 주셔야 할 거예요. (미래 → will have to)",
+      "highlight": "'ll have to show"
+    },
+    {
+      "en": "You don't have to bring anything.",
+      "ko": "아무것도 안 가져와도 돼. (필요 없음)",
+      "highlight": "don't have to bring"
+    },
+    {
+      "en": "You mustn't run in the hallway.",
+      "ko": "복도에서 뛰면 안 돼요. (금지)",
+      "highlight": "mustn't run"
+    },
+    {
+      "en": "Sorry, I have to go now.",
+      "ko": "미안, 나 이제 가야 해. (자리를 뜰 때)",
+      "highlight": "have to go"
+    }
+  ],
+  "commonErrors": [
+    {
+      "wrong": "I must to go now.",
+      "correct": "I must go now.",
+      "reason": "must 뒤에는 to 없이 동사원형을 바로 써요."
+    },
+    {
+      "wrong": "She have to wear glasses.",
+      "correct": "She has to wear glasses.",
+      "reason": "주어가 3인칭 단수이고 현재면 has to를 써요."
+    },
+    {
+      "wrong": "I must finish it yesterday.",
+      "correct": "I had to finish it yesterday.",
+      "reason": "must는 과거형이 없어서 과거는 had to로 써요."
+    },
+    {
+      "wrong": "Does he has to work today?",
+      "correct": "Does he have to work today?",
+      "reason": "Does가 이미 -s를 가져가서 뒤에는 have를 써요."
+    },
+    {
+      "wrong": "We will must wear a uniform.",
+      "correct": "We will have to wear a uniform.",
+      "reason": "조동사 두 개를 이어 쓸 수 없어서 미래는 will have to를 써요."
+    },
+    {
+      "wrong": "You mustn't bring anything. (가져올 필요 없어)",
+      "correct": "You don't have to bring anything.",
+      "reason": "'필요 없다'는 don't have to예요. mustn't는 '하면 안 된다'는 금지예요."
+    }
+  ],
+  "lecture": {
+    "title": "must와 have to 차이와 쓰임, 예문으로 완벽 정리!",
+    "youtube": "https://youtu.be/JVuTmEYcgPM",
+    "durationSec": 947
+  },
+  "sourceScript": {
+    "title": "must·have to — 강의 기준 원고",
+    "content": "[강의 범위]\n'~해야 한다'(의무·필요)를 말하는 must와 have to의 뜻·차이와 긍정·부정·의문문, 과거·미래 표현을 익히는 단원이다. 대상은 중학생~고등학생, 성인 초급. must의 추측(~임에 틀림없다), have got to, must have p.p.는 다루지 않는다. 강의 영상: must와 have to 차이와 쓰임, 예문으로 완벽 정리! (YouTube JVuTmEYcgPM, 15분 47초).\n\n[도입]\nI must to go now. 는 틀린 문장이다. must 뒤에는 to 없이 동사원형이 바로 온다: I must go now.\n\n[1. 왜 필요할까]\n- 동사만으로는 '~해야 한다'를 말할 수 없다. I study. → I must study. / I have to study.\n\n[2. must]\n- 조동사. must + 동사원형. 주어가 바뀌어도 모양이 그대로다(musts, must to 없음).\n- 말하는 사람이 스스로 '꼭 해야 한다'고 강하게 느낄 때, 규칙·안내문·표지판처럼 공식적인 말에 자주 쓴다.\n\n[3. have to]\n- have/has to + 동사원형. 3인칭 단수 현재(he, she, it, 사람·사물 하나)면 has to.\n- 규칙·일정·상황 때문에 해야 하는 일에 자주 쓴다. 일상 대화에서는 must보다 have to를 훨씬 많이 쓴다(must는 딱딱하고 강하게 들린다).\n- 긍정문에서는 뜻 차이가 크지 않아 대부분 바꿔 쓸 수 있다. 'must는 무조건 내 생각, have to는 무조건 남의 규칙'처럼 단정하지 않는다.\n- 발음: have to는 '해프터', has to는 '해스터'처럼 붙여 읽는다.\n\n[4. 과거와 미래]\n- must는 과거형·미래형이 없다. 과거는 had to, 미래는 will have to. will must는 틀린 표현이다.\n\n[5. 부정문 — 뜻이 완전히 달라진다]\n- must not(mustn't): ~하면 안 된다(금지). You mustn't run in the hallway.\n- don't/doesn't have to: ~할 필요 없다. You don't have to bring anything.\n- 자세한 비교는 다음 단원(must not과 don't have to)에서 다룬다.\n\n[6. 의문문]\n- Do/Does + 주어 + have to + 동사원형? 대답은 Yes, I do. / No, you don't.\n- Does 뒤에는 have(does가 이미 -s를 가져감).\n- Must I ~?도 문법적으로 맞지만 딱딱해서 일상에서는 잘 쓰지 않는다.\n\n[7. 흔한 실수]\n- She have to → She has to\n- I must finish it yesterday → I had to finish it yesterday\n- Does he has to → Does he have to\n\n[8. 일상회화 패턴]\n- I have to ~. 거절하거나 자리를 뜰 때. Sorry, I have to go now.\n- Do I have to ~? 규칙·준비물 확인. Do I have to bring anything?\n- You must ~! 명령이 아니라 강한 추천. You must try the cheesecake here!\n"
+  },
+  "questions": [
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "She ____ to wear a uniform at school.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "has",
+          "have",
+          "having",
+          "to have"
+        ],
+        "correct_answer": "A",
+        "explanation": "주어 she는 3인칭 단수라서 has to를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "You must ____ a seat belt.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "wears",
+          "wear",
+          "to wear",
+          "wearing"
+        ],
+        "correct_answer": "B",
+        "explanation": "must 뒤에는 동사원형을 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "____ she have to take the bus?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "Do",
+          "Must",
+          "Does",
+          "Is"
+        ],
+        "correct_answer": "C",
+        "explanation": "주어가 3인칭 단수인 have to 의문문은 Does로 시작해요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Last night, I ____ study until midnight.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "must",
+          "have to",
+          "has to",
+          "had to"
+        ],
+        "correct_answer": "D",
+        "explanation": "Last night은 과거예요. must는 과거형이 없어서 had to를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Next year, we ____ wear a school uniform.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "will have to",
+          "will must",
+          "must to",
+          "will has to"
+        ],
+        "correct_answer": "A",
+        "explanation": "미래는 will have to예요. will must처럼 조동사를 두 개 이어 쓸 수 없어요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "You ____ run in the hallway. It's dangerous.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "don't have to",
+          "mustn't",
+          "don't must",
+          "not must"
+        ],
+        "correct_answer": "B",
+        "explanation": "위험해서 '뛰면 안 된다'는 금지이므로 mustn't를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Tomorrow is Sunday. You ____ get up early.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "mustn't",
+          "doesn't have to",
+          "don't have to",
+          "not have to"
+        ],
+        "correct_answer": "C",
+        "explanation": "일요일이라 '일찍 일어날 필요 없다'는 뜻이므로 don't have to를 써요. 주어 you에는 don't를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Does he ____ work today?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "has to",
+          "had to",
+          "having to",
+          "have to"
+        ],
+        "correct_answer": "D",
+        "explanation": "Does 뒤에는 has가 아니라 have를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Do I have to bring my ID? — Yes, you ____.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "do",
+          "must",
+          "have",
+          "are"
+        ],
+        "correct_answer": "A",
+        "explanation": "Do로 물었으니 do로 대답해요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "My brother ____ do his homework now.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "have to",
+          "has to",
+          "must to",
+          "musts"
+        ],
+        "correct_answer": "B",
+        "explanation": "3인칭 단수 현재는 has to예요. must to, musts는 없는 형태예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I ____ go now. My mom is waiting.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "must to",
+          "musts",
+          "must",
+          "am must"
+        ],
+        "correct_answer": "C",
+        "explanation": "must 뒤에는 to 없이 동사원형이 와요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "다음 중 바른 문장을 고르세요.",
+        "question_text_ko": "바른 문장을 고르세요.",
+        "options": [
+          "I must to finish it.",
+          "I musts finish it.",
+          "I must finishing it.",
+          "I must finish it."
+        ],
+        "correct_answer": "D",
+        "explanation": "must 뒤에는 동사원형 finish를 바로 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "다음 중 바른 문장을 고르세요.",
+        "question_text_ko": "바른 문장을 고르세요.",
+        "options": [
+          "I had to finish it yesterday.",
+          "I must finish it yesterday.",
+          "I have to finish it yesterday.",
+          "I must finished it yesterday."
+        ],
+        "correct_answer": "A",
+        "explanation": "yesterday는 과거라서 had to를 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Her room is already clean. She ____ clean it.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "mustn't",
+          "doesn't have to",
+          "don't have to",
+          "doesn't has to"
+        ],
+        "correct_answer": "B",
+        "explanation": "이미 깨끗하니 '청소할 필요 없다'예요. 주어가 she라서 doesn't have to를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "____ we have to pay now?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "Does",
+          "Have",
+          "Do",
+          "Must"
+        ],
+        "correct_answer": "C",
+        "explanation": "주어 we의 have to 의문문은 Do로 시작해요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "'와도 되고 안 와도 된다(올 필요 없다)'는 뜻의 문장은?",
+        "question_text_ko": "알맞은 문장을 고르세요.",
+        "options": [
+          "You mustn't come.",
+          "You must come.",
+          "You have to come.",
+          "You don't have to come."
+        ],
+        "correct_answer": "D",
+        "explanation": "'~할 필요 없다'는 don't have to예요. mustn't는 금지예요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "'~하면 안 된다'(금지)는 뜻의 문장은?",
+        "question_text_ko": "알맞은 문장을 고르세요.",
+        "options": [
+          "You mustn't touch it.",
+          "You have to touch it.",
+          "You don't have to touch it.",
+          "You had to touch it."
+        ],
+        "correct_answer": "A",
+        "explanation": "금지는 must not, 줄여서 mustn't예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Students ____ wear their ID cards in school.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "musts",
+          "must",
+          "must to",
+          "are must"
+        ],
+        "correct_answer": "B",
+        "explanation": "규칙을 말할 때 must를 자주 써요. 주어가 바뀌어도 must 모양은 그대로예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "He ____ to wait for an hour yesterday.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "must",
+          "has",
+          "had",
+          "have"
+        ],
+        "correct_answer": "C",
+        "explanation": "yesterday는 과거라서 had to를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "You'll ____ show your ticket at the gate.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "must",
+          "has to",
+          "had to",
+          "have to"
+        ],
+        "correct_answer": "D",
+        "explanation": "will 뒤에는 동사원형이 와서 will have to가 돼요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "My sister ____ take care of our dog after school.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "has to",
+          "have to",
+          "must to",
+          "having to"
+        ],
+        "correct_answer": "A",
+        "explanation": "my sister는 3인칭 단수라서 has to를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "____ he have to wear glasses?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "Do",
+          "Does",
+          "Is",
+          "Has"
+        ],
+        "correct_answer": "B",
+        "explanation": "주어 he의 have to 의문문은 Does로 시작해요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "다음 중 must가 '꼭 해 봐!'라는 강한 추천으로 쓰인 문장은?",
+        "question_text_ko": "알맞은 문장을 고르세요.",
+        "options": [
+          "You must wear a helmet here.",
+          "You mustn't park here.",
+          "You must try the cheesecake here!",
+          "Students must be quiet in the library."
+        ],
+        "correct_answer": "C",
+        "explanation": "맛있으니 꼭 먹어 보라는 추천이에요. 나머지는 규칙이나 금지예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Sorry, I ____ go now. I have a class.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "has to",
+          "must to",
+          "having to",
+          "have to"
+        ],
+        "correct_answer": "D",
+        "explanation": "주어 I에는 have to를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "They ____ leave early yesterday because of the rain.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "had to",
+          "must",
+          "have to",
+          "has to"
+        ],
+        "correct_answer": "A",
+        "explanation": "yesterday는 과거라서 had to를 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "다음 중 틀린 문장을 고르세요.",
+        "question_text_ko": "틀린 문장을 고르세요.",
+        "options": [
+          "She has to study.",
+          "They will must come.",
+          "He must go.",
+          "We had to wait."
+        ],
+        "correct_answer": "B",
+        "explanation": "조동사 두 개를 이어 쓸 수 없어요. They will have to come.이 맞아요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "다음 중 틀린 문장을 고르세요.",
+        "question_text_ko": "틀린 문장을 고르세요.",
+        "options": [
+          "Does she have to go?",
+          "Do you have to work?",
+          "Does he has to stay?",
+          "Do we have to pay?"
+        ],
+        "correct_answer": "C",
+        "explanation": "Does 뒤에는 have를 써요. Does he have to stay?가 맞아요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "When ____ you have to finish this?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "does",
+          "are",
+          "must",
+          "do"
+        ],
+        "correct_answer": "D",
+        "explanation": "의문사 의문문도 do/does + 주어 + have to 순서예요. 주어 you에는 do를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "She ____ to get up at six. (have)",
+        "question_text_ko": "괄호 안 말을 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "has",
+        "explanation": "주어 she는 3인칭 단수라서 has to를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I ____ to wait for an hour yesterday. (have)",
+        "question_text_ko": "괄호 안 말을 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "had",
+        "explanation": "yesterday는 과거라서 had to를 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "Does he ____ to work on Saturday? (has)",
+        "question_text_ko": "괄호 안 말을 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "have",
+        "explanation": "Does 뒤에는 have를 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "Next week, we will ____ to take a test. (has)",
+        "question_text_ko": "괄호 안 말을 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "have",
+        "explanation": "will 뒤에는 동사원형 have가 와요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "You must ____ quiet in the library. (are)",
+        "question_text_ko": "괄호 안 말을 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "be",
+        "explanation": "must 뒤에는 동사원형 be를 써요."
+      }
+    }
+  ]
+}

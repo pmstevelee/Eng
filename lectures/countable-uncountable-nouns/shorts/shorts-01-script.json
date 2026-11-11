@@ -1,0 +1,196 @@
+{
+  "version": 1,
+  "slug": "countable-uncountable-nouns-shorts-01",
+  "title": "셀 수 있는 명사와 셀 수 없는 명사 숏폼 1 — Can I get ~?",
+  "grammarPoint": {
+    "code": "G02-01-01",
+    "title": "셀 수 있는 명사와 셀 수 없는 명사"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-11-10T01:52:32.182Z",
+  "format": "shorts",
+  "tempo": {
+    "koSpeedScale": 1.1,
+    "enSpeed": 1,
+    "gapScale": 0.6,
+    "leadInMs": 250,
+    "tailMs": 1200,
+    "repeatPause": {
+      "factor": 1.2,
+      "extraSec": 0
+    }
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "hook",
+      "data": {
+        "question": "'~ 주시겠어요?' 영어로 바로 말할 수 있나요?",
+        "sub": "3초 안에 떠올려 보세요"
+      },
+      "chapter": "훅"
+    },
+    {
+      "id": "s2",
+      "type": "pattern",
+      "data": {
+        "pattern": "Can I get ~?",
+        "ko": "~ 주시겠어요?",
+        "slot": "명사"
+      },
+      "chapter": "패턴"
+    },
+    {
+      "id": "s3",
+      "type": "examples",
+      "data": {
+        "examples": [
+          {
+            "en": "Can I get a straw?",
+            "ko": "빨대 하나 주시겠어요?"
+          },
+          {
+            "en": "Can I get some water?",
+            "ko": "물 좀 주시겠어요?"
+          },
+          {
+            "en": "Can I get a cup of tea, please?",
+            "ko": "차 한 잔 주시겠어요?"
+          }
+        ]
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "repeat",
+      "data": {
+        "sentence": "Can I get a cup of tea, please?",
+        "ko": "차 한 잔 주시겠어요?",
+        "stress": [
+          "get",
+          "cup",
+          "tea"
+        ]
+      },
+      "chapter": "따라하기"
+    },
+    {
+      "id": "s5",
+      "type": "cta",
+      "data": {
+        "lectureTitle": "셀 수 있는 명사와 셀 수 없는 명사",
+        "message": "더 자세한 설명은 위고업잉글리시에서!"
+      },
+      "chapter": "위고업잉글리시 안내"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "'~ 주시겠어요?' 영어로 바로 말할 수 있나요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "오늘 배울 패턴은 바로 이거예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "Can I get …?",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "가게나 식당에서 무언가를 부탁할 때 딱 좋은 표현이에요. 셀 수 있는 건 하나, 셀 수 없는 건 좀, 또는 한 잔처럼 달라고 해요.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "예문 세 개, 바로 갈게요! 뒤에 오는 명사를 셀 수 있는지 잘 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Can I get a straw?",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "빨대 하나 주시겠어요?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Can I get some water?",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "물 좀 주시겠어요?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Can I get a cup of tea, please?",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "차 한 잔 주시겠어요?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이제 따라 해 보세요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "Can I get a cup of tea, please?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "카페나 식당에서 오늘 바로 한번 써 보세요! 더 자세한 설명은 위고업잉글리시에서!",
+      "emotion": "칭찬"
+    }
+  ]
+}

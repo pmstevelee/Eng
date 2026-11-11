@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "slug": "must-have-to",
+  "title": "must·have to",
+  "cards": [
+    {
+      "type": "cover",
+      "topic": "must·have to",
+      "hook": "must와 have to, 뭐가 다를까?",
+      "label": "중학 영문법"
+    },
+    {
+      "type": "question",
+      "sentence": "I must to go now.",
+      "prompt": "이거 맞을까요?",
+      "hint": "must 뒤에 to가 필요할까?"
+    },
+    {
+      "type": "rule",
+      "heading": "must 공식",
+      "formula": [
+        "must + 동사원형"
+      ],
+      "lines": [
+        "스스로 느끼는 **강한 의무**·규칙에 자주"
+      ],
+      "example": {
+        "en": "I must finish this report.",
+        "ko": "나는 이 보고서를 꼭 끝내야 해"
+      }
+    },
+    {
+      "type": "rule",
+      "heading": "have to 공식",
+      "formula": [
+        "have/has to + 동사원형"
+      ],
+      "lines": [
+        "3인칭 단수는 **has to** · 대화에선 더 자주"
+      ],
+      "example": {
+        "en": "She has to wear a uniform.",
+        "ko": "그녀는 교복을 입어야 해"
+      }
+    },
+    {
+      "type": "rule",
+      "heading": "과거·미래형",
+      "formula": [
+        "had to",
+        "will have to"
+      ],
+      "lines": [
+        "must는 과거·미래형이 없어요"
+      ],
+      "example": {
+        "en": "I had to wait for an hour.",
+        "ko": "나 한 시간이나 기다려야 했어"
+      }
+    },
+    {
+      "type": "mistakes",
+      "heading": "흔한 실수 TOP 3",
+      "items": [
+        {
+          "wrong": "She have to",
+          "right": "She has to"
+        },
+        {
+          "wrong": "I must finish it yesterday",
+          "right": "I had to finish it yesterday"
+        },
+        {
+          "wrong": "Does he has to",
+          "right": "Does he have to"
+        }
+      ]
+    },
+    {
+      "type": "quiz",
+      "question": "빈칸에 알맞은 말은?",
+      "sentence": "___ she have to take the bus?",
+      "choices": [
+        "Do",
+        "Does",
+        "Must"
+      ]
+    },
+    {
+      "type": "answer",
+      "answer": "Does",
+      "sentence": "Does she have to take the bus?",
+      "explanation": "3인칭 단수 의문문에는 Does를 써요."
+    },
+    {
+      "type": "pattern",
+      "pattern": "I have to ~",
+      "slot": "동사원형",
+      "ko": "~해야 해",
+      "example": {
+        "en": "Sorry, I have to go now.",
+        "ko": "미안, 나 이제 가야 해"
+      }
+    },
+    {
+      "type": "cta",
+      "lectureTitle": "must·have to",
+      "message": "저장하고 복습하세요"
+    }
+  ]
+}

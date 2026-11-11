@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "slug": "personal-pronoun-cases",
+  "lectureTitle": "인칭대명사의 격",
+  "title": "인칭대명사 격, I·my·me·mine은 언제 다를까요?",
+  "keywords": {
+    "main": "인칭대명사 격",
+    "subs": [
+      "인칭대명사 주격",
+      "인칭대명사 소유격",
+      "인칭대명사 목적격",
+      "인칭대명사 소유대명사",
+      "its it's 차이"
+    ]
+  },
+  "tags": [
+    "인칭대명사격",
+    "인칭대명사주격",
+    "인칭대명사소유격",
+    "인칭대명사목적격",
+    "인칭대명사소유대명사",
+    "its뜻",
+    "중학영어",
+    "중1영어",
+    "중2영어",
+    "영어기초",
+    "위고업잉글리시",
+    "격변화",
+    "영문법",
+    "대명사",
+    "her와his"
+  ],
+  "category": "영어문법",
+  "images": [
+    {
+      "file": "slide-s4.png",
+      "caption": "한국어와 영어의 격 변화 차이를 보여 주는 슬라이드"
+    },
+    {
+      "file": "slide-s10.png",
+      "caption": "격에 따라 인칭대명사가 바뀌는 공식과 예시"
+    },
+    {
+      "file": "slide-s11.png",
+      "caption": "소유대명사와 소유격+명사 비교 예시"
+    },
+    {
+      "file": "slide-s16.png",
+      "caption": "its(소유격)와 it's(=it is) 차이를 보여 주는 예문"
+    },
+    {
+      "file": "slide-s8.png",
+      "caption": "he, she, it의 격별 형태와 실제 쓰임"
+    },
+    {
+      "file": "slide-s19.png",
+      "caption": "help 뒤에 I가 오면 틀린 예시와 정답"
+    },
+    {
+      "file": "slide-s20.png",
+      "caption": "its와 it's를 헷갈리기 쉬운 예문"
+    },
+    {
+      "file": "slide-s26.png",
+      "caption": "Is this yours?와 대답 패턴 정리 슬라이드"
+    },
+    {
+      "file": "slide-s22.png",
+      "caption": "퀴즈 1번 정답: 명사 name 앞에는 소유격 his"
+    },
+    {
+      "file": "slide-s25.png",
+      "caption": "주격, 소유격, 목적격, 소유대명사 핵심 정리표"
+    }
+  ],
+  "youtubeUrl": "https://youtu.be/HkQlicJDn7Y",
+  "createdAt": "2026-11-10T18:59:43.049Z"
+}

@@ -1,0 +1,2497 @@
+{
+  "version": 1,
+  "slug": "must-have-to",
+  "title": "must·have to",
+  "grammarPoint": {
+    "code": "G04-02-01",
+    "title": "must·have to"
+  },
+  "targetMinutes": 15,
+  "createdAt": "2026-11-08T17:26:17.841Z",
+  "slides": [
+    {
+      "id": "s1",
+      "type": "title",
+      "data": {
+        "title": "must·have to",
+        "subtitle": "의무와 필요를 말하는 법"
+      },
+      "chapter": "오프닝"
+    },
+    {
+      "id": "s2",
+      "type": "compare",
+      "data": {
+        "heading": "나 이제 가야 해!",
+        "rows": [
+          {
+            "sentence": [
+              {
+                "text": "I",
+                "role": "subject"
+              },
+              {
+                "text": "must to",
+                "role": "error",
+                "point": true
+              },
+              {
+                "text": "go",
+                "role": "verb"
+              },
+              {
+                "text": "now."
+              }
+            ],
+            "correct": false,
+            "ko": "must 뒤에 to를 붙였어요"
+          },
+          {
+            "sentence": [
+              {
+                "text": "I",
+                "role": "subject"
+              },
+              {
+                "text": "must",
+                "role": "verb",
+                "point": true
+              },
+              {
+                "text": "go",
+                "role": "verb"
+              },
+              {
+                "text": "now."
+              }
+            ],
+            "correct": true,
+            "ko": "나 지금 가야 해"
+          }
+        ]
+      },
+      "chapter": "오프닝"
+    },
+    {
+      "id": "s3",
+      "type": "goal",
+      "data": {
+        "goals": [
+          "must·have to의 뜻과 쓰임 구분하기",
+          "has to·had to·will have to 바르게 쓰기",
+          "긍정문·부정문·의문문 만들기",
+          "회화 패턴 3개 말하기"
+        ]
+      },
+      "chapter": "학습목표"
+    },
+    {
+      "id": "s4",
+      "type": "concept",
+      "data": {
+        "heading": "왜 필요할까요?",
+        "lines": [
+          "동사만으로는 **~해야 한다**를 말할 수 없어요",
+          "I study. → I **must** study.",
+          "I study. → I **have to** study."
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s5",
+      "type": "concept",
+      "data": {
+        "heading": "must의 특징",
+        "lines": [
+          "**must**는 조동사: must + 동사원형",
+          "주어가 바뀌어도 그대로 (musts ✗ · must to ✗)",
+          "내가 **꼭** 해야 한다고 느낄 때 · 규칙·안내문"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s6",
+      "type": "concept",
+      "data": {
+        "heading": "have to의 특징",
+        "lines": [
+          "**have to** = have·has to + 동사원형",
+          "3인칭 단수 현재는 **has to** (해스터)",
+          "규칙·일정·상황 때문에 해야 할 때"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s7",
+      "type": "concept",
+      "data": {
+        "heading": "must와 have to의 차이",
+        "lines": [
+          "둘 다 **~해야 한다**",
+          "긍정문에서는 대부분 바꿔 써도 괜찮아요",
+          "일상 대화에서는 **have to**를 더 많이 써요"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s8",
+      "type": "concept",
+      "data": {
+        "heading": "과거·미래와 부정문",
+        "lines": [
+          "must는 **과거형·미래형**이 없어요",
+          "과거 **had to** · 미래 **will have to**",
+          "will must ✗ (조동사 두 개는 나란히 못 와요)"
+        ]
+      },
+      "chapter": "핵심 개념"
+    },
+    {
+      "id": "s9",
+      "type": "formula",
+      "data": {
+        "heading": "긍정문 공식",
+        "blocks": [
+          {
+            "text": "주어",
+            "role": "subject",
+            "note": "I, you, she, my dad"
+          },
+          {
+            "text": "must / have to·has to",
+            "role": "verb",
+            "note": "3인칭 단수 현재 → has to"
+          },
+          {
+            "text": "동사원형",
+            "role": "verb",
+            "note": "-s·-ed 없이"
+          }
+        ],
+        "example": [
+          {
+            "text": "She",
+            "role": "subject"
+          },
+          {
+            "text": "has to",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "wear",
+            "role": "verb"
+          },
+          {
+            "text": "a uniform."
+          }
+        ],
+        "exampleKo": "그녀는 교복을 입어야 해"
+      },
+      "chapter": "문장 구조"
+    },
+    {
+      "id": "s10",
+      "type": "formula",
+      "data": {
+        "heading": "부정문 공식",
+        "blocks": [
+          {
+            "text": "주어",
+            "role": "subject"
+          },
+          {
+            "text": "mustn't / don't have to",
+            "role": "verb",
+            "note": "금지 / 필요 없음 — 뜻이 달라요"
+          },
+          {
+            "text": "동사원형",
+            "role": "verb"
+          }
+        ],
+        "example": [
+          {
+            "text": "You",
+            "role": "subject"
+          },
+          {
+            "text": "mustn't",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "run",
+            "role": "verb"
+          },
+          {
+            "text": "in the hallway."
+          }
+        ],
+        "exampleKo": "복도에서 뛰면 안 돼"
+      },
+      "chapter": "문장 구조"
+    },
+    {
+      "id": "s11",
+      "type": "formula",
+      "data": {
+        "heading": "의문문 공식",
+        "blocks": [
+          {
+            "text": "Do/Does",
+            "role": "verb",
+            "note": "맨 앞에"
+          },
+          {
+            "text": "주어",
+            "role": "subject"
+          },
+          {
+            "text": "have to",
+            "role": "verb",
+            "note": "Does 뒤에도 have"
+          },
+          {
+            "text": "동사원형 ~?",
+            "role": "verb"
+          }
+        ],
+        "example": [
+          {
+            "text": "Do",
+            "role": "verb"
+          },
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "have to",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "bring",
+            "role": "verb"
+          },
+          {
+            "text": "my ID?"
+          }
+        ],
+        "exampleKo": "신분증 가져가야 하나요?"
+      },
+      "chapter": "문장 구조"
+    },
+    {
+      "id": "s12",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "must",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "finish",
+            "role": "verb"
+          },
+          {
+            "text": "this report",
+            "role": "object"
+          },
+          {
+            "text": "today."
+          }
+        ],
+        "ko": "나는 오늘 이 보고서를 꼭 끝내야 해",
+        "note": "스스로 느끼는 강한 의무 · must + 동사원형"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s13",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "You",
+            "role": "subject"
+          },
+          {
+            "text": "must",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "wear",
+            "role": "verb"
+          },
+          {
+            "text": "a seat belt.",
+            "role": "object"
+          }
+        ],
+        "ko": "안전벨트를 꼭 매야 합니다",
+        "note": "규칙·안내 · must"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s14",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "have to",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "get up",
+            "role": "verb"
+          },
+          {
+            "text": "at six",
+            "role": "object"
+          },
+          {
+            "text": "tomorrow."
+          }
+        ],
+        "ko": "나 내일 6시에 일어나야 해",
+        "note": "일정 때문에 · have to"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s15",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "My sister",
+            "role": "subject"
+          },
+          {
+            "text": "has to",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "take care of",
+            "role": "verb"
+          },
+          {
+            "text": "our dog",
+            "role": "object"
+          },
+          {
+            "text": "after school."
+          }
+        ],
+        "ko": "내 여동생은 방과 후에 우리 개를 돌봐야 해",
+        "note": "3인칭 단수 현재 → has to"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s16",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "Do",
+            "role": "verb"
+          },
+          {
+            "text": "we",
+            "role": "subject"
+          },
+          {
+            "text": "have to",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "bring",
+            "role": "verb"
+          },
+          {
+            "text": "our own lunch?"
+          }
+        ],
+        "ko": "우리 점심 각자 싸 와야 해?",
+        "note": "의문문 · Do + 주어 + have to"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s17",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "had to",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "wait",
+            "role": "verb"
+          },
+          {
+            "text": "for an hour."
+          }
+        ],
+        "ko": "나 한 시간이나 기다려야 했어",
+        "note": "과거 · had to"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s18",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "You'll",
+            "role": "subject"
+          },
+          {
+            "text": "have to",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "show",
+            "role": "verb"
+          },
+          {
+            "text": "your ticket",
+            "role": "object"
+          },
+          {
+            "text": "at the gate."
+          }
+        ],
+        "ko": "입구에서 표를 보여 주셔야 할 거예요",
+        "note": "미래 · will have to (You'll = You will)"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s19",
+      "type": "example",
+      "data": {
+        "sentence": [
+          {
+            "text": "You",
+            "role": "subject"
+          },
+          {
+            "text": "don't have to",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "bring",
+            "role": "verb"
+          },
+          {
+            "text": "anything."
+          }
+        ],
+        "ko": "아무것도 안 가져와도 돼",
+        "note": "필요 없음 · don't have to"
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s20",
+      "type": "mistake",
+      "data": {
+        "heading": "흔한 실수 ①",
+        "wrong": "She have to wear glasses.",
+        "right": [
+          {
+            "text": "She",
+            "role": "subject"
+          },
+          {
+            "text": "has to",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "wear",
+            "role": "verb"
+          },
+          {
+            "text": "glasses."
+          }
+        ],
+        "why": "3인칭 단수 현재 → has to"
+      },
+      "chapter": "흔한 실수"
+    },
+    {
+      "id": "s21",
+      "type": "mistake",
+      "data": {
+        "heading": "흔한 실수 ②",
+        "wrong": "I must finish it yesterday.",
+        "right": [
+          {
+            "text": "I",
+            "role": "subject"
+          },
+          {
+            "text": "had to",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "finish",
+            "role": "verb"
+          },
+          {
+            "text": "it",
+            "role": "object"
+          },
+          {
+            "text": "yesterday."
+          }
+        ],
+        "why": "must는 과거형이 없어요 → had to"
+      },
+      "chapter": "흔한 실수"
+    },
+    {
+      "id": "s22",
+      "type": "mistake",
+      "data": {
+        "heading": "흔한 실수 ③",
+        "wrong": "Does he has to work today?",
+        "right": [
+          {
+            "text": "Does",
+            "role": "verb"
+          },
+          {
+            "text": "he",
+            "role": "subject"
+          },
+          {
+            "text": "have to",
+            "role": "verb",
+            "point": true
+          },
+          {
+            "text": "work",
+            "role": "verb"
+          },
+          {
+            "text": "today?"
+          }
+        ],
+        "why": "Does가 -s를 가져가요 → Does + 주어 + have to"
+      },
+      "chapter": "흔한 실수"
+    },
+    {
+      "id": "s23",
+      "type": "quiz",
+      "data": {
+        "question": "빈칸에 알맞은 말을 고르세요.",
+        "sentence": "___ she have to take the bus?",
+        "choices": [
+          "Do",
+          "Does",
+          "Must"
+        ],
+        "answer": 1,
+        "explanation": "3인칭 단수 의문문은 Does를 써요"
+      },
+      "chapter": "퀴즈"
+    },
+    {
+      "id": "s24",
+      "type": "quiz",
+      "data": {
+        "question": "빈칸에 알맞은 말을 고르세요.",
+        "sentence": "Last night, I ___ study until midnight.",
+        "choices": [
+          "must",
+          "had to",
+          "have to"
+        ],
+        "answer": 1,
+        "explanation": "과거는 had to를 써요"
+      },
+      "chapter": "퀴즈"
+    },
+    {
+      "id": "s25",
+      "type": "quiz",
+      "data": {
+        "question": "빈칸에 알맞은 말을 고르세요.",
+        "sentence": "Next year, we ___ wear a school uniform.",
+        "choices": [
+          "will must",
+          "will have to",
+          "must to"
+        ],
+        "answer": 1,
+        "explanation": "미래는 will have to를 써요"
+      },
+      "chapter": "퀴즈"
+    },
+    {
+      "id": "s26",
+      "type": "summary",
+      "data": {
+        "points": [
+          "must·have to + 동사원형 = ~해야 한다",
+          "3인칭 단수 현재는 has to",
+          "과거 had to · 미래 will have to",
+          "mustn't(금지) ≠ don't have to(필요 없음)"
+        ]
+      },
+      "chapter": "핵심 정리"
+    },
+    {
+      "id": "s27",
+      "type": "pattern",
+      "data": {
+        "pattern": "I have to ~",
+        "ko": "~해야 해",
+        "slot": "동사원형",
+        "examples": [
+          {
+            "en": "Sorry, I have to go now.",
+            "ko": "미안, 나 이제 가야 해"
+          },
+          {
+            "en": "I'd love to, but I have to study tonight.",
+            "ko": "나도 그러고 싶지만 오늘 밤 공부해야 해"
+          }
+        ],
+        "tip": "약속을 거절하거나 먼저 자리를 뜰 때"
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s28",
+      "type": "dialogue",
+      "data": {
+        "situation": "친구와 약속 · 저녁 제안 거절하기",
+        "lines": [
+          {
+            "speaker": "A",
+            "en": "Do you want to grab dinner after school?",
+            "ko": "학교 끝나고 저녁 먹을래?"
+          },
+          {
+            "speaker": "B",
+            "en": "I'd love to, but I have to study tonight.",
+            "ko": "그러고 싶은데, 오늘 밤엔 공부해야 해."
+          },
+          {
+            "speaker": "A",
+            "en": "Oh right, the math test!",
+            "ko": "아 맞다, 수학 시험!"
+          },
+          {
+            "speaker": "B",
+            "en": "Yeah. Sorry, I have to go now.",
+            "ko": "응. 미안, 나 이제 가야 해."
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s29",
+      "type": "repeat",
+      "data": {
+        "sentence": "Sorry, I have to go now.",
+        "ko": "미안, 나 이제 가야 해",
+        "stress": [
+          "Sorry",
+          "go",
+          "now"
+        ],
+        "links": [
+          {
+            "text": "have to",
+            "hint": "해프터"
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s30",
+      "type": "pattern",
+      "data": {
+        "pattern": "Do I have to ~?",
+        "ko": "~해야 하나요?",
+        "slot": "동사원형",
+        "examples": [
+          {
+            "en": "Do I have to pay now?",
+            "ko": "지금 결제해야 하나요?"
+          },
+          {
+            "en": "Do I have to bring anything?",
+            "ko": "뭐 가져와야 하나요?"
+          }
+        ],
+        "tip": "처음 가는 곳에서 규칙·준비물을 확인할 때"
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s31",
+      "type": "dialogue",
+      "data": {
+        "situation": "학교 사진 동아리 · 첫 모임 준비물",
+        "lines": [
+          {
+            "speaker": "A",
+            "en": "Welcome to the photo club!",
+            "ko": "사진 동아리에 온 걸 환영해!"
+          },
+          {
+            "speaker": "B",
+            "en": "Thanks! Do I have to bring anything?",
+            "ko": "고마워요! 뭐 가져와야 하나요?"
+          },
+          {
+            "speaker": "A",
+            "en": "Just your phone. You don't have to buy a camera.",
+            "ko": "휴대폰만 가져와. 카메라는 안 사도 돼."
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s32",
+      "type": "repeat",
+      "data": {
+        "sentence": "Do I have to bring anything?",
+        "ko": "뭐 가져와야 하나요?",
+        "stress": [
+          "bring",
+          "anything"
+        ],
+        "links": [
+          {
+            "text": "Do I",
+            "hint": "두아이"
+          },
+          {
+            "text": "have to",
+            "hint": "해프터"
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s33",
+      "type": "pattern",
+      "data": {
+        "pattern": "You must ~!",
+        "ko": "꼭 ~해 봐!",
+        "slot": "동사원형",
+        "examples": [
+          {
+            "en": "You must try the cheesecake here!",
+            "ko": "여기 치즈케이크 꼭 먹어 봐!"
+          },
+          {
+            "en": "You must see this movie!",
+            "ko": "이 영화 꼭 봐!"
+          }
+        ],
+        "tip": "정말 좋아서 강하게 추천할 때 (명령 아님)"
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s34",
+      "type": "dialogue",
+      "data": {
+        "situation": "카페 · 친구에게 메뉴 추천하기",
+        "lines": [
+          {
+            "speaker": "A",
+            "en": "What should I get?",
+            "ko": "뭐 시킬까?"
+          },
+          {
+            "speaker": "B",
+            "en": "You must try the cheesecake here! It's amazing.",
+            "ko": "여기 치즈케이크 꼭 먹어 봐! 진짜 맛있어."
+          },
+          {
+            "speaker": "A",
+            "en": "Really? Then I'll get that.",
+            "ko": "진짜? 그럼 그걸로 할게."
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s35",
+      "type": "repeat",
+      "data": {
+        "sentence": "You must try the cheesecake here!",
+        "ko": "여기 치즈케이크 꼭 먹어 봐!",
+        "stress": [
+          "must",
+          "try",
+          "cheesecake"
+        ],
+        "links": [
+          {
+            "text": "must try",
+            "hint": "머스트라이"
+          }
+        ]
+      },
+      "chapter": "일상회화 패턴"
+    },
+    {
+      "id": "s36",
+      "type": "outro",
+      "data": {
+        "message": "오늘도 수고했어요!",
+        "next": "must not과 don't have to"
+      },
+      "chapter": "다음 강의"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "안녕하세요, 위고업잉글리시예요! 오늘은 꼭 해야 하는 일을 영어로 말하는 법을 배워요. 바로 이 두 가지예요.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s1-2",
+      "slideId": "s1",
+      "lang": "en",
+      "text": "must, have to.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "먼저 문장 하나 볼게요. 나 이제 가야 해, 를 영어로 이렇게 쓰는 학생이 정말 많아요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "I must to go now.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "어디가 틀렸을까요? 해야 한다니까 왠지 to부정사처럼 쓰고 싶죠?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-4",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "그런데 원어민은 이렇게 말해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-5",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "I must go now.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s2-6",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "머스트 바로 뒤에 동사원형이 와요. 그런데 이상하죠? 해브 투에는 투가 있는데, 머스트에는 왜 없을까요? 오늘 이 궁금증을 확실하게 풀어 드릴게요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "오늘의 학습목표예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "첫째, 머스트와 해브 투의 뜻과 쓰임을 구분해요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "둘째, 주어와 시간에 따라 해즈 투, 해드 투, 윌 해브 투로 바꿔 써 봐요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "셋째, 긍정문, 부정문, 의문문을 직접 만들어 봐요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "넷째, 바로 써먹는 일상회화 패턴 세 개를 말해 봐요.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "그럼 이런 표현이 왜 필요한지부터 볼까요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "공부하다는 영어로 스터디죠. 그런데 동사 하나만으로는 공부해야 한다, 라는 뜻을 담을 수 없어요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s4-3",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "그래서 동사 앞에 머스트를 붙여요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s4-4",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "I must study.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-5",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "나는 공부해야 해, 라는 뜻이 돼요. 해브 투를 붙여도 같은 뜻이에요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s4-6",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "I have to study.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-7",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이렇게 동사 앞에서 해야 한다는 의무와 필요를 더해 주는 거예요. 그럼 두 표현을 하나씩 자세히 볼게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "먼저 머스트예요. 머스트는 캔, 윌과 같은 조동사예요. 조동사 바로 뒤에는 항상 동사원형이 와요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s5-2",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "그래서 주어가 쉬나 히 같은 3인칭 단수여도 머스트 모양은 그대로예요. 끝에 에스를 붙이지 않고, 뒤에 투도 붙이지 않아요. 오프닝에서 본 실수가 바로 이거였죠?",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s5-3",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "머스트는 말하는 사람이 스스로 꼭 해야 한다고 강하게 느낄 때 자주 써요. 그리고 학교 규칙이나 안내문, 표지판처럼 공식적인 말에도 많이 나와요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s6-1",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "다음은 해브 투예요. 해브 투 다음에도 동사원형이 와요. 두 단어가 한 덩어리로 해야 한다는 뜻을 만들어요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s6-2",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "그런데 해브는 일반동사라서, 주어가 3인칭 단수이고 현재일 때는 해즈 투로 바뀌어요. 들어 볼까요?",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s6-3",
+      "slideId": "s6",
+      "lang": "en",
+      "text": "I have to go. She has to go.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s6-4",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "발음도 들었죠? 해브 투는 해프터, 해즈 투는 해스터처럼 붙여서 말해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s6-5",
+      "slideId": "s6",
+      "lang": "ko",
+      "text": "해브 투는 규칙이나 일정, 주변 상황 때문에 해야 하는 일을 말할 때 자주 써요. 내일 시험이 있어서, 학교 규칙이라서, 이런 느낌이에요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s7-1",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "그럼 둘 중에 뭘 써야 할까요? 이거 헷갈리죠?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s7-2",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "결론부터 말하면, 둘 다 해야 한다는 뜻이에요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s7-3",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "긍정문에서는 뜻 차이가 크지 않아서 대부분 바꿔 써도 괜찮아요. 머스트는 내 생각, 해브 투는 남의 규칙, 이렇게 딱 잘라 외울 필요는 없어요. 그런 경향이 있다, 정도로 기억하면 돼요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s7-4",
+      "slideId": "s7",
+      "lang": "ko",
+      "text": "다만 머스트는 조금 딱딱하고 강하게 들려요. 그래서 친구와 대화할 때는 해브 투를 훨씬 많이 써요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s8-1",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "그리고 꼭 알아 둘 예외가 있어요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s8-2",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "머스트에는 과거형도 미래형도 없어요.",
+      "emotion": "강조",
+      "reveal": 1
+    },
+    {
+      "id": "s8-3",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "그래서 해야 했다, 라고 과거를 말할 때는 해브 투의 과거형을 빌려 와요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s8-4",
+      "slideId": "s8",
+      "lang": "en",
+      "text": "had to",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-5",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "그리고 해야 할 것이다, 라고 미래를 말할 때는 이렇게 써요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-6",
+      "slideId": "s8",
+      "lang": "en",
+      "text": "will have to",
+      "emotion": "설명"
+    },
+    {
+      "id": "s8-7",
+      "slideId": "s8",
+      "lang": "ko",
+      "text": "윌 머스트처럼 조동사 두 개를 나란히 쓰면 틀린 문장이에요. 꼭 기억해 두세요!",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s9-1",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "이제 문장 구조를 공식으로 정리해 볼게요. 먼저 긍정문이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s9-2",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "맨 앞에 주어가 와요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s9-3",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "그다음 머스트나 해브 투를 써요. 주어가 3인칭 단수이고 현재면 해즈 투예요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s9-4",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "마지막으로 동사원형이에요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s9-5",
+      "slideId": "s9",
+      "lang": "en",
+      "text": "She has to wear a uniform.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s9-6",
+      "slideId": "s9",
+      "lang": "ko",
+      "text": "그녀는 교복을 입어야 해. 주어가 쉬라서 해즈 투, 그 뒤에는 동사원형 웨어가 왔어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s10-1",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "다음은 부정문이에요. 여기는 특히 조심해야 해요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s10-2",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "주어 다음에,",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s10-3",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "머스트 낫, 줄여서 머슨트를 쓰면 하면 안 된다는 금지가 돼요. 그런데 돈트 해브 투는 할 필요가 없다는 뜻이에요. 둘 다 부정문이지만 뜻이 완전히 달라요.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s10-4",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "그리고 뒤에는 역시 동사원형이 와요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s10-5",
+      "slideId": "s10",
+      "lang": "en",
+      "text": "You mustn't run in the hallway.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s10-6",
+      "slideId": "s10",
+      "lang": "ko",
+      "text": "복도에서 뛰면 안 돼. 금지하는 말이죠. 이 두 부정문의 차이는 다음 강의에서 자세히 다룰게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s11-1",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "마지막으로 의문문이에요. 해브 투 의문문은 일반동사처럼 두나 더즈를 맨 앞에 써요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s11-2",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "그다음 주어,",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s11-3",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "그리고 해브 투예요. 더즈를 써도 해브는 그대로 해브예요.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s11-4",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "마지막에 동사원형을 쓰고 물음표를 붙여요.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s11-5",
+      "slideId": "s11",
+      "lang": "en",
+      "text": "Do I have to bring my ID?",
+      "emotion": "설명",
+      "reveal": 5
+    },
+    {
+      "id": "s11-6",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "신분증 가져가야 하나요? 대답은 두를 써서 이렇게 해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s11-7",
+      "slideId": "s11",
+      "lang": "en",
+      "text": "Yes, you do. No, you don't.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s11-8",
+      "slideId": "s11",
+      "lang": "ko",
+      "text": "참고로 머스트를 맨 앞에 쓰는 질문도 문법은 맞지만, 딱딱해서 일상에서는 잘 쓰지 않아요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s12-1",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "이제 예문으로 연습해 볼게요. 원어민 발음을 잘 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s12-2",
+      "slideId": "s12",
+      "lang": "en",
+      "text": "I must finish this report today.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s12-3",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "나는 오늘 이 보고서를 꼭 끝내야 해.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s12-4",
+      "slideId": "s12",
+      "lang": "ko",
+      "text": "누가 시킨 게 아니라 내가 스스로 꼭 해야 한다고 느끼는 거예요. 머스트 다음에 동사원형 피니시가 왔죠?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s13-1",
+      "slideId": "s13",
+      "lang": "en",
+      "text": "You must wear a seat belt.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s13-2",
+      "slideId": "s13",
+      "lang": "ko",
+      "text": "안전벨트를 꼭 매야 합니다.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s13-3",
+      "slideId": "s13",
+      "lang": "ko",
+      "text": "자동차나 비행기 안내 방송에서 들을 수 있는 문장이에요. 규칙이나 안내에는 이렇게 머스트를 자주 써요. 웨어는 옷뿐 아니라 안전벨트나 안경을 착용한다고 할 때도 써요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s14-1",
+      "slideId": "s14",
+      "lang": "en",
+      "text": "I have to get up at six tomorrow.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s14-2",
+      "slideId": "s14",
+      "lang": "ko",
+      "text": "나 내일 여섯 시에 일어나야 해.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s14-3",
+      "slideId": "s14",
+      "lang": "ko",
+      "text": "내일 일정 때문에 일찍 일어나야 하는 상황이죠. 친구에게 말할 때는 이렇게 해브 투가 자연스러워요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s15-1",
+      "slideId": "s15",
+      "lang": "en",
+      "text": "My sister has to take care of our dog after school.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s15-2",
+      "slideId": "s15",
+      "lang": "ko",
+      "text": "내 여동생은 방과 후에 우리 개를 돌봐야 해.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s15-3",
+      "slideId": "s15",
+      "lang": "ko",
+      "text": "주어인 여동생은 한 사람이니까 3인칭 단수예요. 그래서 해즈 투를 썼어요. 테이크 케어 오브는 돌보다라는 뜻이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s16-1",
+      "slideId": "s16",
+      "lang": "en",
+      "text": "Do we have to bring our own lunch?",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s16-2",
+      "slideId": "s16",
+      "lang": "ko",
+      "text": "우리 점심 각자 싸 와야 해?",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s16-3",
+      "slideId": "s16",
+      "lang": "ko",
+      "text": "현장학습 가기 전에 이렇게 물어볼 수 있겠죠? 두를 맨 앞에 쓰고, 주어 다음에 해브 투가 왔어요. 대답은 예스, 위 두, 또는 노, 위 돈트예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s17-1",
+      "slideId": "s17",
+      "lang": "en",
+      "text": "I had to wait for an hour.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s17-2",
+      "slideId": "s17",
+      "lang": "ko",
+      "text": "나 한 시간이나 기다려야 했어.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s17-3",
+      "slideId": "s17",
+      "lang": "ko",
+      "text": "이미 지나간 일이라서 해드 투를 썼어요. 머스트로는 과거를 말할 수 없다는 것, 기억나죠?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s18-1",
+      "slideId": "s18",
+      "lang": "en",
+      "text": "You'll have to show your ticket at the gate.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s18-2",
+      "slideId": "s18",
+      "lang": "ko",
+      "text": "입구에서 표를 보여 주셔야 할 거예요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s18-3",
+      "slideId": "s18",
+      "lang": "ko",
+      "text": "앞으로 해야 할 일이라서 윌 해브 투예요. 유 윌을 줄여서 율이라고 말했어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s19-1",
+      "slideId": "s19",
+      "lang": "en",
+      "text": "You don't have to bring anything.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s19-2",
+      "slideId": "s19",
+      "lang": "ko",
+      "text": "아무것도 안 가져와도 돼.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s19-3",
+      "slideId": "s19",
+      "lang": "ko",
+      "text": "돈트 해브 투는 하면 안 된다가 아니라, 할 필요가 없다는 뜻이에요. 친구를 초대하면서 그냥 몸만 와, 하는 느낌이죠.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s20-1",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "이제 한국 학생들이 자주 하는 실수 세 가지를 볼게요. 첫 번째.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s20-2",
+      "slideId": "s20",
+      "lang": "en",
+      "text": "She have to wear glasses.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s20-3",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "그녀는 안경을 써야 해. 어디가 틀렸을까요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s20-4",
+      "slideId": "s20",
+      "lang": "en",
+      "text": "She has to wear glasses.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s20-5",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "주어가 쉬, 3인칭 단수이고 현재니까 해즈 투를 써야 해요. 머스트는 모양이 그대로지만, 해브 투는 주어에 따라 바뀌어요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s20-6",
+      "slideId": "s20",
+      "lang": "ko",
+      "text": "머스트와 섞어 쓰다 보면 이 실수가 정말 자주 나와요. 주어가 한 사람이나 하나면 해즈 투, 이렇게 주어부터 확인하는 습관을 들이세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s21-1",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "두 번째.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s21-2",
+      "slideId": "s21",
+      "lang": "en",
+      "text": "I must finish it yesterday.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s21-3",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "어제 그걸 끝내야 했다는 말인데, 뭐가 이상할까요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s21-4",
+      "slideId": "s21",
+      "lang": "en",
+      "text": "I had to finish it yesterday.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s21-5",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "어제는 과거예요. 머스트에는 과거형이 없으니까 해드 투를 써야 해요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s21-6",
+      "slideId": "s21",
+      "lang": "ko",
+      "text": "어제, 지난주, 작년처럼 과거를 나타내는 말이 보이면 해드 투를 떠올리세요. 주어가 누구든 해드 투 모양은 하나뿐이라 오히려 쉬워요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s22-1",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "세 번째는 의문문에서 많이 틀려요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s22-2",
+      "slideId": "s22",
+      "lang": "en",
+      "text": "Does he has to work today?",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s22-3",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "그는 오늘 일해야 하나요? 주어가 히라서 해즈 투를 쓴 것 같은데요, 틀렸어요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s22-4",
+      "slideId": "s22",
+      "lang": "en",
+      "text": "Does he have to work today?",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s22-5",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "더즈가 이미 3인칭 단수 표시를 가져갔어요. 그래서 뒤에는 원래 모양 해브 투로 돌아가요. 부정문 더즌트 해브 투도 마찬가지예요.",
+      "emotion": "강조",
+      "reveal": 3
+    },
+    {
+      "id": "s22-6",
+      "slideId": "s22",
+      "lang": "ko",
+      "text": "더즈를 썼다면 그 뒤는 무조건 원래 모양, 이렇게 기억해 두세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s23-1",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "자, 이제 퀴즈예요! 첫 번째 문제. 빈칸에 알맞은 말을 골라 보세요.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s23-2",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "___ she have to take the bus?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s23-3",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "보기는 1번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-3b",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "Do",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-3c",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": ", 2번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-3d",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "Does",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-3e",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": ", 3번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-3f",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "Must.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s23-3g",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "5초 드릴게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s23-4",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 5
+    },
+    {
+      "id": "s23-5",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "정답은 2번",
+      "emotion": "칭찬",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s23-5b",
+      "slideId": "s23",
+      "lang": "en",
+      "text": "Does!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s23-6",
+      "slideId": "s23",
+      "lang": "ko",
+      "text": "주어가 쉬, 3인칭 단수죠? 그래서 더즈를 맨 앞에 쓰고, 뒤에는 해브 투가 그대로 와요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s24-1",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "두 번째 문제.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s24-2",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "Last night, I ___ study until midnight.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s24-3",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "보기는 1번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-3b",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "must",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-3c",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": ", 2번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-3d",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "had to",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-3e",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": ", 3번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-3f",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "have to.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s24-3g",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "5초 드릴게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s24-4",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 5
+    },
+    {
+      "id": "s24-5",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "정답은 2번",
+      "emotion": "칭찬",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s24-5b",
+      "slideId": "s24",
+      "lang": "en",
+      "text": "had to!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s24-6",
+      "slideId": "s24",
+      "lang": "ko",
+      "text": "어젯밤이라는 과거 표현이 있죠? 머스트는 과거형이 없으니까 해드 투예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s25-1",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "마지막 세 번째 문제.",
+      "emotion": "질문"
+    },
+    {
+      "id": "s25-2",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "Next year, we ___ wear a school uniform.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s25-3",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "보기는 1번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-3b",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "will must",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-3c",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": ", 2번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-3d",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "will have to",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-3e",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": ", 3번",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-3f",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "must to.",
+      "emotion": "설명",
+      "joinNext": true
+    },
+    {
+      "id": "s25-3g",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "5초 드릴게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s25-4",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "",
+      "emotion": "설명",
+      "waitSec": 5
+    },
+    {
+      "id": "s25-5",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "정답은 2번",
+      "emotion": "칭찬",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s25-5b",
+      "slideId": "s25",
+      "lang": "en",
+      "text": "will have to!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s25-6",
+      "slideId": "s25",
+      "lang": "ko",
+      "text": "내년이니까 미래예요. 조동사 두 개를 나란히 쓸 수 없으니 윌 해브 투로 말해요. 세 문제 다 맞혔나요? 정말 잘했어요!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s26-1",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "오늘 배운 내용을 정리해 볼게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s26-2",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "머스트와 해브 투 다음에는 동사원형, 뜻은 해야 한다예요. 머스트는 주어가 누구든 모양이 바뀌지 않아요.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s26-3",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "주어가 3인칭 단수이고 현재면 해즈 투.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s26-4",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "과거는 해드 투, 미래는 윌 해브 투.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s26-5",
+      "slideId": "s26",
+      "lang": "ko",
+      "text": "그리고 머스트 낫은 금지, 돈트 해브 투는 필요 없음. 뜻이 완전히 달라요.",
+      "emotion": "강조",
+      "reveal": 4
+    },
+    {
+      "id": "s27-1",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "이제 오늘 배운 표현을 실제 회화에서 써 볼 시간이에요. 첫 번째 패턴은 약속을 거절하거나 먼저 자리를 뜰 때 써요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s27-2",
+      "slideId": "s27",
+      "lang": "en",
+      "text": "I have to …",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s27-3",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "뜻은 해야 해. 이유를 길게 말하지 않아도 이 한마디면 충분해요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s27-4",
+      "slideId": "s27",
+      "lang": "en",
+      "text": "Sorry, I have to go now.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s27-5",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "미안, 나 이제 가야 해.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s27-6",
+      "slideId": "s27",
+      "lang": "en",
+      "text": "I'd love to, but I have to study tonight.",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s27-7",
+      "slideId": "s27",
+      "lang": "ko",
+      "text": "나도 그러고 싶지만 오늘 밤엔 공부해야 해. 앞에 아이드 러브 투, 벗을 붙이면 훨씬 부드럽게 거절할 수 있어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s28-1",
+      "slideId": "s28",
+      "lang": "ko",
+      "text": "학교 끝나고 친구가 저녁을 먹자고 하는 상황이에요. 잘 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s28-2",
+      "slideId": "s28",
+      "lang": "en",
+      "text": "Do you want to grab dinner after school?",
+      "emotion": "설명",
+      "reveal": 1,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s28-3",
+      "slideId": "s28",
+      "lang": "en",
+      "text": "I'd love to, but I have to study tonight.",
+      "emotion": "설명",
+      "reveal": 2,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s28-4",
+      "slideId": "s28",
+      "lang": "en",
+      "text": "Oh right, the math test!",
+      "emotion": "설명",
+      "reveal": 3,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s28-5",
+      "slideId": "s28",
+      "lang": "en",
+      "text": "Yeah. Sorry, I have to go now.",
+      "emotion": "설명",
+      "reveal": 4,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s28-6",
+      "slideId": "s28",
+      "lang": "ko",
+      "text": "내일 시험 때문에 거절했죠? 해브 투가 두 번이나 나왔어요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s29-1",
+      "slideId": "s29",
+      "lang": "ko",
+      "text": "이제 따라 해 볼까요? 먼저 천천히 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s29-2",
+      "slideId": "s29",
+      "lang": "en",
+      "text": "Sorry, I have to go now.",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 0.85
+    },
+    {
+      "id": "s29-3",
+      "slideId": "s29",
+      "lang": "ko",
+      "text": "이번엔 자연스러운 속도예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s29-4",
+      "slideId": "s29",
+      "lang": "en",
+      "text": "Sorry, I have to go now.",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s29-5",
+      "slideId": "s29",
+      "lang": "ko",
+      "text": "잘했어요!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s30-1",
+      "slideId": "s30",
+      "lang": "ko",
+      "text": "두 번째 패턴은 규칙이나 준비물을 확인할 때 써요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s30-2",
+      "slideId": "s30",
+      "lang": "en",
+      "text": "Do I have to …?",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s30-3",
+      "slideId": "s30",
+      "lang": "ko",
+      "text": "뜻은 해야 하나요? 처음 가는 곳에서 정말 많이 써요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s30-4",
+      "slideId": "s30",
+      "lang": "en",
+      "text": "Do I have to pay now?",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s30-5",
+      "slideId": "s30",
+      "lang": "ko",
+      "text": "지금 결제해야 하나요?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s30-6",
+      "slideId": "s30",
+      "lang": "en",
+      "text": "Do I have to bring anything?",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s30-7",
+      "slideId": "s30",
+      "lang": "ko",
+      "text": "뭐 챙겨 와야 하나요?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s31-1",
+      "slideId": "s31",
+      "lang": "ko",
+      "text": "사진 동아리에 처음 들어간 학생이 선배에게 물어보는 상황이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s31-2",
+      "slideId": "s31",
+      "lang": "en",
+      "text": "Welcome to the photo club!",
+      "emotion": "설명",
+      "reveal": 1,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s31-3",
+      "slideId": "s31",
+      "lang": "en",
+      "text": "Thanks! Do I have to bring anything?",
+      "emotion": "설명",
+      "reveal": 2,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s31-4",
+      "slideId": "s31",
+      "lang": "en",
+      "text": "Just your phone. You don't have to buy a camera.",
+      "emotion": "설명",
+      "reveal": 3,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s31-5",
+      "slideId": "s31",
+      "lang": "ko",
+      "text": "필요 없다고 할 때는 돈트 해브 투. 오늘 배운 표현이 또 나왔죠?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s32-1",
+      "slideId": "s32",
+      "lang": "ko",
+      "text": "따라 해 볼까요? 먼저 천천히 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s32-2",
+      "slideId": "s32",
+      "lang": "en",
+      "text": "Do I have to bring anything?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 0.85
+    },
+    {
+      "id": "s32-3",
+      "slideId": "s32",
+      "lang": "ko",
+      "text": "이번엔 자연스러운 속도예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s32-4",
+      "slideId": "s32",
+      "lang": "en",
+      "text": "Do I have to bring anything?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s32-5",
+      "slideId": "s32",
+      "lang": "ko",
+      "text": "잘했어요!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s33-1",
+      "slideId": "s33",
+      "lang": "ko",
+      "text": "마지막 패턴은 조금 특별해요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s33-2",
+      "slideId": "s33",
+      "lang": "en",
+      "text": "You must …!",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s33-3",
+      "slideId": "s33",
+      "lang": "ko",
+      "text": "뜻은 꼭 해 봐! 여기서 머스트는 명령이 아니라, 정말 좋으니까 꼭 해 보라는 강한 추천이에요.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s33-4",
+      "slideId": "s33",
+      "lang": "en",
+      "text": "You must try the cheesecake here!",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s33-5",
+      "slideId": "s33",
+      "lang": "ko",
+      "text": "여기 치즈케이크 꼭 먹어 봐!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s33-6",
+      "slideId": "s33",
+      "lang": "en",
+      "text": "You must see this movie!",
+      "emotion": "설명",
+      "reveal": 4
+    },
+    {
+      "id": "s33-7",
+      "slideId": "s33",
+      "lang": "ko",
+      "text": "이 영화 꼭 봐!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s34-1",
+      "slideId": "s34",
+      "lang": "ko",
+      "text": "카페에서 친구에게 메뉴를 추천하는 상황이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s34-2",
+      "slideId": "s34",
+      "lang": "en",
+      "text": "What should I get?",
+      "emotion": "설명",
+      "reveal": 1,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s34-3",
+      "slideId": "s34",
+      "lang": "en",
+      "text": "You must try the cheesecake here! It's amazing.",
+      "emotion": "설명",
+      "reveal": 2,
+      "type": "dialogue",
+      "speaker": "B"
+    },
+    {
+      "id": "s34-4",
+      "slideId": "s34",
+      "lang": "en",
+      "text": "Really? Then I'll get that.",
+      "emotion": "설명",
+      "reveal": 3,
+      "type": "dialogue",
+      "speaker": "A"
+    },
+    {
+      "id": "s34-5",
+      "slideId": "s34",
+      "lang": "ko",
+      "text": "친구에게 강력 추천할 때 이렇게 말하면 아주 자연스러워요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s35-1",
+      "slideId": "s35",
+      "lang": "ko",
+      "text": "따라 해 볼까요? 먼저 천천히 들어 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s35-2",
+      "slideId": "s35",
+      "lang": "en",
+      "text": "You must try the cheesecake here!",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 0.85
+    },
+    {
+      "id": "s35-3",
+      "slideId": "s35",
+      "lang": "ko",
+      "text": "이번엔 자연스러운 속도예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s35-4",
+      "slideId": "s35",
+      "lang": "en",
+      "text": "You must try the cheesecake here!",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s35-5",
+      "slideId": "s35",
+      "lang": "ko",
+      "text": "잘했어요!",
+      "emotion": "칭찬"
+    },
+    {
+      "id": "s36-1",
+      "slideId": "s36",
+      "lang": "ko",
+      "text": "오늘 배운 회화 패턴 세 개, 다시 한번 떠올려 볼까요?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-2",
+      "slideId": "s36",
+      "lang": "en",
+      "text": "Sorry, I have to go now.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-3",
+      "slideId": "s36",
+      "lang": "en",
+      "text": "Do I have to bring anything?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-4",
+      "slideId": "s36",
+      "lang": "en",
+      "text": "You must try the cheesecake here!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-5",
+      "slideId": "s36",
+      "lang": "ko",
+      "text": "모두 오늘 배운 머스트와 해브 투로 만든 문장이에요. 꼭 소리 내서 써 보세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-6",
+      "slideId": "s36",
+      "lang": "ko",
+      "text": "다음 강의에서는 오늘 살짝 보여 드린 두 부정문을 비교해요. 바로 이 두 표현이에요.",
+      "emotion": "설명",
+      "reveal": 1,
+      "joinNext": true
+    },
+    {
+      "id": "s36-7",
+      "slideId": "s36",
+      "lang": "en",
+      "text": "must not, don't have to.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-8",
+      "slideId": "s36",
+      "lang": "ko",
+      "text": "하면 안 된다와 할 필요 없다, 헷갈리지 않게 확실히 정리해 드릴게요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s36-9",
+      "slideId": "s36",
+      "lang": "ko",
+      "text": "오늘도 정말 수고했어요. 구독과 좋아요 부탁드리고, 다음 강의에서 만나요!",
+      "emotion": "칭찬"
+    }
+  ]
+}

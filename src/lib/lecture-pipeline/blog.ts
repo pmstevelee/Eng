@@ -24,7 +24,7 @@ export const BLOG_LIMIT = {
   subKeywordsMax: 5,
 } as const
 
-export const BLOG_DEFAULT_CATEGORY = '중학 영문법'
+export const BLOG_DEFAULT_CATEGORY = '영어문법'
 
 export type BlogBlock =
   | { type: 'heading'; text: string }

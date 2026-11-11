@@ -1,0 +1,253 @@
+{
+  "version": 1,
+  "slug": "can-could-shorts-01",
+  "title": "can·could 숏폼 1 — Can I get ~?",
+  "grammarPoint": {
+    "code": "G04-01-01",
+    "title": "can·could"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-11-06T21:08:29.401Z",
+  "format": "shorts",
+  "tempo": {
+    "koSpeedScale": 1.1,
+    "enSpeed": 1,
+    "gapScale": 0.6,
+    "leadInMs": 250,
+    "tailMs": 1200,
+    "repeatPause": {
+      "factor": 1.2,
+      "extraSec": 0
+    }
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "hook",
+      "data": {
+        "question": "'~ 주세요', 영어로 바로 나오나요?"
+      },
+      "chapter": "훅"
+    },
+    {
+      "id": "s2",
+      "type": "pattern",
+      "data": {
+        "pattern": "Can I get ~?",
+        "ko": "~ 주세요 / ~ 받을 수 있을까요?",
+        "slot": "음료·음식·물건"
+      },
+      "chapter": "패턴"
+    },
+    {
+      "id": "s3",
+      "type": "examples",
+      "data": {
+        "examples": [
+          {
+            "en": "Can I get an iced latte?",
+            "ko": "아이스 라테 하나 주세요."
+          },
+          {
+            "en": "Can I get the check, please?",
+            "ko": "계산서 좀 주세요."
+          },
+          {
+            "en": "Can I get a refill?",
+            "ko": "리필 받을 수 있을까요?"
+          }
+        ]
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "repeat",
+      "data": {
+        "sentence": "Can I get an iced latte?",
+        "ko": "아이스 라테 하나 주세요.",
+        "stress": [
+          "get",
+          "iced",
+          "latte"
+        ],
+        "links": [
+          {
+            "text": "Can I",
+            "hint": "캐나이"
+          },
+          {
+            "text": "get an",
+            "hint": "게런"
+          }
+        ]
+      },
+      "chapter": "따라하기"
+    },
+    {
+      "id": "s5",
+      "type": "cta",
+      "data": {
+        "lectureTitle": "can·could",
+        "message": "더 자세한 설명은 위고업잉글리시에서!"
+      },
+      "chapter": "위고업잉글리시 안내"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "'~ 주세요', 영어로 바로 나오나요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "오늘 배울 패턴은 이거예요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "Can I get …?",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "카페나 식당에서 주문할 때 원어민이 정말 자주 쓰는 표현이에요. 조금 더 공손하게 말하고 싶다면",
+      "emotion": "강조",
+      "reveal": 2,
+      "joinNext": true
+    },
+    {
+      "id": "s2-3b",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "can",
+      "emotion": "강조",
+      "joinNext": true
+    },
+    {
+      "id": "s2-3c",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "자리에",
+      "emotion": "강조",
+      "joinNext": true
+    },
+    {
+      "id": "s2-3d",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "could",
+      "emotion": "강조",
+      "joinNext": true
+    },
+    {
+      "id": "s2-3e",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": ", 이렇게 바꿔 보세요.",
+      "emotion": "강조"
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "예문 세 개, 바로 갈게요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Can I get an iced latte?",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "아이스 라테 하나 주세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Can I get the check, please?",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "계산서 좀 주세요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Can I get a refill?",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "리필 받을 수 있을까요?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이제 따라 해 보세요! 먼저 천천히.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "Can I get an iced latte?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 0.85
+    },
+    {
+      "id": "s4-3",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이번엔 자연스럽게!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-4",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "Can I get an iced latte?",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "오늘 카페에서 바로 써 보세요. 더 자세한 설명은 위고업잉글리시에서!",
+      "emotion": "칭찬"
+    }
+  ]
+}

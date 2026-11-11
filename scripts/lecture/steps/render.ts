@@ -1,7 +1,8 @@
 // 렌더 단계 — output.mp4 + thumbnail.png + subtitles.srt + youtube.md
 // 음성(narration.wav)은 로컬 파일 서버로 Remotion에 넘긴다.
 
-import { existsSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { bundle } from "@remotion/bundler";
 import {
@@ -139,11 +140,41 @@ export async function runRender(
       const chunks: [number, number][] = [];
       for (let a = whole[0]; a <= whole[1]; a += CHUNK_FRAMES) chunks.push([a, Math.min(a + CHUNK_FRAMES - 1, whole[1])]);
       const workDir = path.join(p.dir, ".render-chunks");
-      rmSync(workDir, { recursive: true, force: true });
-      mkdirSync(workDir, { recursive: true });
       const chunkFile = (i: number) => path.join(workDir, `chunk-${String(i).padStart(3, "0")}.mp4`);
+      // 이어서 렌더 — 중간에 멈춰도(예: "got no response") 대본·음성이 같으면 끝난 조각은 다시 쓴다
+      const manifestFile = path.join(workDir, "manifest.json");
+      const renderKey = createHash("sha1")
+        .update(readFileSync(p.script, "utf8") + "\n" + (existsSync(p.timeline) ? readFileSync(p.timeline, "utf8") : "") + "\n")
+        .update(JSON.stringify({ section: opts.section ?? null, subtitles: inputProps.subtitles, chunkFrames: CHUNK_FRAMES, audio: withAudio }))
+        .digest("hex");
+      let doneChunks = new Set<number>();
+      try {
+        const m = JSON.parse(readFileSync(manifestFile, "utf8")) as { key?: string; done?: number[] };
+        if (m.key === renderKey) doneChunks = new Set((m.done ?? []).filter((i) => existsSync(chunkFile(i))));
+      } catch {
+        // 기록 없음 → 처음부터
+      }
+      if (!doneChunks.size) rmSync(workDir, { recursive: true, force: true });
+      mkdirSync(workDir, { recursive: true });
+      const saveManifest = () => writeFileSync(manifestFile, JSON.stringify({ key: renderKey, done: Array.from(doneChunks).sort((a, b) => a - b) }));
+      saveManifest();
+      if (doneChunks.size) console.log(`  이어서 렌더: 끝난 조각 ${doneChunks.size}개 다시 씀`);
+      const skipped = doneChunks.size;
 
       const renderChunk = async (i: number, attempt: number) => {
+        // 렌더용 로컬 서버가 가끔 응답하지 않아 실패한다 → 같은 조각을 몇 번 더 시도
+        for (let retry = 1; ; retry++) {
+          try {
+            await renderChunkOnce(i, attempt);
+            return;
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            if (retry >= 3 || !/got no response|ECONNRESET|Target closed/i.test(msg)) throw e;
+            console.log(`    ⚠ 조각 ${i + 1} 렌더 연결 오류 → 다시 시도 (${retry + 1}번째)`);
+          }
+        }
+      };
+      const renderChunkOnce = async (i: number, attempt: number) => {
         await renderMedia({
           composition,
           serveUrl,
@@ -181,10 +212,14 @@ export async function runRender(
       };
 
       for (let i = 0; i < chunks.length; i++) {
+        if (doneChunks.has(i)) continue;
         const t = Date.now();
         await renderCheckedChunk(i);
+        doneChunks.add(i);
+        saveManifest();
         const done = Date.now() - started;
-        const left = (done / (i + 1)) * (chunks.length - i - 1);
+        const renderedNow = Array.from(doneChunks).filter((k) => k <= i).length - skipped;
+        const left = (done / Math.max(1, renderedNow)) * (chunks.length - i - 1);
         console.log(`  조각 ${i + 1}/${chunks.length} ✔ (${formatDuration(Date.now() - t)}, 남은 시간 약 ${formatDuration(left)})`);
       }
 

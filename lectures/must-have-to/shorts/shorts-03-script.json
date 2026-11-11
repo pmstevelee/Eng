@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "slug": "must-have-to-shorts-03",
+  "title": "must·have to 숏폼 3 — You must ~!",
+  "grammarPoint": {
+    "code": "G04-02-01",
+    "title": "must·have to"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-11-09T02:14:36.604Z",
+  "format": "shorts",
+  "tempo": {
+    "koSpeedScale": 1.1,
+    "enSpeed": 1,
+    "gapScale": 0.6,
+    "leadInMs": 250,
+    "tailMs": 1200,
+    "repeatPause": {
+      "factor": 1.2,
+      "extraSec": 0
+    }
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "hook",
+      "data": {
+        "question": "'꼭 ~해 봐!' 영어로 바로 말할 수 있나요?",
+        "sub": "3초 안에 생각해 보세요"
+      },
+      "chapter": "훅"
+    },
+    {
+      "id": "s2",
+      "type": "pattern",
+      "data": {
+        "pattern": "You must ~!",
+        "ko": "꼭 ~해 봐!",
+        "slot": "동사원형"
+      },
+      "chapter": "패턴"
+    },
+    {
+      "id": "s3",
+      "type": "examples",
+      "data": {
+        "examples": [
+          {
+            "en": "You must try the cheesecake here!",
+            "ko": "여기 치즈케이크 꼭 먹어 봐!"
+          },
+          {
+            "en": "You must see this movie!",
+            "ko": "이 영화 꼭 봐!"
+          },
+          {
+            "en": "You must visit Jeju someday!",
+            "ko": "언젠가 제주도 꼭 가 봐!"
+          }
+        ]
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "repeat",
+      "data": {
+        "sentence": "You must try the cheesecake here!",
+        "ko": "여기 치즈케이크 꼭 먹어 봐!",
+        "stress": [
+          "must",
+          "try",
+          "cheesecake"
+        ],
+        "links": [
+          {
+            "text": "must try",
+            "hint": "머스트라이"
+          }
+        ]
+      },
+      "chapter": "따라하기"
+    },
+    {
+      "id": "s5",
+      "type": "cta",
+      "data": {
+        "lectureTitle": "must·have to",
+        "message": "더 자세한 설명은 위고업잉글리시에서!"
+      },
+      "chapter": "위고업잉글리시 안내"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "'꼭 ~해 봐!' 영어로 바로 말할 수 있나요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "오늘은 유 머스트 동사 패턴을 배워요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "You must …!",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "정말 좋아서 강하게 추천할 때 쓰는 말이에요. 명령이 아니라 '이거 진짜 강추' 느낌을 전할 때 자주 써요. 친구나 가족에게 음식, 영화, 장소 등을 권할 때 딱이에요.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "예문 세 개, 바로 보여드릴게요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "You must try the cheesecake here!",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "여기 치즈케이크 꼭 먹어 봐!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "You must see this movie!",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "이 영화 꼭 봐!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "You must visit Jeju someday!",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "언젠가 제주도 꼭 가 봐!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이번엔 직접 따라 해 볼까요?",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "You must try the cheesecake here!",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "좋은 거 있으면 꼭 이렇게 추천해 보세요. 더 자세한 설명은 위고업잉글리시에서!",
+      "emotion": "칭찬"
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "slug": "can-could",
+  "title": "can·could",
+  "cards": [
+    {
+      "type": "cover",
+      "topic": "can·could 한 번에",
+      "hook": "can과 could… 뜻이 왜 이렇게 많아?",
+      "label": "중학 영문법"
+    },
+    {
+      "type": "question",
+      "sentence": "I can to swim.",
+      "prompt": "이거 맞을까요?",
+      "hint": "can 뒤에 to가 필요할까요?"
+    },
+    {
+      "type": "rule",
+      "heading": "can·could 뜻 정리",
+      "lines": [
+        "can: ~할 수 있다 · ~해도 된다",
+        "could: ~할 수 있었다 (과거)",
+        "Could you ~? = **더 공손한** 부탁",
+        "예) Could you help me? 도와주시겠어요?"
+      ]
+    },
+    {
+      "type": "rule",
+      "heading": "기본 공식",
+      "formula": [
+        "주어",
+        "can/could",
+        "동사원형"
+      ],
+      "lines": [
+        "to, -s 없이 **동사원형**만!"
+      ],
+      "example": {
+        "en": "She could read when she was four.",
+        "ko": "그녀는 네 살 때 글을 읽을 수 있었다"
+      }
+    },
+    {
+      "type": "rule",
+      "heading": "부정문·의문문",
+      "lines": [
+        "부정: **cannot** · can't · couldn't",
+        "의문: **Can/Could**를 맨 앞으로 (do ✗)"
+      ],
+      "example": {
+        "en": "Can you swim? — No, I can't.",
+        "ko": "수영할 줄 알아? — 아니, 못 해"
+      }
+    },
+    {
+      "type": "mistakes",
+      "heading": "흔한 실수 TOP 3",
+      "items": [
+        {
+          "wrong": "can speaks",
+          "right": "can speak"
+        },
+        {
+          "wrong": "Do you can",
+          "right": "Can you"
+        },
+        {
+          "wrong": "can ride (과거)",
+          "right": "could ride"
+        }
+      ]
+    },
+    {
+      "type": "quiz",
+      "question": "빈칸에 알맞은 말은?",
+      "sentence": "She can ___ the piano very well.",
+      "choices": [
+        "play",
+        "plays",
+        "to play"
+      ]
+    },
+    {
+      "type": "answer",
+      "answer": "play",
+      "sentence": "She can play the piano very well.",
+      "explanation": "can 뒤에는 항상 동사원형이 와요."
+    },
+    {
+      "type": "pattern",
+      "pattern": "Can I get ~?",
+      "slot": "음료·음식·물건",
+      "ko": "~ 주세요 / ~ 받을 수 있을까요?",
+      "example": {
+        "en": "Can I get an iced latte?",
+        "ko": "아이스 라테 하나 주세요."
+      }
+    },
+    {
+      "type": "cta",
+      "lectureTitle": "can·could",
+      "message": "저장하고 복습하세요"
+    }
+  ]
+}

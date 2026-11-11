@@ -1,0 +1,629 @@
+{
+  "code": "G04-01-01",
+  "summary": "can과 could는 동사 앞에서 뜻을 더해 주는 조동사예요. can은 '~할 수 있다'(능력), '~해도 된다'(허락), Can you ~?(부탁)로 쓰고, could는 '~할 수 있었다'(과거의 능력)와 더 공손한 부탁 Could you ~?로 써요. 뒤에는 언제나 동사원형이 오고, to나 -s를 붙이지 않아요. 부정은 cannot(can't)·couldn't, 의문문은 Can/Could를 주어 앞으로 보내요.",
+  "rules": [
+    {
+      "text": "can·could는 동사 앞에 붙어 '할 수 있다, 해도 된다' 같은 뜻을 더해 주는 조동사예요. 혼자 쓰지 않고 뒤에 꼭 동사가 와요.",
+      "formula": "주어 + can/could + 동사원형"
+    },
+    {
+      "text": "조동사 뒤에는 언제나 동사원형을 써요. to를 넣거나 -s, -ed를 붙이지 않아요.",
+      "formula": "I can swim. (O) / I can to swim. (X) / She can sings. (X)"
+    },
+    {
+      "text": "can 자체도 모양이 바뀌지 않아요. 주어가 he, she, it이어도 cans가 아니라 can이에요.",
+      "formula": "He can drive. (O) / He cans drive. (X)"
+    },
+    {
+      "text": "can의 첫 번째 뜻은 능력, '~할 수 있다'예요.",
+      "formula": "I can play the guitar a little."
+    },
+    {
+      "text": "can은 허락, '~해도 된다'도 나타내요. You can't ~는 '~하면 안 된다'는 금지예요.",
+      "formula": "You can use my pen. / You can't park here."
+    },
+    {
+      "text": "Can I ~?는 허락을 구하는 말, Can you ~?는 부탁하는 말이에요.",
+      "formula": "Can I sit here? / Can you help me?"
+    },
+    {
+      "text": "could는 can의 과거로 '~할 수 있었다'(과거의 능력)를 나타내요. 과거 시간 표현(when I was ~, last year)과 자주 같이 써요.",
+      "formula": "She could read when she was four."
+    },
+    {
+      "text": "Could you ~?의 could는 과거가 아니에요. Can you ~?보다 더 부드럽고 공손한 부탁이에요.",
+      "formula": "Could you turn down the music?"
+    },
+    {
+      "text": "부정문은 can 뒤에 not을 붙여요. 보통 cannot으로 붙여 쓰고, 줄이면 can't예요. 과거는 could not, 줄여서 couldn't예요.",
+      "formula": "주어 + cannot(can't)/couldn't + 동사원형"
+    },
+    {
+      "text": "의문문은 Can/Could를 주어 앞으로 보내요. do, does를 쓰지 않아요. 대답도 can으로 해요.",
+      "formula": "Can you swim? — Yes, I can. / No, I can't."
+    },
+    {
+      "text": "과거에 딱 한 번 해낸 일은 긍정문에서 could보다 was/were able to를 써요. 못 했다는 couldn't는 그대로 써도 돼요.",
+      "formula": "I was able to finish it yesterday. / I couldn't sleep last night."
+    },
+    {
+      "text": "미국 영어에서 can은 약하게 '큰', can't는 끝의 t가 거의 안 들리고 '캔'을 강하게 읽어요. 강세로 구별해요.",
+      "formula": "I can go. / I CAN'T go."
+    }
+  ],
+  "examples": [
+    {
+      "en": "I can play the guitar a little.",
+      "ko": "나는 기타를 조금 칠 수 있어요. (능력)",
+      "highlight": "can play"
+    },
+    {
+      "en": "I can't swim yet.",
+      "ko": "나는 아직 수영을 못 해요. (능력의 부정)",
+      "highlight": "can't swim"
+    },
+    {
+      "en": "Can you speak Japanese?",
+      "ko": "일본어 할 줄 알아요? (능력을 묻기)",
+      "highlight": "Can you speak"
+    },
+    {
+      "en": "You can use my pen.",
+      "ko": "내 펜 써도 돼요. (허락)",
+      "highlight": "can use"
+    },
+    {
+      "en": "You can't park here.",
+      "ko": "여기에 주차하면 안 돼요. (금지)",
+      "highlight": "can't park"
+    },
+    {
+      "en": "Can I sit here?",
+      "ko": "여기 앉아도 될까요? (허락 구하기)",
+      "highlight": "Can I sit"
+    },
+    {
+      "en": "Could you turn down the music?",
+      "ko": "음악 소리 좀 줄여 주시겠어요? (공손한 부탁 — 과거 아님)",
+      "highlight": "Could you turn"
+    },
+    {
+      "en": "She could read when she was four.",
+      "ko": "그녀는 네 살 때 글을 읽을 수 있었어요. (과거의 능력)",
+      "highlight": "could read"
+    },
+    {
+      "en": "I couldn't sleep last night.",
+      "ko": "어젯밤에 잠을 못 잤어요. (과거의 부정)",
+      "highlight": "couldn't sleep"
+    },
+    {
+      "en": "Can he drive? — Yes, he can.",
+      "ko": "그는 운전할 줄 알아요? — 네, 할 줄 알아요. (짧은 대답)",
+      "highlight": "Yes, he can"
+    },
+    {
+      "en": "Can I get an iced latte, please?",
+      "ko": "아이스 라테 하나 주세요. (주문할 때)",
+      "highlight": "Can I get"
+    },
+    {
+      "en": "I can't wait to see you!",
+      "ko": "빨리 보고 싶어요! (기대감 표현)",
+      "highlight": "can't wait to see"
+    }
+  ],
+  "commonErrors": [
+    {
+      "wrong": "I can to swim.",
+      "correct": "I can swim.",
+      "reason": "can 뒤에는 to 없이 동사원형을 바로 써요."
+    },
+    {
+      "wrong": "My sister can speaks English.",
+      "correct": "My sister can speak English.",
+      "reason": "주어가 3인칭 단수여도 can 뒤의 동사에는 -s를 붙이지 않아요."
+    },
+    {
+      "wrong": "He cans drive.",
+      "correct": "He can drive.",
+      "reason": "can 자체에도 -s를 붙이지 않아요."
+    },
+    {
+      "wrong": "Do you can swim?",
+      "correct": "Can you swim?",
+      "reason": "조동사 의문문은 do/does 없이 Can을 주어 앞으로 보내요."
+    },
+    {
+      "wrong": "I can ride a bike when I was six.",
+      "correct": "I could ride a bike when I was six.",
+      "reason": "when I was six는 과거라서 can의 과거 could를 써요."
+    },
+    {
+      "wrong": "Could you help me? — 도와줄 수 있었어?",
+      "correct": "Could you help me? — 도와주시겠어요?",
+      "reason": "부탁하는 Could you ~?는 과거가 아니라 공손한 표현이에요."
+    }
+  ],
+  "lecture": {
+    "title": "can과 could 완전 정복! 능력·허락·부탁 쉽게 구분하기",
+    "youtube": "https://youtu.be/RAdyj1nzLu8",
+    "durationSec": 884
+  },
+  "sourceScript": {
+    "title": "can·could — 강의 기준 원고",
+    "content": "[강의 범위]\n조동사 can과 could의 뜻(능력·허락·부탁·과거의 능력)과 긍정·부정·의문문 만드는 법을 익히는 단원이다. 대상은 중학생~고등학생, 성인 초급(레벨 2~3). 강의 영상: can과 could 완전 정복! 능력·허락·부탁 쉽게 구분하기 (YouTube RAdyj1nzLu8, 14분 43초).\n\n[도입]\nI can to swim. 은 틀린 문장이다. can 뒤에는 to 없이 동사원형이 바로 온다: I can swim.\n\n[1. 조동사가 필요한 이유]\n- I swim. 은 '나는 수영한다'는 사실만 말한다. '수영할 수 있다'는 능력을 말하려면 동사 앞에 can을 붙인다.\n- can·could는 동사 앞에서 뜻을 더해 주는 조동사다. 혼자 쓰지 않고 뒤에 꼭 동사원형이 온다.\n\n[2. can의 뜻]\n- 능력: ~할 수 있다. I can play the guitar a little.\n- 허락: ~해도 된다. You can use my pen. 부정 You can't park here. 은 금지(~하면 안 된다).\n- 허락 구하기: Can I sit here?\n- 부탁: Can you help me?\n\n[3. could의 뜻]\n- 과거의 능력: ~할 수 있었다. She could read when she was four. 과거 시간 표현과 함께 쓴다.\n- 공손한 부탁: Could you turn down the music? 여기서 could는 과거가 아니라 can보다 부드럽고 공손한 말투다.\n- 예외: 과거에 한 번 해낸 일은 긍정문에서 보통 could가 아니라 was/were able to를 쓴다(I was able to finish it). 못 했다는 couldn't는 그대로 쓴다(I couldn't sleep last night).\n\n[4. 문장 구조]\n- 긍정: 주어 + can/could + 동사원형. can에도 동사에도 -s를 붙이지 않고, to를 넣지 않는다.\n- 부정: cannot(보통 붙여 쓴다), 줄여서 can't / could not, 줄여서 couldn't. 미국 영어에서 can은 약하게, can't는 강하게 읽어 강세로 구별한다.\n- 의문: Can/Could + 주어 + 동사원형? do/does를 쓰지 않는다. 대답은 Yes, I can. / No, I can't.\n\n[5. 흔한 실수]\n- can speaks → can speak\n- Do you can swim? → Can you swim?\n- I can ride a bike when I was six. → could ride\n\n[6. 일상회화 패턴]\n- Can I get ~? 주문할 때 '~ 주세요'. Can I get an iced latte, please?\n- Could you ~? 정중한 부탁. Could you send me the file by three?\n- I can't wait to ~! 빨리 ~하고 싶어. I can't wait to see them live!\n"
+  },
+  "questions": [
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "She can ____ three languages.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "speak",
+          "speaks",
+          "to speak",
+          "speaking"
+        ],
+        "correct_answer": "A",
+        "explanation": "can 뒤에는 동사원형을 써요. 주어가 she여도 -s를 붙이지 않아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "____ you swim? — Yes, I can.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "Do",
+          "Can",
+          "Are",
+          "Does"
+        ],
+        "correct_answer": "B",
+        "explanation": "대답이 Yes, I can.이므로 Can으로 물어요. 조동사 의문문은 Can을 주어 앞에 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I'm busy now. I ____ talk to you.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "don't can",
+          "not can",
+          "can't",
+          "can't to"
+        ],
+        "correct_answer": "C",
+        "explanation": "부정은 can 뒤에 not을 붙인 can't를 쓰고, 뒤에 동사원형이 와요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "When I was five, I ____ read.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "can",
+          "can to",
+          "could to",
+          "could"
+        ],
+        "correct_answer": "D",
+        "explanation": "When I was five는 과거라서 can의 과거 could를 써요. to는 넣지 않아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "My brother ____ play the guitar very well.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "can",
+          "cans",
+          "can to",
+          "is can"
+        ],
+        "correct_answer": "A",
+        "explanation": "can은 주어가 3인칭 단수여도 모양이 바뀌지 않아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "다음 중 올바른 문장은?",
+        "question_text_ko": "알맞은 것을 고르세요.",
+        "options": [
+          "He can drives a car.",
+          "He can drive a car.",
+          "He cans drive a car.",
+          "He can to drive a car."
+        ],
+        "correct_answer": "B",
+        "explanation": "can 뒤에는 동사원형 drive를 쓰고, can에도 -s를 붙이지 않아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "다음 중 올바른 문장은?",
+        "question_text_ko": "알맞은 것을 고르세요.",
+        "options": [
+          "Do you can help me?",
+          "Can you helping me?",
+          "Can you help me?",
+          "Can you to help me?"
+        ],
+        "correct_answer": "C",
+        "explanation": "의문문은 Can을 주어 앞에 두고 뒤에 동사원형을 써요. do는 쓰지 않아요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "____ I use your pen? — Sure, go ahead.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "Do",
+          "Am",
+          "Does",
+          "Can"
+        ],
+        "correct_answer": "D",
+        "explanation": "허락을 구할 때 Can I ~?를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "You ____ park here. It's a no-parking zone.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "can't",
+          "can",
+          "could",
+          "don't"
+        ],
+        "correct_answer": "A",
+        "explanation": "주차 금지 구역이므로 '~하면 안 된다'는 금지 can't를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Could you ____ the door, please?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "opens",
+          "open",
+          "to open",
+          "opened"
+        ],
+        "correct_answer": "B",
+        "explanation": "Could you 뒤에도 동사원형을 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I was very tired last night, but I ____ sleep.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "can't",
+          "don't can",
+          "couldn't",
+          "not could"
+        ],
+        "correct_answer": "C",
+        "explanation": "last night는 과거라서 can't가 아니라 couldn't를 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "'Could you help me?'에서 could의 뜻은?",
+        "question_text_ko": "알맞은 것을 고르세요.",
+        "options": [
+          "과거의 능력",
+          "의무",
+          "추측",
+          "공손한 부탁"
+        ],
+        "correct_answer": "D",
+        "explanation": "Could you ~?는 과거가 아니라 can보다 공손하게 부탁하는 표현이에요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "'She could swim when she was six.'에서 could의 뜻은?",
+        "question_text_ko": "알맞은 것을 고르세요.",
+        "options": [
+          "과거에 ~할 수 있었다",
+          "~해도 된다",
+          "공손한 부탁",
+          "~해야 한다"
+        ],
+        "correct_answer": "A",
+        "explanation": "when she was six(과거)와 함께 쓰여 과거의 능력을 나타내요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "'You can use my phone.'에서 can의 뜻은?",
+        "question_text_ko": "알맞은 것을 고르세요.",
+        "options": [
+          "~할 수 있었다 (과거)",
+          "~해도 된다 (허락)",
+          "~해야 한다 (의무)",
+          "~하면 안 된다 (금지)"
+        ],
+        "correct_answer": "B",
+        "explanation": "상대에게 내 전화를 써도 된다고 허락하는 말이에요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Can she speak Japanese? — No, she ____.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "doesn't",
+          "isn't",
+          "can't",
+          "can"
+        ],
+        "correct_answer": "C",
+        "explanation": "Can으로 물으면 can으로 대답해요. 부정 대답은 No, she can't."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Can he drive? — Yes, he ____.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "does",
+          "is",
+          "cans",
+          "can"
+        ],
+        "correct_answer": "D",
+        "explanation": "Can으로 물으면 Yes, he can.으로 대답해요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "can not을 한 단어로 붙여 쓴 올바른 형태는?",
+        "question_text_ko": "알맞은 것을 고르세요.",
+        "options": [
+          "cannot",
+          "cann't",
+          "canot",
+          "can'not"
+        ],
+        "correct_answer": "A",
+        "explanation": "can not은 보통 cannot으로 붙여 쓰고, 줄이면 can't예요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "____ you pass me the salt, please?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "Do",
+          "Could",
+          "Are",
+          "Does"
+        ],
+        "correct_answer": "B",
+        "explanation": "정중하게 부탁할 때 Could you ~?를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "He ____ walk when he was one year old.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "can",
+          "cans",
+          "could",
+          "coulds"
+        ],
+        "correct_answer": "C",
+        "explanation": "when he was one year old는 과거라서 could를 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "다음 중 틀린 문장은?",
+        "question_text_ko": "알맞은 것을 고르세요.",
+        "options": [
+          "I can swim.",
+          "She can sing.",
+          "They can dance.",
+          "He can plays tennis."
+        ],
+        "correct_answer": "D",
+        "explanation": "can 뒤에는 동사원형 play를 써야 해요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "다음 중 가장 공손한 부탁은?",
+        "question_text_ko": "알맞은 것을 고르세요.",
+        "options": [
+          "Could you help me?",
+          "Help me.",
+          "You help me.",
+          "Help me now."
+        ],
+        "correct_answer": "A",
+        "explanation": "Could you ~?는 정중하게 부탁하는 표현이에요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Sorry, I ____ hear you. Could you say that again?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "don't can",
+          "can't",
+          "not can",
+          "can't to"
+        ],
+        "correct_answer": "B",
+        "explanation": "지금 잘 안 들린다는 뜻이므로 can't + 동사원형을 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I ____ finish my homework last night. I was sick.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "can't",
+          "don't can",
+          "couldn't",
+          "couldn't to"
+        ],
+        "correct_answer": "C",
+        "explanation": "last night는 과거라서 couldn't를 쓰고, 뒤에 to 없이 동사원형을 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "'Can I get a refill?'의 알맞은 뜻은?",
+        "question_text_ko": "알맞은 것을 고르세요.",
+        "options": [
+          "리필할 수 있었어요.",
+          "리필해야 해요.",
+          "리필하면 안 돼요.",
+          "리필 받을 수 있을까요?"
+        ],
+        "correct_answer": "D",
+        "explanation": "Can I get ~?은 주문하거나 무언가를 달라고 할 때 쓰는 말이에요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I can't wait to ____ you!",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "see",
+          "seeing",
+          "saw",
+          "sees"
+        ],
+        "correct_answer": "A",
+        "explanation": "I can't wait to 뒤에는 동사원형을 써요. '빨리 ~하고 싶다'는 뜻이에요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "She can ____ the piano. (plays)",
+        "question_text_ko": "괄호 안 동사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "play",
+        "explanation": "can 뒤에는 동사원형 play를 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "My dad can ____ Chinese. (speaks)",
+        "question_text_ko": "괄호 안 동사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "speak",
+        "explanation": "can 뒤에는 -s 없이 동사원형을 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "Could you ____ the window? (opening)",
+        "question_text_ko": "괄호 안 동사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "open",
+        "explanation": "Could you 뒤에는 동사원형을 써요."
+      }
+    },
+    {
+      "difficulty": 2,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "Can you ____ me? (helps)",
+        "question_text_ko": "괄호 안 동사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "help",
+        "explanation": "Can you 뒤에는 동사원형을 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "When I was four, I ____ read. (can)",
+        "question_text_ko": "괄호 안 조동사를 문장에 맞는 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "could",
+        "explanation": "When I was four는 과거라서 could를 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "Last year she ____ play the violin very well. (can)",
+        "question_text_ko": "괄호 안 조동사를 문장에 맞는 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "could",
+        "explanation": "Last year는 과거라서 과거의 능력 could를 써요."
+      }
+    },
+    {
+      "difficulty": 3,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I can't wait to ____ you! (seeing)",
+        "question_text_ko": "괄호 안 동사를 알맞은 형태로 바꿔 빈칸에 쓰세요.",
+        "correct_answer": "see",
+        "explanation": "can't wait to 뒤에는 동사원형을 써요."
+      }
+    }
+  ]
+}
