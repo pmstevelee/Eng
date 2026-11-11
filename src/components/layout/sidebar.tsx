@@ -9,6 +9,7 @@ import { signOut } from '@/app/(auth)/login/actions'
 import type { NavItem } from './nav-items'
 import { BranchSwitcher, type BranchOption } from './branch-switcher'
 import { AcademySwitcher, type AcademyOption } from './academy-switcher'
+import { SocialLinks } from './social-links'
 
 interface SidebarProps {
   navItems: NavItem[]
@@ -281,6 +282,7 @@ export function Sidebar({
 
         {/* 하단: 사용자 정보 + 로그아웃 */}
         <div className="border-t border-primary-800 py-3">
+          <SocialLinks collapsed={isCollapsed} />
           {!isCollapsed && (
             <div className="flex items-center gap-3 px-5 py-2 mb-1">
               <div className="w-8 h-8 rounded-full bg-primary-700 flex items-center justify-center text-white text-sm font-semibold shrink-0">
@@ -372,6 +374,7 @@ export function Sidebar({
 
         {/* 사용자 정보 + 로그아웃 */}
         <div className="border-t border-primary-800 py-3">
+          <SocialLinks collapsed={false} />
           <div className="flex items-center gap-3 px-5 py-2 mb-1">
             <div className="w-9 h-9 rounded-full bg-primary-700 flex items-center justify-center text-white text-sm font-semibold shrink-0">
               {userName.charAt(0)}

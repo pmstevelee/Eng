@@ -8,8 +8,6 @@ import { WeeklyGrammarCard } from '@/components/grammar/weekly-grammar-card'
 import { NEXT_UNIT_REASON_LABEL } from '@/lib/grammar/constants'
 import { formatDaysLeft, formatDueKey } from './_components/format'
 
-const FREE_PRACTICE_HREF = '/student/learn/domain/grammar'
-
 export default async function StudentGrammarHomePage() {
   const { user, studentId } = await requireStudent()
   const [data, weekly] = await Promise.all([
@@ -24,15 +22,7 @@ export default async function StudentGrammarHomePage() {
           <BookOpen className="h-7 w-7 text-[#1865F2]" />
         </div>
         <h2 className="mt-4 text-lg font-bold text-gray-900">아직 열린 문법 단원이 없어요</h2>
-        <p className="mt-1 max-w-sm text-sm text-gray-500">
-          단원이 준비되면 여기에서 순서대로 배울 수 있어요. 그동안 자유 연습으로 문법 문제를 풀어 보세요.
-        </p>
-        <Link
-          href={FREE_PRACTICE_HREF}
-          className="mt-6 inline-flex min-h-[44px] items-center rounded-lg bg-[#1865F2] px-5 text-sm font-semibold text-white hover:bg-[#1453c9]"
-        >
-          자유 연습 하기
-        </Link>
+        <p className="mt-1 max-w-sm text-sm text-gray-500">단원이 준비되면 여기에서 순서대로 배울 수 있어요.</p>
       </div>
     )
   }

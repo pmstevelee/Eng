@@ -54,12 +54,6 @@ export default async function StudentGrammarMapPage({
         </div>
         <h2 className="mt-4 text-lg font-bold text-gray-900">아직 열린 문법 단원이 없어요</h2>
         <p className="mt-1 text-sm text-gray-500">단원이 준비되면 이 지도에 나타나요.</p>
-        <Link
-          href="/student/learn/domain/grammar"
-          className="mt-6 inline-flex min-h-[44px] items-center rounded-lg bg-[#1865F2] px-5 text-sm font-semibold text-white hover:bg-[#1453c9]"
-        >
-          자유 연습 하기
-        </Link>
       </div>
     )
   }
