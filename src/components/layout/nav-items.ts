@@ -56,6 +56,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: '학생 크레딧', href: '/admin/credits/students', icon: GraduationCap },
     { label: '문제 뱅크', href: '/admin/question-bank', icon: Library },
     { label: '문법 커리큘럼', href: '/admin/grammar', icon: SpellCheck },
+    { label: '단어 콘텐츠', href: '/admin/words', icon: Languages },
     { label: '활동 로그', href: '/admin/activity-logs', icon: Activity },
   ],
   ACADEMY_OWNER: [
