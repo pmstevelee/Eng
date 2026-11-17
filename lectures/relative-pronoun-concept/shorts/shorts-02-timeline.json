@@ -1,0 +1,672 @@
+{
+  "version": 1,
+  "totalMs": 49690,
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "startMs": 250,
+      "endMs": 3490,
+      "words": [
+        {
+          "text": "하는",
+          "startMs": 250,
+          "endMs": 541
+        },
+        {
+          "text": "사람",
+          "startMs": 614,
+          "endMs": 832
+        },
+        {
+          "text": "알아?",
+          "startMs": 941,
+          "endMs": 1559
+        },
+        {
+          "text": "영어로",
+          "startMs": 1705,
+          "endMs": 2214
+        },
+        {
+          "text": "바로",
+          "startMs": 2286,
+          "endMs": 2505
+        },
+        {
+          "text": "말할",
+          "startMs": 2577,
+          "endMs": 2795
+        },
+        {
+          "text": "수",
+          "startMs": 2868,
+          "endMs": 2941
+        },
+        {
+          "text": "있나요?",
+          "startMs": 3014,
+          "endMs": 3490
+        }
+      ]
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 3970,
+      "endMs": 6940,
+      "words": [
+        {
+          "text": "오늘은",
+          "startMs": 3970,
+          "endMs": 4625
+        },
+        {
+          "text": "하는",
+          "startMs": 4770,
+          "endMs": 4988
+        },
+        {
+          "text": "사람",
+          "startMs": 5061,
+          "endMs": 5352
+        },
+        {
+          "text": "알아?",
+          "startMs": 5497,
+          "endMs": 6079
+        },
+        {
+          "text": "패턴이에요.",
+          "startMs": 6152,
+          "endMs": 6940
+        }
+      ]
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "startMs": 7240,
+      "endMs": 9020,
+      "words": [
+        {
+          "text": "Do",
+          "startMs": 7240,
+          "endMs": 7390
+        },
+        {
+          "text": "you",
+          "startMs": 7470,
+          "endMs": 7550
+        },
+        {
+          "text": "know",
+          "startMs": 7630,
+          "endMs": 7870
+        },
+        {
+          "text": "anyone",
+          "startMs": 7950,
+          "endMs": 8430
+        },
+        {
+          "text": "who?",
+          "startMs": 8510,
+          "endMs": 9020
+        }
+      ],
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 9320,
+      "endMs": 16390,
+      "words": [
+        {
+          "text": "이런",
+          "startMs": 9320,
+          "endMs": 9581
+        },
+        {
+          "text": "사람",
+          "startMs": 9654,
+          "endMs": 9872
+        },
+        {
+          "text": "있는지",
+          "startMs": 10054,
+          "endMs": 10454
+        },
+        {
+          "text": "찾을",
+          "startMs": 10563,
+          "endMs": 10745
+        },
+        {
+          "text": "때",
+          "startMs": 10817,
+          "endMs": 10963
+        },
+        {
+          "text": "써요.",
+          "startMs": 11035,
+          "endMs": 11763
+        },
+        {
+          "text": "애니원은",
+          "startMs": 11835,
+          "endMs": 12635
+        },
+        {
+          "text": "누구든이라는",
+          "startMs": 12708,
+          "endMs": 13654
+        },
+        {
+          "text": "뜻이고,",
+          "startMs": 13763,
+          "endMs": 14454
+        },
+        {
+          "text": "사람이니까",
+          "startMs": 14526,
+          "endMs": 15399
+        },
+        {
+          "text": "후로",
+          "startMs": 15472,
+          "endMs": 15908
+        },
+        {
+          "text": "이어요.",
+          "startMs": 15981,
+          "endMs": 16390
+        }
+      ]
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 16870,
+      "endMs": 18810,
+      "words": [
+        {
+          "text": "예문",
+          "startMs": 16870,
+          "endMs": 17234
+        },
+        {
+          "text": "세",
+          "startMs": 17306,
+          "endMs": 17452
+        },
+        {
+          "text": "개,",
+          "startMs": 17525,
+          "endMs": 17961
+        },
+        {
+          "text": "바로",
+          "startMs": 18034,
+          "endMs": 18179
+        },
+        {
+          "text": "갈게요!",
+          "startMs": 18252,
+          "endMs": 18810
+        }
+      ]
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 19110,
+      "endMs": 21430,
+      "words": [
+        {
+          "text": "Do",
+          "startMs": 19110,
+          "endMs": 19260
+        },
+        {
+          "text": "you",
+          "startMs": 19340,
+          "endMs": 19420
+        },
+        {
+          "text": "know",
+          "startMs": 19500,
+          "endMs": 19740
+        },
+        {
+          "text": "anyone",
+          "startMs": 19900,
+          "endMs": 20220
+        },
+        {
+          "text": "who's",
+          "startMs": 20300,
+          "endMs": 20540
+        },
+        {
+          "text": "good",
+          "startMs": 20620,
+          "endMs": 20780
+        },
+        {
+          "text": "at",
+          "startMs": 20860,
+          "endMs": 20940
+        },
+        {
+          "text": "math?",
+          "startMs": 21020,
+          "endMs": 21430
+        }
+      ]
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 21730,
+      "endMs": 23410,
+      "words": [
+        {
+          "text": "수학",
+          "startMs": 21730,
+          "endMs": 22084
+        },
+        {
+          "text": "잘하는",
+          "startMs": 22156,
+          "endMs": 22520
+        },
+        {
+          "text": "사람",
+          "startMs": 22593,
+          "endMs": 22956
+        },
+        {
+          "text": "알아?",
+          "startMs": 23029,
+          "endMs": 23410
+        }
+      ]
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 23710,
+      "endMs": 26170,
+      "words": [
+        {
+          "text": "Do",
+          "startMs": 23710,
+          "endMs": 23860
+        },
+        {
+          "text": "you",
+          "startMs": 23940,
+          "endMs": 24020
+        },
+        {
+          "text": "know",
+          "startMs": 24100,
+          "endMs": 24260
+        },
+        {
+          "text": "anyone",
+          "startMs": 24340,
+          "endMs": 24740
+        },
+        {
+          "text": "who",
+          "startMs": 24820,
+          "endMs": 24900
+        },
+        {
+          "text": "speaks",
+          "startMs": 24980,
+          "endMs": 25300
+        },
+        {
+          "text": "Japanese?",
+          "startMs": 25380,
+          "endMs": 26170
+        }
+      ]
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 26470,
+      "endMs": 28510,
+      "words": [
+        {
+          "text": "일본어",
+          "startMs": 26470,
+          "endMs": 27052
+        },
+        {
+          "text": "할",
+          "startMs": 27125,
+          "endMs": 27270
+        },
+        {
+          "text": "줄",
+          "startMs": 27343,
+          "endMs": 27415
+        },
+        {
+          "text": "아는",
+          "startMs": 27488,
+          "endMs": 27634
+        },
+        {
+          "text": "사람",
+          "startMs": 27706,
+          "endMs": 28070
+        },
+        {
+          "text": "알아?",
+          "startMs": 28143,
+          "endMs": 28510
+        }
+      ]
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 28810,
+      "endMs": 30790,
+      "words": [
+        {
+          "text": "Do",
+          "startMs": 28810,
+          "endMs": 28940
+        },
+        {
+          "text": "you",
+          "startMs": 29020,
+          "endMs": 29100
+        },
+        {
+          "text": "know",
+          "startMs": 29180,
+          "endMs": 29340
+        },
+        {
+          "text": "anyone",
+          "startMs": 29420,
+          "endMs": 29820
+        },
+        {
+          "text": "who",
+          "startMs": 29900,
+          "endMs": 29980
+        },
+        {
+          "text": "can",
+          "startMs": 30060,
+          "endMs": 30140
+        },
+        {
+          "text": "help",
+          "startMs": 30220,
+          "endMs": 30380
+        },
+        {
+          "text": "me?",
+          "startMs": 30460,
+          "endMs": 30790
+        }
+      ]
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 31090,
+      "endMs": 33270,
+      "words": [
+        {
+          "text": "나",
+          "startMs": 31090,
+          "endMs": 31381
+        },
+        {
+          "text": "도와줄",
+          "startMs": 31599,
+          "endMs": 32035
+        },
+        {
+          "text": "수",
+          "startMs": 32072,
+          "endMs": 32108
+        },
+        {
+          "text": "있는",
+          "startMs": 32181,
+          "endMs": 32399
+        },
+        {
+          "text": "사람",
+          "startMs": 32472,
+          "endMs": 32835
+        },
+        {
+          "text": "알아?",
+          "startMs": 32908,
+          "endMs": 33270
+        }
+      ]
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "startMs": 33750,
+      "endMs": 35080,
+      "words": [
+        {
+          "text": "이제",
+          "startMs": 33750,
+          "endMs": 34186
+        },
+        {
+          "text": "따라",
+          "startMs": 34259,
+          "endMs": 34405
+        },
+        {
+          "text": "해",
+          "startMs": 34441,
+          "endMs": 34477
+        },
+        {
+          "text": "보세요!",
+          "startMs": 34550,
+          "endMs": 35080
+        }
+      ]
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "startMs": 35380,
+      "endMs": 37630,
+      "words": [
+        {
+          "text": "Do",
+          "startMs": 35380,
+          "endMs": 35540
+        },
+        {
+          "text": "you",
+          "startMs": 35620,
+          "endMs": 35700
+        },
+        {
+          "text": "know",
+          "startMs": 35780,
+          "endMs": 35940
+        },
+        {
+          "text": "anyone",
+          "startMs": 36020,
+          "endMs": 36500
+        },
+        {
+          "text": "who's",
+          "startMs": 36580,
+          "endMs": 36820
+        },
+        {
+          "text": "good",
+          "startMs": 36900,
+          "endMs": 37060
+        },
+        {
+          "text": "at",
+          "startMs": 37140,
+          "endMs": 37220
+        },
+        {
+          "text": "math?",
+          "startMs": 37300,
+          "endMs": 37630
+        }
+      ],
+      "type": "repeat",
+      "speed": 1,
+      "pauseEndMs": 40330
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 40810,
+      "endMs": 48490,
+      "words": [
+        {
+          "text": "누구를",
+          "startMs": 40810,
+          "endMs": 41246
+        },
+        {
+          "text": "찾을",
+          "startMs": 41355,
+          "endMs": 41610
+        },
+        {
+          "text": "때",
+          "startMs": 41755,
+          "endMs": 41901
+        },
+        {
+          "text": "꼭",
+          "startMs": 42046,
+          "endMs": 42192
+        },
+        {
+          "text": "써",
+          "startMs": 42228,
+          "endMs": 42265
+        },
+        {
+          "text": "보세요.",
+          "startMs": 42337,
+          "endMs": 43210
+        },
+        {
+          "text": "친구한테",
+          "startMs": 43283,
+          "endMs": 44010
+        },
+        {
+          "text": "오늘",
+          "startMs": 44083,
+          "endMs": 44374
+        },
+        {
+          "text": "바로",
+          "startMs": 44446,
+          "endMs": 44592
+        },
+        {
+          "text": "물어봐도",
+          "startMs": 44665,
+          "endMs": 45028
+        },
+        {
+          "text": "좋아요.",
+          "startMs": 45101,
+          "endMs": 45901
+        },
+        {
+          "text": "더",
+          "startMs": 45974,
+          "endMs": 46119
+        },
+        {
+          "text": "자세한",
+          "startMs": 46192,
+          "endMs": 46483
+        },
+        {
+          "text": "설명은",
+          "startMs": 46592,
+          "endMs": 47137
+        },
+        {
+          "text": "위고업잉글리시에서!",
+          "startMs": 47210,
+          "endMs": 48490
+        }
+      ]
+    }
+  ],
+  "slides": [
+    {
+      "id": "s1",
+      "startMs": 0,
+      "endMs": 3730
+    },
+    {
+      "id": "s2",
+      "startMs": 3730,
+      "endMs": 16630
+    },
+    {
+      "id": "s3",
+      "startMs": 16630,
+      "endMs": 33510
+    },
+    {
+      "id": "s4",
+      "startMs": 33510,
+      "endMs": 40570
+    },
+    {
+      "id": "s5",
+      "startMs": 40570,
+      "endMs": 49690
+    }
+  ],
+  "measured": true,
+  "audioFile": "narration.wav",
+  "loudnessLufs": -16.06,
+  "provider": "elevenlabs/eleven_v4"
+}

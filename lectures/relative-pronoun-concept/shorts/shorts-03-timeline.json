@@ -1,0 +1,672 @@
+{
+  "version": 1,
+  "totalMs": 46840,
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "startMs": 250,
+      "endMs": 3630,
+      "words": [
+        {
+          "text": "하는",
+          "startMs": 250,
+          "endMs": 531
+        },
+        {
+          "text": "걸로",
+          "startMs": 640,
+          "endMs": 785
+        },
+        {
+          "text": "할게요",
+          "startMs": 822,
+          "endMs": 1258
+        },
+        {
+          "text": "영어로",
+          "startMs": 1913,
+          "endMs": 2349
+        },
+        {
+          "text": "바로",
+          "startMs": 2495,
+          "endMs": 2640
+        },
+        {
+          "text": "말할",
+          "startMs": 2713,
+          "endMs": 2931
+        },
+        {
+          "text": "수",
+          "startMs": 3004,
+          "endMs": 3076
+        },
+        {
+          "text": "있나요?",
+          "startMs": 3149,
+          "endMs": 3630
+        }
+      ]
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 4110,
+      "endMs": 6560,
+      "words": [
+        {
+          "text": "오늘은",
+          "startMs": 4110,
+          "endMs": 4765
+        },
+        {
+          "text": "하는",
+          "startMs": 4837,
+          "endMs": 5055
+        },
+        {
+          "text": "걸로",
+          "startMs": 5128,
+          "endMs": 5310
+        },
+        {
+          "text": "할게요",
+          "startMs": 5346,
+          "endMs": 5710
+        },
+        {
+          "text": "패턴이에요.",
+          "startMs": 5855,
+          "endMs": 6560
+        }
+      ]
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "startMs": 6860,
+      "endMs": 8410,
+      "words": [
+        {
+          "text": "I'll",
+          "startMs": 6860,
+          "endMs": 7010
+        },
+        {
+          "text": "take",
+          "startMs": 7090,
+          "endMs": 7250
+        },
+        {
+          "text": "the",
+          "startMs": 7330,
+          "endMs": 7410
+        },
+        {
+          "text": "one",
+          "startMs": 7490,
+          "endMs": 7730
+        },
+        {
+          "text": "that.",
+          "startMs": 7810,
+          "endMs": 8410
+        }
+      ],
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 8710,
+      "endMs": 16200,
+      "words": [
+        {
+          "text": "여러",
+          "startMs": 8710,
+          "endMs": 9001
+        },
+        {
+          "text": "개",
+          "startMs": 9074,
+          "endMs": 9146
+        },
+        {
+          "text": "중에",
+          "startMs": 9219,
+          "endMs": 9510
+        },
+        {
+          "text": "하나를",
+          "startMs": 9583,
+          "endMs": 9946
+        },
+        {
+          "text": "고를",
+          "startMs": 10019,
+          "endMs": 10237
+        },
+        {
+          "text": "때",
+          "startMs": 10310,
+          "endMs": 10383
+        },
+        {
+          "text": "써요.",
+          "startMs": 10455,
+          "endMs": 11255
+        },
+        {
+          "text": "더",
+          "startMs": 11401,
+          "endMs": 11546
+        },
+        {
+          "text": "원은",
+          "startMs": 11619,
+          "endMs": 12274
+        },
+        {
+          "text": "그거라는",
+          "startMs": 12346,
+          "endMs": 13074
+        },
+        {
+          "text": "뜻이고,",
+          "startMs": 13146,
+          "endMs": 13946
+        },
+        {
+          "text": "댓",
+          "startMs": 14019,
+          "endMs": 14237
+        },
+        {
+          "text": "뒤에",
+          "startMs": 14346,
+          "endMs": 14674
+        },
+        {
+          "text": "어떤",
+          "startMs": 14746,
+          "endMs": 15110
+        },
+        {
+          "text": "건지",
+          "startMs": 15219,
+          "endMs": 15474
+        },
+        {
+          "text": "설명해요.",
+          "startMs": 15583,
+          "endMs": 16200
+        }
+      ]
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 16680,
+      "endMs": 18620,
+      "words": [
+        {
+          "text": "예문",
+          "startMs": 16680,
+          "endMs": 17044
+        },
+        {
+          "text": "세",
+          "startMs": 17116,
+          "endMs": 17262
+        },
+        {
+          "text": "개,",
+          "startMs": 17335,
+          "endMs": 17771
+        },
+        {
+          "text": "바로",
+          "startMs": 17844,
+          "endMs": 17989
+        },
+        {
+          "text": "갈게요!",
+          "startMs": 18062,
+          "endMs": 18620
+        }
+      ]
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 18920,
+      "endMs": 20640,
+      "words": [
+        {
+          "text": "I'll",
+          "startMs": 18920,
+          "endMs": 19070
+        },
+        {
+          "text": "take",
+          "startMs": 19150,
+          "endMs": 19310
+        },
+        {
+          "text": "the",
+          "startMs": 19350,
+          "endMs": 19390
+        },
+        {
+          "text": "one",
+          "startMs": 19470,
+          "endMs": 19630
+        },
+        {
+          "text": "that's",
+          "startMs": 19710,
+          "endMs": 19870
+        },
+        {
+          "text": "on",
+          "startMs": 19950,
+          "endMs": 20030
+        },
+        {
+          "text": "sale.",
+          "startMs": 20110,
+          "endMs": 20640
+        }
+      ]
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 20940,
+      "endMs": 22400,
+      "words": [
+        {
+          "text": "세일하는",
+          "startMs": 20940,
+          "endMs": 21522
+        },
+        {
+          "text": "걸로",
+          "startMs": 21595,
+          "endMs": 21740
+        },
+        {
+          "text": "할게요",
+          "startMs": 21849,
+          "endMs": 22400
+        }
+      ]
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 22700,
+      "endMs": 24600,
+      "words": [
+        {
+          "text": "I'll",
+          "startMs": 22700,
+          "endMs": 22850
+        },
+        {
+          "text": "take",
+          "startMs": 22970,
+          "endMs": 23090
+        },
+        {
+          "text": "the",
+          "startMs": 23130,
+          "endMs": 23170
+        },
+        {
+          "text": "one",
+          "startMs": 23250,
+          "endMs": 23410
+        },
+        {
+          "text": "that",
+          "startMs": 23490,
+          "endMs": 23570
+        },
+        {
+          "text": "comes",
+          "startMs": 23650,
+          "endMs": 23890
+        },
+        {
+          "text": "in",
+          "startMs": 23930,
+          "endMs": 23970
+        },
+        {
+          "text": "black.",
+          "startMs": 24050,
+          "endMs": 24600
+        }
+      ]
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 24900,
+      "endMs": 26830,
+      "words": [
+        {
+          "text": "검은색으로",
+          "startMs": 24900,
+          "endMs": 25627
+        },
+        {
+          "text": "나오는",
+          "startMs": 25700,
+          "endMs": 25991
+        },
+        {
+          "text": "걸로",
+          "startMs": 26064,
+          "endMs": 26245
+        },
+        {
+          "text": "할게요",
+          "startMs": 26282,
+          "endMs": 26830
+        }
+      ]
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 27130,
+      "endMs": 28740,
+      "words": [
+        {
+          "text": "I'll",
+          "startMs": 27130,
+          "endMs": 27290
+        },
+        {
+          "text": "take",
+          "startMs": 27370,
+          "endMs": 27530
+        },
+        {
+          "text": "the",
+          "startMs": 27570,
+          "endMs": 27610
+        },
+        {
+          "text": "one",
+          "startMs": 27690,
+          "endMs": 27850
+        },
+        {
+          "text": "that's",
+          "startMs": 27930,
+          "endMs": 28090
+        },
+        {
+          "text": "cheaper.",
+          "startMs": 28170,
+          "endMs": 28740
+        }
+      ]
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 29040,
+      "endMs": 30320,
+      "words": [
+        {
+          "text": "더",
+          "startMs": 29040,
+          "endMs": 29258
+        },
+        {
+          "text": "싼",
+          "startMs": 29367,
+          "endMs": 29476
+        },
+        {
+          "text": "걸로",
+          "startMs": 29549,
+          "endMs": 29695
+        },
+        {
+          "text": "할게요",
+          "startMs": 29804,
+          "endMs": 30320
+        }
+      ]
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "startMs": 30800,
+      "endMs": 32150,
+      "words": [
+        {
+          "text": "이제",
+          "startMs": 30800,
+          "endMs": 31226
+        },
+        {
+          "text": "따라",
+          "startMs": 31299,
+          "endMs": 31481
+        },
+        {
+          "text": "해",
+          "startMs": 31517,
+          "endMs": 31554
+        },
+        {
+          "text": "보세요!",
+          "startMs": 31590,
+          "endMs": 32150
+        }
+      ]
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "startMs": 32450,
+      "endMs": 34400,
+      "words": [
+        {
+          "text": "I'll",
+          "startMs": 32450,
+          "endMs": 32600
+        },
+        {
+          "text": "take",
+          "startMs": 32680,
+          "endMs": 32840
+        },
+        {
+          "text": "the",
+          "startMs": 32880,
+          "endMs": 32920
+        },
+        {
+          "text": "one",
+          "startMs": 33000,
+          "endMs": 33160
+        },
+        {
+          "text": "that",
+          "startMs": 33240,
+          "endMs": 33320
+        },
+        {
+          "text": "comes",
+          "startMs": 33400,
+          "endMs": 33640
+        },
+        {
+          "text": "in",
+          "startMs": 33720,
+          "endMs": 33800
+        },
+        {
+          "text": "black.",
+          "startMs": 33880,
+          "endMs": 34400
+        }
+      ],
+      "type": "repeat",
+      "speed": 1,
+      "pauseEndMs": 36740
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 37220,
+      "endMs": 45640,
+      "words": [
+        {
+          "text": "이",
+          "startMs": 37220,
+          "endMs": 37438
+        },
+        {
+          "text": "패턴,",
+          "startMs": 37547,
+          "endMs": 38165
+        },
+        {
+          "text": "쇼핑할",
+          "startMs": 38238,
+          "endMs": 38675
+        },
+        {
+          "text": "때",
+          "startMs": 38747,
+          "endMs": 38965
+        },
+        {
+          "text": "정말",
+          "startMs": 39038,
+          "endMs": 39402
+        },
+        {
+          "text": "유용해요.",
+          "startMs": 39475,
+          "endMs": 40420
+        },
+        {
+          "text": "다음에",
+          "startMs": 40493,
+          "endMs": 40784
+        },
+        {
+          "text": "가게에",
+          "startMs": 40856,
+          "endMs": 41147
+        },
+        {
+          "text": "가면",
+          "startMs": 41220,
+          "endMs": 41656
+        },
+        {
+          "text": "꼭",
+          "startMs": 41765,
+          "endMs": 41875
+        },
+        {
+          "text": "한",
+          "startMs": 41947,
+          "endMs": 42020
+        },
+        {
+          "text": "번",
+          "startMs": 42093,
+          "endMs": 42238
+        },
+        {
+          "text": "써",
+          "startMs": 42275,
+          "endMs": 42311
+        },
+        {
+          "text": "보세요.",
+          "startMs": 42384,
+          "endMs": 43111
+        },
+        {
+          "text": "더",
+          "startMs": 43184,
+          "endMs": 43329
+        },
+        {
+          "text": "자세한",
+          "startMs": 43402,
+          "endMs": 43693
+        },
+        {
+          "text": "설명은",
+          "startMs": 43802,
+          "endMs": 44347
+        },
+        {
+          "text": "위고업잉글리시에서!",
+          "startMs": 44420,
+          "endMs": 45640
+        }
+      ]
+    }
+  ],
+  "slides": [
+    {
+      "id": "s1",
+      "startMs": 0,
+      "endMs": 3870
+    },
+    {
+      "id": "s2",
+      "startMs": 3870,
+      "endMs": 16440
+    },
+    {
+      "id": "s3",
+      "startMs": 16440,
+      "endMs": 30560
+    },
+    {
+      "id": "s4",
+      "startMs": 30560,
+      "endMs": 36980
+    },
+    {
+      "id": "s5",
+      "startMs": 36980,
+      "endMs": 46840
+    }
+  ],
+  "measured": true,
+  "audioFile": "narration.wav",
+  "loudnessLufs": -16.06,
+  "provider": "elevenlabs/eleven_v4"
+}

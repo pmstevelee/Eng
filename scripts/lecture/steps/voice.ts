@@ -53,6 +53,8 @@ export interface VoiceOptions {
   repeatBed?: BedKind
   /** 배경음 크기 dBFS (기본 -34, -30보다 크게는 안 됨) */
   bedDb?: number
+  /** 한국어 보이스 id 바꾸기 (ElevenLabs만 — 숏폼은 LECTURE_SHORTS_KO_VOICE_ID) */
+  koVoiceId?: string
 }
 
 /** 음성을 만들 대상 — 본 강의(lectures/{slug}/) 또는 숏폼(lectures/{slug}/shorts/) */
@@ -122,7 +124,7 @@ export async function runVoiceFor(target: VoiceTarget, opts: VoiceOptions = {}):
     console.log(`  한국어 문장 속 영어를 분리했어요 (${split.changed}개 세그먼트 → 대본·검토 파일 갱신)`)
   }
 
-  const provider = createTtsProvider()
+  const provider = createTtsProvider({ koVoiceId: opts.koVoiceId })
   const hasDialogue = script.segments.some((s) => s.speaker)
   console.log(
     `▶ 음성 (${target.label}): ${provider.id} · ${provider.model} · 한국어 ${provider.voice('ko')} / 영어 ${provider.voice('en')}` +

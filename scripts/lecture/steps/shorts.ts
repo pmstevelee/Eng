@@ -101,7 +101,7 @@ export async function runShortsRender(slug: string, opts: ShortsRenderOptions = 
         files: { audioDir: p.audioDir, cleanDir: p.cleanDir, narration: p.narration, timeline: p.timeline, srt: p.srt, qa: p.qa },
         voiceCmd: `npm run shorts:render -- ${slug} --only ${n}`,
       },
-      { autoRetry: opts.autoRetry ?? 1, regenFailed: opts.regenFailed, regenIds: opts.regenIds, force: opts.force, skipQa: opts.skipQa, repeatBed: opts.repeatBed, bedDb: opts.bedDb },
+      { autoRetry: opts.autoRetry ?? 1, regenFailed: opts.regenFailed, regenIds: opts.regenIds, force: opts.force, skipQa: opts.skipQa, repeatBed: opts.repeatBed, bedDb: opts.bedDb, koVoiceId: process.env.LECTURE_SHORTS_KO_VOICE_ID?.trim() || undefined },
     )
     const sec = timeline.totalMs / 1000
     if (sec < SHORTS_LENGTH.minSec || sec > SHORTS_LENGTH.maxSec) {

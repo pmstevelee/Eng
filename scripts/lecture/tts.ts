@@ -112,12 +112,12 @@ const ELEVEN_EMOTION: Record<Emotion, { stability: number; style: number }> = {
   칭찬: { stability: 0.4, style: 0.4 },
 }
 
-function elevenLabs(): TtsProvider {
+function elevenLabs(opts: TtsProviderOptions = {}): TtsProvider {
   const key = env('ELEVENLABS_API_KEY')
   if (!key) throw new TtsError('ELEVENLABS_API_KEY가 없어요. .env.local에 넣어 주세요.')
   const model = env('LECTURE_ELEVENLABS_MODEL') || 'eleven_v4'
   const voices = {
-    ko: env('LECTURE_KO_VOICE_ID') || env('ELEVENLABS_KO_VOICE_ID'),
+    ko: opts.koVoiceId || env('LECTURE_KO_VOICE_ID') || env('ELEVENLABS_KO_VOICE_ID'),
     en: env('LECTURE_EN_VOICE_ID') || env('ELEVENLABS_EN_VOICE_ID'),
   }
   if (!voices.ko || !voices.en) throw new TtsError('LECTURE_KO_VOICE_ID·LECTURE_EN_VOICE_ID(ElevenLabs 보이스 id)를 .env.local에 넣어 주세요.')
@@ -237,9 +237,14 @@ function openai(): TtsProvider {
   }
 }
 
-export function createTtsProvider(): TtsProvider {
+export interface TtsProviderOptions {
+  /** 한국어 보이스 id를 이 실행에서만 바꾸기 (ElevenLabs만 — 숏폼 전용 보이스 LECTURE_SHORTS_KO_VOICE_ID) */
+  koVoiceId?: string
+}
+
+export function createTtsProvider(opts: TtsProviderOptions = {}): TtsProvider {
   const id = (env('LECTURE_TTS_PROVIDER') || 'elevenlabs').toLowerCase()
-  if (id === 'elevenlabs') return elevenLabs()
+  if (id === 'elevenlabs') return elevenLabs(opts)
   if (id === 'google') return google()
   if (id === 'openai') return openai()
   throw new TtsError(`LECTURE_TTS_PROVIDER "${id}"는 지원하지 않아요 (elevenlabs | google | openai).`)

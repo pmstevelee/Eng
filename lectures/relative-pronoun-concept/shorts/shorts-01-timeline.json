@@ -1,0 +1,667 @@
+{
+  "version": 1,
+  "totalMs": 48391,
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "startMs": 250,
+      "endMs": 3340,
+      "words": [
+        {
+          "text": "하는",
+          "startMs": 250,
+          "endMs": 531
+        },
+        {
+          "text": "곳",
+          "startMs": 604,
+          "endMs": 895
+        },
+        {
+          "text": "알아",
+          "startMs": 1185,
+          "endMs": 1549
+        },
+        {
+          "text": "영어로",
+          "startMs": 1658,
+          "endMs": 2058
+        },
+        {
+          "text": "바로",
+          "startMs": 2131,
+          "endMs": 2349
+        },
+        {
+          "text": "말할",
+          "startMs": 2422,
+          "endMs": 2640
+        },
+        {
+          "text": "수",
+          "startMs": 2676,
+          "endMs": 2713
+        },
+        {
+          "text": "있나요?",
+          "startMs": 2785,
+          "endMs": 3340
+        }
+      ]
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 3820,
+      "endMs": 6200,
+      "words": [
+        {
+          "text": "오늘은",
+          "startMs": 3820,
+          "endMs": 4475
+        },
+        {
+          "text": "하는",
+          "startMs": 4547,
+          "endMs": 4838
+        },
+        {
+          "text": "곳",
+          "startMs": 4911,
+          "endMs": 5129
+        },
+        {
+          "text": "알아",
+          "startMs": 5202,
+          "endMs": 5347
+        },
+        {
+          "text": "패턴이에요.",
+          "startMs": 5420,
+          "endMs": 6200
+        }
+      ]
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "startMs": 6500,
+      "endMs": 7820,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 6500,
+          "endMs": 6670
+        },
+        {
+          "text": "know",
+          "startMs": 6750,
+          "endMs": 6830
+        },
+        {
+          "text": "a",
+          "startMs": 6910,
+          "endMs": 6990
+        },
+        {
+          "text": "place",
+          "startMs": 7150,
+          "endMs": 7310
+        },
+        {
+          "text": "that.",
+          "startMs": 7510,
+          "endMs": 7820
+        }
+      ],
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 8120,
+      "endMs": 15480,
+      "words": [
+        {
+          "text": "어",
+          "startMs": 8120,
+          "endMs": 8338
+        },
+        {
+          "text": "플레이스",
+          "startMs": 8484,
+          "endMs": 8993
+        },
+        {
+          "text": "뒤에",
+          "startMs": 9065,
+          "endMs": 9429
+        },
+        {
+          "text": "댓을",
+          "startMs": 9575,
+          "endMs": 9793
+        },
+        {
+          "text": "붙이고,",
+          "startMs": 9938,
+          "endMs": 10665
+        },
+        {
+          "text": "어떤",
+          "startMs": 10775,
+          "endMs": 11029
+        },
+        {
+          "text": "곳인지",
+          "startMs": 11138,
+          "endMs": 11538
+        },
+        {
+          "text": "설명해요.",
+          "startMs": 11611,
+          "endMs": 12629
+        },
+        {
+          "text": "친구에게",
+          "startMs": 12775,
+          "endMs": 13284
+        },
+        {
+          "text": "좋은",
+          "startMs": 13356,
+          "endMs": 13575
+        },
+        {
+          "text": "곳을",
+          "startMs": 13647,
+          "endMs": 13865
+        },
+        {
+          "text": "추천할",
+          "startMs": 13938,
+          "endMs": 14375
+        },
+        {
+          "text": "때",
+          "startMs": 14447,
+          "endMs": 14738
+        },
+        {
+          "text": "딱이에요.",
+          "startMs": 14884,
+          "endMs": 15480
+        }
+      ]
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 15960,
+      "endMs": 18030,
+      "words": [
+        {
+          "text": "예문",
+          "startMs": 15960,
+          "endMs": 16324
+        },
+        {
+          "text": "세",
+          "startMs": 16396,
+          "endMs": 16542
+        },
+        {
+          "text": "개",
+          "startMs": 16724,
+          "endMs": 16905
+        },
+        {
+          "text": "바로",
+          "startMs": 17051,
+          "endMs": 17342
+        },
+        {
+          "text": "들어갑니다!",
+          "startMs": 17378,
+          "endMs": 18030
+        }
+      ]
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 18330,
+      "endMs": 20670,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 18330,
+          "endMs": 18510
+        },
+        {
+          "text": "know",
+          "startMs": 18590,
+          "endMs": 18670
+        },
+        {
+          "text": "a",
+          "startMs": 18710,
+          "endMs": 18750
+        },
+        {
+          "text": "place",
+          "startMs": 18830,
+          "endMs": 19070
+        },
+        {
+          "text": "that",
+          "startMs": 19150,
+          "endMs": 19230
+        },
+        {
+          "text": "has",
+          "startMs": 19390,
+          "endMs": 19550
+        },
+        {
+          "text": "great",
+          "startMs": 19750,
+          "endMs": 19950
+        },
+        {
+          "text": "coffee.",
+          "startMs": 20030,
+          "endMs": 20670
+        }
+      ]
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 20970,
+      "endMs": 22575,
+      "words": [
+        {
+          "text": "커피",
+          "startMs": 20970,
+          "endMs": 21261
+        },
+        {
+          "text": "맛있는",
+          "startMs": 21406,
+          "endMs": 21770
+        },
+        {
+          "text": "곳",
+          "startMs": 21843,
+          "endMs": 21915
+        },
+        {
+          "text": "알아",
+          "startMs": 21988,
+          "endMs": 22570
+        }
+      ]
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 22875,
+      "endMs": 24665,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 22875,
+          "endMs": 23025
+        },
+        {
+          "text": "know",
+          "startMs": 23105,
+          "endMs": 23185
+        },
+        {
+          "text": "a",
+          "startMs": 23225,
+          "endMs": 23265
+        },
+        {
+          "text": "place",
+          "startMs": 23345,
+          "endMs": 23585
+        },
+        {
+          "text": "that's",
+          "startMs": 23665,
+          "endMs": 23825
+        },
+        {
+          "text": "open",
+          "startMs": 23905,
+          "endMs": 24145
+        },
+        {
+          "text": "late.",
+          "startMs": 24345,
+          "endMs": 24665
+        }
+      ]
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 24965,
+      "endMs": 26595,
+      "words": [
+        {
+          "text": "늦게까지",
+          "startMs": 24965,
+          "endMs": 25547
+        },
+        {
+          "text": "하는",
+          "startMs": 25692,
+          "endMs": 25838
+        },
+        {
+          "text": "곳",
+          "startMs": 25983,
+          "endMs": 26129
+        },
+        {
+          "text": "알아",
+          "startMs": 26201,
+          "endMs": 26595
+        }
+      ]
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 26895,
+      "endMs": 29285,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 26895,
+          "endMs": 27085
+        },
+        {
+          "text": "know",
+          "startMs": 27165,
+          "endMs": 27245
+        },
+        {
+          "text": "a",
+          "startMs": 27285,
+          "endMs": 27325
+        },
+        {
+          "text": "place",
+          "startMs": 27405,
+          "endMs": 27725
+        },
+        {
+          "text": "that's",
+          "startMs": 27805,
+          "endMs": 28125
+        },
+        {
+          "text": "really",
+          "startMs": 28205,
+          "endMs": 28605
+        },
+        {
+          "text": "quiet.",
+          "startMs": 28685,
+          "endMs": 29285
+        }
+      ]
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 29585,
+      "endMs": 31575,
+      "words": [
+        {
+          "text": "진짜",
+          "startMs": 29585,
+          "endMs": 30167
+        },
+        {
+          "text": "조용한",
+          "startMs": 30240,
+          "endMs": 30676
+        },
+        {
+          "text": "곳",
+          "startMs": 30858,
+          "endMs": 31040
+        },
+        {
+          "text": "알아",
+          "startMs": 31112,
+          "endMs": 31575
+        }
+      ]
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "startMs": 32055,
+      "endMs": 33825,
+      "words": [
+        {
+          "text": "이제",
+          "startMs": 32055,
+          "endMs": 32491
+        },
+        {
+          "text": "따라",
+          "startMs": 32564,
+          "endMs": 32710
+        },
+        {
+          "text": "해",
+          "startMs": 32782,
+          "endMs": 32855
+        },
+        {
+          "text": "볼",
+          "startMs": 32928,
+          "endMs": 33000
+        },
+        {
+          "text": "시간입니다!",
+          "startMs": 33073,
+          "endMs": 33825
+        }
+      ]
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "startMs": 34125,
+      "endMs": 36505,
+      "words": [
+        {
+          "text": "I",
+          "startMs": 34125,
+          "endMs": 34275
+        },
+        {
+          "text": "know",
+          "startMs": 34355,
+          "endMs": 34435
+        },
+        {
+          "text": "a",
+          "startMs": 34475,
+          "endMs": 34515
+        },
+        {
+          "text": "place",
+          "startMs": 34595,
+          "endMs": 34915
+        },
+        {
+          "text": "that",
+          "startMs": 34955,
+          "endMs": 34995
+        },
+        {
+          "text": "has",
+          "startMs": 35075,
+          "endMs": 35315
+        },
+        {
+          "text": "great",
+          "startMs": 35395,
+          "endMs": 35795
+        },
+        {
+          "text": "coffee.",
+          "startMs": 35875,
+          "endMs": 36505
+        }
+      ],
+      "type": "repeat",
+      "speed": 1,
+      "pauseEndMs": 39361
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 39841,
+      "endMs": 47191,
+      "words": [
+        {
+          "text": "좋은",
+          "startMs": 39841,
+          "endMs": 40132
+        },
+        {
+          "text": "장소를",
+          "startMs": 40277,
+          "endMs": 40568
+        },
+        {
+          "text": "소개할",
+          "startMs": 40641,
+          "endMs": 41005
+        },
+        {
+          "text": "때",
+          "startMs": 41077,
+          "endMs": 41296
+        },
+        {
+          "text": "정말",
+          "startMs": 41441,
+          "endMs": 41805
+        },
+        {
+          "text": "유용해요.",
+          "startMs": 41877,
+          "endMs": 42750
+        },
+        {
+          "text": "오늘",
+          "startMs": 42823,
+          "endMs": 43186
+        },
+        {
+          "text": "꼭",
+          "startMs": 43259,
+          "endMs": 43405
+        },
+        {
+          "text": "한",
+          "startMs": 43477,
+          "endMs": 43550
+        },
+        {
+          "text": "번",
+          "startMs": 43623,
+          "endMs": 43696
+        },
+        {
+          "text": "써",
+          "startMs": 43768,
+          "endMs": 43841
+        },
+        {
+          "text": "보세요.",
+          "startMs": 43914,
+          "endMs": 44641
+        },
+        {
+          "text": "더",
+          "startMs": 44714,
+          "endMs": 44786
+        },
+        {
+          "text": "자세한",
+          "startMs": 44932,
+          "endMs": 45223
+        },
+        {
+          "text": "설명은",
+          "startMs": 45296,
+          "endMs": 45805
+        },
+        {
+          "text": "위고업잉글리시에서!",
+          "startMs": 45950,
+          "endMs": 47191
+        }
+      ]
+    }
+  ],
+  "slides": [
+    {
+      "id": "s1",
+      "startMs": 0,
+      "endMs": 3580
+    },
+    {
+      "id": "s2",
+      "startMs": 3580,
+      "endMs": 15720
+    },
+    {
+      "id": "s3",
+      "startMs": 15720,
+      "endMs": 31815
+    },
+    {
+      "id": "s4",
+      "startMs": 31815,
+      "endMs": 39601
+    },
+    {
+      "id": "s5",
+      "startMs": 39601,
+      "endMs": 48391
+    }
+  ],
+  "measured": true,
+  "audioFile": "narration.wav",
+  "loudnessLufs": -16.05,
+  "provider": "elevenlabs/eleven_v4"
+}

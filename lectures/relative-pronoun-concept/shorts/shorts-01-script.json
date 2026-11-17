@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "slug": "relative-pronoun-concept-shorts-01",
+  "title": "관계대명사의 개념 숏폼 1 — I know a place that ~.",
+  "grammarPoint": {
+    "code": "G10-01-01",
+    "title": "관계대명사의 개념"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-11-15T22:49:22.381Z",
+  "format": "shorts",
+  "tempo": {
+    "koSpeedScale": 1.1,
+    "enSpeed": 1,
+    "gapScale": 0.6,
+    "leadInMs": 250,
+    "tailMs": 1200,
+    "repeatPause": {
+      "factor": 1.2,
+      "extraSec": 0
+    }
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "hook",
+      "data": {
+        "question": "'~하는 곳 알아' 영어로 바로 말할 수 있나요?",
+        "sub": "바로 떠올려 보세요"
+      },
+      "chapter": "훅"
+    },
+    {
+      "id": "s2",
+      "type": "pattern",
+      "data": {
+        "pattern": "I know a place that ~.",
+        "ko": "~하는 곳 알아",
+        "slot": "동사"
+      },
+      "chapter": "패턴"
+    },
+    {
+      "id": "s3",
+      "type": "examples",
+      "data": {
+        "examples": [
+          {
+            "en": "I know a place that has great coffee.",
+            "ko": "커피 맛있는 곳 알아"
+          },
+          {
+            "en": "I know a place that's open late.",
+            "ko": "늦게까지 하는 곳 알아"
+          },
+          {
+            "en": "I know a place that's really quiet.",
+            "ko": "진짜 조용한 곳 알아"
+          }
+        ]
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "repeat",
+      "data": {
+        "sentence": "I know a place that has great coffee.",
+        "ko": "커피 맛있는 곳 알아",
+        "stress": [
+          "know",
+          "place",
+          "great",
+          "coffee"
+        ],
+        "links": [
+          {
+            "text": "place that",
+            "hint": "플레이스댓"
+          }
+        ]
+      },
+      "chapter": "따라하기"
+    },
+    {
+      "id": "s5",
+      "type": "cta",
+      "data": {
+        "lectureTitle": "관계대명사의 개념",
+        "message": "더 자세한 설명은 위고업잉글리시에서!"
+      },
+      "chapter": "위고업잉글리시 안내"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "'~하는 곳 알아' 영어로 바로 말할 수 있나요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "오늘은 '~하는 곳 알아' 패턴이에요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "I know a place that ….",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "어 플레이스 뒤에 댓을 붙이고, 어떤 곳인지 설명해요. 친구에게 좋은 곳을 추천할 때 딱이에요.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "예문 세 개 바로 들어갑니다!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I know a place that has great coffee.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "커피 맛있는 곳 알아",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I know a place that's open late.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "늦게까지 하는 곳 알아",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "I know a place that's really quiet.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "진짜 조용한 곳 알아",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이제 따라 해 볼 시간입니다!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "I know a place that has great coffee.",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "좋은 장소를 소개할 때 정말 유용해요. 오늘 꼭 한 번 써 보세요. 더 자세한 설명은 위고업잉글리시에서!",
+      "emotion": "칭찬"
+    }
+  ]
+}

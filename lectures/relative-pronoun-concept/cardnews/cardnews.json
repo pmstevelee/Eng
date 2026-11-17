@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "slug": "relative-pronoun-concept",
+  "title": "관계대명사의 개념",
+  "cards": [
+    {
+      "type": "cover",
+      "topic": "관계대명사 핵심",
+      "hook": "who? which? that? 언제 쓸까",
+      "label": "중학 영문법"
+    },
+    {
+      "type": "question",
+      "sentence": "I have a friend who she lives in Busan.",
+      "prompt": "이거 맞을까요?",
+      "hint": "who 뒤에 she를 또 쓸까요?"
+    },
+    {
+      "type": "rule",
+      "heading": "관계대명사란?",
+      "lines": [
+        "**명사** 뒤에 **설명**을 붙여 주는 말",
+        "두 문장을 하나로 이어 줘요"
+      ],
+      "example": {
+        "en": "I have a friend who lives in Busan.",
+        "ko": "나 부산에 사는 친구 있어"
+      }
+    },
+    {
+      "type": "rule",
+      "heading": "기본 공식",
+      "formula": [
+        "명사",
+        "who/which/that",
+        "동사 ~"
+      ],
+      "lines": [
+        "명사 바로 뒤에서 꾸며 줘요"
+      ],
+      "example": {
+        "en": "I like movies that make me laugh.",
+        "ko": "난 웃긴 영화가 좋아"
+      }
+    },
+    {
+      "type": "rule",
+      "heading": "who·which·that 구별",
+      "formula": [
+        "사람+who",
+        "사물+which",
+        "둘 다+that"
+      ],
+      "lines": [
+        "일상에선 사물에 that을 더 자주"
+      ],
+      "example": {
+        "en": "This is the bus that goes downtown.",
+        "ko": "이게 시내로 가는 버스예요"
+      }
+    },
+    {
+      "type": "mistakes",
+      "heading": "흔한 실수 TOP 3",
+      "items": [
+        {
+          "wrong": "who she",
+          "right": "who"
+        },
+        {
+          "wrong": "girl which",
+          "right": "girl who"
+        },
+        {
+          "wrong": "phone what",
+          "right": "phone that"
+        }
+      ]
+    },
+    {
+      "type": "quiz",
+      "question": "빈칸에 알맞은 말을 고르세요.",
+      "sentence": "I have a cousin ___ lives in Canada.",
+      "choices": [
+        "who",
+        "which",
+        "he"
+      ]
+    },
+    {
+      "type": "answer",
+      "answer": "who",
+      "sentence": "I have a cousin who lives in Canada.",
+      "explanation": "사람(cousin)이라 who. he는 문장을 못 이어요."
+    },
+    {
+      "type": "pattern",
+      "pattern": "Do you know anyone who ~?",
+      "slot": "동사",
+      "ko": "~하는 사람 알아?",
+      "example": {
+        "en": "Do you know anyone who can help?",
+        "ko": "도와줄 수 있는 사람 알아?"
+      }
+    },
+    {
+      "type": "cta",
+      "lectureTitle": "관계대명사의 개념",
+      "message": "저장하고 복습하세요"
+    }
+  ]
+}

@@ -185,6 +185,7 @@
 - 1440p 캡처는 가끔 빈 화면 프레임이 1~2장 끼어듦(깜박임) → 30초 조각 렌더(음성 없이) + `scripts/lecture/frame-check.ts` 검사·재렌더 → concat(-c copy) + narration.wav → 완성본 재검사. 이 검사를 빼지 말 것
 - 일상회화 패턴 파트: 슬라이드 `pattern`(빈칸 `~`) → `dialogue`(A 남/B 여 원어민) → `repeat`(0.85배 → 1.0배, 대기 = 길이×1.5+1초). 원어민 세그먼트(type pattern/dialogue/repeat)는 AI가 아니라 `repairPatternSegments()`(`src/lib/lecture-pipeline/patterns.ts`)가 화면 데이터로 만든다. `--patterns N`
 - 숏폼(`npm run shorts`/`shorts:render`): 패턴 1개 = 1편, 대본은 같은 LectureScript 형식(`format: "shorts"`, `tempo` = 한국어 1.1배·대기 ×1.2)이라 `runVoiceFor()`를 그대로 쓴다. 1080×1920, 안전영역 `SHORTS_SAFE`(아래 20%·오른쪽 버튼 줄 글 금지). 출력 `lectures/{slug}/shorts/`
+  - 숏폼 한국어 보이스는 `LECTURE_SHORTS_KO_VOICE_ID`(2026-11-17부터 sooyoung, 사용자 클론 보이스) — 본 강의는 `LECTURE_KO_VOICE_ID`(sunyong) 그대로. `createTtsProvider({ koVoiceId })`로 숏폼에서만 바꾼다
 - 카드뉴스(`npm run cardnews`/`cardnews:render`): `cardnews/cardnews.json` → Remotion still 1080×1350, 한 장 5줄·40px 이상(`cardTextBlocks`/`cardLines`로 검사)
 - eleven_v4는 `voice_settings.speed`를 무시한다 → 속도를 정한 세그먼트만 음성 단계에서 ffmpeg atempo로 바꾼다(`provider.appliesSpeed`). 기존 강의 음성 캐시 키는 바뀌지 않게 유지할 것
 - 네이버 블로그(`npm run blog`/`blog:publish`): `lectures/{slug}/blog/` (keywords.md · blog-post.md · blog-meta.json · publish-log.md · images/ · screenshots/). 원고 형식·검사 `src/lib/lecture-pipeline/blog.ts`, AI `scripts/lecture/ai-blog.ts`(유튜브 설명·카드뉴스 캡션 한국어 문장 재사용 금지)
