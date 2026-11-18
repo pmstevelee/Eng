@@ -1,0 +1,607 @@
+{
+  "version": 1,
+  "totalMs": 45520,
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "startMs": 250,
+      "endMs": 3040,
+      "words": [
+        {
+          "text": "먼저",
+          "startMs": 250,
+          "endMs": 614
+        },
+        {
+          "text": "주문해",
+          "startMs": 723,
+          "endMs": 1268
+        },
+        {
+          "text": "영어로",
+          "startMs": 1414,
+          "endMs": 1777
+        },
+        {
+          "text": "바로",
+          "startMs": 1850,
+          "endMs": 2068
+        },
+        {
+          "text": "말할",
+          "startMs": 2141,
+          "endMs": 2359
+        },
+        {
+          "text": "수",
+          "startMs": 2432,
+          "endMs": 2505
+        },
+        {
+          "text": "있나요?",
+          "startMs": 2577,
+          "endMs": 3040
+        }
+      ]
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 3520,
+      "endMs": 6100,
+      "words": [
+        {
+          "text": "오늘",
+          "startMs": 3520,
+          "endMs": 3811
+        },
+        {
+          "text": "패턴은",
+          "startMs": 3884,
+          "endMs": 4465
+        },
+        {
+          "text": "고",
+          "startMs": 4611,
+          "endMs": 4829
+        },
+        {
+          "text": "어헤드",
+          "startMs": 4902,
+          "endMs": 5338
+        },
+        {
+          "text": "앤드예요.",
+          "startMs": 5411,
+          "endMs": 6100
+        }
+      ]
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "startMs": 6400,
+      "endMs": 7760,
+      "words": [
+        {
+          "text": "Go",
+          "startMs": 6400,
+          "endMs": 6620
+        },
+        {
+          "text": "ahead",
+          "startMs": 6700,
+          "endMs": 7100
+        },
+        {
+          "text": "and.",
+          "startMs": 7180,
+          "endMs": 7760
+        }
+      ],
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 8060,
+      "endMs": 20580,
+      "words": [
+        {
+          "text": "기다리지",
+          "startMs": 8060,
+          "endMs": 8569
+        },
+        {
+          "text": "말고",
+          "startMs": 8642,
+          "endMs": 9078
+        },
+        {
+          "text": "먼저",
+          "startMs": 9224,
+          "endMs": 9442
+        },
+        {
+          "text": "하라고",
+          "startMs": 9515,
+          "endMs": 9733
+        },
+        {
+          "text": "할",
+          "startMs": 9878,
+          "endMs": 9951
+        },
+        {
+          "text": "때",
+          "startMs": 10024,
+          "endMs": 10096
+        },
+        {
+          "text": "써요.",
+          "startMs": 10169,
+          "endMs": 10969
+        },
+        {
+          "text": "늦는",
+          "startMs": 11115,
+          "endMs": 11333
+        },
+        {
+          "text": "친구가",
+          "startMs": 11405,
+          "endMs": 11915
+        },
+        {
+          "text": "먼저",
+          "startMs": 12060,
+          "endMs": 12278
+        },
+        {
+          "text": "주문하라고",
+          "startMs": 12424,
+          "endMs": 12860
+        },
+        {
+          "text": "할",
+          "startMs": 12933,
+          "endMs": 13078
+        },
+        {
+          "text": "때",
+          "startMs": 13151,
+          "endMs": 13369
+        },
+        {
+          "text": "딱이죠.",
+          "startMs": 13515,
+          "endMs": 14460
+        },
+        {
+          "text": "앞의",
+          "startMs": 14605,
+          "endMs": 14751
+        },
+        {
+          "text": "동사와",
+          "startMs": 14896,
+          "endMs": 15478
+        },
+        {
+          "text": "뒤의",
+          "startMs": 15551,
+          "endMs": 15769
+        },
+        {
+          "text": "동사를",
+          "startMs": 15915,
+          "endMs": 16496
+        },
+        {
+          "text": "앤드로",
+          "startMs": 16642,
+          "endMs": 17078
+        },
+        {
+          "text": "이은",
+          "startMs": 17151,
+          "endMs": 17296
+        },
+        {
+          "text": "말이라,",
+          "startMs": 17442,
+          "endMs": 18242
+        },
+        {
+          "text": "앤드",
+          "startMs": 18387,
+          "endMs": 18678
+        },
+        {
+          "text": "뒤에는",
+          "startMs": 18751,
+          "endMs": 19333
+        },
+        {
+          "text": "동사원형을",
+          "startMs": 19478,
+          "endMs": 20133
+        },
+        {
+          "text": "써요.",
+          "startMs": 20278,
+          "endMs": 20580
+        }
+      ]
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 21060,
+      "endMs": 23060,
+      "words": [
+        {
+          "text": "예문",
+          "startMs": 21060,
+          "endMs": 21424
+        },
+        {
+          "text": "세",
+          "startMs": 21496,
+          "endMs": 21642
+        },
+        {
+          "text": "개,",
+          "startMs": 21715,
+          "endMs": 22224
+        },
+        {
+          "text": "바로",
+          "startMs": 22296,
+          "endMs": 22442
+        },
+        {
+          "text": "갈게요!",
+          "startMs": 22515,
+          "endMs": 23060
+        }
+      ]
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 23360,
+      "endMs": 24550,
+      "words": [
+        {
+          "text": "Go",
+          "startMs": 23360,
+          "endMs": 23570
+        },
+        {
+          "text": "ahead",
+          "startMs": 23730,
+          "endMs": 23890
+        },
+        {
+          "text": "and",
+          "startMs": 23930,
+          "endMs": 23970
+        },
+        {
+          "text": "order.",
+          "startMs": 24050,
+          "endMs": 24550
+        }
+      ]
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 24850,
+      "endMs": 25890,
+      "words": [
+        {
+          "text": "먼저",
+          "startMs": 24850,
+          "endMs": 25286
+        },
+        {
+          "text": "주문해",
+          "startMs": 25395,
+          "endMs": 25890
+        }
+      ]
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 26190,
+      "endMs": 27930,
+      "words": [
+        {
+          "text": "Go",
+          "startMs": 26190,
+          "endMs": 26350
+        },
+        {
+          "text": "ahead",
+          "startMs": 26430,
+          "endMs": 26670
+        },
+        {
+          "text": "and",
+          "startMs": 26750,
+          "endMs": 26830
+        },
+        {
+          "text": "start",
+          "startMs": 26990,
+          "endMs": 27230
+        },
+        {
+          "text": "without",
+          "startMs": 27390,
+          "endMs": 27550
+        },
+        {
+          "text": "me.",
+          "startMs": 27630,
+          "endMs": 27930
+        }
+      ]
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 28230,
+      "endMs": 29950,
+      "words": [
+        {
+          "text": "나",
+          "startMs": 28230,
+          "endMs": 28345
+        },
+        {
+          "text": "없이",
+          "startMs": 28418,
+          "endMs": 28855
+        },
+        {
+          "text": "먼저",
+          "startMs": 29073,
+          "endMs": 29291
+        },
+        {
+          "text": "시작해",
+          "startMs": 29364,
+          "endMs": 29950
+        }
+      ]
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 30250,
+      "endMs": 31710,
+      "words": [
+        {
+          "text": "Go",
+          "startMs": 30250,
+          "endMs": 30410
+        },
+        {
+          "text": "ahead",
+          "startMs": 30490,
+          "endMs": 30810
+        },
+        {
+          "text": "and",
+          "startMs": 30890,
+          "endMs": 30970
+        },
+        {
+          "text": "open",
+          "startMs": 31130,
+          "endMs": 31370
+        },
+        {
+          "text": "it.",
+          "startMs": 31490,
+          "endMs": 31710
+        }
+      ]
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 32010,
+      "endMs": 33180,
+      "words": [
+        {
+          "text": "먼저",
+          "startMs": 32010,
+          "endMs": 32509
+        },
+        {
+          "text": "열어봐",
+          "startMs": 32582,
+          "endMs": 33180
+        }
+      ]
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "startMs": 33660,
+      "endMs": 35000,
+      "words": [
+        {
+          "text": "이제",
+          "startMs": 33660,
+          "endMs": 34096
+        },
+        {
+          "text": "따라",
+          "startMs": 34169,
+          "endMs": 34315
+        },
+        {
+          "text": "해",
+          "startMs": 34351,
+          "endMs": 34387
+        },
+        {
+          "text": "보세요!",
+          "startMs": 34460,
+          "endMs": 35000
+        }
+      ]
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "startMs": 35300,
+      "endMs": 36450,
+      "words": [
+        {
+          "text": "Go",
+          "startMs": 35300,
+          "endMs": 35530
+        },
+        {
+          "text": "ahead",
+          "startMs": 35650,
+          "endMs": 35770
+        },
+        {
+          "text": "and",
+          "startMs": 35810,
+          "endMs": 35850
+        },
+        {
+          "text": "order.",
+          "startMs": 35930,
+          "endMs": 36450
+        }
+      ],
+      "type": "repeat",
+      "speed": 1,
+      "pauseEndMs": 37830
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 38310,
+      "endMs": 44320,
+      "words": [
+        {
+          "text": "상대방에게",
+          "startMs": 38310,
+          "endMs": 39100
+        },
+        {
+          "text": "먼저",
+          "startMs": 39245,
+          "endMs": 39464
+        },
+        {
+          "text": "하라고",
+          "startMs": 39536,
+          "endMs": 39755
+        },
+        {
+          "text": "말할",
+          "startMs": 39827,
+          "endMs": 40118
+        },
+        {
+          "text": "때",
+          "startMs": 40191,
+          "endMs": 40482
+        },
+        {
+          "text": "꼭",
+          "startMs": 40627,
+          "endMs": 40773
+        },
+        {
+          "text": "써",
+          "startMs": 40845,
+          "endMs": 40918
+        },
+        {
+          "text": "보세요.",
+          "startMs": 40991,
+          "endMs": 41791
+        },
+        {
+          "text": "더",
+          "startMs": 41864,
+          "endMs": 41936
+        },
+        {
+          "text": "자세한",
+          "startMs": 42009,
+          "endMs": 42373
+        },
+        {
+          "text": "설명은",
+          "startMs": 42445,
+          "endMs": 42955
+        },
+        {
+          "text": "위고업잉글리시에서!",
+          "startMs": 43027,
+          "endMs": 44320
+        }
+      ]
+    }
+  ],
+  "slides": [
+    {
+      "id": "s1",
+      "startMs": 0,
+      "endMs": 3280
+    },
+    {
+      "id": "s2",
+      "startMs": 3280,
+      "endMs": 20820
+    },
+    {
+      "id": "s3",
+      "startMs": 20820,
+      "endMs": 33420
+    },
+    {
+      "id": "s4",
+      "startMs": 33420,
+      "endMs": 38070
+    },
+    {
+      "id": "s5",
+      "startMs": 38070,
+      "endMs": 45520
+    }
+  ],
+  "measured": true,
+  "audioFile": "narration.wav",
+  "loudnessLufs": -16.05,
+  "provider": "elevenlabs/eleven_v4"
+}

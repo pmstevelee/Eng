@@ -1,0 +1,608 @@
+{
+  "code": "G09-01-01",
+  "summary": "and·but·or·so는 말과 말을 이어 주는 말이에요. and는 더하기(그리고), but은 반대(하지만), or는 선택(또는), so는 결과(그래서)예요. 단어와 단어, 구와 구, 문장과 문장처럼 같은 종류·같은 모양끼리 이어요. 문장과 문장을 이을 때는 접속사 앞에 쉼표를 찍고, 셋 이상은 A, B, and C로 써요. so는 문장과 문장만 잇고, because와 so는 같이 쓰지 않아요. 부정문에서 'A도 B도 아니다'는 or를 써요.",
+  "rules": [
+    {
+      "text": "짧은 문장을 뚝뚝 끊어 말하면 어색해요. and·but·or·so는 말과 말을 이어 주는 말(접속사)이에요.",
+      "formula": "I like pizza. I like pasta. → I like pizza and pasta."
+    },
+    {
+      "text": "and는 '그리고'예요. 비슷한 내용을 더할 때 써요.",
+      "formula": "She's smart and funny."
+    },
+    {
+      "text": "but은 '하지만'이에요. 앞과 반대되는 내용을 말할 때 써요.",
+      "formula": "This place is small but cozy."
+    },
+    {
+      "text": "or는 '또는, 아니면'이에요. 둘 중 하나를 고를 때 써요.",
+      "formula": "Should we eat out or order in?"
+    },
+    {
+      "text": "so는 '그래서'예요. 앞이 원인, 뒤가 결과예요.",
+      "formula": "I missed the bus, so I was late."
+    },
+    {
+      "text": "같은 종류끼리 이어요. 단어와 단어, 구와 구, 문장과 문장을 이어요.",
+      "formula": "A + and·but·or + B: pizza and pasta / walk or take the bus"
+    },
+    {
+      "text": "모양도 맞춰요. 앞이 -ing면 뒤도 -ing로 써요.",
+      "formula": "I like singing and dancing."
+    },
+    {
+      "text": "문장과 문장을 이을 때는 접속사 앞에 쉼표를 찍어요. 문장이 아주 짧으면 쉼표를 빼기도 해요.",
+      "formula": "문장, + and·but·or·so + 문장: I called you, but you didn't answer."
+    },
+    {
+      "text": "주어가 같으면 and·but·or 뒤의 주어를 빼도 돼요. 이때는 쉼표를 찍지 않아요.",
+      "formula": "I got home and took a shower."
+    },
+    {
+      "text": "셋 이상을 늘어놓을 때는 쉼표로 잇고, 마지막 말 앞에 and나 or를 한 번만 써요. and 앞의 쉼표는 빼기도 해요.",
+      "formula": "A, B, and C: We need eggs, milk, and bread."
+    },
+    {
+      "text": "so(그래서)는 문장과 문장만 이어요. 그리고 because와 so는 한 문장에 같이 쓰지 않아요. 하나만 써요.",
+      "formula": "Because I was tired, so I went to bed. (X) → I was tired, so I went to bed. (O)"
+    },
+    {
+      "text": "부정문에서 'A도 B도 아니다'라고 할 때는 and가 아니라 or를 써요.",
+      "formula": "I don't like coffee or tea."
+    }
+  ],
+  "examples": [
+    {
+      "en": "I'd like a burger and fries.",
+      "ko": "버거랑 감자튀김 주세요. (단어 + 단어)",
+      "highlight": "and"
+    },
+    {
+      "en": "She's smart and funny.",
+      "ko": "그 애는 똑똑하고 재미있어. (더하기)",
+      "highlight": "and"
+    },
+    {
+      "en": "This place is small but cozy.",
+      "ko": "여기는 작지만 아늑해. (반대)",
+      "highlight": "but"
+    },
+    {
+      "en": "Should we eat out or order in?",
+      "ko": "나가서 먹을까, 아니면 시켜 먹을까? (선택)",
+      "highlight": "or"
+    },
+    {
+      "en": "I got home and took a shower.",
+      "ko": "집에 와서 샤워했어. (주어가 같아서 뒤의 I를 뺌)",
+      "highlight": "and"
+    },
+    {
+      "en": "I called you, but you didn't answer.",
+      "ko": "너한테 전화했는데 안 받더라. (문장 + 문장, 쉼표)",
+      "highlight": ", but"
+    },
+    {
+      "en": "I missed the bus, so I was late.",
+      "ko": "버스를 놓쳐서 늦었어. (원인, so 결과)",
+      "highlight": ", so"
+    },
+    {
+      "en": "We need eggs, milk, and bread.",
+      "ko": "우리 달걀, 우유, 빵이 필요해. (A, B, and C)",
+      "highlight": "eggs, milk, and bread"
+    },
+    {
+      "en": "I don't like coffee or tea.",
+      "ko": "나는 커피도 차도 안 좋아해. (부정문에서는 or)",
+      "highlight": "or"
+    },
+    {
+      "en": "Do you want to walk or take the bus?",
+      "ko": "걸어갈래, 아니면 버스 탈래? (구 + 구)",
+      "highlight": "or"
+    }
+  ],
+  "commonErrors": [
+    {
+      "wrong": "Because I was tired, so I went to bed early.",
+      "correct": "I was tired, so I went to bed early.",
+      "reason": "우리말 '~해서 그래서'처럼 because와 so를 같이 쓰지 않아요. 둘 중 하나만 써요."
+    },
+    {
+      "wrong": "I like singing and to dance.",
+      "correct": "I like singing and dancing.",
+      "reason": "and는 같은 모양끼리 이어요. 앞이 -ing(singing)면 뒤도 -ing(dancing)로 써요."
+    },
+    {
+      "wrong": "I don't like coffee and tea.",
+      "correct": "I don't like coffee or tea.",
+      "reason": "부정문에서 '둘 다 아니다'라고 할 때는 and가 아니라 or를 써요."
+    },
+    {
+      "wrong": "It was cold, but I wore a coat.",
+      "correct": "It was cold, so I wore a coat.",
+      "reason": "추워서 코트를 입은 것은 반대가 아니라 결과예요. 결과는 so로 이어요."
+    },
+    {
+      "wrong": "He is tired so hungry.",
+      "correct": "He is tired and hungry.",
+      "reason": "so(그래서)는 문장과 문장만 이어요. 단어와 단어는 and로 이어요."
+    }
+  ],
+  "sourceScript": {
+    "title": "and·but·or·so — 강의 기준 원고",
+    "content": "[강의 범위]\nand·but·or·so 네 단어의 뜻과 쓰임을 익히는 단원이다. 대상은 중학생~고등학생, 성인 초급. 다루는 범위는 접속사의 뜻(말과 말을 이어 주는 말), and(더하기)·but(반대)·or(선택)·so(결과), 같은 종류·같은 모양끼리 잇기(단어 + 단어, 구 + 구, 문장 + 문장), 문장과 문장을 이을 때 접속사 앞 쉼표, 주어가 같을 때 and·but·or 뒤 주어 생략, 셋 이상 나열(A, B, and C), so는 문장과 문장만 잇는다는 점, 부정문에서 'A도 B도 아니다'는 or를 쓴다는 점이다. both A and B·either A or B(G09-01-02), not only A but also B·neither A nor B(G09-01-03), 명령문 + and/or(G05-03-02), because·when·if 같은 부사절 접속사, so that·so ~ that, however·therefore, for·nor·yet은 뒤 단원에서 다룬다. '등위접속사'라는 용어는 한 번만 보여 주고 '이어 주는 말'로 부른다.\n\n[도입]\nBecause I was tired, so I went to bed early. 는 틀린 문장이다. 우리말로는 '피곤해서 그래서 일찍 잤어'가 자연스럽지만, 영어는 because와 so를 한 문장에 같이 쓰지 않는다. I was tired, so I went to bed early. 처럼 하나만 쓴다.\n\n[1. 왜 필요할까]\n- 짧은 문장을 뚝뚝 끊어 말하면 어색하다. I like pizza. I like pasta. → I like pizza and pasta.\n- 접속사는 말과 말을 이어 주는 말이다.\n\n[2. 네 단어의 뜻]\n- and: 그리고. 비슷한 내용을 더한다. She's smart and funny.\n- but: 그러나, 하지만. 앞과 반대되는 내용을 말한다. This place is small but cozy.\n- or: 또는, 아니면. 둘 중 하나를 고른다. Should we eat out or order in?\n- so: 그래서. 앞이 원인, 뒤가 결과다. I missed the bus, so I was late.\n\n[3. 같은 종류끼리 잇는다]\n- 단어와 단어: pizza and pasta, small but cozy\n- 구와 구: walk or take the bus\n- 문장과 문장: I called you, but you didn't answer.\n- 모양도 맞춘다. 앞이 -ing면 뒤도 -ing. I like singing and dancing.\n\n[4. 문장과 문장을 이을 때]\n- 접속사 앞에 쉼표를 찍는다. I called you, but you didn't answer.\n- 문장이 아주 짧으면 쉼표를 빼기도 한다.\n- 주어가 같으면 and·but·or 뒤의 주어를 빼도 된다. 이때는 쉼표를 찍지 않는다. I got home and took a shower.\n\n[5. 꼭 알아 둘 것]\n- so(그래서)는 문장과 문장만 잇는다. 단어끼리는 잇지 못한다.\n- 셋 이상은 A, B, and C. and·or는 마지막 말 앞에 한 번만 쓴다. We need eggs, milk, and bread. and 앞의 쉼표는 빼기도 한다.\n- 부정문에서 'A도 B도 아니다'는 and가 아니라 or를 쓴다. I don't like coffee or tea.\n\n[문장 구조]\n- A + and·but·or + B\n- 문장, + and·but·or·so + 문장\n- A, B, and C\n\n[예문]\nI'd like a burger and fries. / She's smart and funny. / This place is small but cozy. / Should we eat out or order in? / I got home and took a shower. / I called you, but you didn't answer. / I missed the bus, so I was late. / We need eggs, milk, and bread.\n\n[흔한 실수]\n- I like singing and to dance. → I like singing and dancing. (같은 모양끼리)\n- I don't like coffee and tea. → I don't like coffee or tea. (부정문에서 둘 다 아닐 때는 or)\n- It was cold, but I wore a coat. → It was cold, so I wore a coat. (반대가 아니라 결과)\n\n[일상회화 패턴]\n- I'd love to, but ~. (정말 그러고 싶은데, ~) 제안을 정중히 거절할 때. I'd love to, but I have plans.\n- Or we could ~. (아니면 ~해도 되고) 다른 선택을 제안할 때. Or we could get pizza.\n- Go ahead and ~. (먼저 ~해) 기다리지 말고 먼저 하라고 할 때. and 뒤에는 동사원형. Go ahead and order.\n"
+  },
+  "lecture": {
+    "title": "and, but, or, so: 중학생 필수 영어 접속사 완벽 정리",
+    "youtube": "https://youtu.be/OlIC27GJBAo",
+    "durationSec": 919
+  },
+  "questions": [
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I was tired, ____ I went to bed early.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "but",
+          "or",
+          "so",
+          "because"
+        ],
+        "correct_answer": "C",
+        "explanation": "피곤한 것이 원인이고 일찍 잔 것이 결과예요. 결과는 so로 이어요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "She is smart ____ funny.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "and",
+          "so",
+          "because",
+          "if"
+        ],
+        "correct_answer": "A",
+        "explanation": "똑똑하다, 재미있다는 비슷한 내용을 더하니까 and를 써요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "This place is small ____ cozy.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "so",
+          "but",
+          "or",
+          "because"
+        ],
+        "correct_answer": "B",
+        "explanation": "'작다'와 '아늑하다'는 반대되는 느낌이라 but으로 이어요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Should we eat out ____ order in?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "so",
+          "but",
+          "and",
+          "or"
+        ],
+        "correct_answer": "D",
+        "explanation": "나가서 먹기와 시켜 먹기 중 하나를 고르니까 or를 써요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I called you, ____ you didn't answer.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "or",
+          "so",
+          "but",
+          "because"
+        ],
+        "correct_answer": "C",
+        "explanation": "전화했는데 받지 않았으니 앞과 반대되는 내용이에요. but을 써요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I missed the bus, ____ I was late.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "so",
+          "but",
+          "or",
+          "because"
+        ],
+        "correct_answer": "A",
+        "explanation": "버스를 놓친 것이 원인, 늦은 것이 결과라서 so예요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I like singing and ____.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "dance",
+          "to dance",
+          "danced",
+          "dancing"
+        ],
+        "correct_answer": "D",
+        "explanation": "and는 같은 모양끼리 이어요. 앞이 singing이니까 뒤도 dancing이에요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I don't like coffee ____ tea.",
+        "question_text_ko": "'커피도 차도 좋아하지 않는다'는 뜻이 되도록 빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "and",
+          "or",
+          "so",
+          "but"
+        ],
+        "correct_answer": "B",
+        "explanation": "부정문에서 '둘 다 아니다'라고 할 때는 and가 아니라 or를 써요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "We need eggs, milk, ____ bread.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "and",
+          "so",
+          "but",
+          "because"
+        ],
+        "correct_answer": "A",
+        "explanation": "셋 이상을 늘어놓을 때는 마지막 말 앞에 and를 써요. (A, B, and C)"
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "It was cold, ____ I wore a coat.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "but",
+          "or",
+          "so",
+          "because"
+        ],
+        "correct_answer": "C",
+        "explanation": "추워서 코트를 입었어요. 반대가 아니라 결과라서 so예요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Do you want to walk ____ take the bus?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "so",
+          "or",
+          "but",
+          "because"
+        ],
+        "correct_answer": "B",
+        "explanation": "걷기와 버스 타기 중 하나를 고르니까 or예요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct?",
+        "question_text_ko": "다음 중 올바른 문장을 고르세요.",
+        "options": [
+          "Because I was tired, so I went to bed early.",
+          "I was tired, so I went to bed early.",
+          "I was tired so, I went to bed early.",
+          "So I was tired, I went to bed early."
+        ],
+        "correct_answer": "B",
+        "explanation": "because와 so는 같이 쓰지 않아요. 쉼표는 so 앞에 찍어요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct? (cooking, baking)",
+        "question_text_ko": "다음 중 올바른 문장을 고르세요.",
+        "options": [
+          "She likes cooking and to bake.",
+          "She likes to cook and baking.",
+          "She likes cook and baking.",
+          "She likes cooking and baking."
+        ],
+        "correct_answer": "D",
+        "explanation": "and 앞뒤는 같은 모양으로 맞춰요. cooking and baking처럼 둘 다 -ing예요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I got home ____ took a shower.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "and",
+          "so",
+          "because",
+          "or"
+        ],
+        "correct_answer": "A",
+        "explanation": "집에 온 일과 샤워한 일을 차례로 더하니까 and예요. 주어가 같아서 뒤의 I는 뺐어요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct? (so)",
+        "question_text_ko": "다음 중 올바른 문장을 고르세요.",
+        "options": [
+          "He is tired so hungry.",
+          "He was tired, so he went home.",
+          "He so was tired went home.",
+          "He was tired, so went he home."
+        ],
+        "correct_answer": "B",
+        "explanation": "so(그래서)는 문장과 문장을 이어요. so 앞에 쉼표를 찍고, 뒤에 주어 + 동사를 써요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "He doesn't eat meat ____ fish.",
+        "question_text_ko": "'고기도 생선도 먹지 않는다'는 뜻이 되도록 빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "and",
+          "so",
+          "but",
+          "or"
+        ],
+        "correct_answer": "D",
+        "explanation": "부정문에서 '고기도 생선도 아니다'는 or로 이어요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "It was raining, ____ we stayed home.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "but",
+          "or",
+          "because",
+          "so"
+        ],
+        "correct_answer": "D",
+        "explanation": "비가 온 것이 원인, 집에 있은 것이 결과라서 so예요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "It was raining, ____ we went for a walk anyway.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "so",
+          "or",
+          "but",
+          "because"
+        ],
+        "correct_answer": "C",
+        "explanation": "비가 왔는데도 산책을 갔으니 앞과 반대되는 내용이에요. but을 써요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Which sentence is correct? (apples, bananas, oranges)",
+        "question_text_ko": "다음 중 올바른 문장을 고르세요.",
+        "options": [
+          "I bought apples and bananas and, oranges.",
+          "I bought apples, bananas, and oranges.",
+          "I bought and apples, bananas, oranges.",
+          "I bought apples, and bananas, oranges."
+        ],
+        "correct_answer": "B",
+        "explanation": "셋 이상은 쉼표로 잇고 and는 마지막 말 앞에 한 번만 써요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "She speaks quickly but ____.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "clearly",
+          "clear",
+          "clearness",
+          "to clear"
+        ],
+        "correct_answer": "A",
+        "explanation": "but도 같은 모양끼리 이어요. 앞이 quickly(부사)니까 뒤도 clearly(부사)예요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "He is rich ____ unhappy.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "but",
+          "so",
+          "or",
+          "because"
+        ],
+        "correct_answer": "A",
+        "explanation": "부자인데 행복하지 않으니 앞과 반대되는 내용이에요. but을 써요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "Is it Monday ____ Tuesday today?",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "so",
+          "but",
+          "or",
+          "because"
+        ],
+        "correct_answer": "C",
+        "explanation": "월요일과 화요일 중 하나를 묻는 선택이라 or예요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "I wanted to buy the shoes, ____ they were too expensive.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "so",
+          "or",
+          "because",
+          "but"
+        ],
+        "correct_answer": "D",
+        "explanation": "사고 싶었지만 너무 비쌌어요. 앞과 반대되는 내용이라 but이에요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "multiple_choice",
+        "question_text": "My brother enjoys swimming, running, and ____.",
+        "question_text_ko": "빈칸에 알맞은 말을 고르세요.",
+        "options": [
+          "to cycle",
+          "cycle",
+          "cycling",
+          "cycles"
+        ],
+        "correct_answer": "C",
+        "explanation": "셋을 늘어놓을 때도 모양을 맞춰요. swimming, running처럼 cycling으로 써요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I'm hungry, ____ there's no food at home. (but / so)",
+        "question_text_ko": "괄호 안에서 알맞은 말을 골라 빈칸에 쓰세요.",
+        "correct_answer": "but",
+        "explanation": "배고픈데 집에 먹을 것이 없어요. 앞과 반대되는 내용이라 but이에요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "Would you like tea ____ coffee? (or / so)",
+        "question_text_ko": "괄호 안에서 알맞은 말을 골라 빈칸에 쓰세요.",
+        "correct_answer": "or",
+        "explanation": "차와 커피 중 하나를 고르니까 or예요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "The movie was long ____ boring. (and / so)",
+        "question_text_ko": "괄호 안에서 알맞은 말을 골라 빈칸에 쓰세요.",
+        "correct_answer": "and",
+        "explanation": "길다, 지루하다를 더하니까 and예요. so는 단어끼리 잇지 못해요."
+      }
+    },
+    {
+      "difficulty": 4,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I forgot my umbrella, ____ I got wet. (but / so)",
+        "question_text_ko": "괄호 안에서 알맞은 말을 골라 빈칸에 쓰세요.",
+        "correct_answer": "so",
+        "explanation": "우산을 잊은 것이 원인, 젖은 것이 결과라서 so예요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "He likes running and ____. (swim / swimming)",
+        "question_text_ko": "괄호 안에서 알맞은 말을 골라 빈칸에 쓰세요.",
+        "correct_answer": "swimming",
+        "explanation": "and 앞이 running이니까 뒤도 같은 모양인 swimming을 써요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I don't have a brother ____ a sister. (and / or)",
+        "question_text_ko": "'형제도 자매도 없다'는 뜻이 되도록 괄호 안에서 알맞은 말을 골라 빈칸에 쓰세요.",
+        "correct_answer": "or",
+        "explanation": "부정문에서 '둘 다 없다'는 or로 이어요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "I studied hard, ____ I passed the test. (so / because)",
+        "question_text_ko": "괄호 안에서 알맞은 말을 골라 빈칸에 쓰세요.",
+        "correct_answer": "so",
+        "explanation": "열심히 공부한 것이 원인, 합격한 것이 결과예요. 결과 앞에는 so를 써요."
+      }
+    },
+    {
+      "difficulty": 5,
+      "content": {
+        "type": "fill_blank",
+        "question_text": "He opened the door ____ walked in. (and / so)",
+        "question_text_ko": "괄호 안에서 알맞은 말을 골라 빈칸에 쓰세요.",
+        "correct_answer": "and",
+        "explanation": "문을 열고 들어간 일을 차례로 더하니까 and예요. so 뒤에는 주어가 있는 문장이 와요."
+      }
+    }
+  ]
+}

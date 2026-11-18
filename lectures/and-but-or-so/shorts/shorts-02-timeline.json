@@ -1,0 +1,642 @@
+{
+  "version": 1,
+  "totalMs": 49280,
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "startMs": 250,
+      "endMs": 4080,
+      "words": [
+        {
+          "text": "아니면",
+          "startMs": 250,
+          "endMs": 905
+        },
+        {
+          "text": "피자",
+          "startMs": 977,
+          "endMs": 1195
+        },
+        {
+          "text": "먹어도",
+          "startMs": 1268,
+          "endMs": 1559
+        },
+        {
+          "text": "되고",
+          "startMs": 1632,
+          "endMs": 2214
+        },
+        {
+          "text": "영어로",
+          "startMs": 2432,
+          "endMs": 2868
+        },
+        {
+          "text": "바로",
+          "startMs": 2941,
+          "endMs": 3159
+        },
+        {
+          "text": "말할",
+          "startMs": 3232,
+          "endMs": 3450
+        },
+        {
+          "text": "수",
+          "startMs": 3486,
+          "endMs": 3523
+        },
+        {
+          "text": "있나요?",
+          "startMs": 3632,
+          "endMs": 4080
+        }
+      ]
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 4560,
+      "endMs": 9564,
+      "words": [
+        {
+          "text": "오늘",
+          "startMs": 4560,
+          "endMs": 4841
+        },
+        {
+          "text": "패턴은",
+          "startMs": 4914,
+          "endMs": 5641
+        },
+        {
+          "text": "오어",
+          "startMs": 5786,
+          "endMs": 6077
+        },
+        {
+          "text": "위",
+          "startMs": 6186,
+          "endMs": 6295
+        },
+        {
+          "text": "쿠드예요.",
+          "startMs": 6368,
+          "endMs": 7750
+        },
+        {
+          "text": "뒤에는",
+          "startMs": 7823,
+          "endMs": 8332
+        },
+        {
+          "text": "동사원형이",
+          "startMs": 8477,
+          "endMs": 9059
+        },
+        {
+          "text": "와요.",
+          "startMs": 9132,
+          "endMs": 9564
+        }
+      ]
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "startMs": 9864,
+      "endMs": 11244,
+      "words": [
+        {
+          "text": "Or",
+          "startMs": 9864,
+          "endMs": 10254
+        },
+        {
+          "text": "we",
+          "startMs": 10574,
+          "endMs": 10734
+        },
+        {
+          "text": "could.",
+          "startMs": 10934,
+          "endMs": 11244
+        }
+      ],
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "startMs": 11544,
+      "endMs": 21304,
+      "words": [
+        {
+          "text": "다른",
+          "startMs": 11544,
+          "endMs": 11835
+        },
+        {
+          "text": "선택을",
+          "startMs": 11980,
+          "endMs": 12417
+        },
+        {
+          "text": "하나",
+          "startMs": 12489,
+          "endMs": 12708
+        },
+        {
+          "text": "더",
+          "startMs": 12817,
+          "endMs": 12926
+        },
+        {
+          "text": "제안할",
+          "startMs": 12999,
+          "endMs": 13289
+        },
+        {
+          "text": "때",
+          "startMs": 13362,
+          "endMs": 13435
+        },
+        {
+          "text": "써요.",
+          "startMs": 13508,
+          "endMs": 14308
+        },
+        {
+          "text": "메뉴나",
+          "startMs": 14380,
+          "endMs": 14889
+        },
+        {
+          "text": "계획을",
+          "startMs": 14962,
+          "endMs": 15253
+        },
+        {
+          "text": "정할",
+          "startMs": 15326,
+          "endMs": 15617
+        },
+        {
+          "text": "때",
+          "startMs": 15689,
+          "endMs": 15762
+        },
+        {
+          "text": "딱이죠.",
+          "startMs": 15835,
+          "endMs": 16853
+        },
+        {
+          "text": "오어는",
+          "startMs": 16999,
+          "endMs": 17653
+        },
+        {
+          "text": "선택이라고",
+          "startMs": 17799,
+          "endMs": 18235
+        },
+        {
+          "text": "했죠?",
+          "startMs": 18344,
+          "endMs": 19035
+        },
+        {
+          "text": "그",
+          "startMs": 19108,
+          "endMs": 19326
+        },
+        {
+          "text": "오어로",
+          "startMs": 19399,
+          "endMs": 19980
+        },
+        {
+          "text": "문장을",
+          "startMs": 20089,
+          "endMs": 20417
+        },
+        {
+          "text": "시작한",
+          "startMs": 20489,
+          "endMs": 20853
+        },
+        {
+          "text": "거예요.",
+          "startMs": 20926,
+          "endMs": 21304
+        }
+      ]
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 21784,
+      "endMs": 23784,
+      "words": [
+        {
+          "text": "예문",
+          "startMs": 21784,
+          "endMs": 22138
+        },
+        {
+          "text": "세",
+          "startMs": 22210,
+          "endMs": 22356
+        },
+        {
+          "text": "개,",
+          "startMs": 22429,
+          "endMs": 22938
+        },
+        {
+          "text": "바로",
+          "startMs": 23010,
+          "endMs": 23156
+        },
+        {
+          "text": "갈게요!",
+          "startMs": 23229,
+          "endMs": 23784
+        }
+      ]
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 24084,
+      "endMs": 25804,
+      "words": [
+        {
+          "text": "Or",
+          "startMs": 24084,
+          "endMs": 24484
+        },
+        {
+          "text": "we",
+          "startMs": 24724,
+          "endMs": 24884
+        },
+        {
+          "text": "could",
+          "startMs": 24964,
+          "endMs": 25044
+        },
+        {
+          "text": "get",
+          "startMs": 25124,
+          "endMs": 25204
+        },
+        {
+          "text": "pizza.",
+          "startMs": 25444,
+          "endMs": 25804
+        }
+      ]
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 26104,
+      "endMs": 27974,
+      "words": [
+        {
+          "text": "아니면",
+          "startMs": 26104,
+          "endMs": 26749
+        },
+        {
+          "text": "피자",
+          "startMs": 26894,
+          "endMs": 27039
+        },
+        {
+          "text": "먹어도",
+          "startMs": 27185,
+          "endMs": 27403
+        },
+        {
+          "text": "되고",
+          "startMs": 27476,
+          "endMs": 27974
+        }
+      ]
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 28274,
+      "endMs": 30174,
+      "words": [
+        {
+          "text": "Or",
+          "startMs": 28274,
+          "endMs": 28594
+        },
+        {
+          "text": "we",
+          "startMs": 28914,
+          "endMs": 28994
+        },
+        {
+          "text": "could",
+          "startMs": 29074,
+          "endMs": 29154
+        },
+        {
+          "text": "just",
+          "startMs": 29274,
+          "endMs": 29394
+        },
+        {
+          "text": "order",
+          "startMs": 29474,
+          "endMs": 29714
+        },
+        {
+          "text": "in.",
+          "startMs": 29794,
+          "endMs": 30174
+        }
+      ]
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 30474,
+      "endMs": 32544,
+      "words": [
+        {
+          "text": "아니면",
+          "startMs": 30474,
+          "endMs": 31129
+        },
+        {
+          "text": "그냥",
+          "startMs": 31274,
+          "endMs": 31492
+        },
+        {
+          "text": "시켜",
+          "startMs": 31565,
+          "endMs": 31783
+        },
+        {
+          "text": "먹어도",
+          "startMs": 31856,
+          "endMs": 32147
+        },
+        {
+          "text": "돼",
+          "startMs": 32219,
+          "endMs": 32544
+        }
+      ]
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "startMs": 32844,
+      "endMs": 34654,
+      "words": [
+        {
+          "text": "Or",
+          "startMs": 32844,
+          "endMs": 33234
+        },
+        {
+          "text": "we",
+          "startMs": 33474,
+          "endMs": 33634
+        },
+        {
+          "text": "could",
+          "startMs": 33714,
+          "endMs": 33794
+        },
+        {
+          "text": "watch",
+          "startMs": 33914,
+          "endMs": 34034
+        },
+        {
+          "text": "a",
+          "startMs": 34074,
+          "endMs": 34114
+        },
+        {
+          "text": "movie.",
+          "startMs": 34314,
+          "endMs": 34654
+        }
+      ]
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "startMs": 34954,
+      "endMs": 36874,
+      "words": [
+        {
+          "text": "아니면",
+          "startMs": 34954,
+          "endMs": 35609
+        },
+        {
+          "text": "영화",
+          "startMs": 35681,
+          "endMs": 35972
+        },
+        {
+          "text": "볼",
+          "startMs": 36045,
+          "endMs": 36118
+        },
+        {
+          "text": "수도",
+          "startMs": 36190,
+          "endMs": 36336
+        },
+        {
+          "text": "있어",
+          "startMs": 36445,
+          "endMs": 36874
+        }
+      ]
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "startMs": 37354,
+      "endMs": 38694,
+      "words": [
+        {
+          "text": "이제",
+          "startMs": 37354,
+          "endMs": 37790
+        },
+        {
+          "text": "따라",
+          "startMs": 37863,
+          "endMs": 38009
+        },
+        {
+          "text": "해",
+          "startMs": 38045,
+          "endMs": 38081
+        },
+        {
+          "text": "보세요!",
+          "startMs": 38154,
+          "endMs": 38694
+        }
+      ]
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "startMs": 38994,
+      "endMs": 40724,
+      "words": [
+        {
+          "text": "Or",
+          "startMs": 38994,
+          "endMs": 39394
+        },
+        {
+          "text": "we",
+          "startMs": 39634,
+          "endMs": 39794
+        },
+        {
+          "text": "could",
+          "startMs": 39874,
+          "endMs": 39954
+        },
+        {
+          "text": "get",
+          "startMs": 40034,
+          "endMs": 40114
+        },
+        {
+          "text": "pizza.",
+          "startMs": 40354,
+          "endMs": 40724
+        }
+      ],
+      "type": "repeat",
+      "speed": 1,
+      "pauseEndMs": 42800
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "startMs": 43280,
+      "endMs": 48080,
+      "words": [
+        {
+          "text": "메뉴",
+          "startMs": 43280,
+          "endMs": 43571
+        },
+        {
+          "text": "정할",
+          "startMs": 43644,
+          "endMs": 43935
+        },
+        {
+          "text": "때",
+          "startMs": 44080,
+          "endMs": 44225
+        },
+        {
+          "text": "꼭",
+          "startMs": 44371,
+          "endMs": 44516
+        },
+        {
+          "text": "써",
+          "startMs": 44553,
+          "endMs": 44589
+        },
+        {
+          "text": "보세요.",
+          "startMs": 44662,
+          "endMs": 45462
+        },
+        {
+          "text": "더",
+          "startMs": 45535,
+          "endMs": 45680
+        },
+        {
+          "text": "자세한",
+          "startMs": 45753,
+          "endMs": 46044
+        },
+        {
+          "text": "설명은",
+          "startMs": 46116,
+          "endMs": 46698
+        },
+        {
+          "text": "위고업잉글리시에서!",
+          "startMs": 46771,
+          "endMs": 48080
+        }
+      ]
+    }
+  ],
+  "slides": [
+    {
+      "id": "s1",
+      "startMs": 0,
+      "endMs": 4320
+    },
+    {
+      "id": "s2",
+      "startMs": 4320,
+      "endMs": 21544
+    },
+    {
+      "id": "s3",
+      "startMs": 21544,
+      "endMs": 37114
+    },
+    {
+      "id": "s4",
+      "startMs": 37114,
+      "endMs": 43040
+    },
+    {
+      "id": "s5",
+      "startMs": 43040,
+      "endMs": 49280
+    }
+  ],
+  "measured": true,
+  "audioFile": "narration.wav",
+  "loudnessLufs": -16.1,
+  "provider": "elevenlabs/eleven_v4"
+}

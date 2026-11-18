@@ -1,0 +1,194 @@
+{
+  "version": 1,
+  "slug": "and-but-or-so-shorts-02",
+  "title": "and·but·or·so 숏폼 2 — Or we could ~.",
+  "grammarPoint": {
+    "code": "G09-01-01",
+    "title": "and·but·or·so"
+  },
+  "targetMinutes": 1,
+  "createdAt": "2026-11-16T00:01:28.951Z",
+  "format": "shorts",
+  "tempo": {
+    "koSpeedScale": 1.1,
+    "enSpeed": 1,
+    "gapScale": 0.6,
+    "leadInMs": 250,
+    "tailMs": 1200,
+    "repeatPause": {
+      "factor": 1.2,
+      "extraSec": 0
+    }
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "hook",
+      "data": {
+        "question": "'아니면 피자 먹어도 되고' 영어로 바로 말할 수 있나요?",
+        "sub": "3초 안에 떠올려 보세요"
+      },
+      "chapter": "훅"
+    },
+    {
+      "id": "s2",
+      "type": "pattern",
+      "data": {
+        "pattern": "Or we could ~.",
+        "ko": "아니면 ~해도 되고",
+        "slot": "동사원형"
+      },
+      "chapter": "패턴"
+    },
+    {
+      "id": "s3",
+      "type": "examples",
+      "data": {
+        "examples": [
+          {
+            "en": "Or we could get pizza.",
+            "ko": "아니면 피자 먹어도 되고"
+          },
+          {
+            "en": "Or we could just order in.",
+            "ko": "아니면 그냥 시켜 먹어도 돼"
+          },
+          {
+            "en": "Or we could watch a movie.",
+            "ko": "아니면 영화 볼 수도 있어"
+          }
+        ]
+      },
+      "chapter": "예문"
+    },
+    {
+      "id": "s4",
+      "type": "repeat",
+      "data": {
+        "sentence": "Or we could get pizza.",
+        "ko": "아니면 피자 먹어도 되고",
+        "stress": [
+          "pizza"
+        ]
+      },
+      "chapter": "따라하기"
+    },
+    {
+      "id": "s5",
+      "type": "cta",
+      "data": {
+        "lectureTitle": "and·but·or·so",
+        "message": "더 자세한 설명은 위고업잉글리시에서!"
+      },
+      "chapter": "위고업잉글리시 안내"
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1-1",
+      "slideId": "s1",
+      "lang": "ko",
+      "text": "'아니면 피자 먹어도 되고' 영어로 바로 말할 수 있나요?",
+      "emotion": "질문"
+    },
+    {
+      "id": "s2-1",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "오늘 패턴은 오어 위 쿠드예요. 뒤에는 동사원형이 와요.",
+      "emotion": "설명"
+    },
+    {
+      "id": "s2-2",
+      "slideId": "s2",
+      "lang": "en",
+      "text": "Or we could ….",
+      "emotion": "강조",
+      "reveal": 1,
+      "type": "pattern"
+    },
+    {
+      "id": "s2-3",
+      "slideId": "s2",
+      "lang": "ko",
+      "text": "다른 선택을 하나 더 제안할 때 써요. 메뉴나 계획을 정할 때 딱이죠. 오어는 선택이라고 했죠? 그 오어로 문장을 시작한 거예요.",
+      "emotion": "강조",
+      "reveal": 2
+    },
+    {
+      "id": "s3-1",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "예문 세 개, 바로 갈게요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-2",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Or we could get pizza.",
+      "emotion": "설명",
+      "reveal": 1
+    },
+    {
+      "id": "s3-3",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "아니면 피자 먹어도 되고",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-4",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Or we could just order in.",
+      "emotion": "설명",
+      "reveal": 2
+    },
+    {
+      "id": "s3-5",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "아니면 그냥 시켜 먹어도 돼",
+      "emotion": "설명"
+    },
+    {
+      "id": "s3-6",
+      "slideId": "s3",
+      "lang": "en",
+      "text": "Or we could watch a movie.",
+      "emotion": "설명",
+      "reveal": 3
+    },
+    {
+      "id": "s3-7",
+      "slideId": "s3",
+      "lang": "ko",
+      "text": "아니면 영화 볼 수도 있어",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-1",
+      "slideId": "s4",
+      "lang": "ko",
+      "text": "이제 따라 해 보세요!",
+      "emotion": "설명"
+    },
+    {
+      "id": "s4-2",
+      "slideId": "s4",
+      "lang": "en",
+      "text": "Or we could get pizza.",
+      "emotion": "설명",
+      "type": "repeat",
+      "speed": 1
+    },
+    {
+      "id": "s5-1",
+      "slideId": "s5",
+      "lang": "ko",
+      "text": "메뉴 정할 때 꼭 써 보세요. 더 자세한 설명은 위고업잉글리시에서!",
+      "emotion": "칭찬"
+    }
+  ]
+}
