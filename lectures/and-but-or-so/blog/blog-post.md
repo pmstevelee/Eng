@@ -24,7 +24,7 @@ I like pizza. I like pasta. 두 문장을 I like pizza and pasta.로 이으면 �
 
 셋 이상을 늘어놓을 때는 쉼표로 잇고 마지막 말 앞에만 and나 or를 써요. I have math, English, and science today. (오늘 수학, 영어, 과학이 있어요.)처럼요.
 
-[YOUTUBE: https://youtu.be/OlIC27GJBAo | 본 강의 전체 내용과 발음 연습은 영상에서 자세히 볼 수 있어요.]
+[YOUTUBE: https://youtu.be/qGjFplOvRc4 | 본 강의 전체 내용과 발음 연습은 영상에서 자세히 볼 수 있어요.]
 
 ## 원어민이 자주 쓰는 예문
 I'd like a burger and fries. (버거랑 감자튀김 주세요.)는 명사와 명사를 and로 이은 문장이에요.
